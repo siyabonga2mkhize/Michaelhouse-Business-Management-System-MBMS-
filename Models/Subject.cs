@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace MIEMS.Models
+{
+	public class Subject
+	{
+        public int SubjectId { get; set; }
+
+        [Required, Display(Name = "Subject Name")]
+        [StringLength(100)]
+        public string SubjectName { get; set; }
+
+        [Display(Name = "Subject Code")]
+        [StringLength(10)]
+        public string SubjectCode { get; set; }
+
+        [Display(Name = "Grade Level")]
+        public int GradeLevel { get; set; }
+
+        [Display(Name = "Credits")]
+        public int Credits { get; set; }
+
+        public int? TeacherId { get; set; }
+        public virtual Teacher Teacher { get; set; }
+        public virtual ICollection<StudentMark> StudentMarks { get; set; }
+        public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
+    }
+}
