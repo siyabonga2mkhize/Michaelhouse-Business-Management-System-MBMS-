@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Subject
-	{
+    public class Subject
+    {
         public int SubjectId { get; set; }
 
         [Required, Display(Name = "Subject Name")]
@@ -27,6 +24,6 @@ namespace MIEMS.Models
         public int? TeacherId { get; set; }
         public virtual Teacher Teacher { get; set; }
         public virtual ICollection<StudentMark> StudentMarks { get; set; }
-        public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
+        //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
     }
 }

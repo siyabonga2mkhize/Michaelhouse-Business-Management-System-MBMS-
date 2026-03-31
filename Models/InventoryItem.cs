@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class InventoryItem
-	{
+    public class InventoryItem
+    {
         public int InventoryItemId { get; set; }
 
         [Required, Display(Name = "Item Name")]

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Payment
-	{
+    public class Payment
+    {
         public int PaymentId { get; set; }
 
         [Display(Name = "Reference Number")]

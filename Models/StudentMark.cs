@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class StudentMark
-	{
+    public class StudentMark
+    {
         public int StudentMarkId { get; set; }
 
         [Display(Name = "Assessment Name")]

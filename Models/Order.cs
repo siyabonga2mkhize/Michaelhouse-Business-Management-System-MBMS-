@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Order
-	{
+    public class Order
+    {
         public int OrderId { get; set; }
 
         [Display(Name = "Order Number")]

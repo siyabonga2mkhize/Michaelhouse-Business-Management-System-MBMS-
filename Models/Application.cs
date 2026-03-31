@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Application
-	{
+    public class Application
+    {
         public int ApplicationId { get; set; }
 
         [Required, Display(Name = "Student First Name")]

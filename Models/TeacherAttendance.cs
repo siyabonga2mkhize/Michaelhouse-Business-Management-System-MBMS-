@@ -1,15 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class TeacherAttendance
-	{
+    public enum TeacherStatus
+    {
+        Present,
+        Absent,
+        Leave
+    }
+    public class TeacherAttendance
+    {
         public int TeacherAttendanceId { get; set; }
-
+        [Required]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
@@ -19,7 +22,10 @@ namespace MIEMS.Models
         [Display(Name = "Sign Out Time")]
         public DateTime? SignOutTime { get; set; }
 
-        public string Status { get; set; } // Present, Absent, Leave
+        public TeacherStatus Status { get; set; }
+
+        [Display(Name = "Geofence Verified")]
+        public bool IsVerified { get; set; }
 
         public int TeacherId { get; set; }
         public virtual Teacher Teacher { get; set; }

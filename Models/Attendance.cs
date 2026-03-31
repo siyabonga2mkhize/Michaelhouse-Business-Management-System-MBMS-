@@ -1,13 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Attendance
-	{
+    public enum AttendanceStatus
+    {
+        Present,
+        Absent,
+        Late
+    }
+    public class Attendance
+    {
         public int AttendanceId { get; set; }
 
         [Display(Name = "Date")]
@@ -15,7 +18,7 @@ namespace MIEMS.Models
         public DateTime Date { get; set; }
 
         [Display(Name = "Status")]
-        public string Status { get; set; } // Present, Absent, Late
+        public AttendanceStatus Status { get; set; } // Present, Absent, Late
 
         public int StudentId { get; set; }
         public virtual Student Student { get; set; }
@@ -25,5 +28,7 @@ namespace MIEMS.Models
 
         [Display(Name = "Recorded By")]
         public string RecordedBy { get; set; }
+
+
     }
 }
