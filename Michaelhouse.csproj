@@ -130,14 +130,15 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Data\ApplicationDbContext.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202603311005090_InitialCreate.cs" />
-    <Compile Include="Migrations\202603311005090_InitialCreate.Designer.cs">
-      <DependentUpon>202603311005090_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202604010926222_InitialFix.cs" />
+    <Compile Include="Migrations\202604010926222_InitialFix.Designer.cs">
+      <DependentUpon>202604010926222_InitialFix.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -210,6 +211,11 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Attendances\Create.cshtml" />
+    <Content Include="Views\Attendances\Delete.cshtml" />
+    <Content Include="Views\Attendances\Record.cshtml" />
+    <Content Include="Views\Attendances\Edit.cshtml" />
+    <Content Include="Views\Attendances\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -242,8 +248,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202603311005090_InitialCreate.resx">
-      <DependentUpon>202603311005090_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604010926222_InitialFix.resx">
+      <DependentUpon>202604010926222_InitialFix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

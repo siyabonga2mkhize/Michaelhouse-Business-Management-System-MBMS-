@@ -12,7 +12,7 @@ namespace Michaelhouse.Data
         // If you wish to target a different database and/or database provider, modify the 'ApplicationDbContext' 
         // connection string in the application configuration file.
         public ApplicationDbContext()
-            : base("name=ApplicationDbContext.cs")
+            : base("name=ApplicationDbContext")
         {
         }
         public DbSet<Student> Students { get; set; }

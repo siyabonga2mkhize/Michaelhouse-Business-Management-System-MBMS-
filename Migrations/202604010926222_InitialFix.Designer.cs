@@ -7,13 +7,13 @@ namespace Michaelhouse.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class InitialCreate : IMigrationMetadata
+    public sealed partial class InitialFix : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(InitialCreate));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(InitialFix));
         
         string IMigrationMetadata.Id
         {
-            get { return "202603311005090_InitialCreate"; }
+            get { return "202604010926222_InitialFix"; }
         }
         
         string IMigrationMetadata.Source
