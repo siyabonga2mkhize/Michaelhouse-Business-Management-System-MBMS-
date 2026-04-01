@@ -1,0 +1,211 @@
+﻿@model Michaelhouse.Models.ViewModels.ApplicationCreateViewModel
+@{
+    ViewBag.Title = "New Application";
+}
+
+<div class="page-header">
+    <h3 class="mb-0"><i class="bi bi-plus-circle me-2 text-warning"></i>New Enrollment Application</h3>
+    <small class="text-muted">Fill in all details and upload the required documents</small>
+</div>
+
+<div class="row g-4">
+    <!-- Form -->
+    <div class="col-lg-8">
+        @using (Html.BeginForm("Create", "Applications", FormMethod.Post,
+            new { enctype = "multipart/form-data", id = "applicationForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <!-- Step 1: Select Student -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-fill me-2"></i>Step 1 — Select Student
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold">Student</label>
+                            @Html.DropDownListFor(m => m.StudentId,
+                                (SelectList)ViewBag.Students,
+                                "-- Select a student --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-5 d-flex align-items-end">
+                            <a href="@Url.Action("AddStudent", "Applications")"
+                               class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-person-plus me-2"></i>Add New Student
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Application Year -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-calendar me-2"></i>Step 2 — Application Year
+                </div>
+                <div class="card-body">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Applying for Year</label>
+                        @Html.DropDownListFor(m => m.ApplicationYear,
+                            new SelectList(new[]
+                            {
+                                ViewBag.CurrentYear,
+                                (int)ViewBag.CurrentYear + 1,
+                                (int)ViewBag.CurrentYear + 2
+                            }),
+                            new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-danger small" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Documents -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-paperclip me-2"></i>Step 3 — Upload Documents
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Required:</strong> Birth Certificate and latest Report Card.
+                        Accepted: PDF, JPG, PNG. Max 10MB per file.
+                    </div>
+
+                    <div id="documentRows"></div>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
+                            onclick="addDocumentRow()">
+                        <i class="bi bi-plus-circle me-2"></i>Add Another Document
+                    </button>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
+                    <i class="bi bi-send me-2"></i>Submit Application
+                </button>
+                <a href="@Url.Action("Index", "Applications")"
+                   class="btn btn-outline-secondary btn-lg">Cancel</a>
+            </div>
+        }
+    </div>
+
+    <!-- Help Panel -->
+    <div class="col-lg-4">
+        <div class="card border-warning mb-3">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-lightbulb-fill me-2"></i>Document Guide
+            </div>
+            <div class="card-body small">
+                <p class="fw-semibold mb-1">Required:</p>
+                <ul class="ps-3 mb-3">
+                    <li><strong>Birth Certificate</strong> — certified copy</li>
+                    <li><strong>Report Card</strong> — most recent year</li>
+                </ul>
+                <p class="fw-semibold mb-1">Optional:</p>
+                <ul class="ps-3 mb-3">
+                    <li>Immunization records</li>
+                    <li>Medical certificate</li>
+                    <li>Transfer letter</li>
+                </ul>
+                <div class="text-muted">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Documents are securely stored and only accessible to school staff.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>What Happens Next?
+            </div>
+            <div class="card-body small">
+                <div class="d-flex gap-2 mb-2 align-items-start">
+                    <span class="badge bg-secondary flex-shrink-0 mt-1">1</span>
+                    <span>Application submitted and received</span>
+                </div>
+                <div class="d-flex gap-2 mb-2 align-items-start">
+                    <span class="badge bg-info text-dark flex-shrink-0 mt-1">2</span>
+                    <span>AI reviews your documents automatically</span>
+                </div>
+                <div class="d-flex gap-2 mb-2 align-items-start">
+                    <span class="badge bg-primary flex-shrink-0 mt-1">3</span>
+                    <span>Admin makes the final decision</span>
+                </div>
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="badge bg-success flex-shrink-0 mt-1">4</span>
+                    <span>You are notified of the outcome</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    var rowIndex = 0;
+
+    var docTypes = [
+        "Birth Certificate",
+        "Report Card",
+        "Immunization Record",
+        "Medical Certificate",
+        "Transfer Letter",
+        "Other"
+    ];
+
+    function buildOptions(selectedFirst) {
+        return docTypes.map(function (t, i) {
+            var sel = (i === 0 && selectedFirst) ? ' selected' : '';
+            return '<option value="' + t + '"' + sel + '>' + t + '</option>';
+        }).join('');
+    }
+
+    function addDocumentRow(isFirst) {
+        isFirst = isFirst || false;
+        var container = document.getElementById('documentRows');
+        var div = document.createElement('div');
+        div.className = 'border rounded p-3 mb-3 bg-light position-relative';
+
+        var removeBtn = isFirst ? '' :
+            '<button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" ' +
+            'onclick="this.closest(\'div.border\').remove()">' +
+            '<i class="bi bi-x-lg"></i></button>';
+
+        div.innerHTML = removeBtn +
+            '<div class="row g-2 align-items-end">' +
+                '<div class="col-md-5">' +
+                    '<label class="form-label fw-semibold small">Document Type</label>' +
+                    '<select name="DocumentTypes[' + rowIndex + ']" class="form-select form-select-sm"' + (isFirst ? ' required' : '') + '>' +
+                    buildOptions(isFirst) +
+                    '</select>' +
+                '</div>' +
+                '<div class="col-md-7">' +
+                    '<label class="form-label fw-semibold small">File' + (isFirst ? ' <span class="text-danger">*</span>' : '') + '</label>' +
+                    '<input type="file" name="files" class="form-control form-control-sm" ' +
+                    'accept=".pdf,.jpg,.jpeg,.png"' + (isFirst ? ' required' : '') + ' />' +
+                '</div>' +
+            '</div>';
+
+        container.appendChild(div);
+        rowIndex++;
+    }
+
+    // Add first row on load
+    document.addEventListener('DOMContentLoaded', function () {
+        addDocumentRow(true);
+    });
+
+    // Disable submit button after clicking to prevent double-submit
+    document.getElementById('applicationForm').addEventListener('submit', function () {
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    });
+    </script>
+}

@@ -1,0 +1,330 @@
+﻿@model Michaelhouse.Models.Application
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Review Application #" + Model.AppId;
+    bool canDecide = Model.Status == ApplicationStatus.AwaitingAdminDecision
+                  || Model.Status == ApplicationStatus.Flagged;
+    var lastReview = Model.AdminReviews != null && Model.AdminReviews.Any()
+        ? Model.AdminReviews.OrderByDescending(r => r.Date).FirstOrDefault()
+        : null;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0">
+            <i class="bi bi-file-earmark-check me-2 text-warning"></i>
+            Application #@Model.AppId
+        </h3>
+        <small class="text-muted">
+            @Model.Student?.Name &mdash; Submitted @Model.Date.ToString("dd MMM yyyy HH:mm")
+        </small>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        @Html.Partial("_StatusBadge", Model.Status)
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- ── LEFT: Student + Documents + History ────────────────────────────────── -->
+    <div class="col-lg-4">
+
+        <!-- Student Details -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-fill me-2"></i>Student Details
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Name</td>
+                        <td class="fw-semibold">@Model.Student?.Name</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Date of Birth</td>
+                        <td>@(Model.Student != null ? Model.Student.DOB.ToString("dd MMM yyyy") : "—")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Age</td>
+                        <td>
+                            {
+                                int age = 0;
+                                if (Model.Student != null)
+                                {
+                                    age = DateTime.Today.Year - Model.Student.DOB.Year;
+                                    if (Model.Student.DOB.Date > DateTime.Today.AddYears(-age)) age--;
+                                }
+                            }
+                            age years
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">App. Year</td>
+                        <td>@Model.ApplicationYear</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Parent</td>
+                        <td>@Model.Parent?.Name</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td class="text-muted ps-3 py-2">Contact</td>
+                        <td>@Model.Parent?.Contact</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-paperclip me-2"></i>Documents (@(Model.Documents != null ? Model.Documents.Count : 0))
+            </div>
+            <ul class="list-group list-group-flush">
+                @if (Model.Documents != null && Model.Documents.Any())
+                {
+                    foreach (var doc in Model.Documents)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold small">@doc.Type</div>
+                                    <div class="text-muted" style="font-size:0.78rem;">@doc.FileName</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">
+                                        @doc.UploadedAt.ToString("dd MMM HH:mm")
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("ViewDocument", "Admin", new { id = doc.DId })"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary ms-2">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted small">No documents submitted.</li>
+                }
+            </ul>
+        </div>
+
+        <!-- Review History -->
+        @if (Model.AdminReviews != null && Model.AdminReviews.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Review History
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var rev in Model.AdminReviews.OrderByDescending(r => r.Date))
+                    {
+                        string rc = rev.Decision == "Approved" ? "success"
+                                  : rev.Decision == "Rejected" ? "danger" : "warning";
+                        <li class="list-group-item small">
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-@rc">@rev.Decision</span>
+                                <span class="text-muted">@rev.Date.ToString("dd MMM yyyy")</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(rev.AdminNotes))
+                            {
+                                <div class="text-muted mt-1">@rev.AdminNotes</div>
+                            }
+                            <div class="text-muted" style="font-size:0.75rem;">
+                                Agreed with AI: @(rev.AgreedWithAi ? "Yes" : "No")
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+    </div>
+
+    <!-- ── RIGHT: AI Panel + Decision Form ────────────────────────────────────── -->
+    <div class="col-lg-8">
+
+        <!-- AI Review Panel -->
+        @{
+            string panelBorder = string.IsNullOrEmpty(Model.AiReviewSummary) ? "border-secondary"
+                               : Model.AiRecommendation == "APPROVE" ? "border-success"
+                               : Model.AiRecommendation == "REJECT" ? "border-danger"
+                               : "border-warning";
+
+            string panelHeader = Model.AiRecommendation == "APPROVE" ? "bg-success text-white"
+                               : Model.AiRecommendation == "REJECT" ? "bg-danger text-white"
+                               : Model.AiRecommendation == "FLAG" ? "bg-warning text-dark"
+                               : "bg-secondary text-white";
+        }
+        <div class="card mb-4 border-2 @panelBorder">
+            <div class="card-header d-flex justify-content-between align-items-center @panelHeader">
+                <span><i class="bi bi-robot me-2"></i>AI Review Analysis</span>
+                @if (!string.IsNullOrEmpty(Model.AiRecommendation))
+                {
+                    <span class="badge bg-white text-dark fs-6">
+                        Recommendation: @Model.AiRecommendation
+                    </span>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.Status == ApplicationStatus.Pending)
+                {
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-3">AI review has not started yet.</p>
+                        @using (Html.BeginForm("RetriggerAi", "Admin", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppId" />
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-play-fill me-2"></i>Trigger AI Review Now
+                            </button>
+                        }
+                    </div>
+                }
+                else if (Model.Status == ApplicationStatus.UnderAiReview)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-info mb-3"></div>
+                        <p class="text-muted">AI is reviewing this application...</p>
+                        <small class="text-muted">Refresh the page in a moment to see results.</small>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(Model.AiReviewSummary))
+                {
+                    <div class="p-3 rounded" style="background:#f8f9fa; white-space:pre-wrap; font-size:0.92rem; line-height:1.7;">@Model.AiReviewSummary</div>
+                    <div class="mt-3 pt-3 border-top d-flex justify-content-end">
+                        @using (Html.BeginForm("RetriggerAi", "Admin", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.AppId" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                    onclick="return confirm('Re-run AI review? This will reset the current summary.')">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Re-run AI Review
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No AI summary available yet.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Admin Decision Form -->
+        @if (canDecide)
+        {
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-check-fill me-2"></i>Your Decision
+                    <small class="opacity-75 ms-2">— You have the final say</small>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm("Confirm", "Admin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="AppId" value="@Model.AppId" />
+
+                        if (!string.IsNullOrEmpty(Model.AiRecommendation))
+                        {
+                            string ac = Model.AiRecommendation == "APPROVE" ? "success"
+                                      : Model.AiRecommendation == "REJECT" ? "danger"
+                                      : "warning text-dark";
+                            <div class="alert alert-light border mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" name="AgreedWithAi" value="true"
+                                           class="form-check-input" id="agreeCheck"
+                                           @(Model.AiRecommendation == "APPROVE" ? "checked" : "") />
+                                    <label class="form-check-label fw-semibold" for="agreeCheck">
+                                        I agree with the AI recommendation
+                                        <span class="badge bg-@ac ms-1">@Model.AiRecommendation</span>
+                                    </label>
+                                </div>
+                                <small class="text-muted ms-4">Uncheck if you are overriding the AI decision.</small>
+                            </div>
+                        }
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Decision <span class="text-danger">*</span>
+                            </label>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision"
+                                           id="dec_approve" value="Approved" required />
+                                    <label class="btn btn-outline-success px-4" for="dec_approve">
+                                        <i class="bi bi-check-circle me-2"></i>Approve
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision"
+                                           id="dec_reject" value="Rejected" />
+                                    <label class="btn btn-outline-danger px-4" for="dec_reject">
+                                        <i class="bi bi-x-circle me-2"></i>Reject
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision"
+                                           id="dec_flag" value="Flagged" />
+                                    <label class="btn btn-outline-warning px-4" for="dec_flag">
+                                        <i class="bi bi-flag me-2"></i>Flag
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Notes to Parent
+                                <small class="text-muted fw-normal">(optional — visible to parent)</small>
+                            </label>
+                            <textarea name="Notes" class="form-control" rows="3"
+                                      placeholder="e.g. Please bring the original birth certificate on registration day."></textarea>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg px-5"
+                                    onclick="return confirm('Submit this decision? It will be visible to the parent.')">
+                                <i class="bi bi-send me-2"></i>Confirm Decision
+                            </button>
+                            <a href="@Url.Action("Dashboard", "Admin")"
+                               class="btn btn-outline-secondary btn-lg">
+                                Decide Later
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (lastReview != null)
+        {
+            string dc = lastReview.Decision == "Approved" ? "success"
+                      : lastReview.Decision == "Rejected" ? "danger" : "warning";
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-check-square me-2"></i>Decision Already Made
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Decision:</strong>
+                        <span class="badge bg-@dc ms-1">@lastReview.Decision</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Date:</strong> @lastReview.Date.ToString("dd MMM yyyy HH:mm")
+                    </p>
+                    @if (!string.IsNullOrEmpty(lastReview.AdminNotes))
+                    {
+                        <p class="mb-2"><strong>Notes:</strong> @lastReview.AdminNotes</p>
+                    }
+                    <p class="mb-0 text-muted small">
+                        Agreed with AI: @(lastReview.AgreedWithAi ? "Yes" : "No — decision was overridden")
+                    </p>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

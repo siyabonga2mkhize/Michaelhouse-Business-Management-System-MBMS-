@@ -3,41 +3,71 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
     public class Parent
     {
+        [Key]
         public int ParentId { get; set; }
 
-        [Required, Display(Name = "First Name")]
-        [StringLength(50)]
-        public string FirstName { get; set; }
+        // ─── Linked User Account ──────────────────────────────────────────────────
+        public int? UserId { get; set; }
+        public virtual AppUser User { get; set; }
 
-        [Required, Display(Name = "Last Name")]
-        [StringLength(50)]
-        public string LastName { get; set; }
+        // ─── Personal Information ─────────────────────────────────────────────────
+        [Required, MaxLength(200)]
+        [Display(Name = "Full Name")]
+        public string Name { get; set; }
 
-        [Required, EmailAddress]
-        public string Email { get; set; }
+        [Required, MaxLength(200)]
+        [Display(Name = "Email Address")]
+        public string Contact { get; set; }
 
-        [Required, Phone]
-        [Display(Name = "Phone Number")]
-        public string Phone { get; set; }
+        [MaxLength(20)]
+        [Display(Name = "Cell Phone Number")]
+        public string CellPhone { get; set; }
 
-        [Display(Name = "Address")]
-        public string Address { get; set; }
+        [MaxLength(20)]
+        [Display(Name = "Work Phone Number")]
+        public string WorkPhone { get; set; }
 
+        [MaxLength(20)]
+        [Display(Name = "Home Phone Number")]
+        public string HomePhone { get; set; }
+
+        // ─── Address ──────────────────────────────────────────────────────────────
+        [MaxLength(300)]
+        [Display(Name = "Physical Address")]
+        public string PhysicalAddress { get; set; }
+
+        [MaxLength(300)]
+        [Display(Name = "Postal Address")]
+        public string PostalAddress { get; set; }
+
+        // ─── Relationship & Occupation ────────────────────────────────────────────
+        [MaxLength(100)]
+        [Display(Name = "Relationship to Student")]
+        public string Relationship { get; set; } // e.g. Father, Mother, Guardian
+
+        [MaxLength(200)]
         [Display(Name = "Occupation")]
         public string Occupation { get; set; }
 
-        [Display(Name = "Relationship")]
-        public string Relationship { get; set; } // Father, Mother, Guardian
+        [MaxLength(200)]
+        [Display(Name = "Employer / Company")]
+        public string Employer { get; set; }
 
-        public string FullName => FirstName + " " + LastName;
+        // ─── Emergency Contact ────────────────────────────────────────────────────
+        [MaxLength(200)]
+        [Display(Name = "Emergency Contact Name")]
+        public string EmergencyContactName { get; set; }
 
+        [MaxLength(20)]
+        [Display(Name = "Emergency Contact Number")]
+        public string EmergencyContactPhone { get; set; }
+
+        // ─── Navigation ───────────────────────────────────────────────────────────
         public virtual ICollection<Student> Students { get; set; }
-        public virtual ICollection<Application> Applications { get; set; }
     }
 }

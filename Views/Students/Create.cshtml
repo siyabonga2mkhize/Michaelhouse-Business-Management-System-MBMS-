@@ -1,0 +1,44 @@
+﻿@model Michaelhouse.Models.ViewModels.AddStudentViewModel
+@{
+    ViewBag.Title = "Add Student";
+}
+
+<div class="page-header">
+    <h3 class="mb-0"><i class="bi bi-person-plus me-2 text-warning"></i>Add a Student</h3>
+    <small class="text-muted">Register the student you are applying on behalf of</small>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body p-4">
+                @using (Html.BeginForm("AddStudent", "Applications", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Student Full Name</label>
+                        @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "e.g. Sipho Dlamini" })
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Date of Birth</label>
+                        @Html.TextBoxFor(m => m.DOB, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        @Html.ValidationMessageFor(m => m.DOB, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle me-2"></i>Save Student
+                        </button>
+                        <a href="@Url.Action("Index", "Applications")" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+﻿@model List<Michaelhouse.Models.Application>
+
+<h2>Applications Dashboard</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Student</th>
+            <th>Parent</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var app in Model)
+        {
+            <tr>
+                <td>@app.AppId</td>
+                <td>@app.Student?.Name</td>
+                <td>@app.Parent?.Name</td>
+                <td>@app.Status</td>
+                <td>@app.Date.ToString("dd MMM yyyy")</td>
+                <td>
+                    <a href="@Url.Action("Review", "Admin", new { id = app.AppId })"
+                       class="btn btn-sm btn-primary">
+                        Review
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

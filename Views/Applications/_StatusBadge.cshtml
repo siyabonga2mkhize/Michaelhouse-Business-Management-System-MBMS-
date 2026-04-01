@@ -1,0 +1,20 @@
+@model Michaelhouse.Models.Enums.ApplicationStatus
+@{
+    string label = "", css = "", icon = "";
+    switch (Model)
+    {
+        case Michaelhouse.Models.Enums.ApplicationStatus.Pending:
+            label = "Pending";           css = "secondary";         icon = "bi-hourglass";         break;
+        case Michaelhouse.Models.Enums.ApplicationStatus.UnderAiReview:
+            label = "Under AI Review";   css = "info text-dark";    icon = "bi-robot";             break;
+        case Michaelhouse.Models.Enums.ApplicationStatus.AwaitingAdminDecision:
+            label = "Awaiting Decision"; css = "primary";           icon = "bi-person-check";      break;
+        case Michaelhouse.Models.Enums.ApplicationStatus.Approved:
+            label = "Approved";          css = "success";           icon = "bi-check-circle-fill"; break;
+        case Michaelhouse.Models.Enums.ApplicationStatus.Rejected:
+            label = "Rejected";          css = "danger";            icon = "bi-x-circle-fill";     break;
+        case Michaelhouse.Models.Enums.ApplicationStatus.Flagged:
+            label = "Flagged";           css = "warning text-dark"; icon = "bi-flag-fill";         break;
+    }
+}
+<span class="badge bg-@css"><i class="bi @icon me-1"></i>@label</span>
