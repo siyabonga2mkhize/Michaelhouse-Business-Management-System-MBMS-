@@ -213,13 +213,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202603301919577_InitialCreate.cs" />
-    <Compile Include="Migrations\202603301919577_InitialCreate.Designer.cs">
-      <DependentUpon>202603301919577_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604010110174_AddParentProfileFields.cs" />
-    <Compile Include="Migrations\202604010110174_AddParentProfileFields.Designer.cs">
-      <DependentUpon>202604010110174_AddParentProfileFields.cs</DependentUpon>
+    <Compile Include="Migrations\202604011316416_InitialCreate.cs" />
+    <Compile Include="Migrations\202604011316416_InitialCreate.Designer.cs">
+      <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AdminReview.cs" />
@@ -351,11 +347,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202603301919577_InitialCreate.resx">
-      <DependentUpon>202603301919577_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604010110174_AddParentProfileFields.resx">
-      <DependentUpon>202604010110174_AddParentProfileFields.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604011316416_InitialCreate.resx">
+      <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
