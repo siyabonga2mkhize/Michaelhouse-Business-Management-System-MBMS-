@@ -1,7 +1,92 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\admin\\review.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\admin\\review.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\applications\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\applications\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\applications\\addstudent.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\applications\\addstudent.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\migrations\\202604010110174_addparentprofilefields.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\202604010110174_addparentprofilefields.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\app_start\\routeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:app_start\\routeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\admincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\models\\viewmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\viewmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\models\\parent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\parent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\models\\appuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\appuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\admin\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\admin\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\applications\\_statusbadge.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\applications\\_statusbadge.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\controllers\\adminreviewcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\adminreviewcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\controllers\\applicationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\applicationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\applications\\status.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\applications\\status.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\applications\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\applications\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\students\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\students\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +94,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 29,
           "Children": [
             {
               "$type": "Bookmark",
@@ -54,6 +139,279 @@
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Configuration.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\Configuration.cs",
+              "RelativeDocumentMoniker": "Migrations\\Configuration.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\Configuration.cs",
+              "RelativeToolTip": "Migrations\\Configuration.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAAAA4AAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T01:15:11.917Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "202604010110174_AddParentProfileFields.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604010110174_AddParentProfileFields.cs",
+              "RelativeDocumentMoniker": "Migrations\\202604010110174_AddParentProfileFields.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604010110174_AddParentProfileFields.cs",
+              "RelativeToolTip": "Migrations\\202604010110174_AddParentProfileFields.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T01:10:24.799Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Register.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Account\\Register.cshtml",
+              "RelativeDocumentMoniker": "Views\\Account\\Register.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Account\\Register.cshtml",
+              "RelativeToolTip": "Views\\Account\\Register.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-01T01:07:57.648Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "Views\\Account\\Login.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAAAJEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-01T01:04:37.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "RouteConfig.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\App_Start\\RouteConfig.cs",
+              "RelativeDocumentMoniker": "App_Start\\RouteConfig.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\App_Start\\RouteConfig.cs",
+              "RelativeToolTip": "App_Start\\RouteConfig.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAQwBIAAABHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T01:03:03.472Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Controllers\\AccountController.cs",
+              "ViewState": "AgIAADAAAAAAAAAAAAAowEEAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T00:58:51.48Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ViewModels.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\ViewModels.cs",
+              "RelativeDocumentMoniker": "Models\\ViewModels.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\ViewModels.cs",
+              "RelativeToolTip": "Models\\ViewModels.cs",
+              "ViewState": "AgIAAIEAAAAAAAAAAAA9wJEAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T00:49:12.016Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Parent.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\Parent.cs",
+              "RelativeDocumentMoniker": "Models\\Parent.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\Parent.cs",
+              "RelativeToolTip": "Models\\Parent.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAADwv0YAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T00:47:04.843Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "AppUser.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\AppUser.cs",
+              "RelativeDocumentMoniker": "Models\\AppUser.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Models\\AppUser.cs",
+              "RelativeToolTip": "Models\\AppUser.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-01T00:45:26.179Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Review.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Admin\\Review.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\Review.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Admin\\Review.cshtml",
+              "RelativeToolTip": "Views\\Admin\\Review.cshtml",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAvwBQAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T22:19:34.558Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "AdminController.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AdminController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AdminController.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AdminController.cs",
+              "RelativeToolTip": "Controllers\\AdminController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-31T19:35:13.141Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "AdminReviewController.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AdminReviewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AdminReviewController.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AdminReviewController.cs",
+              "RelativeToolTip": "Controllers\\AdminReviewController.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAmwAwAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-31T19:25:38.774Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Dashboard.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Admin\\Dashboard.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\Dashboard.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Admin\\Dashboard.cshtml",
+              "RelativeToolTip": "Views\\Admin\\Dashboard.cshtml",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAmwB8AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T19:18:15.198Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "_StatusBadge.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\_StatusBadge.cshtml",
+              "RelativeDocumentMoniker": "Views\\Applications\\_StatusBadge.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\_StatusBadge.cshtml",
+              "RelativeToolTip": "Views\\Applications\\_StatusBadge.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T17:55:10.688Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Status.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Status.cshtml",
+              "RelativeDocumentMoniker": "Views\\Applications\\Status.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Status.cshtml",
+              "RelativeToolTip": "Views\\Applications\\Status.cshtml",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAAAAAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T17:53:32.88Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Students\\Create.cshtml",
+              "RelativeDocumentMoniker": "Views\\Students\\Create.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Students\\Create.cshtml",
+              "RelativeToolTip": "Views\\Students\\Create.cshtml",
+              "ViewState": "AgIAACEAAAAAAAAAAAAAAA4AAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T17:24:57.394Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Create.cshtml",
+              "RelativeDocumentMoniker": "Views\\Applications\\Create.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Create.cshtml",
+              "RelativeToolTip": "Views\\Applications\\Create.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFsAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T17:22:18.301Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AddStudent.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\AddStudent.cshtml",
+              "RelativeDocumentMoniker": "Views\\Applications\\AddStudent.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\AddStudent.cshtml",
+              "RelativeToolTip": "Views\\Applications\\AddStudent.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-31T17:17:41.854Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAL0AAAAAAAAAAAAswOsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-30T21:44:03.85Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Applications\\Index.cshtml",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Applications\\Index.cshtml",
+              "RelativeToolTip": "Views\\Applications\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFcAAABMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-30T21:22:43.449Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "ApplicationsController.cs",
+              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\ApplicationsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ApplicationsController.cs",
+              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\ApplicationsController.cs",
+              "RelativeToolTip": "Controllers\\ApplicationsController.cs",
+              "ViewState": "AgIAAHMAAAAAAAAAAAAAwK8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-30T19:16:22.272Z",
+              "EditorCaption": ""
             }
           ]
         }
