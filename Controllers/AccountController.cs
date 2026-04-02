@@ -215,7 +215,7 @@ namespace Michaelhouse.Controllers
         {
             return role == "Admin"
                 ? RedirectToAction("Dashboard", "Admin")
-                : RedirectToAction("Index", "Application");
+                : RedirectToAction("Index", "Applications");
         }
 
         public static string HashPassword(string password)

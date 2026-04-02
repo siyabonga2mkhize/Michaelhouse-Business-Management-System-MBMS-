@@ -109,13 +109,37 @@ namespace Michaelhouse.Models.ViewModels
     public class AddStudentViewModel
     {
         [Required, MaxLength(200)]
-        [Display(Name = "Student Full Name")]
-        public string Name { get; set; }
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; }
+
+        [Required, MaxLength(200)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
         [Display(Name = "Date of Birth")]
         public DateTime DOB { get; set; }
+
+        [MaxLength(50)]
+        [Display(Name = "Home Language")]
+        public string HomeLanguage { get; set; }
+
+        [MaxLength(20)]
+        [Display(Name = "ID / Passport Number")]
+        public string IdNumber { get; set; }
+
+        [MaxLength(200)]
+        [Display(Name = "Previous School")]
+        public string PreviousSchool { get; set; }
+
+        [MaxLength(50)]
+        [Display(Name = "Current Grade")]
+        public string CurrentGrade { get; set; }
+
+        [MaxLength(500)]
+        [Display(Name = "Medical Conditions / Allergies")]
+        public string MedicalConditions { get; set; }
     }
 
     // ─── Submit Application ───────────────────────────────────────────────────────
@@ -128,6 +152,14 @@ namespace Michaelhouse.Models.ViewModels
         [Required]
         [Display(Name = "Application Year")]
         public int ApplicationYear { get; set; }
+
+        [Required]
+        [Display(Name = "Grade Applying For")]
+        public int GradeApplying { get; set; } // 8, 9, 10, 11, 12
+
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Additional Information")]
+        public string AdditionalNotes { get; set; }
 
         public string[] DocumentTypes { get; set; }
     }

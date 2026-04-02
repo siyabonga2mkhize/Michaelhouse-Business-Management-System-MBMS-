@@ -208,6 +208,7 @@
     <Compile Include="Controllers\DocumentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
+    <Compile Include="Controllers\RegistrationController.cs" />
     <Compile Include="Controllers\StudentsController.cs" />
     <Compile Include="Filters\AuthorizeFilters.cs" />
     <Compile Include="Global.asax.cs">
@@ -216,6 +217,14 @@
     <Compile Include="Migrations\202604011316416_InitialCreate.cs" />
     <Compile Include="Migrations\202604011316416_InitialCreate.Designer.cs">
       <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604011920065_AddNewFields.cs" />
+    <Compile Include="Migrations\202604011920065_AddNewFields.Designer.cs">
+      <DependentUpon>202604011920065_AddNewFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604020844420_AddRegistrationAndSubjects.cs" />
+    <Compile Include="Migrations\202604020844420_AddRegistrationAndSubjects.Designer.cs">
+      <DependentUpon>202604020844420_AddRegistrationAndSubjects.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AdminReview.cs" />
@@ -226,8 +235,15 @@
     <Compile Include="Models\AppUser.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
+    <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\Parent.cs" />
+    <Compile Include="Models\Registration.cs" />
+    <Compile Include="Models\RegistrationService.cs" />
+    <Compile Include="Models\RegistrationStatus.cs" />
     <Compile Include="Models\Student.cs" />
+    <Compile Include="Models\StudentAccountService.cs" />
+    <Compile Include="Models\StudentSubject.cs" />
+    <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -315,6 +331,10 @@
     <Content Include="Views\Admin\_StatusBadge.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Account\Register.cshtml" />
+    <Content Include="Views\Registration\SelectSubjects.cshtml" />
+    <Content Include="Views\Registration\Confirm.cshtml" />
+    <Content Include="Views\Registration\Complete.cshtml" />
+    <Content Include="Views\Admin\Registrations.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -349,6 +369,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202604011316416_InitialCreate.resx">
       <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604011920065_AddNewFields.resx">
+      <DependentUpon>202604011920065_AddNewFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604020844420_AddRegistrationAndSubjects.resx">
+      <DependentUpon>202604020844420_AddRegistrationAndSubjects.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

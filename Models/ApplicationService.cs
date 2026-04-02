@@ -15,15 +15,14 @@ namespace Michaelhouse.Services
     {
         private readonly AiReviewService _ai = new AiReviewService();
 
+        private readonly RegistrationService _regService = new RegistrationService();
+        private readonly EmailService _email = new EmailService();
+
         // ─── Upload root (resolved for both web and background threads) ───────────
         private string GetUploadRoot()
         {
-            /*var rel = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"];
-            return rel.StartsWith("~")
-                ? System.Web.Hosting.HostingEnvironment.MapPath(rel)
-                : rel;*/
-
-            var rel = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads";
+            var rel = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"]
+                      ?? "~/App_Data/Uploads";
             return rel.StartsWith("~")
                 ? System.Web.Hosting.HostingEnvironment.MapPath(rel)
                 : rel;
@@ -39,6 +38,8 @@ namespace Michaelhouse.Services
             int parentId,
             int studentId,
             int year,
+            int gradeApplying,
+            string additionalNotes,
             HttpFileCollectionBase files,
             string[] docTypes)
         {
@@ -49,6 +50,8 @@ namespace Michaelhouse.Services
                     ParentId = parentId,
                     StudentId = studentId,
                     ApplicationYear = year,
+                    GradeApplying = gradeApplying,
+                    AdditionalNotes = additionalNotes,
                     Date = DateTime.Now,
                     Status = ApplicationStatus.Pending
                 };
@@ -186,6 +189,44 @@ namespace Michaelhouse.Services
                 });
 
                 db.SaveChanges();
+
+                if (decision == "Approved")
+                {
+                    try
+                    {
+                        // Create registration record (no student account yet)
+                        _regService.CreateRegistration(appId, app.StudentId, app.GradeApplying);
+
+                        // Email parent to log in and complete registration
+                        _email.SendApplicationApproved(
+                            app.Parent.Contact,
+                            app.Parent.Name,
+                            app.Student.Name,
+                            app.GradeApplying);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Post-approval setup failed: {ex.Message}");
+                    }
+                }
+
+                // On Flagged — email parent to resubmit
+                if (decision == "Flagged")
+                {
+                    try
+                    {
+                        _email.SendApplicationFlagged(
+                            app.Parent.Contact,
+                            app.Parent.Name,
+                            app.Student.Name,
+                            appId,
+                            notes);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Flagged email failed: {ex.Message}");
+                    }
+                }
             }
         }
 
