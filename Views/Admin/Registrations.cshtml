@@ -1,0 +1,108 @@
+﻿@using Michaelhouse.Models
+@using Michaelhouse.Models.Enums
+@model List<Michaelhouse.Models.Registration>
+@{ ViewBag.Title = "Registrations"; }
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-mortarboard me-2 text-warning"></i>Registrations</h3>
+        <small class="text-muted">Students whose parents have completed the registration process</small>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3">@Model.Count</div>
+            <div class="small text-muted">Total</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-warning">
+                @Model.Count(r => r.Status != RegistrationStatus.Completed && r.Status != RegistrationStatus.Withdrawn)
+            </div>
+            <div class="small text-muted">In Progress</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-success">@Model.Count(r => r.Status == RegistrationStatus.Completed)</div>
+            <div class="small text-muted">Completed</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-danger">@Model.Count(r => r.Status == RegistrationStatus.Withdrawn)</div>
+            <div class="small text-muted">Withdrawn</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-2"></i>All Registrations</span>
+        <input type="text" id="searchInput" class="form-control form-control-sm"
+               style="width:220px;" placeholder="Search..."
+               onkeyup="filterTable()" />
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" id="regTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Student</th>
+                    <th>Grade</th>
+                    <th>Parent</th>
+                    <th>Student Email</th>
+                    <th>Subjects</th>
+                    <th>Status</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in Model)
+                {
+                    string sc = reg.Status == RegistrationStatus.Completed ? "success"
+                              : reg.Status == RegistrationStatus.Withdrawn ? "danger" : "warning";
+                    <tr>
+                        <td class="fw-semibold">@(reg.Student != null ? reg.Student.Name : "—")</td>
+
+                        <td>Grade @reg.GradeEnrolling</td>
+
+                        <td>@(reg.Student?.Parent != null ? reg.Student.Parent.Name : "—")</td>
+
+                        <td class="small text-muted">@(reg.Student?.User != null ? reg.Student.User.Email : "—")</td>
+
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-journal-bookmark me-1"></i>
+                                @(reg.Student?.StudentSubjects?.Count ?? 0)
+                            </span>
+                        </td>
+                        <td><span class="badge bg-@sc">@reg.Status</span></td>
+                        <td class="small">
+                            @(reg.CompletedAt.HasValue ? reg.CompletedAt.Value.ToString("dd MMM yyyy") : "—")
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No registrations yet.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#regTable tbody tr').forEach(function (r) {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

@@ -18,8 +18,11 @@
         {
             <tr>
                 <td>@app.AppId</td>
-                <td>@app.Student?.Name</td>
-                <td>@app.Parent?.Name</td>
+
+                <td>@(app.Student != null ? app.Student.Name : "—")</td>
+
+                <td>@(app.Parent != null ? app.Parent.Name : "—")</td>
+
                 <td>@app.Status</td>
                 <td>@app.Date.ToString("dd MMM yyyy")</td>
                 <td>

@@ -7,17 +7,30 @@
             : Model.Status == ApplicationStatus.UnderAiReview ? 33
             : Model.Status == ApplicationStatus.AwaitingAdminDecision ? 66
             : Model.Status == ApplicationStatus.Flagged ? 66 : 100;
+
+    // Check if a registration exists for this application
+    Michaelhouse.Models.Registration registration = null;
+    using (var db = new Michaelhouse.Models.DBContextClass())
+    {
+        registration = db.Registrations.FirstOrDefault(r => r.AppId == Model.AppId);
+    }
+
+    // Quick fix helper for the proxy issue
+    string studentName = Model.Student != null ? Model.Student.Name : "Student";
 }
 
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h3 class="mb-0"><i class="bi bi-file-earmark-text me-2 text-warning"></i>Application #@Model.AppId</h3>
+        <h3 class="mb-0">
+            <i class="bi bi-file-earmark-text me-2 text-warning"></i>Application #@Model.AppId
+        </h3>
         <small class="text-muted">Submitted @Model.Date.ToString("dd MMM yyyy HH:mm")</small>
     </div>
-    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    <a href="@Url.Action("Index", "Applications")" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
 </div>
 
-<!-- Progress -->
 <div class="card mb-4">
     <div class="card-body py-4">
         <div class="d-flex justify-content-between align-items-center position-relative">
@@ -25,20 +38,23 @@
                 <div class="h-100 rounded" style="background:#1a3c5e;width:@pct%;"></div>
             </div>
             @foreach (var step in new[] {
-                new { Icon="bi-send",        Label="Submitted",    Val=0 },
-                new { Icon="bi-robot",        Label="AI Review",   Val=1 },
-                new { Icon="bi-person-check", Label="Admin Review",Val=2 },
-                new { Icon="bi-trophy",       Label="Outcome",     Val=3 }
+                new { Icon = "bi-send",         Label = "Submitted",    Val = 0 },
+                new { Icon = "bi-robot",        Label = "AI Review",    Val = 1 },
+                new { Icon = "bi-person-check", Label = "Admin Review", Val = 2 },
+                new { Icon = "bi-trophy",       Label = "Outcome",      Val = 3 }
             })
             {
-                bool active  = (int)Model.Status >= step.Val;
+                bool active = (int)Model.Status >= step.Val;
                 bool current = (int)Model.Status == step.Val;
                 <div class="text-center position-relative flex-fill" style="z-index:1;">
                     <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center"
-                         style="width:44px;height:44px;background:@(active?"#1a3c5e":"#e0e0e0");color:@(active?"#fff":"#aaa");border:@(current?"3px solid #e8a020":"3px solid transparent");">
+                         style="width:44px;height:44px;
+                                background:@(active ? "#1a3c5e" : "#e0e0e0");
+                                color:@(active ? "#fff" : "#aaa");
+                                border:@(current ? "3px solid #e8a020" : "3px solid transparent");">
                         <i class="bi @step.Icon"></i>
                     </div>
-                    <div class="mt-2 small fw-semibold" style="color:@(active?"#1a3c5e":"#bbb");">@step.Label</div>
+                    <div class="mt-2 small fw-semibold" style="color:@(active ? "#1a3c5e" : "#bbb");">@step.Label</div>
                 </div>
             }
         </div>
@@ -51,13 +67,15 @@
             <div class="card-header"><i class="bi bi-person me-2"></i>Student Details</div>
             <div class="card-body p-0">
                 <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-3 py-2">Name</td><td class="fw-semibold">@Model.Student?.Name</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Name</td><td class="fw-semibold">@studentName</td></tr>
                     <tr><td class="text-muted ps-3 py-2">Date of Birth</td><td>@Model.Student?.DOB.ToString("dd MMM yyyy")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Application Year</td><td>@Model.ApplicationYear</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Grade Applying</td><td>Grade @Model.GradeApplying</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Year</td><td>@Model.ApplicationYear</td></tr>
                     <tr><td class="text-muted ps-3 py-2">Status</td><td>@Html.Partial("_StatusBadge", Model.Status)</td></tr>
                 </table>
             </div>
         </div>
+
         <div class="card">
             <div class="card-header"><i class="bi bi-paperclip me-2"></i>Documents</div>
             <ul class="list-group list-group-flush">
@@ -72,19 +90,49 @@
                         </li>
                     }
                 }
-                else { <li class="list-group-item text-muted small">No documents.</li> }
+                else
+                {
+                    <li class="list-group-item text-muted small">No documents.</li>
+                }
             </ul>
         </div>
     </div>
 
     <div class="col-md-7">
+
         @if (Model.Status == ApplicationStatus.Approved)
         {
-            <div class="card border-success text-center py-4 mb-3">
-                <div class="card-body">
+            <div class="card border-success mb-3">
+                <div class="card-body text-center py-4">
                     <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
                     <h4 class="mt-3 text-success">Application Approved!</h4>
-                    <p class="text-muted">@Model.Student?.Name's enrollment has been approved. The school will be in contact with next steps.</p>
+                    <p class="text-muted">
+                        Congratulations! @studentName has been accepted.
+                        Please complete the registration process to secure the placement.
+                    </p>
+
+                    @if (registration == null || registration.Status != Michaelhouse.Models.Enums.RegistrationStatus.Completed)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Action Required:</strong> Please complete the registration to finalise enrolment.
+                        </div>
+                        <a href="@Url.Action("Index", "Registration", new { appId = Model.AppId })"
+                           class="btn btn-success btn-lg mt-2">
+                            <i class="bi bi-clipboard-check me-2"></i>Complete Registration
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success mt-3">
+                            <i class="bi bi-patch-check-fill me-2"></i>
+                            <strong>Registration Complete!</strong> @studentName is fully enrolled.
+                        </div>
+                        <a href="@Url.Action("Complete", "Registration", new { appId = Model.AppId })"
+                           class="btn btn-outline-success">
+                            <i class="bi bi-eye me-1"></i>View Registration Summary
+                        </a>
+                    }
                 </div>
             </div>
         }
@@ -94,17 +142,18 @@
                 <div class="card-body">
                     <i class="bi bi-x-circle-fill text-danger" style="font-size:3rem;"></i>
                     <h4 class="mt-3 text-danger">Application Unsuccessful</h4>
-                    <p class="text-muted">We regret to inform you that @Model.Student?.Name's application was unsuccessful. Please contact the school for more information.</p>
+                    <p class="text-muted">We regret that @studentName's application was unsuccessful. Please contact the school for more information.</p>
                 </div>
             </div>
         }
+        @* ... keeping rest of the branches as they are ... *@
         else if (Model.Status == ApplicationStatus.Flagged)
         {
             <div class="card border-warning text-center py-4 mb-3">
                 <div class="card-body">
                     <i class="bi bi-flag-fill text-warning" style="font-size:3rem;"></i>
                     <h4 class="mt-3">Application Flagged</h4>
-                    <p class="text-muted">Your application requires additional attention from our admissions team. We will contact you if further information is needed.</p>
+                    <p class="text-muted">Your application needs attention. Please check your email for details on what to resubmit.</p>
                 </div>
             </div>
         }
@@ -115,13 +164,14 @@
                     <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
                     <h5>
                         @if (Model.Status == ApplicationStatus.Pending)
-                        { <text>Application received — AI review will begin shortly.</text> }
-                        else if (Model.Status == ApplicationStatus.UnderAiReview)
-                        { <text>AI is reviewing your documents...</text> }
-                        else if (Model.Status == ApplicationStatus.AwaitingAdminDecision)
-                        { <text>Awaiting final decision from our admissions team.</text> }
+                        {<text>Application received — AI review will begin shortly.</text> }
+                    else if (Model.Status == ApplicationStatus.UnderAiReview)
+                    { <text>AI is reviewing your documents...</text> }
+                else if (Model.Status == ApplicationStatus.AwaitingAdminDecision)
+                { <text>Awaiting final decision from our admissions team.</text>}
                     </h5>
-                    <a href="@Url.Action("Status", new { id = Model.AppId })" class="btn btn-outline-primary btn-sm mt-2">
+                    <a href="@Url.Action("Status", "Applications", new { id = Model.AppId })"
+                       class="btn btn-outline-primary btn-sm mt-2">
                         <i class="bi bi-arrow-clockwise me-1"></i>Refresh Status
                     </a>
                 </div>

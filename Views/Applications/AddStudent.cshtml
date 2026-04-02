@@ -1,44 +1,106 @@
 ﻿@model Michaelhouse.Models.ViewModels.AddStudentViewModel
-@{
-    ViewBag.Title = "Add Student";
-}
+@{ ViewBag.Title = "Add Student"; }
 
 <div class="page-header">
     <h3 class="mb-0"><i class="bi bi-person-plus me-2 text-warning"></i>Add a Student</h3>
-    <small class="text-muted">Register the student you are applying on behalf of</small>
+    <small class="text-muted">Fill in the student's details before submitting an application</small>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body p-4">
-                @using (Html.BeginForm("AddStudent", "Applications", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+@using (Html.BeginForm("AddStudent", "Applications", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Student Full Name</label>
-                        @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "e.g. Sipho Dlamini" })
-                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
-                    </div>
+    <div class="row g-4">
 
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Date of Birth</label>
-                        @Html.TextBoxFor(m => m.DOB, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
-                        @Html.ValidationMessageFor(m => m.DOB, "", new { @class = "text-danger small" })
-                    </div>
+        <!-- Left Column -->
+        <div class="col-lg-6">
 
-                    <div class="d-flex gap-3">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-check-circle me-2"></i>Save Student
-                        </button>
-                        <a href="@Url.Action("Index", "Applications")" class="btn btn-outline-secondary">
-                            Cancel
-                        </a>
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-fill me-2"></i>Personal Information
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control", placeholder = "e.g. Sipho" })
+                            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control", placeholder = "e.g. Dlamini" })
+                            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                            @Html.TextBoxFor(m => m.DOB, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                            @Html.ValidationMessageFor(m => m.DOB, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Home Language</label>
+                            @Html.TextBoxFor(m => m.HomeLanguage, new { @class = "form-control", placeholder = "e.g. Zulu" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">ID / Passport Number</label>
+                            @Html.TextBoxFor(m => m.IdNumber, new { @class = "form-control", placeholder = "SA ID or Passport number" })
+                        </div>
                     </div>
-                }
+                </div>
             </div>
+
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-6">
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-building me-2"></i>Previous School
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Previous / Current School</label>
+                        @Html.TextBoxFor(m => m.PreviousSchool, new { @class = "form-control", placeholder = "e.g. Glenwood Primary School" })
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Grade</label>
+                        @Html.DropDownListFor(m => m.CurrentGrade,
+                            new SelectList(new[]
+                            {
+                                "Grade 6", "Grade 7", "Grade 8", "Grade 9",
+                                "Grade 10", "Grade 11", "Grade 12", "Other"
+                            }),
+                            "-- Select current grade --",
+                            new { @class = "form-select" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                </div>
+                <div class="card-body">
+                    <label class="form-label fw-semibold">Medical Conditions / Allergies</label>
+                    @Html.TextAreaFor(m => m.MedicalConditions,
+                        new
+                             {
+                                 @class = "form-control",
+                                 rows = "4",
+                              placeholder = "List any known medical conditions, allergies, or special needs. Leave blank if none."
+                             })
+                    <small class="text-muted">This information is confidential and only visible to school staff.</small>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
+
+    <div class="d-flex gap-3 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-check-circle me-2"></i>Save Student
+        </button>
+        <a href="@Url.Action("Index","Applications")" class="btn btn-outline-secondary btn-lg">Cancel</a>
+    </div>
+}

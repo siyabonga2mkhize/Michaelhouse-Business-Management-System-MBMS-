@@ -117,5 +117,23 @@ namespace Michaelhouse.Controllers
                 return File(System.IO.File.ReadAllBytes(fullPath), doc.ContentType, doc.FileName);
             }
         }
+        public ActionResult Registrations()
+        {
+            using (var db = new DBContextClass())
+            {
+                var regs = db.Registrations
+                    .Include("Student")
+                    .Include("Student.User")
+                    .Include("Student.Parent")
+                    .Include("Student.StudentSubjects")
+                    .Include("Student.StudentSubjects.Subject")
+                    .Include("Application")
+                    .OrderBy(r => r.Status)
+                    .ThenBy(r => r.Student.LastName)
+                    .ToList();
+
+                return View(regs);
+            }
+        }
     }
 }

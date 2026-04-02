@@ -1,23 +1,20 @@
 ﻿@model Michaelhouse.Models.ViewModels.ApplicationCreateViewModel
-@{
-    ViewBag.Title = "New Application";
-}
+@{ ViewBag.Title = "New Application"; }
 
 <div class="page-header">
     <h3 class="mb-0"><i class="bi bi-plus-circle me-2 text-warning"></i>New Enrollment Application</h3>
-    <small class="text-muted">Fill in all details and upload the required documents</small>
+    <small class="text-muted">Complete all sections and upload the required documents</small>
 </div>
 
 <div class="row g-4">
-    <!-- Form -->
     <div class="col-lg-8">
         @using (Html.BeginForm("Create", "Applications", FormMethod.Post,
-            new { enctype = "multipart/form-data", id = "applicationForm" }))
+            new { enctype = "multipart/form-data", id = "appForm" }))
         {
             @Html.AntiForgeryToken()
             @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
 
-            <!-- Step 1: Select Student -->
+            <!-- Step 1: Student -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
                     <i class="bi bi-person-fill me-2"></i>Step 1 — Select Student
@@ -25,7 +22,7 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <label class="form-label fw-semibold">Student</label>
+                            <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
                             @Html.DropDownListFor(m => m.StudentId,
                                 (SelectList)ViewBag.Students,
                                 "-- Select a student --",
@@ -33,8 +30,7 @@
                             @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-danger small" })
                         </div>
                         <div class="col-md-5 d-flex align-items-end">
-                            <a href="@Url.Action("AddStudent", "Applications")"
-                               class="btn btn-outline-secondary w-100">
+                            <a href="@Url.Action("AddStudent")" class="btn btn-outline-secondary w-100">
                                 <i class="bi bi-person-plus me-2"></i>Add New Student
                             </a>
                         </div>
@@ -42,55 +38,85 @@
                 </div>
             </div>
 
-            <!-- Step 2: Application Year -->
+            <!-- Step 2: Grade & Year -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <i class="bi bi-calendar me-2"></i>Step 2 — Application Year
+                    <i class="bi bi-mortarboard me-2"></i>Step 2 — Grade & Year
                 </div>
                 <div class="card-body">
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Applying for Year</label>
-                        @Html.DropDownListFor(m => m.ApplicationYear,
-                            new SelectList(new[]
-                            {
-                                ViewBag.CurrentYear,
-                                (int)ViewBag.CurrentYear + 1,
-                                (int)ViewBag.CurrentYear + 2
-                            }),
-                            new { @class = "form-select" })
-                        @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-danger small" })
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Grade Applying For <span class="text-danger">*</span></label>
+                            @Html.DropDownListFor(m => m.GradeApplying,
+                                (SelectList)ViewBag.Grades,
+                                "-- Select grade --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.GradeApplying, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Application Year <span class="text-danger">*</span></label>
+                            @{
+                                int currentYear = (int)ViewBag.CurrentYear;
+                                var yearList = new SelectList(new[]
+                                {
+            new { Value = currentYear,     Text = currentYear.ToString()     },
+            new { Value = currentYear + 1, Text = (currentYear + 1).ToString() },
+            new { Value = currentYear + 2, Text = (currentYear + 2).ToString() }
+        }, "Value", "Text");
+                            }
+                            @Html.DropDownListFor(m => m.ApplicationYear, yearList, new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <!-- Subject info notice — shown dynamically via JS -->
+                    <div id="gradeNotice" class="alert alert-info mt-3 mb-0 d-none">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <span id="gradeNoticeText"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 3: Documents -->
+            <!-- Step 3: Additional Notes -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <i class="bi bi-paperclip me-2"></i>Step 3 — Upload Documents
+                    <i class="bi bi-chat-left-text me-2"></i>Step 3 — Additional Information
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info small mb-3">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>Required:</strong> Birth Certificate and latest Report Card.
-                        Accepted: PDF, JPG, PNG. Max 10MB per file.
+                    <label class="form-label fw-semibold">Additional Information <small class="text-white-50">(optional)</small></label>
+                    @Html.TextAreaFor(m => m.AdditionalNotes,
+                        new
+                             {
+                                 @class = "form-control",
+                                 rows = "4",
+                              placeholder = "Any additional information you would like the school to know about the student e.g. sporting achievements, special skills, learning needs etc."
+                             })
+                </div>
+            </div>
+
+            <!-- Step 4: Documents -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-paperclip me-2"></i>Step 4 — Upload Documents
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Required:</strong> Birth Certificate and latest Report Card (last 2 years).
+                        Also include ID document if available. Accepted: PDF, JPG, PNG.
                     </div>
-
                     <div id="documentRows"></div>
-
-                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2"
-                            onclick="addDocumentRow()">
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addRow()">
                         <i class="bi bi-plus-circle me-2"></i>Add Another Document
                     </button>
                 </div>
             </div>
 
-            <!-- Submit -->
             <div class="d-flex gap-3">
                 <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
                     <i class="bi bi-send me-2"></i>Submit Application
                 </button>
-                <a href="@Url.Action("Index", "Applications")"
-                   class="btn btn-outline-secondary btn-lg">Cancel</a>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">Cancel</a>
             </div>
         }
     </div>
@@ -98,49 +124,46 @@
     <!-- Help Panel -->
     <div class="col-lg-4">
         <div class="card border-warning mb-3">
-            <div class="card-header bg-warning text-dark">
-                <i class="bi bi-lightbulb-fill me-2"></i>Document Guide
+            <div class="card-header bg-warning text-dark fw-semibold">
+                <i class="bi bi-lightbulb-fill me-2"></i>Document Checklist
             </div>
             <div class="card-body small">
-                <p class="fw-semibold mb-1">Required:</p>
+                <p class="fw-semibold mb-2 text-success"><i class="bi bi-check-circle me-1"></i>Required</p>
                 <ul class="ps-3 mb-3">
-                    <li><strong>Birth Certificate</strong> — certified copy</li>
-                    <li><strong>Report Card</strong> — most recent year</li>
+                    <li>Certified Birth Certificate</li>
+                    <li>Last 2 years Report Cards</li>
                 </ul>
-                <p class="fw-semibold mb-1">Optional:</p>
-                <ul class="ps-3 mb-3">
-                    <li>Immunization records</li>
-                    <li>Medical certificate</li>
-                    <li>Transfer letter</li>
+                <p class="fw-semibold mb-2 text-primary"><i class="bi bi-plus-circle me-1"></i>Recommended</p>
+                <ul class="ps-3 mb-0">
+                    <li>ID / Passport copy</li>
+                    <li>Immunization record</li>
+                    <li>Medical certificate (if applicable)</li>
+                    <li>Referral / transfer letter</li>
                 </ul>
-                <div class="text-muted">
-                    <i class="bi bi-shield-check me-1"></i>
-                    Documents are securely stored and only accessible to school staff.
-                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-mortarboard me-2"></i>Subject Information
+            </div>
+            <div class="card-body small">
+                <p class="fw-semibold text-secondary">Grade 8 & 9</p>
+                <p class="text-muted">Subjects are predetermined. All students follow the same curriculum.</p>
+                <p class="fw-semibold text-primary mt-2">Grade 10 – 12</p>
+                <p class="text-muted mb-0">Students choose elective subjects during the registration process after approval.</p>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header fw-semibold">
                 <i class="bi bi-clock-history me-2"></i>What Happens Next?
             </div>
             <div class="card-body small">
-                <div class="d-flex gap-2 mb-2 align-items-start">
-                    <span class="badge bg-secondary flex-shrink-0 mt-1">1</span>
-                    <span>Application submitted and received</span>
-                </div>
-                <div class="d-flex gap-2 mb-2 align-items-start">
-                    <span class="badge bg-info text-dark flex-shrink-0 mt-1">2</span>
-                    <span>AI reviews your documents automatically</span>
-                </div>
-                <div class="d-flex gap-2 mb-2 align-items-start">
-                    <span class="badge bg-primary flex-shrink-0 mt-1">3</span>
-                    <span>Admin makes the final decision</span>
-                </div>
-                <div class="d-flex gap-2 align-items-start">
-                    <span class="badge bg-success flex-shrink-0 mt-1">4</span>
-                    <span>You are notified of the outcome</span>
-                </div>
+                <div class="d-flex gap-2 mb-2"><span class="badge bg-secondary mt-1">1</span><span>Application submitted</span></div>
+                <div class="d-flex gap-2 mb-2"><span class="badge bg-info text-dark mt-1">2</span><span>AI reviews documents</span></div>
+                <div class="d-flex gap-2 mb-2"><span class="badge bg-primary mt-1">3</span><span>Admin makes final decision</span></div>
+                <div class="d-flex gap-2"><span class="badge bg-success mt-1">4</span><span>Registration (if approved)</span></div>
             </div>
         </div>
     </div>
@@ -148,64 +171,83 @@
 
 @section Scripts {
     <script>
-    var rowIndex = 0;
+        var rowIdx = 0;
+        var docTypes = [
+            "Birth Certificate",
+            "Report Card (Latest Year)",
+            "Report Card (Previous Year)",
+            "ID / Passport Copy",
+            "Immunization Record",
+            "Medical Certificate",
+            "Transfer Letter",
+            "Other"
+        ];
 
-    var docTypes = [
-        "Birth Certificate",
-        "Report Card",
-        "Immunization Record",
-        "Medical Certificate",
-        "Transfer Letter",
-        "Other"
-    ];
+        function buildOptions() {
+            return docTypes.map(function (t) {
+                return '<option value="' + t + '">' + t + '</option>';
+            }).join('');
+        }
 
-    function buildOptions(selectedFirst) {
-        return docTypes.map(function (t, i) {
-            var sel = (i === 0 && selectedFirst) ? ' selected' : '';
-            return '<option value="' + t + '"' + sel + '>' + t + '</option>';
-        }).join('');
-    }
+        function addRow(isFirst) {
+            isFirst = isFirst || false;
+            var c = document.getElementById('documentRows');
+            var div = document.createElement('div');
+            div.className = 'border rounded p-3 mb-3 bg-light position-relative';
 
-    function addDocumentRow(isFirst) {
-        isFirst = isFirst || false;
-        var container = document.getElementById('documentRows');
-        var div = document.createElement('div');
-        div.className = 'border rounded p-3 mb-3 bg-light position-relative';
+            var removeBtn = isFirst ? '' :
+                '<button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" ' +
+                'onclick="this.closest(\'div.border\').remove()"><i class="bi bi-x-lg"></i></button>';
 
-        var removeBtn = isFirst ? '' :
-            '<button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" ' +
-            'onclick="this.closest(\'div.border\').remove()">' +
-            '<i class="bi bi-x-lg"></i></button>';
-
-        div.innerHTML = removeBtn +
-            '<div class="row g-2 align-items-end">' +
+            div.innerHTML = removeBtn +
+                '<div class="row g-2 align-items-end">' +
                 '<div class="col-md-5">' +
-                    '<label class="form-label fw-semibold small">Document Type</label>' +
-                    '<select name="DocumentTypes[' + rowIndex + ']" class="form-select form-select-sm"' + (isFirst ? ' required' : '') + '>' +
-                    buildOptions(isFirst) +
-                    '</select>' +
+                '<label class="form-label fw-semibold small">Document Type</label>' +
+                '<select name="DocumentTypes[' + rowIdx + ']" class="form-select form-select-sm"' + (isFirst ? ' required' : '') + '>' +
+                buildOptions() +
+                '</select>' +
                 '</div>' +
                 '<div class="col-md-7">' +
-                    '<label class="form-label fw-semibold small">File' + (isFirst ? ' <span class="text-danger">*</span>' : '') + '</label>' +
-                    '<input type="file" name="files" class="form-control form-control-sm" ' +
-                    'accept=".pdf,.jpg,.jpeg,.png"' + (isFirst ? ' required' : '') + ' />' +
+                '<label class="form-label fw-semibold small">File' + (isFirst ? ' <span class="text-danger">*</span>' : '') + '</label>' +
+                '<input type="file" name="files" class="form-control form-control-sm" ' +
+                'accept=".pdf,.jpg,.jpeg,.png"' + (isFirst ? ' required' : '') + ' />' +
                 '</div>' +
-            '</div>';
+                '</div>';
 
-        container.appendChild(div);
-        rowIndex++;
-    }
+            c.appendChild(div);
+            rowIdx++;
+        }
 
-    // Add first row on load
-    document.addEventListener('DOMContentLoaded', function () {
-        addDocumentRow(true);
-    });
+        // Show grade notice based on selection
+        document.addEventListener('DOMContentLoaded', function () {
+            addRow(true);
 
-    // Disable submit button after clicking to prevent double-submit
-    document.getElementById('applicationForm').addEventListener('submit', function () {
-        var btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
-    });
+            var gradeSelect = document.getElementById('GradeApplying');
+            var notice = document.getElementById('gradeNotice');
+            var noticeText = document.getElementById('gradeNoticeText');
+
+            if (gradeSelect) {
+                gradeSelect.addEventListener('change', function () {
+                    var grade = parseInt(this.value);
+                    if (grade === 8 || grade === 9) {
+                        noticeText.innerText = 'Grade ' + grade + ' has a set curriculum. All students follow the same subjects — no subject selection required.';
+                        notice.classList.remove('d-none', 'alert-warning');
+                        notice.classList.add('alert-info');
+                    } else if (grade >= 10) {
+                        noticeText.innerText = 'Grade ' + grade + ' requires subject selection. You will choose your subjects during the registration process after your application is approved.';
+                        notice.classList.remove('d-none', 'alert-info');
+                        notice.classList.add('alert-warning');
+                    } else {
+                        notice.classList.add('d-none');
+                    }
+                });
+            }
+        });
+
+        document.getElementById('appForm').addEventListener('submit', function () {
+            var b = document.getElementById('submitBtn');
+            b.disabled = true;
+            b.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+        });
     </script>
 }

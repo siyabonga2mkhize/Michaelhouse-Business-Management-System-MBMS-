@@ -44,10 +44,7 @@ else
                                          style="width:44px;height:44px;">
                                         <i class="bi bi-person-fill"></i>
                                     </div>
-                                    <div>
-                                        <div class="fw-semibold">@app.Student?.Name</div>
-                                        <small class="text-muted">Year @app.ApplicationYear</small>
-                                    </div>
+                                    <div class="fw-semibold">@(app.Student != null ? app.Student.Name : "Unknown Student")</div>
                                 </div>
                             </div>
 

@@ -11,6 +11,7 @@ namespace Michaelhouse.Models
     {
         public DBContextClass() : base("MichaelHouse")
         {
+            //this.Configuration.ProxyCreationEnabled = false;
             Database.CommandTimeout = 60;
         }
 
@@ -20,6 +21,9 @@ namespace Michaelhouse.Models
         public DbSet<Document> Documents { get; set; }
         public DbSet<AdminReview> AdminReviews { get; set; }
         public DbSet<AppUser> Users { get; set; }
+        public DbSet<Registration> Registrations { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
+        public DbSet<StudentSubject> StudentSubjects { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -58,6 +62,35 @@ namespace Michaelhouse.Models
                 .HasOptional(p => p.User) //Remove Id if there's an err
                 .WithMany()
                 .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<Student>()
+               .HasOptional(s => s.User)
+               .WithMany()
+               .HasForeignKey(s => s.UserId);
+
+            modelBuilder.Entity<Registration>()
+               .HasRequired(r => r.Application)
+               .WithMany()
+               .HasForeignKey(r => r.AppId)
+               .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Registration>()
+                .HasRequired(r => r.Student)
+                .WithMany()
+                .HasForeignKey(r => r.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasRequired(ss => ss.Student)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasRequired(ss => ss.Subject)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.SubjectId)
+                .WillCascadeOnDelete(false);
         }
     }
 }

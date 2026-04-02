@@ -166,15 +166,16 @@
                     {
                         <div class="sidebar-label">My Portal</div>
                         <a class="nav-link @(currentAction == "Index"      ? "active" : "")"
-                           href="@Url.Action("Index", "Application")">
+                           href="@Url.Action("Index", "Applications")">
                             <i class="bi bi-grid-1x2 me-2"></i>My Applications
                         </a>
+
                         <a class="nav-link @(currentAction == "Create"     ? "active" : "")"
-                           href="@Url.Action("Create", "Application")">
+                           href="@Url.Action("Create", "Applications")">
                             <i class="bi bi-plus-circle me-2"></i>New Application
                         </a>
                         <a class="nav-link @(currentAction == "AddStudent" ? "active" : "")"
-                           href="@Url.Action("AddStudent", "Application")">
+                           href="@Url.Action("AddStudent", "Applications")">
                             <i class="bi bi-person-plus me-2"></i>Add Student
                         </a>
                         <hr class="sidebar-divider" />
@@ -194,6 +195,10 @@
                         <a class="nav-link @(currentController == "Admin" && currentAction == "Review" ? "active" : "")"
                            href="@Url.Action("Dashboard", "Admin")">
                             <i class="bi bi-files me-2"></i>All Applications
+                        </a>
+                        <a class="nav-link @(currentAction == "Registrations" ? "active" : "")"
+                           href="@Url.Action("Registrations", "Admin")">
+                            <i class="bi bi-mortarboard me-2"></i>Registrations
                         </a>
                     }
 

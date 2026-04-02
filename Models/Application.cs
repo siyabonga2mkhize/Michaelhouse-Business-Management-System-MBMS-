@@ -26,11 +26,21 @@ namespace Michaelhouse.Models
         [Required]
         public int ApplicationYear { get; set; }
 
+        [Required]
+        [Display(Name = "Grade Applying For")]
+        public int GradeApplying { get; set; } // 8, 9, 10, 11, or 12
+
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
 
         // AI Review Summary stored here after AI processes it
         public string AiReviewSummary { get; set; }
         public string AiRecommendation { get; set; } // "Approve" | "Reject" | "Review"
+
+        // ─── Additional Notes from Parent ─────────────────────────────────────────
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Additional Information")]
+        public string AdditionalNotes { get; set; }
+
 
         // Navigation
         public Parent Parent { get; set; }

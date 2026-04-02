@@ -14,24 +14,15 @@ namespace Michaelhouse.Controllers
 
         // ─── DEV HELPER (FIXED) ───────────────────────────────────────────────────
         // Gets an existing parent OR creates one if none exists
-        private int GetCurrentParentId(DBContextClass db)
+        private int GetCurrentParentId()
         {
-            var parent = db.Parents.FirstOrDefault();
-
-            if (parent == null)
+            if (Session["ParentId"] == null)
             {
-                parent = new Parent
-                {
-                    Name = "Dev Parent",
-                    Contact = "dev@school.co.za",
-                    UserId = null
-                };
-
-                db.Parents.Add(parent);
-                db.SaveChanges();
+                // Parent record missing — send them to login
+                Response.Redirect("~/Account/Login");
+                return 0;
             }
-
-            return parent.ParentId;
+            return (int)Session["ParentId"];
         }
 
         // ─── My Applications (Parent Dashboard) ───────────────────────────────────
@@ -40,7 +31,7 @@ namespace Michaelhouse.Controllers
         {
             using (var db = new DBContextClass())
             {
-                int parentId = GetCurrentParentId(db);
+                int parentId = GetCurrentParentId();
 
                 var apps = db.Applications
                     .Include("Student")
@@ -66,19 +57,24 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                int parentId = GetCurrentParentId(db);
+                int parentId = GetCurrentParentId();
 
                 db.Students.Add(new Student
                 {
-                    Name = vm.Name,
+                    FirstName = vm.FirstName,
+                    LastName = vm.LastName,
                     DOB = vm.DOB,
+                    HomeLanguage = vm.HomeLanguage,
+                    IdNumber = vm.IdNumber,
+                    PreviousSchool = vm.PreviousSchool,
+                    CurrentGrade = vm.CurrentGrade,
+                    MedicalConditions = vm.MedicalConditions,
                     ParentId = parentId
                 });
-
                 db.SaveChanges();
 
-                TempData["Success"] = $"{vm.Name} has been added successfully.";
-                return RedirectToAction("Index");
+                TempData["Success"] = $"{vm.FirstName} {vm.LastName} has been added.";
+                return RedirectToAction("Create");
             }
         }
 
@@ -88,7 +84,7 @@ namespace Michaelhouse.Controllers
         {
             using (var db = new DBContextClass())
             {
-                int parentId = GetCurrentParentId(db);
+                int parentId = GetCurrentParentId();
 
                 var students = db.Students
                     .Where(s => s.ParentId == parentId)
@@ -96,12 +92,22 @@ namespace Michaelhouse.Controllers
 
                 if (!students.Any())
                 {
-                    TempData["Info"] = "Please add a student first before submitting an application.";
+                    TempData["Info"] = "Please add a student first.";
                     return RedirectToAction("AddStudent");
                 }
 
                 ViewBag.Students = new SelectList(students, "StudentId", "Name");
                 ViewBag.CurrentYear = DateTime.Now.Year;
+
+                // Grades 8–12 for Michaelhouse
+                ViewBag.Grades = new SelectList(new[]
+                {
+                    new { Value = 8,  Text = "Grade 8"  },
+                    new { Value = 9,  Text = "Grade 9"  },
+                    new { Value = 10, Text = "Grade 10" },
+                    new { Value = 11, Text = "Grade 11" },
+                    new { Value = 12, Text = "Grade 12" }
+                }, "Value", "Text");
 
                 return View();
             }
@@ -113,47 +119,50 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(ApplicationCreateViewModel vm)
         {
-            using (var db = new DBContextClass())
+            if (!ModelState.IsValid)
             {
-                int parentId = GetCurrentParentId(db);
-
-                if (!ModelState.IsValid)
+                using (var db = new DBContextClass())
                 {
-                    ViewBag.Students = new SelectList(
-                        db.Students.Where(s => s.ParentId == parentId).ToList(),
-                        "StudentId", "Name");
-
+                    int parentId = GetCurrentParentId();
+                    var students = db.Students.Where(s => s.ParentId == parentId).ToList();
+                    ViewBag.Students = new SelectList(students, "StudentId", "Name");
                     ViewBag.CurrentYear = DateTime.Now.Year;
-                    return View(vm);
+                    ViewBag.Grades = new SelectList(new[]
+                    {
+                        new { Value = 8,  Text = "Grade 8"  },
+                        new { Value = 9,  Text = "Grade 9"  },
+                        new { Value = 10, Text = "Grade 10" },
+                        new { Value = 11, Text = "Grade 11" },
+                        new { Value = 12, Text = "Grade 12" }
+                    }, "Value", "Text");
                 }
-
-                var files = Request.Files;
-
-                if (files == null || files.Count == 0)
-                {
-                    ModelState.AddModelError("", "Please upload at least one document.");
-
-                    ViewBag.Students = new SelectList(
-                        db.Students.Where(s => s.ParentId == parentId).ToList(),
-                        "StudentId", "Name");
-
-                    return View(vm);
-                }
-
-                var app = _appService.SubmitApplication(
-                    parentId,
-                    vm.StudentId,
-                    vm.ApplicationYear,
-                    files,
-                    vm.DocumentTypes);
-
-                // Fire AI review in background
-                Task.Run(() => _appService.TriggerAiReviewAsync(app.AppId));
-
-                TempData["Success"] = "Application submitted! AI review has been triggered.";
-                return RedirectToAction("Status", new { id = app.AppId });
+                return View(vm);
             }
+
+            var files = Request.Files;
+            if (files == null || files.Count == 0)
+            {
+                ModelState.AddModelError("", "Please upload at least one document.");
+                return View(vm);
+            }
+
+            int currentParentId = GetCurrentParentId();
+
+            var app = _appService.SubmitApplication(
+                currentParentId,
+                vm.StudentId,
+                vm.ApplicationYear,
+                vm.GradeApplying,
+                vm.AdditionalNotes,
+                files,
+                vm.DocumentTypes);
+
+            Task.Run(() => _appService.TriggerAiReviewAsync(app.AppId));
+
+            TempData["Success"] = "Application submitted! AI review has been triggered.";
+            return RedirectToAction("Status", new { id = app.AppId });
         }
+        
 
         // ─── Application Status Page ──────────────────────────────────────────────
 
