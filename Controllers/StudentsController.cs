@@ -13,6 +13,12 @@ namespace Michaelhouse.Controllers
     public class StudentsController : Controller
     {
         private DBContextClass db = new DBContextClass();
+        private int GetCurrentStudentId()
+        {
+            if (Session["StudentId"] == null)
+                return 0;
+            return (int)Session["StudentId"];
+        }
 
         // GET: Students
         public ActionResult Index()
@@ -127,6 +133,42 @@ namespace Michaelhouse.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+        public ActionResult Dashboard()
+        {
+            int studentId = GetCurrentStudentId();
+            if (studentId == 0)
+            {
+                TempData["Error"] = "Student profile not found.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            using (var db = new DBContextClass())
+            {
+                var student = db.Students
+                    .Include("Parent")
+                    .Include("User")
+                    .FirstOrDefault(s => s.StudentId == studentId);
+
+                var reg = db.Registrations
+                    .Include("Application")
+                    .FirstOrDefault(r => r.StudentId == studentId);
+
+                var subjects = db.StudentSubjects
+                    .Include("Subject")
+                    .Where(ss => ss.StudentId == studentId)
+                    .ToList();
+
+                var streamEnr = db.StreamEnrolments
+                    .FirstOrDefault(se => se.StudentId == studentId);
+
+                ViewBag.Student = student;
+                ViewBag.Registration = reg;
+                ViewBag.Subjects = subjects;
+                ViewBag.StreamEnrolment = streamEnr;
+
+                return View();
+            }
         }
     }
 }

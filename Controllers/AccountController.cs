@@ -45,12 +45,17 @@ namespace Michaelhouse.Controllers
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
 
-                // Store ParentId in session for easy access
                 if (user.Role == "Parent")
                 {
                     var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
                     if (parent != null)
                         Session["ParentId"] = parent.ParentId;
+                }
+                else if (user.Role == "Student")
+                {
+                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                    if (student != null)
+                        Session["StudentId"] = student.StudentId;
                 }
 
                 return RedirectByRole(user.Role);
@@ -213,9 +218,13 @@ namespace Michaelhouse.Controllers
 
         private ActionResult RedirectByRole(string role)
         {
-            return role == "Admin"
-                ? RedirectToAction("Dashboard", "Admin")
-                : RedirectToAction("Index", "Applications");
+            switch (role)
+            {
+                case "Admin": return RedirectToAction("Dashboard", "Admin");
+                case "Parent": return RedirectToAction("Dashboard", "Parents");
+                case "Student": return RedirectToAction("Dashboard", "Students");
+                default: return RedirectToAction("Login", "Account");
+            }
         }
 
         public static string HashPassword(string password)

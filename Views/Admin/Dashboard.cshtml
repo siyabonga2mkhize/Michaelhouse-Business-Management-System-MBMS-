@@ -1,37 +1,168 @@
 ﻿@model List<Michaelhouse.Models.Application>
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Admin Dashboard";
 
-<h2>Applications Dashboard</h2>
+    // Quick Stats for the Hero Cards
+    var awaiting = Model.Count(a => a.Status == ApplicationStatus.AwaitingAdminDecision);
+    var flagged = Model.Count(a => a.Status == ApplicationStatus.Flagged);
+    var approvedToday = Model.Count(a => a.Status == ApplicationStatus.Approved && a.Date.Date == DateTime.Today);
+}
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Student</th>
-            <th>Parent</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var app in Model)
-        {
-            <tr>
-                <td>@app.AppId</td>
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Management Overview</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Applications Dashboard</h2>
+    </div>
+    <div class="text-right">
+        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">System Status</p>
+        <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-tighter">
+            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> AI Engine Online
+        </span>
+    </div>
+</div>
 
-                <td>@(app.Student != null ? app.Student.Name : "—")</td>
+<div class="row g-4 mb-12">
+    <div class="col-md-4">
+        <div class="bg-[#1a1a1a] text-white p-8 shadow-xl relative overflow-hidden group">
+            <i class="bi bi-inbox-fill absolute -right-4 -bottom-4 text-white/5 text-8xl rotate-12 transition-transform group-hover:scale-110"></i>
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-500 mb-2 relative z-10">Awaiting Decision</p>
+            <h3 class="text-4xl font-bold relative z-10">@awaiting</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden group">
+            <i class="bi bi-flag-fill absolute -right-4 -bottom-4 text-amber-500/5 text-8xl rotate-12"></i>
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-amber-600 mb-2 relative z-10">Flagged by AI</p>
+            <h3 class="text-4xl font-bold text-gray-900 relative z-10">@flagged</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden group">
+            <i class="bi bi-check-all absolute -right-4 -bottom-4 text-green-600/5 text-8xl rotate-12"></i>
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-green-600 mb-2 relative z-10">Approved Today</p>
+            <h3 class="text-4xl font-bold text-gray-900 relative z-10">@approvedToday</h3>
+        </div>
+    </div>
+</div>
 
-                <td>@(app.Parent != null ? app.Parent.Name : "—")</td>
+<div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
 
-                <td>@app.Status</td>
-                <td>@app.Date.ToString("dd MMM yyyy")</td>
-                <td>
-                    <a href="@Url.Action("Review", "Admin", new { id = app.AppId })"
-                       class="btn btn-sm btn-primary">
-                        Review
-                    </a>
-                </td>
-            </tr>
+    <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <div class="relative z-10">
+            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-0">Incoming Applications</h5>
+        </div>
+
+        <div class="relative z-10 flex gap-4">
+            <div class="relative">
+                <i class="bi bi-filter absolute left-0 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                <input type="text" id="dashboardSearch"
+                       class="ps-6 pr-4 py-2 border-0 border-b border-gray-100 focus:border-[#C21E2E] outline-none bg-transparent text-[11px] font-bold uppercase tracking-widest transition-all"
+                       placeholder="Search Dossiers..." onkeyup="filterDashboard()" />
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" id="dashTable">
+            <thead>
+                <tr class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 border-b">
+                    <th class="ps-8 py-5">Dossier ID</th>
+                    <th>Student Name</th>
+                    <th>Parent / Guardian</th>
+                    <th>AI Rec</th>
+                    <th>Submission Date</th>
+                    <th>Status</th>
+                    <th class="pe-8 text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 border-0">
+                @foreach (var app in Model.OrderByDescending(a => a.Date))
+                {
+                    string aiColor = app.AiRecommendation == "APPROVE" ? "text-green-500"
+                                   : app.AiRecommendation == "REJECT" ? "text-red-500" : "text-amber-500";
+
+                    <tr class="group border-b border-gray-50 last:border-0">
+                        <td class="ps-8 py-4">
+                            <span class="text-[11px] font-bold text-gray-400 font-mono">#MH-@app.AppId</span>
+                        </td>
+
+                        <td>
+                            <div class="fw-bold text-gray-900">@(app.Student != null ? app.Student.Name : "—")</div>
+                            <div class="text-[9px] text-gray-400 uppercase tracking-tighter">Michaelhouse Prospective</div>
+                        </td>
+
+                        <td class="text-sm">
+                            @(app.Parent != null ? app.Parent.Name : "—")
+                        </td>
+
+                        <td>
+                            @if (!string.IsNullOrEmpty(app.AiRecommendation))
+                            {
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-robot @aiColor text-sm"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest @aiColor">@app.AiRecommendation</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-[10px] text-gray-300 italic">Analysing...</span>
+                            }
+                        </td>
+
+                        <td class="text-xs text-gray-500">
+                            @app.Date.ToString("dd MMM yyyy")
+                        </td>
+
+                        <td>
+                            @Html.Partial("_StatusBadge", app.Status)
+                        </td>
+
+                        <td class="pe-8 text-end">
+                            <a href="@Url.Action("Review", "Admin", new { id = app.AppId })"
+                               class="inline-block bg-gray-50 text-gray-400 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-sm">
+                                Open File
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .table thead th {
+        border: none !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s;
+    }
+
+        .table tbody tr:hover {
+            background-color: #fcfcfc !important;
+            transform: scale(1.002);
         }
-    </tbody>
-</table>
+</style>
+
+@section Scripts {
+    <script>
+        function filterDashboard() {
+            var q = document.getElementById('dashboardSearch').value.toLowerCase();
+            document.querySelectorAll('#dashTable tbody tr').forEach(function (r) {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

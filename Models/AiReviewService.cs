@@ -11,7 +11,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
-using System.Web;
 
 namespace Michaelhouse.Services
 {
@@ -19,39 +18,25 @@ namespace Michaelhouse.Services
     {
         private readonly string _docEndpoint;
         private readonly string _docKey;
-        private readonly string _openAiEndpoint;
         private readonly string _openAiKey;
         private readonly string _uploadRoot;
-
-
 
         public AiReviewService()
         {
             _docEndpoint = ConfigurationManager.AppSettings["AzureDocIntelligence:Endpoint"];
             _docKey = ConfigurationManager.AppSettings["AzureDocIntelligence:Key"];
-            _openAiEndpoint = ConfigurationManager.AppSettings["AzureOpenAI:Endpoint"];
-            _openAiKey = ConfigurationManager.AppSettings["AzureOpenAI:Key"];
+            _openAiKey = ConfigurationManager.AppSettings["OpenAI:Key"];
 
-            // Resolve upload path — works on background threads (no HttpContext)
-            /*var relativePath = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"];
-            _uploadRoot = relativePath.StartsWith("~")
-                ? System.Web.Hosting.HostingEnvironment.MapPath(relativePath)
-                : relativePath;*/
-
-
-            // Null guard — falls back to App_Data/Uploads if key is missing
             var relativePath = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads";
             _uploadRoot = relativePath.StartsWith("~")
                 ? System.Web.Hosting.HostingEnvironment.MapPath(relativePath)
                 : relativePath;
-
         }
 
         // ─── Main Entry Point ─────────────────────────────────────────────────────
-
         /// <summary>
         /// Step 1: Reads each uploaded document using Azure Document Intelligence.
-        /// Step 2: Sends extracted text + application details to Azure OpenAI.
+        /// Step 2: Sends extracted text + application details to OpenAI.
         /// Returns (summary, recommendation) where recommendation is APPROVE | REJECT | FLAG.
         /// </summary>
         public async Task<(string Summary, string Recommendation)> ReviewApplicationAsync(Application application)
@@ -94,13 +79,12 @@ namespace Michaelhouse.Services
                 }
             }
 
-            // Send to Azure OpenAI
+            // Send to OpenAI
             var prompt = BuildPrompt(application, extractedDocs);
-            return await CallAzureOpenAIAsync(prompt);
+            return await CallOpenAIAsync(prompt);
         }
 
         // ─── Prompt Builder ───────────────────────────────────────────────────────
-
         private string BuildPrompt(Application app, List<string> extractedDocs)
         {
             int age = 0;
@@ -152,33 +136,34 @@ Use REJECT only when there is a clear disqualifying issue (wrong age, fraudulent
 Use APPROVE when everything is complete and correct.";
         }
 
-        // ─── Azure OpenAI Call ────────────────────────────────────────────────────
-
-        private async Task<(string Summary, string Recommendation)> CallAzureOpenAIAsync(string prompt)
+        // ─── OpenAI Call ─────────────────────────────────────────────────────────
+        private async Task<(string Summary, string Recommendation)> CallOpenAIAsync(string prompt)
         {
             using (var client = new HttpClient())
             {
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_openAiKey}");
+
                 var requestBody = new
                 {
+                    model = "gpt-4o-mini",
                     messages = new[]
                     {
                         new { role = "system", content = "You are a school enrollment review assistant. Always respond with valid JSON only. No markdown, no preamble." },
-                        new { role = "user",   content = prompt }
+                        new { role = "user", content = prompt }
                     },
                     max_tokens = 800,
                     temperature = 0.2
                 };
 
-                //var json = JsonSerializer.Serialize(requestBody);
                 var json = JsonConvert.SerializeObject(requestBody);
-                var request = new HttpRequestMessage(HttpMethod.Post, _openAiEndpoint);
-                request.Headers.Add("api-key", _openAiKey);
-                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response;
                 try
                 {
-                    response = await client.SendAsync(request);
+                    response = await client.PostAsync(
+                        "https://api.openai.com/v1/chat/completions",
+                        new StringContent(json, Encoding.UTF8, "application/json")
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -197,10 +182,9 @@ Use APPROVE when everything is complete and correct.";
                             .GetProperty("content")
                             .GetString();
 
-                        // Strip any accidental markdown fences
                         text = text?.Replace("```json", "").Replace("```", "").Trim();
 
-                        using (var aiDoc = JsonDocument.Parse(text)) //add 
+                        using (var aiDoc = JsonDocument.Parse(text))
                         {
                             var summary = aiDoc.RootElement.TryGetProperty("summary", out var s) ? s.GetString() : "No summary provided.";
                             var concerns = aiDoc.RootElement.TryGetProperty("concerns", out var c) ? c.GetString() : "None";

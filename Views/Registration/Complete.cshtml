@@ -5,83 +5,108 @@
     var reg = (Registration)ViewBag.Reg;
     var subjects = (List<StudentSubject>)ViewBag.Subjects;
 
-    // Helper to prevent the proxy string issue
     string studentDisplay = student != null ? student.Name : "the student";
     string studentFirst = student != null ? student.FirstName : "the student";
 }
 
-<div class="text-center py-4">
-    <i class="bi bi-patch-check-fill text-success" style="font-size:4rem;"></i>
-    <h2 class="mt-3">Registration Complete!</h2>
-    <p class="text-muted lead">
-        @studentDisplay has been successfully enrolled in Grade @(reg?.GradeEnrolling.ToString() ?? "—") at Michaelhouse.
-    </p>
-</div>
+<div class="text-center py-12 mb-10 relative overflow-hidden bg-white border-b border-gray-100">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-7">
-
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <i class="bi bi-envelope-check me-2"></i>Login Credentials Sent
-            </div>
-            <div class="card-body">
-                <p>
-                    A student account has been created for <strong>@studentDisplay</strong>.
-                    The login credentials have been emailed to your registered email address.
-                </p>
-                <div class="alert alert-warning small mb-0">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    Please ask @studentFirst to log in and change the temporary password immediately.
-                </div>
-            </div>
+    <div class="relative z-10">
+        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-6 shadow-xl shadow-green-100">
+            <i class="bi bi-check-lg text-4xl"></i>
         </div>
-
-        @if (subjects != null && subjects.Any())
-        {
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-journal-bookmark me-2"></i>Subject Package — Grade @(reg?.GradeEnrolling.ToString() ?? "—")
-                </div>
-                <ul class="list-group list-group-flush">
-                    @foreach (var ss in subjects)
-                    {
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span class="fw-semibold">@(ss.Subject != null ? ss.Subject.SubjectName : "Unknown Subject")</span>
-
-                            @if (ss.IsElective)
-                            {<span class="badge bg-primary">Elective</span> }
-                            else
-                            { <span class="badge bg-secondary">Compulsory</span>}
-                        </li>
-                    }
-                </ul>
-            </div>
-        }
-
-        <div class="card border-primary">
-            <div class="card-body small">
-                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>What Happens Next</h6>
-                <div class="d-flex gap-2 mb-2">
-                    <span class="badge bg-primary mt-1 flex-shrink-0">1</span>
-                    <span>The school will contact you with orientation details and term dates.</span>
-                </div>
-                <div class="d-flex gap-2 mb-2">
-                    <span class="badge bg-primary mt-1 flex-shrink-0">2</span>
-                    <span>A confirmation letter will be emailed to you.</span>
-                </div>
-                <div class="d-flex gap-2">
-                    <span class="badge bg-primary mt-1 flex-shrink-0">3</span>
-                    <span>Booklists and uniform information will be provided before the school year begins.</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center mt-4">
-            <a href="@Url.Action("Index", "Applications")" class="btn btn-outline-primary">
-                <i class="bi bi-grid-1x2 me-2"></i>Back to My Applications
-            </a>
-        </div>
-
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-4">Registration Complete</h2>
+        <p class="text-gray-500 italic font-serif text-lg max-w-2xl mx-auto">
+            @studentDisplay has been formally enrolled for <span class="text-[#C21E2E] font-bold">Grade @(reg?.GradeEnrolling.ToString() ?? "—")</span> at Michaelhouse.
+        </p>
     </div>
 </div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+    <div class="row g-5">
+
+        <div class="col-lg-7">
+
+            <div class="bg-[#1a1a1a] text-white p-8 mb-8 relative overflow-hidden group">
+                <i class="bi bi-shield-lock absolute -right-6 -bottom-6 text-white/5 text-9xl rotate-12"></i>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-500 mb-6">Access & Security</h5>
+                    <p class="text-sm leading-relaxed mb-6 text-gray-300">
+                        A secure student account has been provisioned for <span class="text-white font-bold">@studentDisplay</span>.
+                        Credentials have been dispatched to your primary email address.
+                    </p>
+                    <div class="p-4 bg-white/5 border-l-2 border-amber-500 text-[11px] italic text-amber-200">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Action Required: Ensure @studentFirst logs in to reset their temporary password immediately.
+                    </div>
+                </div>
+            </div>
+
+            @if (subjects != null && subjects.Any())
+            {
+                <div class="border border-gray-100 p-8 bg-white shadow-sm">
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6 pb-2 border-b">Confirmed Subject Package</h5>
+                    <div class="space-y-4">
+                        @foreach (var ss in subjects)
+                        {
+                            <div class="flex justify-between items-center group">
+                                <span class="text-sm font-bold text-gray-800 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">
+                                    @(ss?.Subject?.Name ?? "Unknown Subject")
+                                </span>
+                                @if (ss?.Subject != null && !ss.Subject.IsCompulsory)
+                                {
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] border border-[#C21E2E] px-2 py-1">Elective</span>
+                                }
+                                else
+                                {
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-gray-300 border border-gray-100 px-2 py-1">Core</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-5">
+            <div class="sticky top-24 space-y-8">
+
+                <div class="bg-gray-50 p-8 border border-gray-100">
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-8">What Happens Next?</h5>
+
+                    <div class="space-y-10 relative border-l border-gray-200 ml-2">
+                        <div class="pl-8 relative">
+                            <div class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-[#C21E2E]"></div>
+                            <h6 class="text-[10px] font-bold uppercase tracking-widest mb-1">Orientation Briefing</h6>
+                            <p class="text-[11px] text-gray-500 italic leading-relaxed">The school will contact you with orientation details and term dates via post.</p>
+                        </div>
+                        <div class="pl-8 relative">
+                            <div class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-gray-300"></div>
+                            <h6 class="text-[10px] font-bold uppercase tracking-widest mb-1">Confirmation of Place</h6>
+                            <p class="text-[11px] text-gray-500 italic leading-relaxed">A formal confirmation letter for your records will be emailed shortly.</p>
+                        </div>
+                        <div class="pl-8 relative">
+                            <div class="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-gray-300"></div>
+                            <h6 class="text-[10px] font-bold uppercase tracking-widest mb-1">Logistics & Gear</h6>
+                            <p class="text-[11px] text-gray-500 italic leading-relaxed">Booklists and uniform information will be provided 3 months before term begins.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <a href="@Url.Action("Index", "Applications")" class="w-full bg-[#C21E2E] text-white py-4 font-bold uppercase tracking-[3px] text-[11px] hover:bg-black transition-all d-block text-center shadow-lg active:scale-95">
+                        Return to Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

@@ -1,0 +1,175 @@
+﻿@using Michaelhouse.Models.Enums
+@using Michaelhouse.Services
+@{
+    ViewBag.Title = "Student Dashboard";
+    var student = (Michaelhouse.Models.Student)ViewBag.Student;
+    var reg = (Michaelhouse.Models.Registration)ViewBag.Registration;
+    var subjects = (List<Michaelhouse.Models.StudentSubject>)ViewBag.Subjects;
+    var streamEnr = (Michaelhouse.Models.StreamEnrolment)ViewBag.StreamEnrolment;
+}
+
+<!-- Welcome Banner -->
+<div class="card mb-4" style="background: linear-gradient(135deg, #1a3c5e, #2d6a9f); border: none;">
+    <div class="card-body p-4 text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-1">Welcome, @student?.FirstName 👋</h4>
+                <p class="mb-0 opacity-75">
+                    Michaelhouse &mdash;
+                    @if (reg != null)
+                    {
+                        <text>Grade @reg.GradeEnrolling &bull;</text>
+                        if (streamEnr != null && streamEnr.Stream != AcademicStream.None)
+                        {
+                            <text> @RegistrationService.GetStreamName(streamEnr.Stream) Stream</text>
+                        }
+                    }
+                </p>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-warning text-dark px-3 py-2 fs-6">
+                    @(reg?.Status == RegistrationStatus.Completed ? "Enrolled" : "Pending")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Student Details -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-fill me-2"></i>My Details
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted ps-3 py-2">Full Name</td><td class="fw-semibold">@student?.Name</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Date of Birth</td><td>@student?.DOB.ToString("dd MMM yyyy")</td>
+                    <tr><td class="text-muted ps-3 py-2">Home Language</td><td>@(student?.HomeLanguage ?? "—")</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">ID / Passport</td><td>@(student?.IdNumber ?? "—")</td></tr>
+                    @if (reg != null)
+                    {
+                        <tr class="border-top">
+                            <td class="text-muted ps-3 py-2">Grade</td>
+                            <td class="fw-semibold">Grade @reg.GradeEnrolling</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Stream Badge -->
+        @if (streamEnr != null && streamEnr.Stream != AcademicStream.None)
+        {
+            string icon = RegistrationService.GetStreamIcon(streamEnr.Stream);
+            string name = RegistrationService.GetStreamName(streamEnr.Stream);
+            <div class="card border-primary">
+                <div class="card-body text-center py-4">
+                    <i class="bi @icon text-primary" style="font-size:2.5rem;"></i>
+                    <h5 class="mt-2 mb-1">@name</h5>
+                    <p class="text-muted small mb-2">Academic Stream</p>
+                    <span class="badge @(streamEnr.TakesMathematics ? "bg-primary" : "bg-secondary")">
+                        @(streamEnr.TakesMathematics ? "Mathematics" : "Mathematical Literacy")
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Subjects -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-journal-bookmark me-2"></i>My Subjects
+                @if (subjects != null)
+                {
+                    <span class="badge bg-white text-primary ms-2">@subjects.Count subjects</span>
+                }
+            </div>
+            @if (subjects != null && subjects.Any())
+            {
+                <!-- Group by type -->
+                var compulsory = subjects.Where(s => s.IsCompulsory).ToList();
+                var langAndMaths = subjects.Where(s => !s.IsCompulsory && s.Stream == AcademicStream.None).ToList();
+                var streamSubs = subjects.Where(s => s.Stream != AcademicStream.None).ToList();
+
+                <ul class="list-group list-group-flush">
+                    @if (compulsory.Any())
+                    {
+                        <li class="list-group-item bg-light">
+                            <small class="text-muted fw-semibold text-uppercase">Compulsory</small>
+                        </li>
+                        foreach (var ss in compulsory)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-check-circle-fill text-secondary me-2"></i>@ss.Subject?.Name</span>
+                                <span class="badge bg-secondary">Compulsory</span>
+                            </li>
+                        }
+                    }
+                    @if (langAndMaths.Any())
+                    {
+                        <li class="list-group-item bg-light">
+                            <small class="text-muted fw-semibold text-uppercase">Language & Mathematics</small>
+                        </li>
+                        foreach (var ss in langAndMaths)
+                        {
+                            bool isMaths = RegistrationService.MathsOptions.Contains(ss.Subject?.Name);
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi @(isMaths ? "bi-calculator" : "bi-translate") text-primary me-2"></i>
+                                    @ss.Subject?.Name
+                                </span>
+                                <span class="badge @(isMaths ? "bg-info text-dark" : "bg-primary")">
+                                    @(isMaths ? "Maths" : "Language")
+                                </span>
+                            </li>
+                        }
+                    }
+                    @if (streamSubs.Any())
+                    {
+                        string streamName = streamEnr != null
+                            ? RegistrationService.GetStreamName(streamEnr.Stream)
+                            : "Stream";
+                        <li class="list-group-item bg-light">
+                            <small class="text-muted fw-semibold text-uppercase">@streamName Stream</small>
+                        </li>
+                        foreach (var ss in streamSubs)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="bi bi-book text-success me-2"></i>@ss.Subject?.Name
+                                </span>
+                                <span class="badge bg-success">Elective</span>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="card-body text-center py-4 text-muted">
+                    <i class="bi bi-journal-x" style="font-size:2rem;opacity:0.3;"></i>
+                    <p class="mt-2 mb-0 small">No subjects assigned yet.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Parent Info -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-people me-2"></i>Parent / Guardian
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted ps-3 py-2">Name</td><td class="fw-semibold">@student?.Parent?.Name</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Relationship</td><td>@(student?.Parent?.Relationship ?? "—")</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Cell</td><td>@(student?.Parent?.CellPhone ?? "—")</td></tr>
+                    <tr><td class="text-muted ps-3 py-2">Email</td><td>@student?.Parent?.Contact</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
