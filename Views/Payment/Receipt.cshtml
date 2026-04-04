@@ -1,0 +1,179 @@
+﻿@model Michaelhouse.Models.Invoice
+@{
+    ViewBag.Title = "Payment Receipt";
+    var lastPayment = Model.Payments?.OrderByDescending(p => p.PaymentDate).FirstOrDefault();
+    string studentName = Model.Student != null ? Model.Student.Name : "Prospective Student";
+}
+
+<div class="relative mb-12 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <i class="bi bi-receipt-cutoff absolute -right-8 -top-10 text-black/5 text-[15rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Guardian Portal</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Financial Records</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Dossier Overview &bull; @DateTime.Now.ToString("D")</p>
+        </div>
+        <a href="@Url.Action("Index", "Payment")" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black border-b border-gray-200 pb-1 transition-colors">
+            <i class="bi bi-arrow-left me-1"></i> Return to Invoices
+        </a>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @if (Model.Status == "Paid")
+    {
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8 d-flex align-items-center gap-3 shadow-sm">
+            <i class="bi bi-check-circle-fill text-green-500 fs-4"></i>
+            <div>
+                <p class="text-[11px] font-bold uppercase text-green-800 tracking-wider mb-0">Transaction Confirmed</p>
+                <p class="text-xs text-green-700 italic mb-0">This receipt serves as official proof of settlement for your records.</p>
+            </div>
+        </div>
+    }
+
+    <div class="bg-white border border-gray-100 shadow-xl relative overflow-hidden mb-10 p-0 rounded-0">
+        <i class="bi bi-shield-check absolute -right-16 -top-16 text-black/5 text-[20rem] rotate-12 pointer-events-none"></i>
+
+        <div class="p-10 relative z-10">
+            <div class="d-flex justify-content-between align-items-start border-b border-gray-100 pb-8 mb-8">
+                <div class="d-flex align-items-center gap-4">
+                    <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse Crest" class="mh-receipt-crest" />
+                    <div>
+                        <h4 class="font-serif font-bold text-2xl text-gray-900 mb-1">MICHAELHOUSE</h4>
+                        <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400">Official Financial Statement</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="bg-[#1a1a1a] text-white px-4 py-1 text-[10px] font-bold uppercase tracking-[2px]">
+                        @Model.Status
+                    </span>
+                    <p class="text-[10px] text-gray-300 font-bold uppercase tracking-widest mt-1">Ref &bull; @Model.InvoiceNumber</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Student Candidate</label>
+                        <p class="text-sm font-bold text-gray-800">@studentName</p>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Date Issued</label>
+                        <p class="text-sm font-bold text-gray-800">@(lastPayment?.PaymentDate.ToString("dd MMMM yyyy") ?? DateTime.Now.ToString("dd MMMM yyyy"))</p>
+                    </div>
+                </div>
+
+                <div class="py-6 border-y border-gray-50 bg-gray-50/50 my-6">
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2 px-3">Item Description</label>
+                    <p class="text-sm italic font-serif text-gray-700 mb-0 px-3">@Model.Description</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-sm-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Payment Method</label>
+                        <p class="text-xs font-bold text-gray-600 uppercase">
+                            <i class="bi bi-credit-card-2-front me-2"></i> Stripe Secure Online
+                        </p>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Reference Number</label>
+                        <p class="text-xs font-monospace text-gray-500">@(lastPayment?.PaymentReference ?? "MHS-GEN-AUTO")</p>
+                    </div>
+                </div>
+
+                @if (lastPayment != null)
+                {
+                    <div class="p-4 bg-gray-50/50 border border-gray-100">
+                        <label class="text-[8px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Internal Transaction ID</label>
+                        <p class="text-[10px] font-monospace text-gray-400 mb-0">@lastPayment.StripeChargeId</p>
+                    </div>
+                }
+
+                <div class="pt-8 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest">Total Amount Paid</h3>
+                        <p class="text-[10px] text-gray-400 italic mb-0">Currency: South African Rand (ZAR)</p>
+                    </div>
+                    <div class="text-end">
+                        <h2 class="text-5xl font-serif font-bold text-[#C21E2E]">
+                            R @Model.Amount.ToString("N2")
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (lastPayment != null)
+    {
+        <div class="bg-gray-900 p-8 text-white relative overflow-hidden shadow-lg">
+            <i class="bi bi-envelope-paper absolute -right-4 -bottom-4 text-white/5 text-7xl rotate-12"></i>
+            <div class="relative z-10 d-flex justify-content-between align-items-center flex-wrap gap-4">
+                <div>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Digital Dispatch</h6>
+                    <p class="text-xs text-gray-300 mb-0">
+                        @if (lastPayment.ProofEmailSent)
+                        {
+                            <i class="bi bi-send-check text-green-400 me-2"></i> <span>Receipt has been successfully dispatched to your inbox.</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-send-exclamation text-amber-400 me-2"></i> <span>Official email dispatch is pending.</span>
+                        }
+                    </p>
+                </div>
+
+                @using (Html.BeginForm("ResendProof", "Payment", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="paymentId" value="@lastPayment.PaymentId" />
+                    <button type="submit" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-all">
+                        <i class="bi bi-envelope-arrow-up me-2"></i>
+                        @(lastPayment.ProofEmailSent ? "Resend Digital Proof" : "Send Digital Proof")
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .mh-receipt-crest {
+        height: 60px;
+        width: auto;
+        object-fit: contain;
+        image-rendering: -webkit-optimize-contrast;
+    }
+
+    /* Print optimizations just in case parent wants to save to PDF */
+    @@media print {
+        .mh-navbar, #sidebar, .relative.mb-12, .bg-gray-900 {
+            display: none !important;
+        }
+
+        .bg-white {
+            border: none !important;
+            shadow: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .p-10 {
+            padding: 0 !important;
+        }
+    }
+</style>

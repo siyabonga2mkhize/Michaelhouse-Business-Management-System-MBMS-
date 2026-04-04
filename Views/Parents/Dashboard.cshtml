@@ -1,0 +1,164 @@
+﻿@{
+    ViewBag.Title = "Parent Dashboard";
+    var parent = (Michaelhouse.Models.Parent)ViewBag.Parent;
+    var applications = (List<Michaelhouse.Models.Application>)ViewBag.Applications ?? new List<Michaelhouse.Models.Application>();
+    var invoices = (List<Michaelhouse.Models.Invoice>)ViewBag.Invoices ?? new List<Michaelhouse.Models.Invoice>();
+
+    int pendingApps = applications.Count(a => a.Status == Michaelhouse.Models.Enums.ApplicationStatus.Pending ||
+                                              a.Status == Michaelhouse.Models.Enums.ApplicationStatus.UnderAiReview ||
+                                              a.Status == Michaelhouse.Models.Enums.ApplicationStatus.AwaitingAdminDecision);
+    int approvedApps = applications.Count(a => a.Status == Michaelhouse.Models.Enums.ApplicationStatus.Approved);
+    int pendingInvoices = invoices.Count(i => i.Status == "Pending");
+    decimal amountOwing = invoices.Where(i => i.Status == "Pending").Sum(i => i.Amount);
+}
+
+<div class="relative mb-12 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <i class="bi bi-shield-check absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10 flex justify-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Guardian Portal</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Welcome, @(parent?.Name ?? "Guardian")</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                Academic Session &bull; @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+            </p>
+        </div>
+        <a href="@Url.Action("Profile", "Account")" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#C21E2E] border-b border-gray-200 pb-1 transition-colors">
+            <i class="bi bi-person-gear me-2"></i>Account Settings
+        </a>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+    <div class="row g-4 mb-12">
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-file-earmark-text absolute -right-2 -bottom-2 text-black/5 text-5xl transition-transform group-hover:scale-110"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Applications</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@applications.Count</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-hourglass-split absolute -right-2 -bottom-2 text-black/5 text-5xl transition-transform group-hover:scale-110"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">In Progress</div>
+                <div class="text-3xl font-serif font-bold text-amber-600">@pendingApps</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-check-all absolute -right-2 -bottom-2 text-black/5 text-5xl transition-transform group-hover:scale-110"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Approved</div>
+                <div class="text-3xl font-serif font-bold text-green-600">@approvedApps</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-credit-card absolute -right-2 -bottom-2 text-black/5 text-5xl transition-transform group-hover:scale-110"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Invoices</div>
+                <div class="text-3xl font-serif font-bold @(pendingInvoices > 0 ? "text-[#C21E2E]" : "text-gray-300")">@pendingInvoices</div>
+            </div>
+        </div>
+    </div>
+
+    @if (amountOwing > 0)
+    {
+        <div class="bg-white border-l-4 border-[#C21E2E] p-5 shadow-sm flex justify-between items-center mb-12">
+            <div class="flex items-center gap-4">
+                <div class="bg-red-50 p-2 text-[#C21E2E]">
+                    <i class="bi bi-exclamation-octagon-fill text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-gray-400 block">Payment Notice</span>
+                    <span class="text-sm font-bold text-gray-900 uppercase">Outstanding Balance: ZAR @amountOwing.ToString("N2")</span>
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "Payment")" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg">Settle Account</a>
+        </div>
+    }
+
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <div class="flex justify-between items-center mb-6">
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] flex items-center gap-3">
+                    <i class="bi bi-person-lines-fill"></i> Active Student Dossiers
+                </h5>
+                <a href="@Url.Action("Create", "Applications")" class="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+                    + New Submission
+                </a>
+            </div>
+
+            <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                <div class="divide-y divide-gray-50">
+                    @foreach (var app in applications.Take(5))
+                    {
+                        <div class="p-5 hover:bg-gray-50 transition-all flex justify-between items-center group">
+                            <div>
+                                <h6 class="text-sm font-bold text-gray-900 mb-1 group-hover:text-[#C21E2E] transition-colors">
+                                    @(app.Student != null ? app.Student.Name : "System Record #" + app.AppId)
+                                </h6>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Grade @app.GradeApplying &bull; Ref #@app.AppId</p>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-gray-100 text-gray-400">@app.Status.ToString()</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6 flex items-center gap-3">
+                <i class="bi bi-shield-check"></i> Verification Status
+            </h5>
+
+            <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden">
+                <i class="bi bi-person-badge absolute -right-6 -bottom-6 text-black/5 text-8xl rotate-12"></i>
+
+                @{
+                    int score = 0;
+                    if (!string.IsNullOrEmpty(parent?.CellPhone)) { score += 20; }
+                    if (!string.IsNullOrEmpty(parent?.PhysicalAddress)) { score += 20; }
+                    if (!string.IsNullOrEmpty(parent?.Occupation)) { score += 20; }
+                    if (!string.IsNullOrEmpty(parent?.EmergencyContactName)) { score += 20; }
+                    if (!string.IsNullOrEmpty(parent?.Relationship)) { score += 20; }
+                }
+
+                <div class="flex justify-between items-end mb-3">
+                    <div>
+                        <span class="text-3xl font-serif font-bold text-gray-900">@score%</span>
+                        <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-0">Dossier Completion</p>
+                    </div>
+                    <a href="@Url.Action("Profile", "Account")" class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] border-b border-[#C21E2E] pb-1 hover:text-black hover:border-black transition-all">Update Info</a>
+                </div>
+
+                <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-[#C21E2E] transition-all duration-1000" style="width: @score%"></div>
+                </div>
+
+                @if (score < 100)
+                {
+                    <p class="text-[10px] text-gray-400 italic mt-4 mb-0">
+                        <i class="bi bi-info-circle me-1 text-amber-500"></i>
+                        A completed profile accelerates administrative approval.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

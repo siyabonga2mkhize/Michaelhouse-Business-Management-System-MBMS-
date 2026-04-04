@@ -9,10 +9,10 @@
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationsEnabled = false;
         }
 
-        /* protected override void Seed(Michaelhouse.Models.DBContextClass context)
+         /*protected override void Seed(Michaelhouse.Models.DBContextClass context)
          {
              // Seed default admin account
              // Login: admin@michaelhouse.co.za / Admin@123

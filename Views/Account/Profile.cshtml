@@ -1,0 +1,159 @@
+﻿@model Michaelhouse.Models.ViewModels.ParentProfileViewModel
+@{
+    ViewBag.Title = "My Profile";
+}
+
+<div class="relative mb-10 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Guardian Management</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Personal Profile</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Manage your institutional contact information</p>
+        </div>
+        <a href="@Url.Action("Dashboard", "Parents")" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black border-b border-gray-200 pb-1 transition-colors">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+    @using (Html.BeginForm("Profile", "Account", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        if (!ViewData.ModelState.IsValid)
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 mb-8 flex items-center gap-3">
+                <i class="bi bi-exclamation-octagon text-[#C21E2E]"></i>
+                <div class="text-[11px] font-bold uppercase tracking-wide text-red-800">
+                    Please correct the highlighted errors before saving.
+                </div>
+            </div>
+        }
+
+        <div class="row g-5">
+            <div class="col-lg-6">
+
+                <div class="bg-white border-l-4 border-gray-900 shadow-sm p-8 mb-8 relative overflow-hidden">
+                    <i class="bi bi-person absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">Identification Details</h6>
+
+                    <div class="space-y-4 relative z-10">
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Full Name</label>
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5 focus:border-[#C21E2E] focus:ring-0" })
+                            @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-red-600 text-[10px] font-bold mt-1" })
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Official Email</label>
+                            @Html.TextBoxFor(m => m.Contact, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5", type = "email" })
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Relationship</label>
+                                @Html.DropDownListFor(m => m.Relationship,
+                                    new SelectList(new[] { "Father", "Mother", "Guardian", "Other" }),
+                                    "-- Select --", new { @class = "form-select rounded-0 border-gray-200 text-sm py-2.5" })
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Occupation</label>
+                                @Html.TextBoxFor(m => m.Occupation, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5" })
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Employer / Company</label>
+                            @Html.TextBoxFor(m => m.Employer, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-l-4 border-gray-400 shadow-sm p-8 relative overflow-hidden">
+                    <i class="bi bi-telephone absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">Contact Channels</h6>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Cell Phone <span class="text-[#C21E2E]">*</span></label>
+                            @Html.TextBoxFor(m => m.CellPhone, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5 font-monospace" })
+                            @Html.ValidationMessageFor(m => m.CellPhone, "", new { @class = "text-red-600 text-[10px] font-bold mt-1" })
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Work Phone</label>
+                                @Html.TextBoxFor(m => m.WorkPhone, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5 font-monospace" })
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Home Phone</label>
+                                @Html.TextBoxFor(m => m.HomePhone, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5 font-monospace" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+
+                <div class="bg-white border-l-4 border-gray-200 shadow-sm p-8 mb-8 relative overflow-hidden">
+                    <i class="bi bi-geo-alt absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">Locality & Residence</h6>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Physical Address</label>
+                            @Html.TextAreaFor(m => m.PhysicalAddress, new { @class = "form-control rounded-0 border-gray-200 text-sm p-3", rows = "3" })
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Postal Address</label>
+                            @Html.TextAreaFor(m => m.PostalAddress, new { @class = "form-control rounded-0 border-gray-200 text-sm p-3", rows = "3" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-l-4 border-[#C21E2E] shadow-sm p-8 relative overflow-hidden">
+                    <i class="bi bi-shield-exclamation absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6">Emergency Protocol</h6>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Emergency Contact Name</label>
+                            @Html.TextBoxFor(m => m.EmergencyContactName, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5" })
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1 block">Emergency Contact Phone</label>
+                            @Html.TextBoxFor(m => m.EmergencyContactPhone, new { @class = "form-control rounded-0 border-gray-200 text-sm py-2.5 font-monospace" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 flex items-center gap-4">
+                    <button type="submit" class="bg-[#1a1a1a] text-white px-12 py-4 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-xl active:scale-95">
+                        <i class="bi bi-shield-check me-2"></i> Save Changes
+                    </button>
+                    <a href="@Url.Action("Dashboard", "Parent")" class="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black">
+                        Discard Changes
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+    /* Remove default focus ring on bootstrap inputs to use our custom red border */
+    .form-control:focus, .form-select:focus {
+        border-color: #C21E2E !important;
+        box-shadow: none !important;
+    }
+</style>
