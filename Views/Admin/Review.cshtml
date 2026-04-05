@@ -1,0 +1,208 @@
+﻿@model Michaelhouse.Models.Application
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Review Application #" + Model.AppId;
+    bool canDecide = Model.Status == ApplicationStatus.AwaitingAdminDecision
+                  || Model.Status == ApplicationStatus.Flagged;
+
+    var lastReview = Model.AdminReviews != null && Model.AdminReviews.Any()
+        ? Model.AdminReviews.OrderByDescending(r => r.Date).FirstOrDefault()
+        : null;
+
+    // Helper for Proxy Fix
+    string studentName = Model.Student != null ? Model.Student.Name : "Student";
+    string parentName = Model.Parent != null ? Model.Parent.Name : "Parent";
+
+    // CLEAN AGE CALCULATION (Prevents the syntax error)
+    int studentAge = 0;
+    if (Model.Student != null)
+    {
+        studentAge = DateTime.Today.Year - Model.Student.DOB.Year;
+        if (Model.Student.DOB.Date > DateTime.Today.AddYears(-studentAge)) { studentAge--; }
+    }
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0">
+            <i class="bi bi-file-earmark-check me-2 text-warning"></i>
+            Application #@Model.AppId
+        </h3>
+        <small class="text-muted">
+            @studentName &mdash; Submitted @Model.Date.ToString("dd MMM yyyy HH:mm")
+        </small>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        @Html.Partial("_StatusBadge", Model.Status)
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-4">
+
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-fill me-2"></i>Student Details
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Name</td>
+                        <td class="fw-semibold">@studentName</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Date of Birth</td>
+                        <td>@(Model.Student != null ? Model.Student.DOB.ToString("dd MMM yyyy") : "—")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Age</td>
+                        <td>@studentAge years</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">App. Year</td>
+                        <td>@Model.ApplicationYear</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted ps-3 py-2">Parent</td>
+                        <td>@parentName</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td class="text-muted ps-3 py-2">Contact</td>
+                        <td>@(Model.Parent != null ? Model.Parent.Contact : "—")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-paperclip me-2"></i>Documents (@(Model.Documents != null ? Model.Documents.Count : 0))
+            </div>
+            <ul class="list-group list-group-flush">
+                @if (Model.Documents != null && Model.Documents.Any())
+                {
+                    foreach (var doc in Model.Documents)
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold small">@doc.Type</div>
+                                    <div class="text-muted" style="font-size:0.78rem;">@doc.FileName</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">
+                                        @doc.UploadedAt.ToString("dd MMM HH:mm")
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("ViewDocument", "Admin", new { id = doc.DId })"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary ms-2">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted small">No documents submitted.</li>
+                }
+            </ul>
+        </div>
+
+        @if (Model.AdminReviews != null && Model.AdminReviews.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Review History
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var rev in Model.AdminReviews.OrderByDescending(r => r.Date))
+                    {
+                        string rc = rev.Decision == "Approved" ? "success" : rev.Decision == "Rejected" ? "danger" : "warning";
+                        <li class="list-group-item small">
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-@rc">@rev.Decision</span>
+                                <span class="text-muted">@rev.Date.ToString("dd MMM yyyy")</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(rev.AdminNotes))
+                            {
+                                <div class="text-muted mt-1">@rev.AdminNotes</div>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+    </div>
+
+    <div class="col-lg-8">
+        @{
+            string panelBorder = string.IsNullOrEmpty(Model.AiReviewSummary) ? "border-secondary" : Model.AiRecommendation == "APPROVE" ? "border-success" : Model.AiRecommendation == "REJECT" ? "border-danger" : "border-warning";
+            string panelHeader = Model.AiRecommendation == "APPROVE" ? "bg-success text-white" : Model.AiRecommendation == "REJECT" ? "bg-danger text-white" : Model.AiRecommendation == "FLAG" ? "bg-warning text-dark" : "bg-secondary text-white";
+        }
+        <div class="card mb-4 border-2 @panelBorder">
+            <div class="card-header d-flex justify-content-between align-items-center @panelHeader">
+                <span><i class="bi bi-robot me-2"></i>AI Review Analysis</span>
+                @if (!string.IsNullOrEmpty(Model.AiRecommendation))
+                {
+                    <span class="badge bg-white text-dark fs-6">Rec: @Model.AiRecommendation</span>
+                }
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.AiReviewSummary))
+                {
+                    <div class="p-3 rounded" style="background:#f8f9fa; white-space:pre-wrap; font-size:0.92rem;">@Model.AiReviewSummary</div>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-3">No AI summary available yet.</p>
+                }
+            </div>
+        </div>
+
+        @if (canDecide)
+        {
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-check-fill me-2"></i>Your Decision
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm("Confirm", "Admin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="AppId" value="@Model.AppId" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Decision <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3">
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision" id="dec_approve" value="Approved" required />
+                                    <label class="btn btn-outline-success px-4" for="dec_approve">Approve</label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision" id="dec_reject" value="Rejected" />
+                                    <label class="btn btn-outline-danger px-4" for="dec_reject">Reject</label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check" name="Decision" id="dec_flag" value="Flagged" />
+                                    <label class="btn btn-outline-warning px-4" for="dec_flag">Flag</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Notes to Parent</label>
+                            <textarea name="Notes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg px-5">Confirm Decision</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

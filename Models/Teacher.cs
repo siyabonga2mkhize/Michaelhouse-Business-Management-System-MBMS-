@@ -6,6 +6,7 @@ namespace Michaelhouse.Models
 {
     public class Teacher
     {
+        public int? UserId { get; set; } // The Foreign Key
         public int TeacherId { get; set; }
 
         [Required, Display(Name = "First Name")]
@@ -39,5 +40,6 @@ namespace Michaelhouse.Models
 
         public virtual ICollection<Subject> Subjects { get; set; }
         public virtual ICollection<TeacherAttendance> TeacherAttendances { get; set; }
+        public virtual AppUser User { get; set; } // The Navigation Property
     }
 }

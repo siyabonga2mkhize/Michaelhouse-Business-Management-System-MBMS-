@@ -1,0 +1,62 @@
+﻿@using Michaelhouse.Models
+@model MarkAttendanceViewModel
+
+@{
+    ViewBag.Title = "Mark Register";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-pencil-square me-2"></i>Mark Register: @Model.SubjectName</h2>
+        <span class="badge bg-secondary p-2">Date: @Model.Date.ToString("dd MMM yyyy")</span>
+    </div>
+
+    @using (Html.BeginForm("SaveRegister", "Attendances", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="SubjectId" value="@Model.SubjectId" />
+
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Student Name</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Students.Count; i++)
+                        {
+                            <tr>
+                                <td class="align-middle ps-4">
+                                    <input type="hidden" name="Students[@i].StudentId" value="@Model.Students[i].StudentId" />
+                                    <strong>@Model.Students[i].FullName</strong>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="btn-group" role="group">
+                                        <input type="radio" class="btn-check" name="Students[@i].Status" id="pres_@i" value="Present" checked>
+                                        <label class="btn btn-outline-success btn-sm" for="pres_@i">Present</label>
+
+                                        <input type="radio" class="btn-check" name="Students[@i].Status" id="abs_@i" value="Absent">
+                                        <label class="btn btn-outline-danger btn-sm" for="abs_@i">Absent</label>
+
+                                        <input type="radio" class="btn-check" name="Students[@i].Status" id="late_@i" value="Late">
+                                        <label class="btn btn-outline-warning btn-sm" for="late_@i">Late</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-end p-3">
+                <a href="@Url.Action("Index", "Attendances")" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-cloud-arrow-up me-2"></i>Submit Register
+                </button>
+            </div>
+        </div>
+    }
+</div>

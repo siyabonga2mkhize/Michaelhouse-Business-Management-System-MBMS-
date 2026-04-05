@@ -1,0 +1,206 @@
+@model Michaelhouse.Controllers.TeacherAttendanceViewModel
+
+@{
+    ViewBag.Title = "Teacher Check In/Out";
+    var schoolCoords = "-30.03481180794199, 30.86786241957887";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-badge me-2"></i>Teacher Check In/Out</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>Welcome, @Model.TeacherName</h5>
+                        <p class="text-muted">@DateTime.Today.ToString("dddd, dd MMMM yyyy")</p>
+                    </div>
+
+                    @if (Model.TodayAttendance != null)
+                    {
+                        <div class="alert alert-info">
+                            <strong>Today's Record:</strong>
+                            @if (Model.TodayAttendance.SignInTime != null)
+                            {
+                                <div>Check In: @Model.TodayAttendance.SignInTime.Value.ToString("HH:mm")</div>
+                            }
+                            @if (Model.TodayAttendance.SignOutTime != null)
+                            {
+                                <div>Check Out: @Model.TodayAttendance.SignOutTime.Value.ToString("HH:mm")</div>
+                                var duration = Model.TodayAttendance.SignOutTime.Value - Model.TodayAttendance.SignInTime.Value;
+                                <div>Duration: @duration.Hoursh @duration.Minutesm</div>
+                            }
+                            @if (Model.TodayAttendance.IsVerified)
+                            {
+                                <span class="badge bg-success mt-2"><i class="bi bi-check-circle me-1"></i>Location Verified</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning mt-2"><i class="bi bi-exclamation-triangle me-1"></i>Location Not Verified</span>
+                            }
+                        </div>
+                    }
+
+                    <div id="locationStatus" class="alert alert-secondary" style="display:none;">
+                        <i class="bi bi-geo-alt me-2"></i><span id="locationText">Detecting your location...</span>
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        @if (Model.CanCheckIn)
+                        {
+                            <button type="button" id="btnCheckIn" class="btn btn-success btn-lg" onclick="checkIn()">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Check In
+                            </button>
+                        }
+                        else if (Model.CanCheckOut)
+                        {
+                            <button type="button" id="btnCheckOut" class="btn btn-danger btn-lg" onclick="checkOut()">
+                                <i class="bi bi-box-arrow-right me-2"></i>Check Out
+                            </button>
+                        }
+                        else if (Model.IsCheckedOut)
+                        {
+                            <div class="alert alert-success text-center">
+                                <i class="bi bi-check-circle-fill me-2"></i>You have completed your attendance for today
+                            </div>
+                        }
+
+                        <a href="@Url.Action("History", "TeacherAttendance")" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history me-2"></i>View Attendance History
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-center text-muted">
+                    <small>School Location: @schoolCoords</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var userLat = 0;
+        var userLng = 0;
+
+        function showLocationStatus(message, type = 'info') {
+            var statusDiv = document.getElementById('locationStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'alert alert-' + type;
+            document.getElementById('locationText').textContent = message;
+        }
+
+        function getLocation() {
+            return new Promise(function(resolve, reject) {
+                if (!navigator.geolocation) {
+                    reject('Geolocation is not supported by your browser');
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLat = position.coords.latitude;
+                        userLng = position.coords.longitude;
+                        resolve({ lat: userLat, lng: userLng });
+                    },
+                    function(error) {
+                        var message;
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'Location permission denied. Please enable location services.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'Location information unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'Location request timed out.';
+                                break;
+                            default:
+                                message = 'An unknown error occurred.';
+                        }
+                        reject(message);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+
+        async function checkIn() {
+            var btn = document.getElementById('btnCheckIn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+            try {
+                showLocationStatus('Getting your location...', 'info');
+                var location = await getLocation();
+                showLocationStatus('Location detected: ' + location.lat.toFixed(6) + ', ' + location.lng.toFixed(6), 'info');
+
+                var response = await fetch('@Url.Action("CheckIn", "TeacherAttendance")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ latitude: location.lat, longitude: location.lng })
+                });
+
+                var result = await response.json();
+
+                if (result.success) {
+                    showLocationStatus(result.message, 'success');
+                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Checked In';
+                    btn.className = 'btn btn-success btn-lg disabled';
+                    setTimeout(function() { location.reload(); }, 2000);
+                } else {
+                    showLocationStatus(result.message, 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Check In';
+                }
+            } catch (error) {
+                showLocationStatus(error, 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Check In';
+            }
+        }
+
+        async function checkOut() {
+            var btn = document.getElementById('btnCheckOut');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+            try {
+                showLocationStatus('Getting your location...', 'info');
+                var location = await getLocation();
+                showLocationStatus('Location detected: ' + location.lat.toFixed(6) + ', ' + location.lng.toFixed(6), 'info');
+
+                var response = await fetch('@Url.Action("CheckOut", "TeacherAttendance")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ latitude: location.lat, longitude: location.lng })
+                });
+
+                var result = await response.json();
+
+                if (result.success) {
+                    showLocationStatus(result.message, 'success');
+                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Checked Out';
+                    btn.className = 'btn btn-danger btn-lg disabled';
+                    setTimeout(function() { location.reload(); }, 2000);
+                } else {
+                    showLocationStatus(result.message, 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
+                }
+            } catch (error) {
+                showLocationStatus(error, 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
+            }
+        }
+    </script>
+}

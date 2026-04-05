@@ -1,66 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
     public class Student
     {
+        [Key]
         public int StudentId { get; set; }
 
-        [Required, Display(Name = "First Name")]
-        [StringLength(50)]
+        // ─── Basic Info ───────────────────────────────────────────────────────────
+        [Required, MaxLength(200)]
+        [Display(Name = "First Name")]
         public string FirstName { get; set; }
 
-        [Required, Display(Name = "Last Name")]
-        [StringLength(50)]
+        [Required, MaxLength(200)]
+        [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        [Display(Name = "Date of Birth")]
-        [DataType(DataType.Date)]
-        public DateTime DateOfBirth { get; set; }
+        // Full name computed for display
+        public string Name => FirstName + " " + LastName;
 
         [Required]
-        [StringLength(10)]
-        public string Gender { get; set; }
+        [DataType(DataType.Date)]
+        [Display(Name = "Date of Birth")]
+        public DateTime DOB { get; set; }
 
-        [Display(Name = "Grade")]
-        public int GradeLevel { get; set; }
+        [MaxLength(50)]
+        [Display(Name = "Home Language")]
+        public string HomeLanguage { get; set; }
 
+        [MaxLength(20)]
+        [Display(Name = "ID / Passport Number")]
+        public string IdNumber { get; set; }
+
+        // ─── Previous School ──────────────────────────────────────────────────────
+        [MaxLength(200)]
+        [Display(Name = "Previous School")]
+        public string PreviousSchool { get; set; }
+
+        [MaxLength(50)]
+        [Display(Name = "Current Grade")]
+        public string CurrentGrade { get; set; } // Grade they are currently in
+
+        // ─── Medical ──────────────────────────────────────────────────────────────
+        [MaxLength(500)]
+        [Display(Name = "Medical Conditions / Allergies")]
+        public string MedicalConditions { get; set; }
+
+
+        [ForeignKey("Parent")]
+        public int ParentId { get; set; }
+
+        // Set after parent completes registration
+        public int? UserId { get; set; }
+
+
+        // --- MISSING PROPERTIES TO ADD ---
+
+        [Required]
         [Display(Name = "Student Number")]
         public string StudentNumber { get; set; }
 
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; }
+        [Required]
+        public string Gender { get; set; }
 
-        [Phone]
-        [Display(Name = "Phone")]
-        public string Phone { get; set; }
+        [Required]
+        [Display(Name = "Grade Level")]
+        public int GradeLevel { get; set; } // Matches Subject.GradeLevel
 
-        [Display(Name = "Address")]
-        public string Address { get; set; }
-
+        [Required]
         [Display(Name = "Enrollment Date")]
-        [DataType(DataType.Date)]
-        public DateTime EnrollmentDate { get; set; }
+        public DateTime EnrollmentDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Is Boarder")]
-        public bool IsBoarder { get; set; }
-
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Active, Graduated, Withdrawn
-
-        [Display(Name = "Full Name")]
-        public string FullName => FirstName + " " + LastName;
+        public int? ClassId { get; set; }
 
         // Navigation
-        public int? BoardingHouseId { get; set; }
-        public virtual BoardingHouse BoardingHouse { get; set; }
-        public virtual ICollection<Attendance> Attendances { get; set; }
-        public virtual ICollection<StudentMark> StudentMarks { get; set; }
-        public virtual ICollection<Invoice> Invoices { get; set; }
-        public virtual Parent Parent { get; set; }
-        public int? ParentId { get; set; }
+        public Parent Parent { get; set; }
+        public virtual AppUser User { get; set; }
+        public ICollection<Application> Applications { get; set; }
+        public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
+
     }
 }

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<Michaelhouse.Models.AdminReview>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Application.AiReviewSummary)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AdminId)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Decision)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AdminNotes)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AgreedWithAi)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Application.AiReviewSummary)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.AdminId)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Decision)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.AdminNotes)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.AgreedWithAi)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ReviewId }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ReviewId }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ReviewId })
+        </td>
+    </tr>
+}
+
+</table>

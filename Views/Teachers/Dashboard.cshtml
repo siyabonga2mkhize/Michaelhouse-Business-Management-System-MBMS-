@@ -1,0 +1,131 @@
+@{
+    ViewBag.Title = "Teacher Dashboard";
+    var todayAttendance = ViewBag.TodayAttendance as Michaelhouse.Models.TeacherAttendance;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer2 me-2"></i>Welcome, @ViewBag.TeacherName</h2>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">@ViewBag.SubjectCount</h3>
+                    <p class="text-muted mb-0">Subjects Assigned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    @if (todayAttendance != null && todayAttendance.SignInTime != null)
+                    {
+                        <h3 class="text-success"><i class="bi bi-check-circle"></i></h3>
+                        <p class="text-success mb-0">Checked In @todayAttendance.SignInTime.Value.ToString("HH:mm")</p>
+                    }
+                    else
+                    {
+                        <h3 class="text-warning"><i class="bi bi-clock"></i></h3>
+                        <p class="text-warning mb-0">Not Checked In</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    @if (todayAttendance != null && todayAttendance.SignOutTime != null)
+                    {
+                        <h3 class="text-info">@todayAttendance.SignOutTime.Value.ToString("HH:mm")</h3>
+                        <p class="text-info mb-0">Checked Out</p>
+                    }
+                    else
+                    {
+                        <h3 class="text-secondary">-</h3>
+                        <p class="text-muted mb-0">Not Checked Out</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-primary">
+                            <i class="bi bi-clipboard-check me-2"></i>Check In / Out
+                        </a>
+                        <a href="@Url.Action("Index", "Attendances")" class="btn btn-primary">
+                            <i class="bi bi-list-check me-2"></i>Mark Student Register
+                        </a>
+                        <a href="@Url.Action("History", "Attendances")" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history me-2"></i>View Attendance History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calendar-event me-2"></i>Today - @DateTime.Today.ToString("dd MMMM yyyy")
+                </div>
+                <div class="card-body">
+                    @if (todayAttendance != null)
+                    {
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <td><strong>Status</strong></td>
+                                <td>
+                                    @if (todayAttendance.Status == Michaelhouse.Models.TeacherStatus.Present)
+                                    {
+                                        <span class="badge bg-success">Present</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">@todayAttendance.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Check In</strong></td>
+                                <td>@(todayAttendance.SignInTime?.ToString("HH:mm") ?? "-")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Check Out</strong></td>
+                                <td>@(todayAttendance.SignOutTime?.ToString("HH:mm") ?? "-")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location Verified</strong></td>
+                                <td>
+                                    @if (todayAttendance.IsVerified)
+                                    {
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No attendance record for today.</p>
+                        <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-sm btn-primary mt-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Check In Now
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

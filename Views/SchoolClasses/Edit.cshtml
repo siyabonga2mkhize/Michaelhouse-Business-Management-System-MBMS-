@@ -1,0 +1,37 @@
+﻿@model Michaelhouse.Models.SchoolClass
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Class Details</h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        @Html.HiddenFor(model => model.ClassId)
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.ClassName, "Class Name", new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(model => model.ClassName, new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.GradeLevel, "Grade Level", new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(model => model.GradeLevel, new { htmlAttributes = new { @class = "form-control", type = "number" } })
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-outline-secondary" })
+                            <button type="submit" class="btn btn-warning">Save Changes</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

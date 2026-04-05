@@ -1,55 +1,48 @@
-﻿using System;
+﻿using Michaelhouse.Models.Enums;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
     public class Application
     {
-        public int ApplicationId { get; set; }
+        [Key]
+        public int AppId { get; set; }
 
-        [Required, Display(Name = "Student First Name")]
-        public string StudentFirstName { get; set; }
+        [ForeignKey("Parent")]
+        public int ParentId { get; set; }
 
-        [Required, Display(Name = "Student Last Name")]
-        public string StudentLastName { get; set; }
-
-        [Display(Name = "Date of Birth")]
-        [DataType(DataType.Date)]
-        public DateTime DateOfBirth { get; set; }
+        [ForeignKey("Student")]
+        public int StudentId { get; set; }
 
         [Required]
-        public string Gender { get; set; }
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
-        [Display(Name = "Applying for Grade")]
-        public int ApplyingForGrade { get; set; }
+        [Required]
+        public int ApplicationYear { get; set; }
 
-        [Display(Name = "Previous School")]
-        public string PreviousSchool { get; set; }
+        [Required]
+        [Display(Name = "Grade Applying For")]
+        public int GradeApplying { get; set; } // 8, 9, 10, 11, or 12
 
-        [Display(Name = "Previous School Marks (%)")]
-        public double PreviousMarks { get; set; }
+        public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
 
-        [Display(Name = "Application Date")]
-        [DataType(DataType.Date)]
-        public DateTime ApplicationDate { get; set; }
+        // AI Review Summary stored here after AI processes it
+        public string AiReviewSummary { get; set; }
+        public string AiRecommendation { get; set; } // "Approve" | "Reject" | "Review"
 
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Pending, Approved, Rejected
+        // ─── Additional Notes from Parent ─────────────────────────────────────────
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Additional Information")]
+        public string AdditionalNotes { get; set; }
 
-        [Display(Name = "Admin Comments")]
-        public string AdminComments { get; set; }
 
-        [Display(Name = "Documents Uploaded")]
-        public string DocumentPath { get; set; }
-
-        [Display(Name = "Requires Boarding")]
-        public bool RequiresBoarding { get; set; }
-
-        // AI Review Score
-        [Display(Name = "AI Review Score")]
-        public int? AIReviewScore { get; set; }
-
-        public int ParentId { get; set; }
-        public virtual Parent Parent { get; set; }
+        // Navigation
+        public Parent Parent { get; set; }
+        public Student Student { get; set; }
+        public ICollection<Document> Documents { get; set; }
+        public ICollection<AdminReview> AdminReviews { get; set; }
     }
 }

@@ -1,0 +1,97 @@
+﻿@model IEnumerable<Michaelhouse.Models.Application>
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "My Applications";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-grid-1x2 me-2 text-warning"></i>My Applications</h3>
+        <small class="text-muted">Track all your enrollment submissions</small>
+    </div>
+    <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Application
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-folder-x" style="font-size:3rem;color:#ccc;"></i>
+            <h5 class="mt-3 text-muted">No applications yet</h5>
+            <p class="text-muted mb-4">Submit your first enrollment application to get started.</p>
+            <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Submit Application
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var app in Model)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+
+                            <!-- Student Avatar + Name -->
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                                         style="width:44px;height:44px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="fw-semibold">@(app.Student != null ? app.Student.Name : "Unknown Student")</div>
+                                </div>
+                            </div>
+
+                            <!-- Date Submitted -->
+                            <div class="col-md-2">
+                                <small class="text-muted d-block">Submitted</small>
+                                <span class="small">@app.Date.ToString("dd MMM yyyy")</span>
+                            </div>
+
+                            <!-- Documents -->
+                            <div class="col-md-2">
+                                <small class="text-muted d-block">Documents</small>
+                                <span class="small"><i class="bi bi-paperclip me-1"></i>@(app.Documents?.Count ?? 0) file(s)</span>
+                            </div>
+
+                            <!-- AI Recommendation -->
+                            <div class="col-md-2">
+                                <small class="text-muted d-block">AI Says</small>
+                                @if (!string.IsNullOrEmpty(app.AiRecommendation))
+                                {
+                                    string aiColor = app.AiRecommendation == "APPROVE" ? "success"
+                                                   : app.AiRecommendation == "REJECT" ? "danger" : "warning";
+                                    <span class="badge bg-@aiColor small">@app.AiRecommendation</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-2">
+                                @Html.Partial("_StatusBadge", app.Status)
+                            </div>
+
+                            <!-- Action -->
+                            <div class="col-md-1 text-end">
+                                <a href="@Url.Action("Status", "Applications", new { id = app.AppId })"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

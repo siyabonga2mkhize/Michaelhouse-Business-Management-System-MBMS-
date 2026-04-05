@@ -1,0 +1,145 @@
+﻿@model Michaelhouse.Models.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>f</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: #1a3c5e;
+            color: #fff;
+            padding: 32px;
+            text-align: center;
+        }
+
+            .login-header i {
+                font-size: 2.5rem;
+                color: #e8a020;
+            }
+
+        .login-body {
+            padding: 32px;
+        }
+
+        .btn-login {
+            background: #1a3c5e;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+        }
+
+            .btn-login:hover {
+                background: #14304d;
+                color: #fff;
+            }
+
+        .divider {
+            text-align: center;
+            color: #aaa;
+            margin: 20px 0;
+            position: relative;
+        }
+
+            .divider::before, .divider::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                width: 42%;
+                height: 1px;
+                background: #e0e0e0;
+            }
+
+            .divider::before {
+                left: 0;
+            }
+
+            .divider::after {
+                right: 0;
+            }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-mortarboard-fill"></i>
+            <h4 class="mt-2 mb-0">Michaelhouse</h4>
+            <small class="opacity-75">Enrollment Management System</small>
+        </div>
+        <div class="login-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success small">
+                    <i class="bi bi-check-circle me-1"></i>@TempData["Success"]
+                </div>
+            }
+
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger small" })
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "••••••••" })
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+            }
+
+            <div class="divider">or</div>
+
+            <div class="text-center">
+                <p class="text-muted small mb-2">Don't have an account?</p>
+                <a href="@Url.Action("Register", "Account")" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-person-plus me-2"></i>Create Parent Account
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

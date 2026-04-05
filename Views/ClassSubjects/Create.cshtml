@@ -1,0 +1,51 @@
+﻿@model Michaelhouse.Models.ClassSubject
+
+@{
+    ViewBag.Title = "Assign Subject to Class";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-book-half me-2"></i>Subject Assignment</h4>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.ClassId, "Select Class", new { @class = "form-label fw-bold" })
+                            @Html.DropDownList("ClassId", null, "-- Choose a Class --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.ClassId, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.SubjectId, "Select Subject", new { @class = "form-label fw-bold" })
+                            @Html.DropDownList("SubjectId", null, "-- Choose a Subject --", new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.SubjectId, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(model => model.TeacherName, "Assigned Teacher", new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(model => model.TeacherName, new { htmlAttributes = new { @class = "form-control", placeholder = "e.g. Mr. Siyabonga" } })
+                            @Html.ValidationMessageFor(model => model.TeacherName, "", new { @class = "text-danger" })
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            @Html.ActionLink("Back to Dashboard", "Dashboard", "Admin", null, new { @class = "btn btn-outline-secondary" })
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Confirm Assignment
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

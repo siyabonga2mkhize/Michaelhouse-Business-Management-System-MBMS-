@@ -3,67 +3,66 @@
   "WorkspaceRootPath": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\views\\attendances\\record.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\attendances\\record.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\controllers\\teacherattendancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\teacherattendancecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\controllers\\attendancescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\attendancescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\models\\student.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\student.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\controllers\\applicationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\applicationscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\account\\register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\migrations\\202604010926222_initialfix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\202604010926222_initialfix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
       "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thesm\\AppData\\Local\\Temp\\ys0ebjiq..sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\models\\teacher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\teacher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\models\\vehicle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\vehicle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\models\\subject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\subject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\models\\teacherattendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\models\\teacherattendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\teacherattendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\models\\attendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\attendance.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\models\\dbcontextclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:models\\dbcontextclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thesm\\AppData\\Local\\Temp\\ys0ebjiq..sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thesm\\AppData\\Local\\Temp\\ys0ebjiq..sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|ResultFrame"
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|ResultFrame",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:sqlquery.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|ResultFrame"
     }
   ],
   "DocumentGroupContainers": [
     {
-      "Orientation": 0,
+      "Orientation": 1,
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "DockedHeight": 200,
+          "SelectedChildIndex": 14,
           "Children": [
             {
               "$type": "Bookmark",
@@ -82,157 +81,177 @@
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "AttendancesController.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AttendancesController.cs",
-              "RelativeDocumentMoniker": "Controllers\\AttendancesController.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AttendancesController.cs",
-              "RelativeToolTip": "Controllers\\AttendancesController.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAcwB0AAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-01T09:42:03.599Z",
+              "Title": "SQLQuery.sql ",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\SQLQuery.sql",
+              "RelativeDocumentMoniker": "SQLQuery.sql",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\SQLQuery.sql",
+              "RelativeToolTip": "SQLQuery.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-04-05T19:47:38.171Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "202604010926222_InitialFix.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\202604010926222_InitialFix.cs",
-              "RelativeDocumentMoniker": "Migrations\\202604010926222_InitialFix.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\202604010926222_InitialFix.cs",
-              "RelativeToolTip": "Migrations\\202604010926222_InitialFix.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAfAAAAAAAAAA==",
+              "Title": "AttendancesController.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AttendancesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AttendancesController.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AttendancesController.cs",
+              "RelativeToolTip": "Controllers\\AttendancesController.cs",
+              "ViewState": "AgIAAMUAAAAAAAAAAAAqwNQAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-01T09:26:57.301Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "SQLQuery1.sql ",
-              "DocumentMoniker": "C:\\Users\\thesm\\AppData\\Local\\Temp\\ys0ebjiq..sql",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Local\\Temp\\ys0ebjiq..sql",
-              "ToolTip": "SQLQuery1.sql *",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2026-04-01T08:48:53.538Z",
+              "WhenOpened": "2026-04-05T19:37:05.857Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Record.cshtml",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Attendances\\Record.cshtml",
-              "RelativeDocumentMoniker": "Views\\Attendances\\Record.cshtml",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Attendances\\Record.cshtml",
-              "RelativeToolTip": "Views\\Attendances\\Record.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAjAAAAAAAAAA==",
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "Views\\Account\\Login.cshtml",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAH8AAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-04-01T08:45:42.349Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Configuration.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\Configuration.cs",
-              "RelativeDocumentMoniker": "Migrations\\Configuration.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\Configuration.cs",
-              "RelativeToolTip": "Migrations\\Configuration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T10:03:28.798Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Vehicle.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Vehicle.cs",
-              "RelativeDocumentMoniker": "Models\\Vehicle.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Vehicle.cs",
-              "RelativeToolTip": "Models\\Vehicle.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T10:02:24.138Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T09:42:51.511Z",
+              "WhenOpened": "2026-04-05T19:31:45.788Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "Web.config",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Web.config",
-              "RelativeDocumentMoniker": "Web.config",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Web.config",
-              "RelativeToolTip": "Web.config",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAjAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2026-03-31T09:35:11.058Z",
+              "Title": "Register.cshtml",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Account\\Register.cshtml",
+              "RelativeDocumentMoniker": "Views\\Account\\Register.cshtml",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Views\\Account\\Register.cshtml",
+              "RelativeToolTip": "Views\\Account\\Register.cshtml",
+              "ViewState": "AgIAAHcAAAAAAAAAAAAAAJQAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-05T19:29:18.793Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "TeacherAttendance.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\TeacherAttendance.cs",
-              "RelativeDocumentMoniker": "Models\\TeacherAttendance.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\TeacherAttendance.cs",
-              "RelativeToolTip": "Models\\TeacherAttendance.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwA4AAAASAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Controllers\\AccountController.cs",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAgwKYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T08:57:21.855Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "Subject.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Subject.cs",
-              "RelativeDocumentMoniker": "Models\\Subject.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Subject.cs",
-              "RelativeToolTip": "Models\\Subject.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAvwBoAAAAKAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T08:54:34.602Z",
+              "WhenOpened": "2026-04-05T19:21:17.549Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Student.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Student.cs",
-              "RelativeDocumentMoniker": "Models\\Student.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Student.cs",
-              "RelativeToolTip": "Models\\Student.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "TeacherAttendanceController.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\TeacherAttendanceController.cs",
+              "RelativeDocumentMoniker": "Controllers\\TeacherAttendanceController.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\TeacherAttendanceController.cs",
+              "RelativeToolTip": "Controllers\\TeacherAttendanceController.cs",
+              "ViewState": "AgIAAFkAAAAAAAAAAAAwwGIAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T08:49:55.616Z",
+              "WhenOpened": "2026-04-05T19:20:41.15Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "Attendance.cs",
-              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Attendance.cs",
-              "RelativeDocumentMoniker": "Models\\Attendance.cs",
-              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Attendance.cs",
-              "RelativeToolTip": "Models\\Attendance.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "DocumentIndex": 8,
+              "Title": "Teacher.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Teacher.cs",
+              "RelativeDocumentMoniker": "Models\\Teacher.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\Teacher.cs",
+              "RelativeToolTip": "Models\\Teacher.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-31T08:49:45.962Z",
+              "WhenOpened": "2026-04-05T19:20:34.725Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "TeacherAttendance.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\TeacherAttendance.cs",
+              "RelativeDocumentMoniker": "Models\\TeacherAttendance.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\TeacherAttendance.cs",
+              "RelativeToolTip": "Models\\TeacherAttendance.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T19:20:27.128Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "DBContextClass.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\DBContextClass.cs",
+              "RelativeDocumentMoniker": "Models\\DBContextClass.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Models\\DBContextClass.cs",
+              "RelativeToolTip": "Models\\DBContextClass.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T19:18:01.482Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ApplicationsController.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\ApplicationsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ApplicationsController.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Controllers\\ApplicationsController.cs",
+              "RelativeToolTip": "Controllers\\ApplicationsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T19:15:50.864Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Web.config",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Web.config",
+              "RelativeDocumentMoniker": "Web.config",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Web.config",
+              "RelativeToolTip": "Web.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2026-04-05T18:38:13.813Z",
               "EditorCaption": ""
             }
           ]
