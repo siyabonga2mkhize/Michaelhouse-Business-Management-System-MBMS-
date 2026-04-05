@@ -8,12 +8,9 @@
     var subjects = (List<StudentSubject>)ViewBag.Subjects;
     bool needsSubs = (bool)ViewBag.NeedsSubjects;
 
-    // --- LOGIC HELPERS ---
-    // Fixes the DynamicProxy name issue
     string studentName = student != null ? student.Name : "Student";
     string parentName = (student?.Parent != null) ? student.Parent.Name : "—";
 
-    // Clean Age Calculation to avoid the "{ expected" error
     int age = 0;
     if (student != null)
     {
@@ -22,141 +19,156 @@
     }
 }
 
-<div class="page-header">
-    <h3 class="mb-0"><i class="bi bi-clipboard-check me-2 text-warning"></i>Confirm Registration</h3>
-    <small class="text-muted">Review all details before completing registration for @studentName</small>
-</div>
+<div class="relative mb-10 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
 
-@if (needsSubs)
-{
-    <div class="alert alert-warning d-flex align-items-center justify-content-between">
-        <span>
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Subjects not yet selected.</strong> Please select subjects before completing registration.
-        </span>
-        <a href="@Url.Action("SelectSubjects", "Registration", new { appId })"
-           class="btn btn-warning btn-sm ms-3">
-            <i class="bi bi-book me-1"></i>Select Subjects
+    <div class="max-w-6xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Registrar Review</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Final Registration Review</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Dossier verification for @studentName</p>
+        </div>
+        <a href="@Url.Action("Index", "Applications")" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black border-b border-gray-200 pb-1 transition-colors">
+            <i class="bi bi-arrow-left me-1"></i> Back to Portal
         </a>
     </div>
-}
+</div>
 
-<div class="row g-4">
-    <div class="col-lg-6">
+<div class="max-w-6xl mx-auto px-4 pb-20">
 
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-person-fill me-2"></i>Student Details
+    @if (needsSubs)
+    {
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-5 mb-10 d-flex align-items-center justify-content-between shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-exclamation-triangle-fill text-amber-500 fs-4"></i>
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-amber-800 mb-0">Curriculum Pending</p>
+                    <p class="text-xs text-amber-700 italic mb-0">Subject selections must be finalized before account provisioning can occur.</p>
+                </div>
             </div>
-            <div class="card-body p-0">
+            <a href="@Url.Action("SelectSubjects", "Registration", new { appId })" class="bg-amber-500 text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all">
+                <i class="bi bi-book me-2"></i>Configure Subjects
+            </a>
+        </div>
+    }
+
+    <div class="row g-5">
+        <div class="col-lg-6">
+
+            <div class="bg-white border-l-4 border-gray-900 shadow-sm p-8 mb-8 relative overflow-hidden">
+                <i class="bi bi-person-vcard absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                <div class="d-flex justify-content-between align-items-center mb-6">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-0">Candidate Profile</h6>
+                    <span class="bg-[#C21E2E] text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">Grade @reg.GradeEnrolling</span>
+                </div>
+
+                <table class="table table-sm table-borderless mb-0 relative z-10">
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Full Name</td><td class="text-sm font-bold text-gray-900 py-3">@studentName</td></tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Date of Birth</td><td class="text-sm font-bold text-gray-800 py-3">@(student != null ? student.DOB.ToString("dd MMMM yyyy") : "—") (@age years)</td></tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Identity Ref</td><td class="text-sm font-monospace text-gray-500 py-3">@(student?.IdNumber ?? "—")</td></tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Language</td><td class="text-sm font-bold text-gray-800 py-3">@(student?.HomeLanguage ?? "—")</td></tr>
+                    <tr><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Previous School</td><td class="text-sm italic font-serif text-gray-600 py-3">@(student?.PreviousSchool ?? "—")</td></tr>
+                </table>
+            </div>
+
+            <div class="bg-white border-l-4 border-gray-200 shadow-sm p-8 relative overflow-hidden">
+                <i class="bi bi-people absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">Guardian Account</h6>
+
                 <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-3 py-2">Full Name</td><td class="fw-semibold">@studentName</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Date of Birth</td><td>@(student != null ? student.DOB.ToString("dd MMM yyyy") : "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Age</td><td>@age years</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">ID / Passport</td><td>@(student?.IdNumber ?? "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Home Language</td><td>@(student?.HomeLanguage ?? "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Previous School</td><td>@(student?.PreviousSchool ?? "—")</td></tr>
-                    <tr class="border-top">
-                        <td class="text-muted ps-3 py-2">Grade Enrolling</td>
-                        <td><span class="badge bg-primary fs-6">Grade @reg.GradeEnrolling</span></td>
-                    </tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Guardian Name</td><td class="text-sm font-bold text-gray-800 py-3">@parentName</td></tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Relationship</td><td class="text-sm font-bold text-gray-800 py-3">@(student?.Parent?.Relationship ?? "—")</td></tr>
+                    <tr class="border-b border-gray-50"><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Contact Email</td><td class="text-sm font-bold text-gray-800 py-3">@(student?.Parent?.Contact ?? "—")</td></tr>
+                    <tr><td class="text-[10px] uppercase tracking-widest font-bold text-gray-400 py-3">Mobile Contact</td><td class="text-sm font-monospace text-gray-500 py-3">@(student?.Parent?.CellPhone ?? "—")</td></tr>
                 </table>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-people-fill me-2"></i>Parent / Guardian
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-3 py-2">Name</td><td class="fw-semibold">@parentName</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Relationship</td><td>@(student?.Parent?.Relationship ?? "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Cell</td><td>@(student?.Parent?.CellPhone ?? "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Email</td><td>@(student?.Parent?.Contact ?? "—")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Address</td><td>@(student?.Parent?.PhysicalAddress ?? "—")</td></tr>
-                </table>
-            </div>
-        </div>
+        <div class="col-lg-6">
 
-    </div>
+            <div class="bg-white border border-gray-100 shadow-sm p-0 mb-8 overflow-hidden">
+                <div class="p-4 bg-gray-50/50 border-b border-gray-100 d-flex justify-content-between align-items-center">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Curriculum Summary</h6>
+                    @if (reg.GradeEnrolling >= 10 && !needsSubs)
+                    {
+                        <a href="@Url.Action("SelectSubjects", "Registration", new { appId })" class="text-[9px] font-bold uppercase text-[#C21E2E] border-b border-[#C21E2E]">Amended</a>
+                    }
+                </div>
 
-    <div class="col-lg-6">
-
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-journal-bookmark me-2"></i>Subjects for Grade @reg.GradeEnrolling</span>
-                @if (reg.GradeEnrolling >= 10 && !needsSubs)
+                @if (subjects != null && subjects.Any())
                 {
-                    <a href="@Url.Action("SelectSubjects", "Registration", new { appId })"
-                       class="btn btn-sm btn-outline-light">
-                        <i class="bi bi-pencil me-1"></i>Change
-                    </a>
+                    <div class="divide-y divide-gray-50">
+                        @foreach (var ss in subjects)
+                        {
+                            <div class="p-4 d-flex justify-content-between align-items-center group hover:bg-gray-50 transition-colors">
+                                <span class="text-sm font-bold text-gray-700 uppercase tracking-tight">@(ss?.Subject?.Name ?? "Unknown Subject")</span>
+                                @if (ss?.Subject != null && !ss.Subject.IsCompulsory)
+                                {
+                                    <span class="text-[8px] font-bold uppercase tracking-widest text-[#C21E2E] border border-[#C21E2E] px-2 py-0.5">Elective</span>
+                                }
+                                else
+                                {
+                                    <span class="text-[8px] font-bold uppercase tracking-widest text-gray-300 border border-gray-100 px-2 py-0.5">Core</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-10 text-center text-gray-400 italic text-sm font-serif">No academic assignments found.</div>
                 }
             </div>
-            @if (subjects != null && subjects.Any())
-            {
-                <ul class="list-group list-group-flush">
-                    @foreach (var ss in subjects)
-                    {
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@(ss?.Subject?.Name ?? "Unknown Subject")</span>
-                            @if (ss?.Subject != null && !ss.Subject.IsCompulsory)
-                            {
-                                <span class="badge bg-primary">Elective</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Compulsory</span>
-                            }
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <div class="card-body text-muted small">No subjects assigned yet.</div>
-            }
-        </div>
 
-        @if (!needsSubs && reg.Status != RegistrationStatus.Completed)
-        {
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <i class="bi bi-check-circle-fill me-2"></i>Ready to Complete
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small mb-3">
-                        By completing registration you confirm that all the above details are correct.
-                        A student account will be created automatically and login credentials will be emailed to you.
+            @if (!needsSubs && reg.Status != RegistrationStatus.Completed)
+            {
+                <div class="bg-gray-900 text-white p-8 relative overflow-hidden shadow-xl">
+                    <i class="bi bi-patch-check absolute -right-4 -bottom-4 text-white/5 text-7xl rotate-12"></i>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-500 mb-4">Final Authorization</h6>
+
+                    <p class="text-[10px] text-gray-400 italic leading-relaxed mb-6">
+                        By authorizing this registration, a unique Student ID will be generated and academic credentials will be dispatched to the guardian email.
                     </p>
+
                     @using (Html.BeginForm("CompleteRegistration", "Registration", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="appId" value="@appId" />
                         <input type="hidden" name="registrationId" value="@reg.RegistrationId" />
-                        <button type="submit" class="btn btn-success btn-lg w-100"
-                                onclick="return confirm('Confirm registration? A student account will be created and credentials emailed to you.')">
-                            <i class="bi bi-mortarboard me-2"></i>Complete Registration
+                        <button type="submit" class="bg-[#C21E2E] text-white w-full py-4 text-[10px] font-bold uppercase tracking-[3px] hover:bg-white hover:text-black transition-all active:scale-95 shadow-lg">
+                            Authorize & Complete Enrollment
                         </button>
                     }
                 </div>
-            </div>
-        }
-        else if (reg.Status == RegistrationStatus.Completed)
-        {
-            <div class="card border-success text-center py-3">
-                <div class="card-body">
-                    <i class="bi bi-patch-check-fill text-success" style="font-size:3rem;"></i>
-                    <h5 class="mt-3 text-success">Registration Complete!</h5>
-                    <p class="text-muted small">Completed on @(reg.CompletedAt?.ToString("dd MMM yyyy") ?? "—")</p>
-                    <a href="@Url.Action("Complete", "Registration", new { appId })"
-                       class="btn btn-outline-success">
-                        View Summary
+            }
+            else if (reg.Status == RegistrationStatus.Completed)
+            {
+                <div class="bg-white border-2 border-green-500 p-8 text-center shadow-lg">
+                    <div class="h-16 w-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="bi bi-check-lg text-3xl"></i>
+                    </div>
+                    <h4 class="font-serif font-bold text-gray-900 mb-1">Registration Sealed</h4>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-6">Authorized on @(reg.CompletedAt?.ToString("dd MMM yyyy") ?? "—")</p>
+
+                    <a href="@Url.Action("Complete", "Registration", new { appId })" class="bg-gray-900 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all">
+                        Generate Admission Letter
                     </a>
                 </div>
-            </div>
-        }
-
+            }
+        </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

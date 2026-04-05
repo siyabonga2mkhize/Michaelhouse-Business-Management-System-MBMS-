@@ -1,0 +1,222 @@
+﻿@model List<Michaelhouse.Models.Assessment>
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "My Assessments";
+    int year = (int)ViewBag.Year;
+    var byTerm = Model.GroupBy(a => a.Term).OrderBy(g => g.Key);
+
+    // Helpers
+    Func<string, string> symClass = s =>
+    {
+        switch (s)
+        {
+            case "A": return "sym-a";
+            case "B": return "sym-b";
+            case "C": return "sym-c";
+            case "D": return "sym-d";
+            case "E": return "sym-e";
+            default: return "sym-f";
+        }
+    };
+}
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+
+    @* ── Alerts ── *@
+    @if (TempData["Success"] != null)
+    {<div class="ac-alert ac-alert-success">✓ @TempData["Success"]</div>}
+    @if (TempData["Error"] != null)
+    {<div class="ac-alert ac-alert-error">✕ @TempData["Error"]</div> }
+
+@* ── Header ── *@
+    <div class="ac-header">
+        <div class="ac-header-left">
+            <div class="ac-eyebrow">Michaelhouse Academic System</div>
+            <h1 class="ac-title">My Assessments</h1>
+            <p class="ac-subtitle">Academic Year @year — planned tests, exams &amp; mark capture</p>
+        </div>
+        <div class="ac-header-actions">
+            @Html.ActionLink("+ Plan New Assessment", "Plan", "Marks", null, new { @class = "btn btn-primary" })
+        </div>
+    </div>
+
+    @* ── Stats row ── *@
+    <div class="ac-stats">
+        <div class="ac-stat">
+            <div class="ac-stat-val">@Model.Count</div>
+            <div class="ac-stat-lbl">Total Assessments</div>
+        </div>
+        <div class="ac-stat">
+            <div class="ac-stat-val">@Model.Count(a => a.MarksCaptureClosed)</div>
+            <div class="ac-stat-lbl">Capture Closed</div>
+        </div>
+        <div class="ac-stat">
+            <div class="ac-stat-val">@Model.Count(a => !a.MarksCaptureClosed)</div>
+            <div class="ac-stat-lbl">Open for Capture</div>
+        </div>
+        <div class="ac-stat">
+            <div class="ac-stat-val">@Model.Select(a => a.SubjectId).Distinct().Count()</div>
+            <div class="ac-stat-lbl">Subjects</div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="ac-card">
+            <div class="ac-card-body" style="text-align:center;padding:48px 20px;">
+                <p style="font-size:2.5rem;margin-bottom:12px;">📋</p>
+                <p style="font-size:1.1rem;color:var(--muted);">No assessments planned yet for @year.</p>
+                @Html.ActionLink("Plan your first assessment →", "Plan", "Marks", null, new { @class = "btn btn-primary", style = "margin-top:16px;" })
+            </div>
+        </div>
+    }
+    else
+    {
+        @* ── Term tabs ── *@
+        <div class="ac-term-tabs">
+            @foreach (var termGroup in byTerm)
+            {
+                <a href="#term-@termGroup.Key" class="ac-term-tab">
+                    Term @termGroup.Key
+                    <span class="badge badge-navy" style="margin-left:4px;font-size:10px;">@termGroup.Count()</span>
+                </a>
+            }
+        </div>
+
+        @* ── Assessment cards per term ── *@
+        foreach (var termGroup in byTerm)
+        {
+            <div id="term-@termGroup.Key" style="margin-bottom:32px;">
+                <h2 class="ac-section-heading">Term @termGroup.Key</h2>
+
+                @* Group by subject within the term *@
+                @foreach (var subjectGroup in termGroup.GroupBy(a => a.SubjectId).OrderBy(g => g.First().Subject?.Name))
+                {
+                    var subjectName = subjectGroup.First().Subject?.Name ?? "Unknown Subject";
+                    var subjectGrade = subjectGroup.First().Grade;
+                    var totalWeight = subjectGroup.Sum(a => a.WeightingPercent);
+
+                    <div class="ac-card" style="margin-bottom:16px;">
+                        <div class="ac-card-header">
+                            <span class="ac-card-title">@subjectName — Grade @subjectGrade</span>
+                            <span style="font-size:13px;opacity:.8;">
+                                Weighting used: <strong>@totalWeight%</strong> / 100%
+                            </span>
+                        </div>
+
+                        @* Weighting progress bar *@
+                        <div style="padding:10px 20px 0;background:#f8f7f4;">
+                            <div class="ac-progress">
+                                <div class="ac-progress-bar @(totalWeight >= 100 ? "pass" : totalWeight >= 70 ? "warn" : "fail")"
+                                     style="width:@(Math.Min((double)totalWeight, 100))%"></div>
+                            </div>
+                            @if (totalWeight == 100)
+                            {
+                                <p style="font-size:12px;color:var(--pass);margin-top:4px;">✓ Weighting complete — ready to calculate term mark</p>
+                            }
+                            else
+                            {
+                                <p style="font-size:12px;color:var(--muted);margin-top:4px;">
+                                    @(100 - totalWeight)% remaining before term mark can be calculated
+                                </p>
+                            }
+                        </div>
+
+                        <div class="ac-table-wrap">
+                            <table class="ac-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th class="num">Out Of</th>
+                                        <th class="num">Weighting</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var a in subjectGroup.OrderBy(x => x.ScheduledDate))
+                                    {
+                                        <tr>
+                                            <td><strong>@a.Title</strong></td>
+                                            <td><span class="badge badge-navy">@a.AssessmentType</span></td>
+                                            <td>@a.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                            <td class="num">@a.TotalMarks</td>
+                                            <td class="num">@a.WeightingPercent%</td>
+                                            <td>
+                                                @if (a.MarksCaptureClosed)
+                                                {<span class="badge badge-pass">Closed</span> }
+                                                else if (a.ScheduledDate < DateTime.Today)
+                                                { <span class="badge badge-pending">Awaiting Capture</span> }
+                                                else
+                                                { <span class="badge badge-closed">Upcoming</span>}
+                                            </td>
+                                            <td>
+                                                @if (!a.MarksCaptureClosed)
+                                                {
+                                                    @Html.ActionLink("Enter Marks", "Capture", "Marks",
+                                                        new { id = a.AssessmentId }, new { @class = "btn btn-sm btn-gold" })
+                                                }
+                                                else
+                                                {
+                                                    @Html.ActionLink("View Marks", "Capture", "Marks",
+                                                        new { id = a.AssessmentId }, new { @class = "btn btn-sm btn-ghost" })
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @* Calculate term button — only show when weighting is 100% *@
+                        @if (totalWeight == 100)
+                        {
+                            var first = subjectGroup.First();
+                            <div style="padding:14px 20px;background:#f8f7f4;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+                                @using (Html.BeginForm("CalculateTerm", "Marks", FormMethod.Post, new { style = "display:inline;" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="subjectId" value="@first.SubjectId" />
+                                    <input type="hidden" name="grade" value="@first.Grade" />
+                                    <input type="hidden" name="stream" value="@((int)first.Stream)" />
+                                    <input type="hidden" name="term" value="@termGroup.Key" />
+                                    <input type="hidden" name="academicYear" value="@year" />
+                                    <button type="submit" class="btn btn-primary btn-sm"
+                                            onclick="return confirm('Calculate final Term @termGroup.Key marks for all students in @subjectName Grade @subjectGrade?')">
+                                        ⟳ Calculate Term @termGroup.Key Results
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<script>
+    // Simple tab scroll
+    document.querySelectorAll('.ac-term-tab').forEach(tab => {
+        tab.addEventListener('click', e => {
+            e.preventDefault();
+            const target = document.querySelector(tab.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.ac-term-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        });
+    });
+    // Activate first tab
+    const firstTab = document.querySelector('.ac-term-tab');
+    if (firstTab) firstTab.classList.add('active');
+</script>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+

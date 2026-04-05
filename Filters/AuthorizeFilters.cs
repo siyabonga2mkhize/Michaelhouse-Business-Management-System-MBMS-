@@ -62,4 +62,50 @@ namespace Michaelhouse.Filters
             }
         }
     }
+
+    /// <summary>
+    /// Allows only Teachers. Redirects to login if not authenticated,
+    /// or returns 403 if wrong role.
+    /// </summary>
+    public class TeacherOnlyAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var session = filterContext.HttpContext.Session;
+
+            if (session["UserId"] == null)
+            {
+                filterContext.Result = new RedirectResult("~/Account/Login");
+                return;
+            }
+
+            if (session["UserRole"]?.ToString() != "Teacher")
+            {
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Allows only Students. Redirects to login if not authenticated,
+    /// or returns 403 if wrong role.
+    /// </summary>
+    public class StudentOnlyAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var session = filterContext.HttpContext.Session;
+
+            if (session["UserId"] == null)
+            {
+                filterContext.Result = new RedirectResult("~/Account/Login");
+                return;
+            }
+
+            if (session["UserRole"]?.ToString() != "Student")
+            {
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
+        }
+    }
 }

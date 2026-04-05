@@ -1,0 +1,205 @@
+﻿@model List<Michaelhouse.Models.TimetableSlot>
+@using Michaelhouse.Models.Enums
+@using Michaelhouse.Services
+@{
+    ViewBag.Title = "My Timetable";
+    var student = (Michaelhouse.Models.Student)ViewBag.Student;
+    var periods = (List<Michaelhouse.Models.Period>)ViewBag.Periods;
+    int academicYear = (int)ViewBag.AcademicYear;
+    int grade = (int)(ViewBag.Grade ?? 0);
+    var stream = ViewBag.Stream is AcademicStream s ? s : AcademicStream.None;
+
+    var days = new[] {
+        new { Num = 1, Name = "Monday",    Short = "Mon" },
+        new { Num = 2, Name = "Tuesday",   Short = "Tue" },
+        new { Num = 3, Name = "Wednesday", Short = "Wed" },
+        new { Num = 4, Name = "Thursday",  Short = "Thu" },
+        new { Num = 5, Name = "Friday",    Short = "Fri" }
+    };
+
+    string PeriodColor(AcademicStream str)
+    {
+        switch (str)
+        {
+            case AcademicStream.ArtsAndCulture: return "#e3d5f7";
+            case AcademicStream.HumanAndSocialStudies: return "#d5e8f7";
+            case AcademicStream.Sciences: return "#d5f7e0";
+            case AcademicStream.Commerce: return "#f7f0d5";
+            case AcademicStream.EngineeringAndTechnology: return "#f7d5d5";
+            default: return "#e8f0f7";
+        }
+    }
+    string PeriodBorder(AcademicStream str)
+    {
+        switch (str)
+        {
+            case AcademicStream.ArtsAndCulture: return "#a78bda";
+            case AcademicStream.HumanAndSocialStudies: return "#4a9fd4";
+            case AcademicStream.Sciences: return "#4ad47a";
+            case AcademicStream.Commerce: return "#d4b94a";
+            case AcademicStream.EngineeringAndTechnology: return "#d44a4a";
+            default: return "#1a3c5e";
+        }
+    }
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0">
+            <i class="bi bi-calendar3 me-2 text-warning"></i>
+            @student?.Name — Timetable @academicYear
+        </h3>
+        <small class="text-muted">
+            Grade @grade
+            @if (stream != AcademicStream.None)
+            {
+                <span class="badge bg-primary ms-2">@RegistrationService.GetStreamName(stream) Stream</span>
+            }
+        </small>
+    </div>
+    <a href="javascript:window.print()" class="btn btn-outline-secondary btn-sm d-print-none">
+        <i class="bi bi-printer me-1"></i>Print
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-calendar-x" style="font-size:3rem;color:#ccc;"></i>
+            <h5 class="mt-3 text-muted">Timetable not yet available</h5>
+            <p class="text-muted small">The timetable has not been generated yet. Please check back later.</p>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Daily summary for mobile -->
+    <div class="d-md-none mb-4">
+        @foreach (var day in days)
+        {
+            var daySlots = Model
+                .Where(ts => ts.DayOfWeek == day.Num)
+                .OrderBy(ts => ts.Period?.PeriodNumber)
+                .ToList();
+
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white fw-semibold">
+                    @day.Name
+                </div>
+                @if (!daySlots.Any())
+                {
+                    <div class="card-body text-muted small py-2">No lessons</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var slot in daySlots)
+                        {
+                            string bg = PeriodColor(slot.Stream);
+                            <li class="list-group-item small" style="background:@bg;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-semibold">@slot.Subject?.Name</span>
+                                        <span class="text-muted ms-2">@slot.Teacher?.Name</span>
+                                    </div>
+                                    <span class="text-muted">@slot.Period?.Label</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Full grid for desktop -->
+    <div class="card d-none d-md-block">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0" style="min-width:800px;">
+                <thead>
+                    <tr class="table-dark">
+                        <th style="width:110px;">Period</th>
+                        @foreach (var day in days)
+                        {
+                            <th class="text-center">@day.Name</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var period in periods)
+                    {
+                        if (period.IsBreak)
+                        {
+                            <tr class="table-light">
+                                <td class="text-muted small fw-semibold">
+                                    @period.Label<br />
+                                    <span style="font-size:0.72rem;">
+                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
+                                    </span>
+                                </td>
+                                @foreach (var day in days)
+                                {
+                                    <td class="text-center text-muted small" style="background:#f8f9fa;">
+                                        @period.Label
+                                    </td>
+                                }
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="small fw-semibold" style="vertical-align:middle;">
+                                    @period.Label<br />
+                                    <span class="text-muted" style="font-size:0.72rem;">
+                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
+                                    </span>
+                                </td>
+                                @foreach (var day in days)
+                                {
+                                    var slot = Model.FirstOrDefault(ts =>
+                                        ts.DayOfWeek == day.Num &&
+                                        ts.PeriodId == period.PeriodId);
+
+                                    <td style="vertical-align:middle;padding:6px;text-align:center;">
+                                        @if (slot == null)
+                                        {
+                                            <span class="text-muted" style="font-size:0.78rem;">—</span>
+                                        }
+                                        else
+                                        {
+                                            string bg = PeriodColor(slot.Stream);
+                                            string border = PeriodBorder(slot.Stream);
+                                            <div style="background:@bg;border-left:3px solid @border;
+                                                        border-radius:4px;padding:6px 8px;font-size:0.8rem;text-align:left;">
+                                                <div class="fw-semibold">@slot.Subject?.Name</div>
+                                                <div class="text-muted small">@slot.Teacher?.Name</div>
+                                            </div>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<style>
+    @@media print {
+        .sidebar, .navbar, .page-header a, .d-print-none {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+        }
+
+        body {
+            background: white !important;
+        }
+    }
+</style>

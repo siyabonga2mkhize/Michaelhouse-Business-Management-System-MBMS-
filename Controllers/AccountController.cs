@@ -58,7 +58,14 @@ namespace Michaelhouse.Controllers
                         Session["StudentId"] = student.StudentId;
                 }
 
-                return RedirectByRole(user.Role);
+				else if (user.Role == "Teacher")
+				{
+					var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+					if (teacher != null)
+						Session["TeacherId"] = teacher.TeacherId;
+				}
+
+				return RedirectByRole(user.Role);
             }
         }
 
@@ -223,7 +230,8 @@ namespace Michaelhouse.Controllers
                 case "Admin": return RedirectToAction("Dashboard", "Admin");
                 case "Parent": return RedirectToAction("Dashboard", "Parents");
                 case "Student": return RedirectToAction("Dashboard", "Students");
-                default: return RedirectToAction("Login", "Account");
+                case "Teacher": return RedirectToAction("Index", "Marks");
+				default: return RedirectToAction("Login", "Account");
             }
         }
 

@@ -215,10 +215,14 @@
     <Compile Include="Controllers\ApplicationsController.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MarksController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
     <Compile Include="Controllers\PaymentController.cs" />
     <Compile Include="Controllers\RegistrationController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\StudentsController.cs" />
+    <Compile Include="Controllers\TeacherController.cs" />
+    <Compile Include="Controllers\TimetableController.cs" />
     <Compile Include="Filters\AuthorizeFilters.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -235,6 +239,14 @@
     <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.Designer.cs">
       <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.cs" />
+    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.Designer.cs">
+      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.cs" />
+    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.Designer.cs">
+      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
@@ -243,11 +255,13 @@
     <Compile Include="Models\ApplicationService.cs" />
     <Compile Include="Models\ApplicationStatus.cs" />
     <Compile Include="Models\AppUser.cs" />
+    <Compile Include="Models\Assessment.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceService.cs" />
+    <Compile Include="Models\Marksservice.cs" />
     <Compile Include="Models\Parent.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
@@ -257,12 +271,21 @@
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
+    <Compile Include="Models\StudentMark.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
+    <Compile Include="Models\Teacher.cs" />
+    <Compile Include="Models\Teacherservice.cs" />
+    <Compile Include="Models\Teachersubjectgrade.cs" />
+    <Compile Include="Models\Termresult.cs" />
+    <Compile Include="Models\Timetablegenerator .cs" />
+    <Compile Include="Models\Timetablemodels.cs" />
     <Compile Include="Models\ViewModels.cs" />
+    <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\academic.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -360,6 +383,19 @@
     <Content Include="Views\Parents\Dashboard.cshtml" />
     <Content Include="Views\Students\Dashboard.cshtml" />
     <Content Include="Views\Account\Profile.cshtml" />
+    <Content Include="Views\Teacher\Create.cshtml" />
+    <Content Include="Views\Teacher\Index.cshtml" />
+    <Content Include="Views\Timetable\GradeView.cshtml" />
+    <Content Include="Views\Timetable\Generate.cshtml" />
+    <Content Include="Views\Marks\Index.cshtml" />
+    <Content Include="Views\Marks\Plan.cshtml" />
+    <Content Include="Views\Marks\Capture.cshtml" />
+    <Content Include="Views\Report\MyProgress.cshtml" />
+    <Content Include="Views\Report\GradeResults.cshtml" />
+    <Content Include="Views\Timetable\MyTimetable.cshtml" />
+    <Content Include="Views\Timetable\StudentView.cshtml" />
+    <Content Include="Views\Timetable\TeacherView.cshtml" />
+    <Content Include="Views\Teacher\_SubjectAssignmentFields.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -400,6 +436,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202604040034214_AddStreamsAndEnrolments1.resx">
       <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604042317022_AddTeachersAndTimetable.resx">
+      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604051446316_AddCaptureMarkAndReport.resx">
+      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
