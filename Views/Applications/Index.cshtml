@@ -4,94 +4,112 @@
     ViewBag.Title = "My Applications";
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="mb-10 d-flex justify-content-between align-items-end">
     <div>
-        <h3 class="mb-0"><i class="bi bi-grid-1x2 me-2 text-warning"></i>My Applications</h3>
-        <small class="text-muted">Track all your enrollment submissions</small>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 mb-2">My Applications</h2>
+        <p class="text-gray-400 uppercase tracking-[3px] text-[10px] font-bold">Enrollment Status & Tracking</p>
     </div>
-    <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>New Application
+    <a href="@Url.Action("Create", "Applications")" class="bg-[#C21E2E] text-white px-6 py-3 font-bold uppercase tracking-widest text-[10px] hover:bg-[#a01826] transition-all shadow-lg shadow-red-900/10">
+        <i class="bi bi-plus-lg me-2"></i>New Submission
     </a>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="card text-center py-5">
-        <div class="card-body">
-            <i class="bi bi-folder-x" style="font-size:3rem;color:#ccc;"></i>
-            <h5 class="mt-3 text-muted">No applications yet</h5>
-            <p class="text-muted mb-4">Submit your first enrollment application to get started.</p>
-            <a href="@Url.Action("Create", "Applications")" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Submit Application
-            </a>
+    <div class="py-20 text-center border-2 border-dashed border-gray-100 rounded-none">
+        <div class="mb-6 text-gray-200">
+            <i class="bi bi-archive" style="font-size: 4rem;"></i>
         </div>
+        <h4 class="font-serif text-gray-400 italic">No active applications found.</h4>
+        <a href="@Url.Action("Create", "Applications")" class="text-[#C21E2E] uppercase tracking-widest font-bold text-xs hover:underline mt-4 d-inline-block">
+            Start a new enrollment journey &rarr;
+        </a>
     </div>
 }
 else
 {
-    <div class="row g-3">
+    <div class="space-y-6">
         @foreach (var app in Model)
         {
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body py-3">
-                        <div class="row align-items-center">
+            <div class="bg-white border-l-4 border-[#C21E2E] shadow-sm hover:shadow-md transition-shadow group">
+                <div class="p-6">
+                    <div class="row align-items-center">
 
-                            <!-- Student Avatar + Name -->
-                            <div class="col-md-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
-                                         style="width:44px;height:44px;">
-                                        <i class="bi bi-person-fill"></i>
-                                    </div>
-                                    <div class="fw-semibold">@(app.Student != null ? app.Student.Name : "Unknown Student")</div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="h-12 w-12 bg-gray-50 flex items-center justify-center text-[#C21E2E] border border-gray-100 text-xl font-serif font-bold">
+                                    @(app.Student != null ? app.Student.Name.Substring(0,1) : "?")
+                                </div>
+                                <div class="ms-4">
+                                    <h4 class="text-sm font-bold text-gray-900 mb-0 uppercase tracking-tight">
+                                        @(app.Student != null ? app.Student.Name : "Unknown Student")
+                                    </h4>
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Student ID: #@app.AppId</span>
                                 </div>
                             </div>
-
-                            <!-- Date Submitted -->
-                            <div class="col-md-2">
-                                <small class="text-muted d-block">Submitted</small>
-                                <span class="small">@app.Date.ToString("dd MMM yyyy")</span>
-                            </div>
-
-                            <!-- Documents -->
-                            <div class="col-md-2">
-                                <small class="text-muted d-block">Documents</small>
-                                <span class="small"><i class="bi bi-paperclip me-1"></i>@(app.Documents?.Count ?? 0) file(s)</span>
-                            </div>
-
-                            <!-- AI Recommendation -->
-                            <div class="col-md-2">
-                                <small class="text-muted d-block">AI Says</small>
-                                @if (!string.IsNullOrEmpty(app.AiRecommendation))
-                                {
-                                    string aiColor = app.AiRecommendation == "APPROVE" ? "success"
-                                                   : app.AiRecommendation == "REJECT" ? "danger" : "warning";
-                                    <span class="badge bg-@aiColor small">@app.AiRecommendation</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted small">—</span>
-                                }
-                            </div>
-
-                            <!-- Status -->
-                            <div class="col-md-2">
-                                @Html.Partial("_StatusBadge", app.Status)
-                            </div>
-
-                            <!-- Action -->
-                            <div class="col-md-1 text-end">
-                                <a href="@Url.Action("Status", "Applications", new { id = app.AppId })"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </div>
-
                         </div>
+
+                        <div class="col-md-2 border-start border-gray-50 ps-4">
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-300 block mb-1">Submitted</label>
+                            <span class="text-xs font-bold text-gray-600 italic font-serif">@app.Date.ToString("dd MMM yyyy")</span>
+                        </div>
+
+                        <div class="col-md-3 border-start border-gray-50 ps-4">
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-300 block mb-2">AI Review Analysis</label>
+                            @if (!string.IsNullOrEmpty(app.AiRecommendation))
+                            {
+                                var isPositive = app.AiRecommendation == "APPROVE";
+                                <div class="d-flex align-items-center">
+                                    <div class="h-2 w-2 rounded-full @(isPositive ? "bg-green-500" : "bg-amber-500") me-2"></div>
+                                    <span class="text-[10px] font-bold @(isPositive ? "text-green-700" : "text-amber-700") uppercase">
+                                        System Check: @app.AiRecommendation
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-[10px] text-gray-300 italic">Processing analysis...</span>
+                            }
+                        </div>
+
+                        <div class="col-md-2 border-start border-gray-50 ps-4">
+                            <label class="text-[9px] uppercase tracking-widest font-bold text-gray-300 block mb-2">Progress</label>
+                            <div class="d-flex gap-1">
+                                @for (int i = 1; i <= 4; i++)
+                                {
+                                    // Simple logic to represent 4 stages of an application
+                                    <div class="h-1 flex-fill @(i <= (int)app.Status ? "bg-[#C21E2E]" : "bg-gray-100")"></div>
+                                }
+                            </div>
+                            <span class="text-[9px] font-bold text-gray-500 mt-2 d-block uppercase tracking-tighter">@app.Status</span>
+                        </div>
+
+                        <div class="col-md-2 text-end">
+                            <a href="@Url.Action("Status", "Applications", new { id = app.AppId })"
+                               class="inline-block border border-gray-200 text-gray-400 p-2 hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                                <i class="bi bi-arrow-right text-lg"></i>
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>
         }
     </div>
 }
+
+<style>
+    /* Custom font overrides for this view */
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    /* Animation for the status bars */
+    .bg-gray-100 {
+        transition: background-color 0.3s;
+    }
+
+    .group:hover .bg-gray-100 {
+        background-color: #fcebeb;
+    }
+</style>

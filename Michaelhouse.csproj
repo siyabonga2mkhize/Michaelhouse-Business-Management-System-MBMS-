@@ -93,6 +93,9 @@
     <Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Primitives.10.0.3\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
+    <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
@@ -120,6 +123,11 @@
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
@@ -210,6 +218,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
+    <Compile Include="Controllers\PaymentController.cs" />
     <Compile Include="Controllers\RegistrationController.cs" />
     <Compile Include="Controllers\StoreController.cs" />
     <Compile Include="Controllers\StudentsController.cs" />
@@ -217,11 +226,26 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+<<<<<<< HEAD
     <Compile Include="Migrations\202604051816180_AddStoreModule.cs" />
     <Compile Include="Migrations\202604051816180_AddStoreModule.Designer.cs">
       <DependentUpon>202604051816180_AddStoreModule.cs</DependentUpon>
+=======
+    <Compile Include="Migrations\202604022244477_InitialCreate.cs" />
+    <Compile Include="Migrations\202604022244477_InitialCreate.Designer.cs">
+      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.cs" />
+    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.Designer.cs">
+      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.cs" />
+    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.Designer.cs">
+      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
+>>>>>>> 6ab16155e76cb84798c077018784d2487b2f69e9
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
     <Compile Include="Models\AiReviewService.cs" />
     <Compile Include="Models\Application.cs" />
@@ -233,12 +257,23 @@
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\DtoClasses.cs" />
     <Compile Include="Models\EmailService.cs" />
+<<<<<<< HEAD
     <Compile Include="Models\ICartService.cs" />
+=======
+    <Compile Include="Models\Invoice.cs" />
+    <Compile Include="Models\InvoiceService.cs" />
+>>>>>>> 6ab16155e76cb84798c077018784d2487b2f69e9
     <Compile Include="Models\Parent.cs" />
+    <Compile Include="Models\Payment.cs" />
+    <Compile Include="Models\PaymentService.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+<<<<<<< HEAD
     <Compile Include="Models\SessionCartService.cs" />
+=======
+    <Compile Include="Models\StreamEnrolment.cs" />
+>>>>>>> 6ab16155e76cb84798c077018784d2487b2f69e9
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
     <Compile Include="Models\StudentSubject.cs" />
@@ -263,6 +298,9 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\logo.svg.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -334,10 +372,20 @@
     <Content Include="Views\Registration\Confirm.cshtml" />
     <Content Include="Views\Registration\Complete.cshtml" />
     <Content Include="Views\Admin\Registrations.cshtml" />
+<<<<<<< HEAD
     <Content Include="Views\Store\Index.cshtml" />
     <Content Include="Views\Cart\Index.cshtml" />
     <Content Include="Views\Order\Checkout.cshtml" />
     <Content Include="Views\Order\Success.cshtml" />
+=======
+    <Content Include="Views\Payment\Index.cshtml" />
+    <Content Include="Views\Payment\Pay.cshtml" />
+    <Content Include="Views\Payment\Receipt.cshtml" />
+    <Content Include="Views\Admin\Streamgroups.cshtml" />
+    <Content Include="Views\Parents\Dashboard.cshtml" />
+    <Content Include="Views\Students\Dashboard.cshtml" />
+    <Content Include="Views\Account\Profile.cshtml" />
+>>>>>>> 6ab16155e76cb84798c077018784d2487b2f69e9
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -370,8 +418,19 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <EmbeddedResource Include="Migrations\202604051816180_AddStoreModule.resx">
       <DependentUpon>202604051816180_AddStoreModule.cs</DependentUpon>
+=======
+    <EmbeddedResource Include="Migrations\202604022244477_InitialCreate.resx">
+      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604032343272_AddStreamsAndEnrolments.resx">
+      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604040034214_AddStreamsAndEnrolments1.resx">
+      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
+>>>>>>> 6ab16155e76cb84798c077018784d2487b2f69e9
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

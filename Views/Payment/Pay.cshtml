@@ -1,0 +1,172 @@
+﻿@model Michaelhouse.Models.Invoice
+@{
+    ViewBag.Title = "Pay Invoice";
+    string pubKey = ViewBag.StripePublishableKey?.ToString() ?? "";
+    string studentName = Model.Student != null ? Model.Student.Name : "Student";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Financial Services</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Secure Payment</h2>
+        <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Ref: @Model.InvoiceNumber</p>
+    </div>
+    <a href="@Url.Action("Index", "Payment")" class="text-[10px] uppercase font-bold tracking-widest text-gray-400 hover:text-[#C21E2E] transition-all">
+        <i class="bi bi-arrow-left me-1"></i> Cancel
+    </a>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-5">
+        <div class="bg-[#FBFBFB] p-8 border border-gray-100 relative overflow-hidden h-full">
+            <i class="bi bi-receipt absolute -right-6 -bottom-6 text-black/5 text-9xl rotate-12"></i>
+
+            <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-8">Statement Summary</h5>
+
+            <div class="space-y-6 relative z-10">
+                <div class="border-b border-gray-100 pb-4">
+                    <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Student</label>
+                    <p class="text-md font-serif italic text-gray-800">@studentName</p>
+                </div>
+                <div class="border-b border-gray-100 pb-4">
+                    <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Description</label>
+                    <p class="text-sm font-bold text-gray-700">@Model.Description</p>
+                </div>
+                <div class="border-b border-gray-100 pb-4">
+                    <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Due Date</label>
+                    <p class="text-sm text-gray-600">@Model.DueDate.ToString("dd MMMM yyyy")</p>
+                </div>
+
+                <div class="pt-6">
+                    <label class="block text-[10px] uppercase font-bold text-[#C21E2E] tracking-[3px] mb-2">Amount Due</label>
+                    <h3 class="text-4xl font-bold text-gray-900">ZAR @Model.Amount.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="bg-white border border-gray-900 p-10 shadow-2xl relative">
+            <div class="absolute top-0 right-10 -translate-y-1/2 bg-white border border-gray-900 px-4 py-2 flex items-center gap-2">
+                <i class="bi bi-shield-lock-fill text-[#C21E2E]"></i>
+                <span class="text-[9px] uppercase font-bold tracking-widest text-gray-900 font-mono">Encrypted Connection</span>
+            </div>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="bg-red-50 text-red-700 p-4 border-l-4 border-red-600 text-[11px] font-bold uppercase tracking-widest mb-8">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> @TempData["Error"]
+                </div>
+            }
+
+            @using (Html.BeginForm("Pay", "Payment", new { id = Model.InvoiceId }, FormMethod.Post, new { id = "payment-form", @class = "space-y-8" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="stripeToken" id="stripeToken" />
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mb-3">Credit or Debit Card</label>
+                    <div id="card-number" class="p-4 border border-gray-100 bg-gray-50 focus-within:border-[#C21E2E] transition-all"></div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-6">
+                        <label class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mb-3">Expiry Date</label>
+                        <div id="card-expiry" class="p-4 border border-gray-100 bg-gray-50"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mb-3">CVC</label>
+                        <div id="card-cvc" class="p-4 border border-gray-100 bg-gray-50"></div>
+                    </div>
+                </div>
+
+                <div id="card-errors" class="text-red-600 text-[10px] font-bold uppercase tracking-wider hidden"></div>
+
+                <button type="submit" class="w-full bg-[#1a1a1a] text-white py-5 font-bold uppercase tracking-[4px] text-[11px] hover:bg-[#C21E2E] transition-all duration-500 shadow-xl active:scale-[0.98]" id="payBtn">
+                    <i class="bi bi-lock-fill me-2"></i> Authorize ZAR @Model.Amount.ToString("N2")
+                </button>
+            }
+
+            <div class="mt-10 pt-8 border-t border-gray-50 d-flex justify-content-between align-items-center">
+                <div class="flex items-center gap-3">
+                    <img src="https://stripe.com/img/about/logos/logos/blue.png" alt="Stripe" class="h-5 grayscale opacity-50" />
+                </div>
+                <div class="text-[9px] uppercase tracking-widest text-gray-300 font-bold">
+                    Michaelhouse Merchant Services
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+    /* Stripe element styling */
+    .StripeElement--focus {
+        border-color: #C21E2E !important;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+    var stripe   = Stripe('@pubKey');
+    var elements = stripe.elements();
+
+    var style = {
+        base: {
+            fontSize: '14px',
+            color: '#1a1a1a',
+            fontFamily: 'Montserrat, sans-serif',
+            letterSpacing: '1px',
+            '::placeholder': { color: '#ccc' }
+        },
+        invalid: { color: '#C21E2E' }
+    };
+
+    var cardNumber = elements.create('cardNumber', { style: style });
+    var cardExpiry = elements.create('cardExpiry', { style: style });
+    var cardCvc    = elements.create('cardCvc',    { style: style });
+
+    cardNumber.mount('#card-number');
+    cardExpiry.mount('#card-expiry');
+    cardCvc.mount('#card-cvc');
+
+    [cardNumber, cardExpiry, cardCvc].forEach(function(el) {
+        el.addEventListener('change', function(e) {
+            var errorDiv = document.getElementById('card-errors');
+            if (e.error) {
+                errorDiv.textContent = e.error.message;
+                errorDiv.classList.remove('hidden');
+            } else {
+                errorDiv.classList.add('hidden');
+            }
+        });
+    });
+
+    document.getElementById('payment-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('payBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-3"></span>Processing Authorization...';
+
+        stripe.createToken(cardNumber).then(function(result) {
+            if (result.error) {
+                var errorDiv = document.getElementById('card-errors');
+                errorDiv.textContent = result.error.message;
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill me-2"></i> Authorize ZAR @Model.Amount.ToString("N2")';
+            } else {
+                document.getElementById('stripeToken').value = result.token.id;
+                document.getElementById('payment-form').submit();
+            }
+        });
+    });
+    </script>
+}

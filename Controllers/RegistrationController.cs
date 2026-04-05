@@ -11,85 +11,121 @@ using Michaelhouse.Services;
 
 namespace Michaelhouse.Controllers
 {
-    [ParentOnly]  // Parent completes registration — not the student
+    [ParentOnly]
     public class RegistrationController : Controller
     {
         private readonly RegistrationService _regService = new RegistrationService();
         private readonly StudentAccountService _studentAccounts = new StudentAccountService();
+        private readonly InvoiceService _invoices = new InvoiceService();
         private readonly EmailService _email = new EmailService();
 
         private int GetCurrentParentId() => (int)Session["ParentId"];
 
         // ─── Registration Home ────────────────────────────────────────────────────
-        // Parent lands here after application is approved
 
         public ActionResult Index(int appId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-
             if (reg == null)
             {
-                TempData["Error"] = "No registration found for this application.";
+                TempData["Error"] = "No registration found.";
                 return RedirectToAction("Index", "Applications");
             }
 
-            // Already completed
             if (reg.Status == RegistrationStatus.Completed)
                 return RedirectToAction("Complete", new { appId });
 
-            // Grade 10-12 needs subject selection first
+            if (!_invoices.IsRegistrationFeePaid(reg.RegistrationId))
+            {
+                TempData["Info"] = "Please pay the registration fee first.";
+                return RedirectToAction("Index", "Payment",
+                    new { registrationId = reg.RegistrationId });
+            }
+
             if (reg.GradeEnrolling >= 10 &&
                 reg.Status != RegistrationStatus.SubjectsSelected)
                 return RedirectToAction("SelectSubjects", new { appId });
 
-            // Grade 8 & 9 or subjects already selected — go to confirm
             return RedirectToAction("Confirm", new { appId });
         }
 
-        // ─── Select Subjects (Grade 10-12 only) ───────────────────────────────────
+        // ─── Select Subjects (Grade 10-12) ────────────────────────────────────────
 
         public ActionResult SelectSubjects(int appId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
             if (reg == null) return HttpNotFound();
 
-            // Grade 8 & 9 don't need subject selection
+            if (!_invoices.IsRegistrationFeePaid(reg.RegistrationId))
+            {
+                TempData["Info"] = "Please pay the registration fee first.";
+                return RedirectToAction("Index", "Payment",
+                    new { registrationId = reg.RegistrationId });
+            }
+
             if (reg.GradeEnrolling <= 9)
                 return RedirectToAction("Confirm", new { appId });
 
             using (var db = new DBContextClass())
             {
-                // Get already selected elective subjects if any
-                var selected = db.StudentSubjects
+                var existing = db.StudentSubjects
                     .Include("Subject")
-                    .Where(ss => ss.StudentId == reg.StudentId && ss.IsElective)
-                    .Select(ss => ss.Subject.SubjectName)
+                    .Where(ss => ss.StudentId == reg.StudentId)
                     .ToList();
+
+                var existingStream = db.StreamEnrolments
+                    .FirstOrDefault(se => se.StudentId == reg.StudentId &&
+                                          se.RegistrationId == reg.RegistrationId);
 
                 ViewBag.AppId = appId;
                 ViewBag.RegistrationId = reg.RegistrationId;
                 ViewBag.Grade = reg.GradeEnrolling;
                 ViewBag.StudentName = reg.Student?.Name;
-                ViewBag.ElectiveGroupA = RegistrationService.ElectiveGroupA;
-                ViewBag.ElectiveGroupB = RegistrationService.ElectiveGroupB;
-                ViewBag.CompulsorySubjects = RegistrationService.CompulsorySubjects;
-                ViewBag.SelectedSubjects = selected;
+
+                ViewBag.ExistingLanguage = existing
+                    .FirstOrDefault(ss => RegistrationService.LanguageChoices
+                        .Contains(ss.Subject.Name))?.Subject.Name;
+
+                ViewBag.ExistingMaths = existing
+                    .FirstOrDefault(ss => RegistrationService.MathsOptions
+                        .Contains(ss.Subject.Name))?.Subject.Name;
+
+                ViewBag.ExistingStream = existingStream?.Stream ?? AcademicStream.None;
+
+                ViewBag.ExistingStreamSubjects = existing
+                    .Where(ss => ss.Stream != AcademicStream.None && !ss.IsCompulsory)
+                    .Select(ss => ss.Subject.Name)
+                    .ToList();
             }
 
             return View();
         }
 
+        // Fix: Accept stream as int then cast — avoids MVC enum binding issue
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SelectSubjects(
-            int appId, int registrationId,
-            string groupASubject, List<string> groupBSubjects)
+            int appId,
+            int registrationId,
+            string languageChoice,
+            string mathsChoice,
+            int stream,                  // ← int not enum (MVC binds int reliably)
+            List<string> streamSubjects)
         {
             var reg = _regService.GetRegistrationForApp(appId);
             if (reg == null) return HttpNotFound();
 
+            // Cast int to enum
+            var academicStream = (AcademicStream)stream;
+
             var (success, error) = _regService.SaveSubjectSelections(
-                reg.StudentId, registrationId, groupASubject, groupBSubjects);
+                reg.StudentId,
+                registrationId,
+                reg.GradeEnrolling,
+                languageChoice,
+                mathsChoice,
+                academicStream,
+                streamSubjects ?? new List<string>());
 
             if (!success)
             {
@@ -101,7 +137,7 @@ namespace Michaelhouse.Controllers
             return RedirectToAction("Confirm", new { appId });
         }
 
-        // ─── Confirm Registration ─────────────────────────────────────────────────
+        // ─── Confirm ─────────────────────────────────────────────────────────────
 
         public ActionResult Confirm(int appId)
         {
@@ -110,34 +146,32 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                var student = db.Students
-                    .Include("Parent")
+                var student = db.Students.Include("Parent")
                     .FirstOrDefault(s => s.StudentId == reg.StudentId);
+                var subjects = db.StudentSubjects.Include("Subject")
+                    .Where(ss => ss.StudentId == reg.StudentId).ToList();
+                var streamEnrolment = db.StreamEnrolments
+                    .FirstOrDefault(se => se.StudentId == reg.StudentId &&
+                                          se.RegistrationId == reg.RegistrationId);
 
-                var subjects = db.StudentSubjects
-                    .Include("Subject")
-                    .Where(ss => ss.StudentId == reg.StudentId)
-                    .ToList();
-
-                // Grade 8 & 9 — auto-assign subjects on first visit to confirm
+                // Auto-assign Grade 8 & 9 subjects on first visit to confirm
                 if (reg.GradeEnrolling <= 9 && !subjects.Any())
                 {
                     _regService.AssignGrade8And9Subjects(reg.StudentId);
-                    subjects = db.StudentSubjects
-                        .Include("Subject")
-                        .Where(ss => ss.StudentId == reg.StudentId)
-                        .ToList();
+                    subjects = db.StudentSubjects.Include("Subject")
+                        .Where(ss => ss.StudentId == reg.StudentId).ToList();
                 }
 
-                bool needsSubjects = reg.GradeEnrolling >= 10 &&
-                                     reg.Status != RegistrationStatus.SubjectsSelected &&
-                                     reg.Status != RegistrationStatus.Completed;
+                bool needsSubs = reg.GradeEnrolling >= 10 &&
+                                 reg.Status != RegistrationStatus.SubjectsSelected &&
+                                 reg.Status != RegistrationStatus.Completed;
 
                 ViewBag.AppId = appId;
                 ViewBag.Reg = reg;
                 ViewBag.Student = student;
                 ViewBag.Subjects = subjects;
-                ViewBag.NeedsSubjects = needsSubjects;
+                ViewBag.NeedsSubjects = needsSubs;
+                ViewBag.StreamEnrolment = streamEnrolment;
             }
 
             return View();
@@ -152,25 +186,28 @@ namespace Michaelhouse.Controllers
             var reg = _regService.GetRegistrationForApp(appId);
             if (reg == null) return HttpNotFound();
 
-            // Grade 10-12 must have subjects selected
+            if (!_invoices.IsRegistrationFeePaid(reg.RegistrationId))
+            {
+                TempData["Error"] = "Registration fee must be paid first.";
+                return RedirectToAction("Index", "Payment",
+                    new { registrationId = reg.RegistrationId });
+            }
+
             if (reg.GradeEnrolling >= 10 &&
                 reg.Status != RegistrationStatus.SubjectsSelected)
             {
-                TempData["Error"] = "Please select subjects before completing registration.";
+                TempData["Error"] = "Please select your subjects first.";
                 return RedirectToAction("SelectSubjects", new { appId });
             }
 
-            // Mark registration as complete
             _regService.CompleteRegistration(registrationId);
 
-            // NOW create the student account
             try
             {
                 var (user, tempPassword) = _studentAccounts.CreateStudentAccount(reg.StudentId);
 
                 if (tempPassword != null)
                 {
-                    // Email credentials to parent
                     using (var db = new DBContextClass())
                     {
                         var parent = db.Parents.Find(GetCurrentParentId());
@@ -185,20 +222,18 @@ namespace Michaelhouse.Controllers
                                 reg.GradeEnrolling);
                         }
                     }
+                }
 
-                    TempData["Success"] =
-                        $"Registration complete! A student account has been created. " +
-                        $"Login details have been sent to your email address.";
-                }
-                else
-                {
-                    TempData["Success"] = "Registration completed successfully!";
-                }
+                _invoices.CreateAnnualFeeInvoices(
+                    registrationId, reg.StudentId, GetCurrentParentId());
+
+                TempData["Success"] =
+                    "Registration complete! Student account created and login credentials emailed to you.";
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Student account creation failed: {ex.Message}");
-                TempData["Success"] = "Registration completed! Please contact the school if you don't receive login credentials.";
+                System.Diagnostics.Debug.WriteLine($"Post-registration error: {ex.Message}");
+                TempData["Success"] = "Registration completed successfully!";
             }
 
             return RedirectToAction("Complete", new { appId });
@@ -213,15 +248,13 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                var student = db.Students.Find(reg.StudentId);
-                var subjects = db.StudentSubjects
-                    .Include("Subject")
-                    .Where(ss => ss.StudentId == reg.StudentId)
-                    .ToList();
-
                 ViewBag.Reg = reg;
-                ViewBag.Student = student;
-                ViewBag.Subjects = subjects;
+                ViewBag.Student = db.Students.Find(reg.StudentId);
+                ViewBag.Subjects = db.StudentSubjects.Include("Subject")
+                    .Where(ss => ss.StudentId == reg.StudentId).ToList();
+                ViewBag.StreamEnrolment = db.StreamEnrolments
+                    .FirstOrDefault(se => se.StudentId == reg.StudentId &&
+                                          se.RegistrationId == reg.RegistrationId);
             }
 
             return View();

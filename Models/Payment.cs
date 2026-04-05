@@ -1,33 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Payment
-	{
+    public class Payment
+    {
+        [Key]
         public int PaymentId { get; set; }
 
-        [Display(Name = "Reference Number")]
-        public string ReferenceNumber { get; set; }
-
-        [Display(Name = "Amount")]
-        [DataType(DataType.Currency)]
-        public decimal Amount { get; set; }
-
-        [Display(Name = "Payment Date")]
-        [DataType(DataType.Date)]
-        public DateTime PaymentDate { get; set; }
-
-        [Display(Name = "Payment Method")]
-        public string PaymentMethod { get; set; } // EFT, Card, Cash
-
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Confirmed, Pending
-
+        [ForeignKey("Invoice")]
         public int InvoiceId { get; set; }
         public virtual Invoice Invoice { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public DateTime PaymentDate { get; set; } = DateTime.Now;
+
+        // Stripe charge ID
+        public string StripeChargeId { get; set; }
+
+        // Stripe payment intent ID (for newer Stripe API)
+        public string StripePaymentIntentId { get; set; }
+
+        public string Status { get; set; } // "Success", "Failed", "Refunded"
+
+        // Reference for proof of payment
+        public string PaymentReference { get; set; }
+
+        // Was proof of payment emailed?
+        public bool ProofEmailSent { get; set; }
     }
 }

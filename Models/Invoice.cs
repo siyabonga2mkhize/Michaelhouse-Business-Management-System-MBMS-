@@ -1,47 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Invoice
-	{
+    public class Invoice
+    {
+        [Key]
         public int InvoiceId { get; set; }
 
-        [Display(Name = "Invoice Number")]
-        public string InvoiceNumber { get; set; }
+        [Required]
+        public string InvoiceNumber { get; set; } // e.g. MHS-2026-00001
 
-        [Display(Name = "Description")]
-        public string Description { get; set; }
+        // Linked to registration
+        [ForeignKey("Registration")]
+        public int RegistrationId { get; set; }
+        public virtual Registration Registration { get; set; }
 
-        [Display(Name = "Amount")]
-        [DataType(DataType.Currency)]
-        public decimal Amount { get; set; }
-
-        [Display(Name = "Amount Paid")]
-        [DataType(DataType.Currency)]
-        public decimal AmountPaid { get; set; }
-
-        [Display(Name = "Balance")]
-        public decimal Balance => Amount - AmountPaid;
-
-        [Display(Name = "Due Date")]
-        [DataType(DataType.Date)]
-        public DateTime DueDate { get; set; }
-
-        [Display(Name = "Issue Date")]
-        [DataType(DataType.Date)]
-        public DateTime IssueDate { get; set; }
-
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Unpaid, Partial, Paid
-
-        [Display(Name = "Category")]
-        public string Category { get; set; } // Tuition, Boarding, Transport, Cafeteria
-
+        // Linked to student
+        [ForeignKey("Student")]
         public int StudentId { get; set; }
         public virtual Student Student { get; set; }
+
+        // Linked to parent who pays
+        [ForeignKey("Parent")]
+        public int ParentId { get; set; }
+        public virtual Parent Parent { get; set; }
+
+        [Required]
+        public string InvoiceType { get; set; }
+        // "RegistrationFee"         — ZAR 950 (non-refundable, paid before registration)
+        // "AnnualFee"               — ZAR 417,000 (board and tuition)
+        // "DevelopmentLevy"         — ZAR 6,800 (voluntary)
+        // "AnnualFeeAdvanceDiscount" — ZAR -16,680 (discount if paid in full upfront)
+
+        [Required]
+        public decimal Amount { get; set; }
+
+        public string Description { get; set; }
+
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public DateTime DueDate { get; set; }
+
+        public string Status { get; set; } = "Pending"; // Pending / Paid / Overdue / Waived
+
+        // Navigation
+        public virtual ICollection<Payment> Payments { get; set; }
     }
 }

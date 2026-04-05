@@ -14,6 +14,7 @@ namespace Michaelhouse.Services
     public class ApplicationService
     {
         private readonly AiReviewService _ai = new AiReviewService();
+        private readonly InvoiceService _invoices = new InvoiceService();
 
         private readonly RegistrationService _regService = new RegistrationService();
         private readonly EmailService _email = new EmailService();
