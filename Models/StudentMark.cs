@@ -1,43 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class StudentMark
-	{
+    /// <summary>
+    /// Stores the mark a specific student received for a specific assessment.
+    /// Created by the teacher when capturing results after the assessment is written.
+    /// </summary>
+    public class StudentMark
+    {
+        [Key]
         public int StudentMarkId { get; set; }
 
-        [Display(Name = "Assessment Name")]
-        public string AssessmentName { get; set; } // Test 1, Exam, Assignment
+        [ForeignKey("Assessment")]
+        public int AssessmentmentId { get; set; }
 
-        [Display(Name = "Assessment Type")]
-        public string AssessmentType { get; set; } // Test, Exam, Assignment, Project
-
-        [Display(Name = "Mark Obtained")]
-        public double MarkObtained { get; set; }
-
-        [Display(Name = "Total Marks")]
-        public double TotalMarks { get; set; }
-
-        [Display(Name = "Weight (%)")]
-        public double Weight { get; set; }
-
-        [Display(Name = "Term")]
-        public int Term { get; set; }
-
-        [Display(Name = "Year")]
-        public int Year { get; set; }
-
-        [Display(Name = "Percentage")]
-        public double Percentage => TotalMarks > 0 ? (MarkObtained / TotalMarks) * 100 : 0;
-
+        [ForeignKey("Student")]
         public int StudentId { get; set; }
-        public virtual Student Student { get; set; }
 
-        public int SubjectId { get; set; }
-        public virtual Subject Subject { get; set; }
+        // ─── The captured mark ─────────────────────────────────────────────────────
+
+        // Null = not yet captured / absent
+        public decimal? MarksObtained { get; set; }
+
+        // True if student was legitimately absent (mark excluded from average)
+        public bool IsAbsent { get; set; } = false;
+
+        [MaxLength(300)]
+        public string TeacherComment { get; set; }
+
+        // When the mark was last saved
+        public DateTime? CapturedAt { get; set; }
+
+        // ─── Navigation ───────────────────────────────────────────────────────────
+        public virtual Assessment Assessment { get; set; }
+        public virtual Student Student { get; set; }
     }
 }

@@ -1,0 +1,152 @@
+﻿@model List<Michaelhouse.Models.Teacher>
+@{
+    ViewBag.Title = "Faculty Directory";
+}
+
+<div class="relative mb-10 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <div class="max-w-6xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Institutional Administration</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Faculty Directory</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Academic Staff & Subject Allocations</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="@Url.Action("Generate", "Timetable")" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black border-b border-gray-200 pb-1 transition-colors">
+                <i class="bi bi-calendar3 me-1"></i> Timetable Master
+            </a>
+            <a href="@Url.Action("Create", "Teacher")" class="bg-[#1a1a1a] text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all shadow-lg">
+                <i class="bi bi-person-plus me-2"></i> Add Faculty Member
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white border border-gray-100 py-20 text-center relative overflow-hidden shadow-sm">
+            <i class="bi bi-people absolute -right-10 -bottom-10 text-black/5 text-[15rem] rotate-12"></i>
+            <div class="relative z-10">
+                <h5 class="font-serif italic text-gray-400 mb-3 text-2xl">No staff records found.</h5>
+                <p class="text-[11px] uppercase tracking-widest text-gray-400 mb-8">Begin by provisioning your first faculty account.</p>
+                <a href="@Url.Action("Create", "Teacher")" class="border-b-2 border-[#C21E2E] pb-1 text-[11px] font-bold uppercase tracking-[2px] text-gray-900 hover:text-[#C21E2E] transition-colors">
+                    Provision New Account
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 bg-gray-50/50 border-b border-gray-100 d-flex justify-content-between align-items-center">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Staff Ledger (@Model.Count)</h6>
+                <div class="relative w-64">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                    <input type="text" class="form-control rounded-0 border-gray-200 text-[11px] ps-8 py-2 focus:border-[#C21E2E] focus:ring-0"
+                           placeholder="FILTER BY NAME OR SUBJECT..." onkeyup="filterTable(this)" />
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle" id="teacherTable">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100">
+                            <th class="text-[9px] uppercase tracking-widest font-bold text-gray-400 py-3 ps-4">Staff Member</th>
+                            <th class="text-[9px] uppercase tracking-widest font-bold text-gray-400 py-3">Primary Subject</th>
+                            <th class="text-[9px] uppercase tracking-widest font-bold text-gray-400 py-3">Secondary Subject</th>
+                            <th class="text-[9px] uppercase tracking-widest font-bold text-gray-400 py-3 text-center">Status</th>
+                            <th class="text-[9px] uppercase tracking-widest font-bold text-gray-400 py-3 pe-4 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var t in Model)
+                        {
+                            var assignments = t.SubjectAssignments?.ToList() ?? new List<Michaelhouse.Models.TeacherSubjectGrade>();
+                            var s1 = assignments.ElementAtOrDefault(0);
+                            var s2 = assignments.ElementAtOrDefault(1);
+
+                            <tr class="group transition-colors hover:bg-gray-50/50">
+                                <td class="ps-4 py-4">
+                                    <div class="font-bold text-gray-900 text-sm">@t.Name</div>
+                                    <div class="text-[10px] text-gray-400 font-monospace">@t.Email</div>
+                                </td>
+                                <td>
+                                    @if (s1 != null && s1.Subject != null)
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">@s1.Subject.Name</span>
+                                        <span class="text-[9px] text-[#C21E2E] font-bold ms-1 uppercase">Gr @s1.Grade</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] text-gray-300 italic">Unassigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (s2 != null && s2.Subject != null)
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-700 uppercase tracking-tighter">@s2.Subject.Name</span>
+                                        <span class="text-[9px] text-[#C21E2E] font-bold ms-1 uppercase">Gr @s2.Grade</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] text-gray-300 italic">None</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (t.UserId != null)
+                                    {
+                                        <span class="text-[8px] font-bold uppercase tracking-widest text-green-600 border border-green-200 bg-green-50 px-2 py-1">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[8px] font-bold uppercase tracking-widest text-amber-500 border border-amber-100 bg-amber-50 px-2 py-1">No Account</span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="@Url.Action("Details", "Teacher", new { id = t.TeacherId })"
+                                       class="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#C21E2E] transition-colors border-b border-transparent hover:border-[#C21E2E] pb-0.5">
+                                        View Dossier
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    /* Remove default bootstrap table borders to use our divide-y style */
+    .table > :not(caption) > * > * {
+        border-bottom-width: 0;
+        box-shadow: none;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function filterTable(input) {
+            var q = input.value.toLowerCase();
+            document.querySelectorAll('#teacherTable tbody tr').forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

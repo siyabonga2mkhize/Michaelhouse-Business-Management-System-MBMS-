@@ -133,89 +133,101 @@ namespace Michaelhouse.Services
             }
         }
 
-        // ─── HTML Proof of Payment ────────────────────────────────────────────────
+		// ─── HTML Proof of Payment ────────────────────────────────────────────────
 
-        private string BuildProofOfPaymentHtml(Payment payment, MHSInvoice invoice, string parentName)
-        {
-            return $@"
+		private string BuildProofOfPaymentHtml(Michaelhouse.Models.Payment payment, Michaelhouse.Models.Invoice invoice, string parentName)
+		{
+			// Fixes the DynamicProxy name issue for the student in the email
+			string studentName = invoice.Student != null ? invoice.Student.Name : "Prospective Student";
+			string logoUrl = "https://i.postimg.cc/Ss8DWBVf/logo-svg.png"; // Replace with your actual hosted absolute URL
+
+			return $@"
 <html>
-<body style='font-family: Segoe UI, sans-serif; color: #333; max-width: 650px; margin: 0 auto;'>
- 
-    <!-- Header -->
-    <div style='background: #1a3c5e; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center;'>
-        <div>
-            <h2 style='color: #fff; margin: 0; font-size: 1.4rem;'>Michaelhouse</h2>
-            <p style='color: rgba(255,255,255,0.65); margin: 4px 0 0; font-size: 0.85rem;'>Proof of Payment</p>
-        </div>
-        <div style='background: #e8a020; color: #000; font-weight: 700; padding: 6px 14px; border-radius: 6px; font-size: 0.85rem;'>
-            PAID
-        </div>
-    </div>
- 
-    <!-- Body -->
-    <div style='padding: 32px; background: #fff;'>
-        <p>Dear {parentName},</p>
-        <p>Thank you. Your payment has been received successfully. Please retain this email as your proof of payment.</p>
- 
-        <!-- Payment Details Box -->
-        <div style='background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 24px; margin: 24px 0;'>
-            <h3 style='margin: 0 0 16px; color: #1a3c5e; font-size: 1rem;'>Payment Details</h3>
-            <table style='width: 100%; border-collapse: collapse;'>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666; width: 45%;'>Invoice Number</td>
-                    <td style='padding: 10px 0; font-weight: 600;'>{invoice.InvoiceNumber}</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Payment Reference</td>
-                    <td style='padding: 10px 0; font-weight: 600; font-family: monospace;'>{payment.PaymentReference}</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Student Name</td>
-                    <td style='padding: 10px 0;'>{invoice.Student?.Name}</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Description</td>
-                    <td style='padding: 10px 0;'>{invoice.Description}</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Payment Date</td>
-                    <td style='padding: 10px 0;'>{payment.PaymentDate:dd MMMM yyyy HH:mm}</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Payment Method</td>
-                    <td style='padding: 10px 0;'>Credit / Debit Card (Stripe)</td>
-                </tr>
-                <tr style='border-bottom: 1px solid #e0e0e0;'>
-                    <td style='padding: 10px 0; color: #666;'>Transaction ID</td>
-                    <td style='padding: 10px 0; font-family: monospace; font-size: 0.85rem;'>{payment.StripeChargeId}</td>
-                </tr>
-                <tr>
-                    <td style='padding: 14px 0 0; color: #1a3c5e; font-weight: 700; font-size: 1rem;'>Amount Paid</td>
-                    <td style='padding: 14px 0 0; font-weight: 700; font-size: 1.2rem; color: #1a3c5e;'>
-                        ZAR {payment.AmountPaid:N2}
-                    </td>
-                </tr>
-            </table>
-        </div>
- 
-        <p style='color: #888; font-size: 0.88rem;'>
-            If you have any queries regarding this payment, please contact the Michaelhouse bursary office
-            and quote your payment reference number <strong>{payment.PaymentReference}</strong>.
-        </p>
-    </div>
- 
-    <!-- Footer -->
-    <div style='background: #f4f6f9; padding: 16px 32px; text-align: center; color: #888; font-size: 0.78rem;'>
-        Michaelhouse &bull; Private Bag X1, Balgowan, KwaZulu-Natal, 3275 &bull; +27 (0)33 234 4001<br/>
-        This is an automated payment confirmation. Please do not reply directly to this email.
-    </div>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family: ""Montserrat"", Segoe UI, sans-serif; color: #1a1a1a; background-color: #f9f9f9; margin: 0; padding: 40px 0;'>
+    <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 10px 30px rgba(0,0,0,0.05);'>
+        
+        <tr>
+            <td style='padding: 40px 40px 20px 40px; border-bottom: 1px solid #f0f0f0;'>
+                <table width='100%'>
+                    <tr>
+                        <td width='70'>
+                            <img src='{logoUrl}' alt='Michaelhouse' width='60' style='display: block; border: 0;' />
+                        </td>
+                        <td>
+                            <h1 style='font-family: ""Playfair Display"", serif; font-size: 20px; color: #1a1a1a; margin: 0; letter-spacing: 1px; text-transform: uppercase;'>Michaelhouse</h1>
+                            <p style='font-size: 10px; color: #C21E2E; font-weight: 700; margin: 4px 0 0; text-transform: uppercase; letter-spacing: 3px;'>Official Financial Dispatch</p>
+                        </td>
+                        <td align='right' valign='top'>
+                            <div style='border: 1px solid #C21E2E; color: #C21E2E; font-size: 10px; font-weight: 700; padding: 4px 12px; letter-spacing: 2px;'>PAID</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style='padding: 40px;'>
+                <p style='font-size: 14px; line-height: 1.6; margin-bottom: 24px;'>Dear {parentName},</p>
+                <p style='font-size: 14px; line-height: 1.6; margin-bottom: 30px;'>Please find below the official confirmation for your recent transaction. This document serves as a valid proof of payment for the account of <strong>{studentName}</strong>.</p>
+
+                <table width='100%' cellpadding='0' cellspacing='0' style='border-left: 4px solid #1a1a1a; background-color: #fcfcfc; padding: 25px;'>
+                    <tr>
+                        <td colspan='2' style='padding-bottom: 20px;'>
+                            <h2 style='font-size: 11px; font-weight: 700; color: #999999; text-transform: uppercase; letter-spacing: 2px; margin: 0;'>Transaction Dossier</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px;'>Invoice Number</td>
+                        <td style='padding: 8px 0; font-size: 13px; font-weight: 700; text-align: right;'>{invoice.InvoiceNumber}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px;'>Payment Ref</td>
+                        <td style='padding: 8px 0; font-size: 13px; font-weight: 600; text-align: right; font-family: monospace;'>{payment.PaymentReference}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px;'>Student Name</td>
+                        <td style='padding: 8px 0; font-size: 13px; font-weight: 600; text-align: right;'>{studentName}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px;'>Description</td>
+                        <td style='padding: 8px 0; font-size: 13px; font-style: italic; text-align: right;'>{invoice.Description}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 8px 0; font-size: 11px; color: #888888; text-transform: uppercase; letter-spacing: 1px;'>Date of Settlement</td>
+                        <td style='padding: 8px 0; font-size: 13px; text-align: right;'>{payment.PaymentDate:dd MMMM yyyy}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 20px 0 0; font-size: 13px; font-weight: 700; color: #C21E2E; text-transform: uppercase; letter-spacing: 2px;'>Amount Paid</td>
+                        <td style='padding: 20px 0 0; font-size: 22px; font-family: ""Playfair Display"", serif; font-weight: 700; text-align: right; color: #C21E2E;'>ZAR {payment.AmountPaid:N2}</td>
+                    </tr>
+                </table>
+
+                <p style='font-size: 11px; color: #999999; line-height: 1.6; margin-top: 30px; border-top: 1px solid #f0f0f0; padding-top: 20px;'>
+                    Should you require further financial assistance, please contact the Michaelhouse Bursary Office quoting reference <strong>{payment.PaymentReference}</strong>.
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style='background-color: #1a1a1a; padding: 30px 40px; text-align: center;'>
+                <p style='color: #ffffff; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px 0;'>Michaelhouse</p>
+                <p style='color: #888888; font-size: 10px; margin: 0;'>
+                    Private Bag X1, Balgowan, KwaZulu-Natal, 3275 &bull; +27 (0)33 234 4001<br/>
+                    <span style='opacity: 0.5;'>Automated System Dispatch &mdash; Do Not Reply</span>
+                </p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>";
-        }
+		}
 
-        // ─── Email helper ─────────────────────────────────────────────────────────
+		// ─── Email helper ─────────────────────────────────────────────────────────
 
-        private void SendEmail(string toEmail, string subject, string htmlBody)
+		private void SendEmail(string toEmail, string subject, string htmlBody)
         {
             var smtpHost = ConfigurationManager.AppSettings["Email:SmtpHost"] ?? "";
             var smtpPort = int.TryParse(ConfigurationManager.AppSettings["Email:SmtpPort"], out int p) ? p : 587;

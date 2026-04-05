@@ -1,0 +1,124 @@
+﻿@{
+    int idx = (int)(ViewData["index"] ?? 1);
+    bool required = (bool)(ViewData["required"] ?? false);
+
+    string gradeName = "subject" + idx + "Grade";
+    string streamName = "subject" + idx + "Stream";
+    string subjectName = "subject" + idx + "Id";
+}
+
+<div class="row g-5">
+
+    <div class="col-md-4">
+        <div class="ac-field relative">
+            <label class="ac-label text-gray-400">Grade Allocation @(required ? "*" : "")</label>
+            <div class="ac-select-wrapper">
+                <select name="@gradeName" id="grade_@idx" class="ac-select w-100" @(required ? "required" : "")>
+                    <option value="">-- Grade --</option>
+                    <option value="8">Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8 d-none" id="stream_row_@idx">
+        <div class="ac-field relative">
+            <label class="ac-label text-gray-400">Academic Faculty / Stream</label>
+            <div class="ac-select-wrapper">
+                <select name="@streamName" id="stream_@idx" class="ac-select w-100">
+                    <option value="0">General (Compulsory / Language / Maths)</option>
+                    <option value="1">Arts &amp; Culture</option>
+                    <option value="2">Human &amp; Social Studies</option>
+                    <option value="3">Sciences</option>
+                    <option value="4">Commerce</option>
+                    <option value="5">Engineering &amp; Technology</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="@streamName" id="stream_hidden_@idx" value="0" />
+
+    <div class="col-12">
+        <div class="ac-field relative">
+            <label class="ac-label text-gray-400">Specific Subject Module @(required ? "*" : "")</label>
+            <div class="ac-select-wrapper">
+                <select name="@subjectName" id="subject_@idx" class="ac-select w-100 font-bold"
+                        disabled @(required ? "required" : "")>
+                    <option value="">-- Select Grade First --</option>
+                </select>
+            </div>
+            <p class="text-[9px] uppercase tracking-[3px] text-gray-300 mt-4 font-bold">
+                <i class="bi bi-info-circle me-1 text-[#C21E2E]"></i>
+                Available modules are dynamically filtered via the Institutional Master Database.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* RESET BOOTSTRAP DEFAULT SELECT APPEARANCE */
+    .ac-select-wrapper {
+        position: relative;
+    }
+
+        /* CUSTOM REGISTRY CHEVRON */
+        .ac-select-wrapper::after {
+            content: "\F285"; /* bi-chevron-down */
+            font-family: "bootstrap-icons";
+            position: absolute;
+            right: 0;
+            bottom: 12px;
+            font-size: 10px;
+            color: #ccc;
+            pointer-events: none;
+        }
+
+    .ac-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: transparent;
+        border: 0;
+        border-bottom: 1px solid #eeeeee;
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 13px;
+        color: #1a1a1a;
+        outline: none;
+        border-radius: 0;
+        transition: all 0.2s ease;
+    }
+
+        /* FOCUS STATE: MICHAELHOUSE RED */
+        .ac-select:focus {
+            border-bottom-color: #C21E2E;
+        }
+
+        /* DISABLED STATE: GHOSTED */
+        .ac-select:disabled {
+            color: #eeeeee;
+            border-bottom-color: #f9f9f9 !important;
+            cursor: not-allowed;
+        }
+
+            .ac-select:disabled + .ac-select-wrapper::after {
+                opacity: 0.1;
+            }
+
+    /* INSTITUTIONAL LABEL */
+    .ac-label {
+        display: block;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        color: #bbb;
+    }
+</style>

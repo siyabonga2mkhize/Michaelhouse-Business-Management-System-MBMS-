@@ -134,41 +134,38 @@ namespace Michaelhouse.Controllers
             }
             base.Dispose(disposing);
         }
-        public ActionResult Dashboard()
-        {
-            int studentId = GetCurrentStudentId();
-            if (studentId == 0)
-            {
-                TempData["Error"] = "Student profile not found.";
-                return RedirectToAction("Login", "Account");
-            }
+		public ActionResult Dashboard()
+		{
+			int userId = (int)Session["UserId"];
+			using (var db = new DBContextClass())
+			{
+				// CRITICAL: .Include("Parent") ensures the Guardian data is loaded
+				var student = db.Students
+					.Include("Parent")
+					.FirstOrDefault(s => s.UserId == userId);
 
-            using (var db = new DBContextClass())
-            {
-                var student = db.Students
-                    .Include("Parent")
-                    .Include("User")
-                    .FirstOrDefault(s => s.StudentId == studentId);
+				if (student == null) return RedirectToAction("Login", "Account");
 
-                var reg = db.Registrations
-                    .Include("Application")
-                    .FirstOrDefault(r => r.StudentId == studentId);
+				var reg = db.Registrations
+					.FirstOrDefault(r => r.StudentId == student.StudentId);
 
-                var subjects = db.StudentSubjects
-                    .Include("Subject")
-                    .Where(ss => ss.StudentId == studentId)
-                    .ToList();
+				// CRITICAL: .Include("Subject") ensures the Subject names are loaded
+				var subjects = db.StudentSubjects
+					.Include("Subject")
+					.Where(ss => ss.StudentId == student.StudentId)
+					.ToList();
 
-                var streamEnr = db.StreamEnrolments
-                    .FirstOrDefault(se => se.StudentId == studentId);
+				var streamEnr = db.StreamEnrolments
+					.FirstOrDefault(se => se.StudentId == student.StudentId);
 
-                ViewBag.Student = student;
-                ViewBag.Registration = reg;
-                ViewBag.Subjects = subjects;
-                ViewBag.StreamEnrolment = streamEnr;
+				ViewBag.Student = student;
+				ViewBag.Registration = reg;
+				ViewBag.Subjects = subjects;
+				ViewBag.StreamEnrolment = streamEnr;
 
-                return View();
-            }
-        }
+				return View();
+			}
+		}
+	
     }
 }
