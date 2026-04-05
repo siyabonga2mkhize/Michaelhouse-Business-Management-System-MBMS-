@@ -205,26 +205,21 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AdminReviewController.cs" />
     <Compile Include="Controllers\ApplicationsController.cs" />
+    <Compile Include="Controllers\CartController.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
     <Compile Include="Controllers\RegistrationController.cs" />
+    <Compile Include="Controllers\StoreController.cs" />
     <Compile Include="Controllers\StudentsController.cs" />
     <Compile Include="Filters\AuthorizeFilters.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604011316416_InitialCreate.cs" />
-    <Compile Include="Migrations\202604011316416_InitialCreate.Designer.cs">
-      <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604011920065_AddNewFields.cs" />
-    <Compile Include="Migrations\202604011920065_AddNewFields.Designer.cs">
-      <DependentUpon>202604011920065_AddNewFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604020844420_AddRegistrationAndSubjects.cs" />
-    <Compile Include="Migrations\202604020844420_AddRegistrationAndSubjects.Designer.cs">
-      <DependentUpon>202604020844420_AddRegistrationAndSubjects.cs</DependentUpon>
+    <Compile Include="Migrations\202604051816180_AddStoreModule.cs" />
+    <Compile Include="Migrations\202604051816180_AddStoreModule.Designer.cs">
+      <DependentUpon>202604051816180_AddStoreModule.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AdminReview.cs" />
@@ -233,13 +228,17 @@
     <Compile Include="Models\ApplicationService.cs" />
     <Compile Include="Models\ApplicationStatus.cs" />
     <Compile Include="Models\AppUser.cs" />
+    <Compile Include="Models\Category.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
+    <Compile Include="Models\DtoClasses.cs" />
     <Compile Include="Models\EmailService.cs" />
+    <Compile Include="Models\ICartService.cs" />
     <Compile Include="Models\Parent.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
     <Compile Include="Models\StudentSubject.cs" />
@@ -335,6 +334,10 @@
     <Content Include="Views\Registration\Confirm.cshtml" />
     <Content Include="Views\Registration\Complete.cshtml" />
     <Content Include="Views\Admin\Registrations.cshtml" />
+    <Content Include="Views\Store\Index.cshtml" />
+    <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\Success.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -367,14 +370,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604011316416_InitialCreate.resx">
-      <DependentUpon>202604011316416_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604011920065_AddNewFields.resx">
-      <DependentUpon>202604011920065_AddNewFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604020844420_AddRegistrationAndSubjects.resx">
-      <DependentUpon>202604020844420_AddRegistrationAndSubjects.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604051816180_AddStoreModule.resx">
+      <DependentUpon>202604051816180_AddStoreModule.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

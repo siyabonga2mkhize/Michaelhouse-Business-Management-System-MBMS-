@@ -6,6 +6,7 @@
     <title>@ViewBag.Title - Michaelhouse</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    @RenderSection("Styles", required: false)
     <style>
         :root {
             --primary: #1a3c5e;
@@ -125,6 +126,17 @@
                 border-radius: 10px;
                 margin-left: 6px;
             }
+
+        /* Cart badge styles */
+        .cart-badge {
+            background: var(--accent);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -134,6 +146,18 @@
         string userRole = Session["UserRole"]?.ToString() ?? "";
         string userName = Session["UserName"]?.ToString() ?? "";
         bool isLoggedIn = Session["UserId"] != null;
+
+        // Get cart count for display
+        int cartCount = 0;
+        if (isLoggedIn)
+        {
+            try
+            {
+                var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
+                cartCount = cartService.GetCart().TotalItems;
+            }
+            catch { }
+        }
     }
 
     <nav class="navbar navbar-expand-lg px-3">
@@ -178,6 +202,23 @@
                            href="@Url.Action("AddStudent", "Applications")">
                             <i class="bi bi-person-plus me-2"></i>Add Student
                         </a>
+
+                        <!-- School Store Section for Parents -->
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">School Store</div>
+                        <a class="nav-link @(currentController == "Store" ? "active" : "")"
+                           href="@Url.Action("Index", "Store")">
+                            <i class="bi bi-shop me-2"></i>Browse Products
+                        </a>
+                        <a class="nav-link @(currentController == "Cart" ? "active" : "")"
+                           href="@Url.Action("Index", "Cart")">
+                            <i class="bi bi-cart3 me-2"></i>My Cart
+                            @if (cartCount > 0)
+                            {
+                                <span class="cart-badge">@cartCount</span>
+                            }
+                        </a>
+
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Account</div>
                         <a class="nav-link @(currentAction == "Profile"    ? "active" : "")"
@@ -199,6 +240,22 @@
                         <a class="nav-link @(currentAction == "Registrations" ? "active" : "")"
                            href="@Url.Action("Registrations", "Admin")">
                             <i class="bi bi-mortarboard me-2"></i>Registrations
+                        </a>
+
+                        <!-- School Store Section for Admin -->
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">School Store</div>
+                        <a class="nav-link @(currentController == "Store" ? "active" : "")"
+                           href="@Url.Action("Index", "Store")">
+                            <i class="bi bi-shop me-2"></i>Manage Products
+                        </a>
+                        <a class="nav-link @(currentController == "Cart" ? "active" : "")"
+                           href="@Url.Action("Index", "Cart")">
+                            <i class="bi bi-cart3 me-2"></i>View Cart
+                            @if (cartCount > 0)
+                            {
+                                <span class="cart-badge">@cartCount</span>
+                            }
                         </a>
                     }
 

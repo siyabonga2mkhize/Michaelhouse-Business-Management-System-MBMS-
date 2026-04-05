@@ -1,0 +1,152 @@
+﻿@using Michaelhouse.Models
+@model CartDto
+@{
+    ViewBag.Title = "Shopping Cart";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-cart3 me-2 text-primary"></i>Shopping Cart</h3>
+        <small class="text-muted">Review and manage items in your cart</small>
+    </div>
+    <a href="@Url.Action("Index", "Store")" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Continue Shopping
+    </a>
+</div>
+
+@if (Model.IsEmpty)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">Your cart is empty</h4>
+            <p class="text-muted mb-4">Looks like you haven't added any items yet</p>
+            <a href="@Url.Action("Index", "Store")" class="btn btn-primary">
+                <i class="bi bi-shop me-2"></i>Start Shopping
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="bi bi-table me-2"></i>Cart Items (@Model.TotalItems items)</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th style="width: 150px;">Quantity</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Subtotal</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-box fs-4 text-secondary"></i>
+                                            <div>
+                                                <div class="fw-semibold">@item.ProductName</div>
+                                                <small class="text-muted">R @item.UnitPrice.ToString("N2") each</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @using (Html.BeginForm("Update", "Cart", FormMethod.Post, new { @class = "d-inline" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <div class="input-group input-group-sm" style="width: 120px;">
+                                                <input type="number" name="quantity" value="@item.Quantity"
+                                                       min="0" max="@item.MaxStock" class="form-control text-center" />
+                                                <button type="submit" class="btn btn-outline-primary">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-end">R @item.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end fw-semibold">R @item.Subtotal.ToString("N2")</td>
+                                    <td class="text-center">
+                                        @using (Html.BeginForm("Remove", "Cart", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <button type="submit" class="btn btn-sm btn-link text-danger"
+                                                    onclick="return confirm('Remove @item.ProductName from cart?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold">Total:</td>
+                                <td class="text-end fw-bold text-primary fs-5">R @Model.TotalAmount.ToString("N2")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    @using (Html.BeginForm("Clear", "Cart", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Clear entire cart?')">
+                            <i class="bi bi-trash3 me-1"></i> Clear Cart
+                        </button>
+                    }
+                    <a href="@Url.Action("Checkout", "Order")" class="btn btn-success btn-sm">
+                        <i class="bi bi-credit-card me-1"></i> Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="bi bi-receipt me-2"></i>Order Summary</span>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>
+                                @item.ProductName
+                                <span class="text-muted">x@item.Quantity</span>
+                            </span>
+                            <span class="fw-semibold">R @item.Subtotal.ToString("N2")</span>
+                        </div>
+                    }
+                    <hr />
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold fs-5 text-primary">R @Model.TotalAmount.ToString("N2")</span>
+                    </div>
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Free delivery on orders over R500
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Add cart-specific JavaScript here
+        console.log('Cart page loaded');
+    </script>
+}

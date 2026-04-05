@@ -7,13 +7,13 @@ namespace Michaelhouse.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class AddRegistrationAndSubjects : IMigrationMetadata
+    public sealed partial class AddStoreModule : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddRegistrationAndSubjects));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddStoreModule));
         
         string IMigrationMetadata.Id
         {
-            get { return "202604020844420_AddRegistrationAndSubjects"; }
+            get { return "202604051816180_AddStoreModule"; }
         }
         
         string IMigrationMetadata.Source

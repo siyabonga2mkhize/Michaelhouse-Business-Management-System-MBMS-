@@ -1,0 +1,162 @@
+﻿@using Michaelhouse.Models
+@model Order
+@{
+    ViewBag.Title = "Order Confirmed";
+}
+
+<div class="page-header text-center">
+    <div class="mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+    </div>
+    <h3 class="mb-2 text-success">Order Placed Successfully!</h3>
+    <p class="text-muted">Thank you for shopping with Michaelhouse School Store</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <div class="text-center">
+                    <i class="bi bi-gift fs-3"></i>
+                    <h5 class="mb-1 mt-2">Order Confirmed</h5>
+                    <div class="badge bg-light text-dark mt-2">
+                        <i class="bi bi-upc-scan me-1"></i> Order #: @Model.OrderNumber
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="text-muted small mb-1">Order Date</div>
+                            <div class="fw-semibold">@Model.OrderDate.ToLocalTime().ToString("dd MMMM yyyy, HH:mm")</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="text-muted small mb-1">Status</div>
+                            <div>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-hourglass-split me-1"></i> @Model.Status
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="text-muted small mb-1">Customer Name</div>
+                            <div class="fw-semibold">
+                                <i class="bi bi-person me-1"></i> @Model.CustomerName
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="text-muted small mb-1">Email Address</div>
+                            <div class="fw-semibold">
+                                <i class="bi bi-envelope me-1"></i> @Model.CustomerEmail
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-box-seam me-2 text-primary"></i>Items Ordered
+                </h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@item.Product.Name</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">R @item.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end fw-semibold">R @item.Subtotal.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-group-divider">
+                            <tr>
+                                <th colspan="3" class="text-end">Total</th>
+                                <th class="text-end text-primary fs-5">R @Model.TotalAmount.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="alert alert-light border">
+                        <div class="text-muted small mb-1">Order Notes</div>
+                        <p class="mb-0">@Model.Notes</p>
+                    </div>
+                }
+
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <a href="@Url.Action("Index", "Store")" class="btn btn-primary">
+                        <i class="bi bi-shop me-2"></i>Continue Shopping
+                    </a>
+                    <button onclick="window.print();" class="btn btn-outline-secondary">
+                        <i class="bi bi-printer me-1"></i> Print Receipt
+                    </button>
+                </div>
+
+                <div class="text-center mt-4 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-envelope-check me-1"></i>
+                        A confirmation email has been sent to your email address
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4 g-3">
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <i class="bi bi-envelope fs-2 text-primary"></i>
+                    <div class="fw-semibold mt-2">Check Your Email</div>
+                    <small class="text-muted">Order confirmation sent</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <i class="bi bi-truck fs-2 text-primary"></i>
+                    <div class="fw-semibold mt-2">Track Order</div>
+                    <small class="text-muted">Updates via email</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center py-3">
+                    <i class="bi bi-headset fs-2 text-primary"></i>
+                    <div class="fw-semibold mt-2">Need Help?</div>
+                    <small class="text-muted">Contact our support team</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add success page JavaScript here
+        console.log('Order placed successfully!');
+
+        // Optional: Add confetti effect
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    </script>
+}

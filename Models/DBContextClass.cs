@@ -24,9 +24,15 @@ namespace Michaelhouse.Models
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<StudentSubject> StudentSubjects { get; set; }
+        
+        //Store
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
+        { 
             base.OnModelCreating(modelBuilder);
 
             // Application → Student (no cascade to avoid multiple cascade paths)
@@ -90,6 +96,100 @@ namespace Michaelhouse.Models
                 .HasRequired(ss => ss.Subject)
                 .WithMany(s => s.StudentSubjects)
                 .HasForeignKey(ss => ss.SubjectId)
+                .WillCascadeOnDelete(false);
+
+
+            // ========== NEW SCHOOL STORE CONFIGURATIONS ==========
+
+            // Category Configuration
+            modelBuilder.Entity<Category>()
+                .HasKey(c => c.Id);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.Description)
+                .HasMaxLength(500);
+
+            // Product Configuration
+            modelBuilder.Entity<Product>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Description)
+                .HasMaxLength(1000);
+
+            //modelBuilder.Entity<Product>()
+             //   .Property(p => p.Price)
+              //  .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ImageUrl)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Product>()
+                .HasRequired(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .WillCascadeOnDelete(false);
+
+            // Order Configuration
+            modelBuilder.Entity<Order>()
+                .HasKey(o => o.Id);    
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.OrderNumber)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CustomerEmail)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CustomerName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            //modelBuilder.Entity<Order>()
+            //    .Property(o => o.TotalAmount)
+            //    .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Notes)
+                .HasMaxLength(500);
+
+            // OrderItem Configuration
+            modelBuilder.Entity<OrderItem>()
+                .HasKey(oi => oi.Id);
+
+            //modelBuilder.Entity<OrderItem>()
+            //    .Property(oi => oi.UnitPrice)
+            //    .HasPrecision(18, 2);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired(oi => oi.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.ProductId)
                 .WillCascadeOnDelete(false);
         }
     }
