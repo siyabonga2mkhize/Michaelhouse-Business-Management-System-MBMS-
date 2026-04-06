@@ -13,7 +13,7 @@ namespace Michaelhouse.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "202604061518172_InitialCreate"; }
+            get { return "202604061718578_InitialCreate"; }
         }
         
         string IMigrationMetadata.Source

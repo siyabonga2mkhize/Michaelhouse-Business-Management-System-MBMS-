@@ -183,3 +183,229 @@ body {
     text-transform: uppercase;
     font-size: 11px;
 }
+
+* Custom Premium Elements */
+.btn-premium-red {
+    background: #C21E2E;
+    color: white !important;
+    padding: 12px 24px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-premium-red:hover {
+    background: #1a1a1a;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.btn-ghost-premium {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #999;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #eee;
+    transition: all 0.2s;
+}
+
+    .btn-ghost-premium:hover {
+        color: #C21E2E;
+        border-color: #C21E2E;
+    }
+
+/* Cart Quantity Controls */
+.cart-qty-group {
+    display: flex;
+    border: 1px solid #eee;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.cart-qty-input {
+    width: 50px;
+    border: none;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px;
+}
+
+.cart-qty-btn {
+    background: #f9f9f9;
+    border: none;
+    border-left: 1px solid #eee;
+    padding: 5px 10px;
+    color: #bbb;
+    transition: all 0.2s;
+}
+
+    .cart-qty-btn:hover {
+        background: #1a1a1a;
+        color: white;
+    }
+
+/* Table Refinements */
+.ac-table th {
+    background: #fbfbfb;
+    color: #bbb;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 15px 10px;
+}
+
+.font-monospace {
+    font-family: 'Source Code Pro', monospace;
+}
+
+.bg-blueprint {
+    background-color: #ffffff;
+    background-image: linear-gradient(#f9f9f9 1.1px, transparent 1.1px), linear-gradient(90deg, #f9f9f9 1.1px, transparent 1.1px);
+    background-size: 12px 12px;
+}
+
+/* Premium Cart Button */
+.btn-cart-premium {
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 24px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+}
+
+    .btn-cart-premium:hover {
+        background: #C21E2E;
+        color: white;
+        box-shadow: 0 10px 20px rgba(194, 30, 46, 0.2);
+    }
+
+.cart-badge-red {
+    background: white;
+    color: #C21E2E;
+    font-size: 9px;
+    padding: 2px 6px;
+    margin-left: 10px;
+    border-radius: 2px;
+}
+
+/* Category Pills */
+.cat-pill {
+    padding: 8px 16px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #999;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+    .cat-pill.active {
+        color: #1a1a1a;
+        border-bottom: 2px solid #C21E2E;
+    }
+
+    .cat-pill:hover {
+        color: #C21E2E;
+    }
+
+/* Store Cards */
+.store-card {
+    background: white;
+    border: 1px solid #eee;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+    .store-card:hover {
+        transform: translateY(-5px);
+        border-color: #C21E2E;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+.store-card-img {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    font-size: 3rem;
+}
+
+.bg-blueprint {
+    background-color: #ffffff;
+    background-image: linear-gradient(#f9f9f9 1.1px, transparent 1.1px), linear-gradient(90deg, #f9f9f9 1.1px, transparent 1.1px);
+    background-size: 15px 15px;
+}
+
+.stock-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 8px;
+    font-weight: 800;
+    padding: 4px 8px;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.store-card-body {
+    padding: 20px;
+}
+
+.store-product-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.store-product-desc {
+    font-size: 11px;
+    color: #777;
+    line-height: 1.5;
+    height: 33px;
+    overflow: hidden;
+}
+
+.store-price {
+    font-family: 'Source Code Pro', monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #1a1a1a;
+}
+
+.store-qty-input {
+    width: 45px;
+    border: 1px solid #eee;
+    font-size: 11px;
+    text-align: center;
+    outline: none;
+}
+
+.store-add-btn {
+    background: #f4f4f4;
+    border: none;
+    padding: 8px 12px;
+    transition: all 0.2s;
+}
+
+    .store-add-btn:hover {
+        background: #C21E2E;
+        color: white;
+    }

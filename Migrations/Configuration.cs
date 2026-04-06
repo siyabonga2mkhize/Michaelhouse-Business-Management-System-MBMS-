@@ -14,11 +14,11 @@
             AutomaticMigrationsEnabled = false;
         }
 
-         protected override void Seed(Michaelhouse.Models.DBContextClass context)
-         {
+        protected override void Seed(Michaelhouse.Models.DBContextClass context)
+        {
             // Seed default admin account
             // Login: admin@michaelhouse.co.za / Admin@123
-            /*if (!context.Users.Any(u => u.Role == "Admin"))
+            if (!context.Users.Any(u => u.Role == "Admin"))
             {
                 context.Users.Add(new Michaelhouse.Models.AppUser
                 {
@@ -28,113 +28,61 @@
                     Role = "Admin"
                 });
                 context.SaveChanges();
-            }*/
-            // 1. SYSTEM USERS (Admin & Staff)
-            context.Users.AddOrUpdate(u => u.Email,
-                new AppUser { Name = "Headmaster Admin", Email = "admin@michaelhouse.org", PasswordHash = "AQAAAAEAACcQAAAAE...", Role = "Admin" }
-            );
-            context.SaveChanges();
-
-            // 2. TEACHERS (Seeding 15 teachers to satisfy the 2-assignment max rule)
-            var staffNames = new[] { "Henderson", "Dhlamini", "VanWyk", "Smit", "Naidoo", "Pillay", "Muller", "Khosi", "Botha", "Greeff" };
-            foreach (var sName in staffNames)
-            {
-                context.Teachers.AddOrUpdate(t => t.Email, new Teacher
-                {
-                    FirstName = "Staff",
-                    LastName = sName,
-                    Email = $"{sName.ToLower()}@michaelhouse.org",
-                    Phone = "0332344001"
-                });
             }
-            context.SaveChanges();
 
-            // 3. SUBJECTS (Populating according to RegistrationService curriculum)
-            var coreSubjects = new[] { "English Home Language", "Mathematics", "Life Orientation", "Natural Sciences", "Social Sciences" };
-            foreach (var sub in coreSubjects)
+            // 1. Seed Categories (only if empty)
+            if (!context.Categories.Any())
             {
-                context.Subjects.AddOrUpdate(s => s.Name, new Subject { Name = sub, IsCompulsory = true, ApplicableGrades = "8,9,10,11,12" });
-            }
-            // Stream Subjects
-            context.Subjects.AddOrUpdate(s => s.Name,
-                new Subject { Name = "Physics", Stream = AcademicStream.Sciences, RequiresMaths = true, ApplicableGrades = "10,11,12" },
-                new Subject { Name = "Accounting", Stream = AcademicStream.Commerce, ApplicableGrades = "10,11,12" }
-            );
-            context.SaveChanges();
-
-            // 4. FAMILIES (Parent + Student + Application)
-            for (int i = 1; i <= 10; i++)
-            {
-                var parent = new Parent { Name = $"Parent {i}", Contact = $"parent{i}@mhouse.co.za", Relationship = "Father", CellPhone = $"082100000{i}" };
-                context.Parents.AddOrUpdate(p => p.Contact, parent);
-                context.SaveChanges();
-
-                var student = new Student
+                var uniforms = new Category
                 {
-                    FirstName = $"Liam_{i}",
-                    LastName = "Smith",
-                    DOB = new DateTime(2011, 01, i),
-                    ParentId = parent.ParentId,
-                    CurrentGrade = "9",
-                    IdNumber = $"ID{2000 + i}"
+                    Name = "Uniforms",
+                    Description = "Official school uniform items for all grades"
                 };
-                context.Students.AddOrUpdate(s => s.IdNumber, student);
-                context.SaveChanges();
-
-                // Create Application
-                var app = new Application
+                var stationery = new Category
                 {
-                    ParentId = parent.ParentId,
-                    StudentId = student.StudentId,
-                    ApplicationYear = 2026,
-                    GradeApplying = 10,
-                    Status = ApplicationStatus.Approved,
-                    Date = DateTime.Now
+                    Name = "Books & Stationery",
+                    Description = "Textbooks, exercise books and stationery"
                 };
-                context.Applications.AddOrUpdate(a => new { a.StudentId, a.ApplicationYear }, app);
+                context.Categories.AddOrUpdate(c => c.Name, uniforms, stationery);
                 context.SaveChanges();
-
-                // 5. REGISTRATIONS & INVOICES (Following your InvoiceService logic)
-                var reg = new Registration { AppId = app.AppId, StudentId = student.StudentId, GradeEnrolling = 10, Status = RegistrationStatus.Pending };
-                context.Registrations.AddOrUpdate(r => r.AppId, reg);
-                context.SaveChanges();
-
-                context.Invoices.AddOrUpdate(inv => inv.InvoiceNumber, new Invoice
-                {
-                    InvoiceNumber = $"MHS-REG-2026-{i:D5}",
-                    RegistrationId = reg.RegistrationId,
-                    StudentId = student.StudentId,
-                    ParentId = parent.ParentId,
-                    InvoiceType = "RegistrationFee",
-                    Amount = 950m,
-                    Status = "Paid",
-                    CreatedDate = DateTime.Now,
-                    DueDate = DateTime.Now.AddDays(7)
-                });
             }
-            context.SaveChanges();
 
-            // 6. ACADEMIC ASSIGNMENTS (TeacherSubjectGrade)
-            var allTeachers = context.Teachers.ToList();
-            var allSubs = context.Subjects.ToList();
-            int tIdx = 0;
-            foreach (var sub in allSubs)
+            // 2. Seed Products (only if empty)
+            if (!context.Products.Any())
             {
-                for (int g = 8; g <= 10; g++)
-                {
-                    var teacher = allTeachers[tIdx % allTeachers.Count];
-                    context.TeacherSubjectGrades.AddOrUpdate(tsg => new { tsg.TeacherId, tsg.SubjectId, tsg.Grade },
-                        new TeacherSubjectGrade { TeacherId = teacher.TeacherId, SubjectId = sub.SubjectId, Grade = g, Stream = sub.Stream }
-                    );
-                    tIdx++;
-                }
-            }
-            context.SaveChanges();
+                // Get category IDs after they are saved
+                var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
+                var stationeryCat = context.Categories.First(c => c.Name == "Books & Stationery");
 
-            // 7. AUTOMATED TIMETABLE (Triggering your TimetableGenerator Service)
-            var timetableSvc = new Michaelhouse.Services.TimetableGenerator();
-            timetableSvc.SeedPeriods(); // Creates the 7 teaching periods + breaks
-            timetableSvc.GenerateTimetable(2026); // Generates all TimetableSlots based on Assignments
+                var products = new[]
+                {
+                    // Uniforms
+                    new Product { Name = "School Shirt (White) - Small", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 50, ReorderLevel = 10, Description = "Official white school shirt, small size.", IsActive = true },
+                    new Product { Name = "School Shirt (White) - Medium", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Official white school shirt, medium size.", IsActive = true },
+                    new Product { Name = "School Shirt (White) - Large", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 60, ReorderLevel = 15, Description = "Official white school shirt, large size.", IsActive = true },
+                    new Product { Name = "School Trousers (Grey) - 28", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Official grey school trousers, 28 inch waist.", IsActive = true },
+                    new Product { Name = "School Trousers (Grey) - 30", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 55, ReorderLevel = 10, Description = "Official grey school trousers, 30 inch waist.", IsActive = true },
+                    new Product { Name = "School Skirt - Size 10", CategoryId = uniformsCat.Id, Price = 160.00, QuantityInStock = 35, ReorderLevel = 8, Description = "Official school skirt, size 10.", IsActive = true },
+                    new Product { Name = "School Tie", CategoryId = uniformsCat.Id, Price = 65.00, QuantityInStock = 100, ReorderLevel = 20, Description = "Official school tie with house colours.", IsActive = true },
+                    new Product { Name = "School Blazer - Small", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Official school blazer, small size.", IsActive = true },
+                    new Product { Name = "School Blazer - Medium", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Official school blazer, medium size.", IsActive = true },
+                    new Product { Name = "School Sports Kit", CategoryId = uniformsCat.Id, Price = 280.00, QuantityInStock = 3, ReorderLevel = 10, Description = "Official sports kit (shirt + shorts).", IsActive = true },
+                    
+                    // Books & Stationery
+                    new Product { Name = "Grade 8 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 220.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 8.", IsActive = true },
+                    new Product { Name = "Grade 9 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 235.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 9.", IsActive = true },
+                    new Product { Name = "Grade 10 Physical Science", CategoryId = stationeryCat.Id, Price = 260.00, QuantityInStock = 20, ReorderLevel = 5, Description = "Approved Physical Science textbook for Grade 10.", IsActive = true },
+                    new Product { Name = "English Literature Anthology", CategoryId = stationeryCat.Id, Price = 195.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Set works anthology for Grades 8-12.", IsActive = true },
+                    new Product { Name = "A4 Exercise Book (Pack of 10)", CategoryId = stationeryCat.Id, Price = 85.00, QuantityInStock = 120, ReorderLevel = 25, Description = "Ruled A4 exercise books, 96 pages each.", IsActive = true },
+                    new Product { Name = "Geometry Set", CategoryId = stationeryCat.Id, Price = 55.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Complete geometry set with compass, ruler and protractor.", IsActive = true },
+                    new Product { Name = "Scientific Calculator", CategoryId = stationeryCat.Id, Price = 320.00, QuantityInStock = 5, ReorderLevel = 8, Description = "Approved scientific calculator for Grades 10-12.", IsActive = true },
+                    new Product { Name = "Coloured Pencils (24 pack)", CategoryId = stationeryCat.Id, Price = 45.00, QuantityInStock = 150, ReorderLevel = 30, Description = "24 assorted coloured pencils.", IsActive = true }
+                };
+
+                context.Products.AddOrUpdate(p => p.Name, products);
+                context.SaveChanges();
+            }
         }
+    
     }
 }

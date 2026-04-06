@@ -229,13 +229,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604061518172_InitialCreate.cs" />
-    <Compile Include="Migrations\202604061518172_InitialCreate.Designer.cs">
-      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202604061718578_InitialCreate.cs" />
+    <Compile Include="Migrations\202604061718578_InitialCreate.Designer.cs">
+      <DependentUpon>202604061718578_InitialCreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604061520315_InitialCreate1.cs" />
-    <Compile Include="Migrations\202604061520315_InitialCreate1.Designer.cs">
-      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
+    <Compile Include="Migrations\202604061721217_InitialCreate1.cs" />
+    <Compile Include="Migrations\202604061721217_InitialCreate1.Designer.cs">
+      <DependentUpon>202604061721217_InitialCreate1.cs</DependentUpon>
     </Compile>
     <!-- Migrations -->
     <Compile Include="Migrations\Configuration.cs" />
@@ -427,11 +427,11 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604061518172_InitialCreate.resx">
-      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604061718578_InitialCreate.resx">
+      <DependentUpon>202604061718578_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604061520315_InitialCreate1.resx">
-      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604061721217_InitialCreate1.resx">
+      <DependentUpon>202604061721217_InitialCreate1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
