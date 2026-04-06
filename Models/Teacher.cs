@@ -39,5 +39,6 @@ namespace Michaelhouse.Models
 
         // Timetable slots assigned to this teacher
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
+        public virtual ICollection<StreamEnrolment> StreamEnrolments { get; set; }
     }
 }
