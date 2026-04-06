@@ -98,7 +98,13 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                var teacher = db.Teachers.FirstOrDefault(t => t.UserId == userId);
+                // Disable proxy creation for this specific query to get clean data
+                db.Configuration.ProxyCreationEnabled = false;
+
+                var teacher = db.Teachers
+                    .AsNoTracking() // This prevents the DynamicProxies string
+                    .FirstOrDefault(t => t.UserId == userId);
+
                 if (teacher == null)
                 {
                     TempData["Error"] = "Teacher profile not found.";
@@ -112,42 +118,69 @@ namespace Michaelhouse.Controllers
                 ViewBag.Periods = periods;
                 ViewBag.AcademicYear = academicYear;
 
-                // Uses its own MyTimetable view — not TeacherView
                 return View("MyTimetable", slots);
             }
         }
 
         // ─── Parent: View student's timetable ────────────────────────────────────
 
-        [ParentOnly]
-        public ActionResult StudentView(int studentId, int? year = null)
+        // ─── Shared: View student's timetable (Visible to Parent & Student) ─────────
+
+        [RequireLogin]
+        public ActionResult StudentView(int? studentId, int? year = null)
         {
-            int parentId = (int)Session["ParentId"];
+            // 1. Capture Session Metadata
+            int userId = (int)(Session["UserId"] ?? 0);
+            string userRole = Session["UserRole"]?.ToString();
+            int academicYear = year ?? DateTime.Now.Year;
 
             using (var db = new DBContextClass())
             {
-                // Security: parent can only see their own student
-                var student = db.Students
-                    .FirstOrDefault(s => s.StudentId == studentId &&
-                                         s.ParentId == parentId);
+                // IMPORTANT: Disable Proxy to fix naming issues seen in your screenshots
+                db.Configuration.ProxyCreationEnabled = false;
 
-                if (student == null) return HttpNotFound();
+                Student student = null;
 
-                int academicYear = year ?? DateTime.Now.Year;
-                var slots = _generator.GetTimetableForStudent(studentId, academicYear);
+                // 2. IDENTIFICATION LOGIC
+                if (studentId.HasValue && studentId.Value > 0)
+                {
+                    // Case A: Explicit ID provided (Parent/Admin/Link click)
+                    student = db.Students.AsNoTracking().FirstOrDefault(s => s.StudentId == studentId.Value);
+                }
+                else if (userRole == "STUDENT")
+                {
+                    // Case B: Logged in as Student, no ID in URL - find record by UserId link
+                    student = db.Students.AsNoTracking().FirstOrDefault(s => s.UserId == userId);
+                }
 
-                var reg = db.Registrations.FirstOrDefault(r => r.StudentId == studentId);
-                var streamEnr = db.StreamEnrolments.FirstOrDefault(se => se.StudentId == studentId);
+                // 3. THE 404 CULPRIT CHECK
+                if (student == null)
+                {
+                    return HttpNotFound($"Institutional Archive Error: Record not found. " +
+                                        $"(Logged in as: {userRole}, UserId: {userId}, Requested ID: {studentId})");
+                }
+
+                // 4. DATA RETRIEVAL
+                var slots = _generator.GetTimetableForStudent(student.StudentId, academicYear);
                 var periods = db.Periods.OrderBy(p => p.PeriodNumber).ToList();
 
+                // Load Enrollment metadata
+                var reg = db.Registrations.AsNoTracking()
+                            .OrderByDescending(r => r.RegistrationId)
+                            .FirstOrDefault(r => r.StudentId == student.StudentId);
+
+                var streamEnr = db.StreamEnrolments.AsNoTracking()
+                                  .FirstOrDefault(se => se.StudentId == student.StudentId);
+
                 ViewBag.Student = student;
-                ViewBag.Grade = reg?.GradeEnrolling;
+                ViewBag.Grade = reg?.GradeEnrolling ?? 0;
                 ViewBag.Stream = streamEnr?.Stream ?? AcademicStream.None;
                 ViewBag.Periods = periods;
                 ViewBag.AcademicYear = academicYear;
 
-                return View(slots);
+                return View("StudentView", slots);
             }
         }
+
     }
 }

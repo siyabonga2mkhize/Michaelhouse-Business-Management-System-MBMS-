@@ -1,20 +1,58 @@
 @model Michaelhouse.Models.Enums.ApplicationStatus
 @{
-    string label = "", css = "", icon = "";
+    string label = "", color = "", icon = "";
+
     switch (Model)
     {
         case Michaelhouse.Models.Enums.ApplicationStatus.Pending:
-            label = "Pending";           css = "secondary";         icon = "bi-hourglass";         break;
+            label = "Pending Archive"; color = "#94a3b8"; icon = "bi-hourglass-split"; break;
+
         case Michaelhouse.Models.Enums.ApplicationStatus.UnderAiReview:
-            label = "Under AI Review";   css = "info text-dark";    icon = "bi-robot";             break;
+            label = "AI Analysis"; color = "#0ea5e9"; icon = "bi-robot"; break;
+
         case Michaelhouse.Models.Enums.ApplicationStatus.AwaitingAdminDecision:
-            label = "Awaiting Decision"; css = "primary";           icon = "bi-person-check";      break;
+            label = "Faculty Review"; color = "#6366f1"; icon = "bi-shield-shaded"; break;
+
         case Michaelhouse.Models.Enums.ApplicationStatus.Approved:
-            label = "Approved";          css = "success";           icon = "bi-check-circle-fill"; break;
+            label = "Approved"; color = "#10b981"; icon = "bi-check-all"; break;
+
         case Michaelhouse.Models.Enums.ApplicationStatus.Rejected:
-            label = "Rejected";          css = "danger";            icon = "bi-x-circle-fill";     break;
+            label = "Declined"; color = "#1a1a1a"; icon = "bi-file-earmark-x"; break;
+
         case Michaelhouse.Models.Enums.ApplicationStatus.Flagged:
-            label = "Flagged";           css = "warning text-dark"; icon = "bi-flag-fill";         break;
+            label = "Flagged Action"; color = "#C21E2E"; icon = "bi-exclamation-square-fill"; break;
     }
 }
-<span class="badge bg-@css"><i class="bi @icon me-1"></i>@label</span>
+
+<span class="ac-status-badge" style="--status-color: @color; --status-bg: @(color)15;">
+    <i class="bi @icon"></i>
+    @label
+</span>
+
+<style>
+    .ac-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background-color: var(--status-bg);
+        border: 1px solid var(--status-color);
+        color: var(--status-color);
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        border-radius: 0; /* Sharp edges for the Dossier look */
+        white-space: nowrap;
+    }
+
+        .ac-status-badge i {
+            font-size: 10px;
+        }
+
+        /* High-contrast "Declined" state override */
+        .ac-status-badge[style*="--status-color: #1a1a1a"] {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+</style>

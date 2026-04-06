@@ -26,19 +26,30 @@
 
         <i class="bi bi-calendar3 absolute -right-20 -bottom-20 text-black/[0.03] text-[25rem] rotate-12 pointer-events-none"></i>
 
-        <div class="ac-header-left relative z-10">
+        <div class="ac-header-left relative z-10 text-left">
             <div class="flex items-center gap-2 mb-2">
                 <div class="h-[3px] w-10 bg-[#C21E2E]"></div>
                 <h5 class="text-[10px] uppercase tracking-[5px] font-bold text-gray-400">Faculty Ledger</h5>
             </div>
             <h1 class="text-4xl font-serif font-bold text-gray-900 tracking-tight uppercase">Weekly Schedule</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-[3px] font-bold">
-                Session @academicYear &bull; <span class="text-[#C21E2E]">@teacher?.Name</span>
+            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-[3px] font-bold text-left">
+                Session @academicYear &bull;
+                <span class="text-[#C21E2E]">
+                    @* FIX: Explicitly call properties to bypass Proxy naming issues *@
+                    @if (teacher != null)
+                    {
+                        @($"{teacher.FirstName} {teacher.LastName}")
+                    }
+                    else
+                    {
+                        @("Faculty Identity Pending")
+                    }
+                </span>
             </p>
         </div>
 
         <div class="ac-header-actions relative z-10">
-            <button onclick="window.print()" class="bg-black text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all shadow-xl d-print-none">
+            <button onclick="window.print()" class="bg-black text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all shadow-xl d-print-none border-0">
                 <i class="bi bi-printer me-2"></i> Print Master
             </button>
         </div>
@@ -51,7 +62,7 @@
             new { Lbl = "Faculty Status", Val = "Active", Color = "" }
         })
         {
-            <div class="col-4 p-6 @stat.Color border-gray-100">
+            <div class="col-4 p-6 @stat.Color border-gray-100 text-left">
                 <div class="text-[9px] font-bold uppercase tracking-[3px] text-gray-400 mb-1">@stat.Lbl</div>
                 <div class="text-xl font-serif font-bold text-gray-900">@stat.Val</div>
             </div>
@@ -60,7 +71,6 @@
 
     <div class="ac-card border-2 border-gray-900 bg-[#f4f4f4] p-1 shadow-2xl">
         <div class="table-responsive" style="overflow-x: hidden;">
-            @* Forces no scroll *@
             <table class="table table-bordered mb-0 border-gray-300" style="table-layout: fixed; width: 100%;">
                 <thead>
                     <tr class="bg-gray-900 text-white">
@@ -76,7 +86,7 @@
                 <tbody>
                     @foreach (var period in periods)
                     {
-                        <tr style="height: 100px;">
+                        <tr style="height: 110px;">
                             <td class="bg-gray-800 text-white p-3 flex flex-col justify-center items-center border-gray-700">
                                 <div class="text-[10px] font-bold text-gray-400">@period.Label</div>
                                 <div class="text-[9px] font-monospace mt-1 text-[#C21E2E]">@period.StartTime.ToString(@"hh\:mm")</div>
@@ -85,17 +95,19 @@
                             {
                                 var slot = Model.FirstOrDefault(ts => ts.DayOfWeek == day.Num && ts.PeriodId == period.PeriodId);
 
-                                @* Empty cells get a "Blueprint" pattern to break up white space *@
                                 <td class="p-1 relative align-middle @(period.IsBreak ? "bg-gray-200/50" : "bg-blueprint")">
                                     @if (period.IsBreak)
                                     {
-                                        <div class="text-center text-[8px] font-bold uppercase tracking-[2px] text-gray-400 rotate-[-45deg] opacity-40">Break</div>
+                                        <div class="text-center text-[8px] font-bold uppercase tracking-[2px] text-gray-400 rotate-[-45deg] opacity-40">Institutional Break</div>
                                     }
                                     else if (slot != null)
                                     {
-                                        <div class="h-full w-full bg-white border-l-4 border-l-[#C21E2E] p-3 shadow-sm flex flex-col justify-between group hover:invert transition-all duration-300">
+                                        <div class="h-full w-full bg-white border-l-4 border-l-[#C21E2E] p-3 shadow-sm flex flex-col justify-between group hover:invert transition-all duration-300 text-left">
                                             <div>
-                                                <div class="text-[10px] font-bold text-gray-900 leading-tight uppercase tracking-tighter">@slot.Subject?.Name</div>
+                                                <div class="text-[10px] font-bold text-gray-900 leading-tight uppercase tracking-tighter">
+                                                    @* FIX: Explicitly call Subject Name *@
+                                                    @(slot.Subject != null ? slot.Subject.Name : "Assignment")
+                                                </div>
                                                 <div class="h-[1px] w-4 bg-gray-200 mt-2"></div>
                                             </div>
                                             <div class="flex justify-between items-end">
@@ -115,7 +127,6 @@
 </div>
 
 <style>
-    /* THE BLUEPRINT EFFECT - Breaks up the white space in empty cells */
     .bg-blueprint {
         background-color: #fdfdfd;
         background-image: linear-gradient(#f0f0f0 1.1px, transparent 1.1px), linear-gradient(90deg, #f0f0f0 1.1px, transparent 1.1px);
@@ -130,12 +141,10 @@
         font-family: 'Source Code Pro', monospace;
     }
 
-    /* Table Fixes */
     .table-bordered > :not(caption) > * > * {
         border-width: 1px;
     }
 
-    /* Hover Invert Effect for high contrast */
     .group:hover {
         background: #1a1a1a !important;
         border-l-color: #fff !important;
@@ -155,7 +164,7 @@
             background: none !important;
         }
 
-        .ac-stat-card, .d-print-none {
+        .ac-stat, .d-print-none {
             display: none !important;
         }
     }

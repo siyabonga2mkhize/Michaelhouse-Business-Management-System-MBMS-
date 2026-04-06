@@ -7,7 +7,6 @@
     {
         public override void Up()
         {
-            DropForeignKey("dbo.OrderItems", "ProductId", "dbo.Products");
             CreateTable(
                 "dbo.Assessments",
                 c => new
@@ -138,46 +137,63 @@
                 .PrimaryKey(t => t.PeriodId);
             
             CreateTable(
-                "dbo.Invoices",
+                "dbo.Categories",
                 c => new
                     {
-                        InvoiceId = c.Int(nullable: false, identity: true),
-                        InvoiceNumber = c.String(nullable: false),
-                        RegistrationId = c.Int(nullable: false),
-                        StudentId = c.Int(nullable: false),
-                        ParentId = c.Int(nullable: false),
-                        InvoiceType = c.String(nullable: false),
-                        Amount = c.Decimal(nullable: false, precision: 18, scale: 2),
-                        Description = c.String(),
-                        CreatedDate = c.DateTime(nullable: false),
-                        DueDate = c.DateTime(nullable: false),
-                        Status = c.String(),
+                        Id = c.Int(nullable: false, identity: true),
+                        Name = c.String(nullable: false, maxLength: 100),
+                        Description = c.String(maxLength: 500),
                     })
-                .PrimaryKey(t => t.InvoiceId)
-                .ForeignKey("dbo.Parents", t => t.ParentId)
-                .ForeignKey("dbo.Registrations", t => t.RegistrationId)
-                .ForeignKey("dbo.Students", t => t.StudentId)
-                .Index(t => t.RegistrationId)
-                .Index(t => t.StudentId)
-                .Index(t => t.ParentId);
+                .PrimaryKey(t => t.Id);
             
             CreateTable(
-                "dbo.Payments",
+                "dbo.Products",
                 c => new
                     {
-                        PaymentId = c.Int(nullable: false, identity: true),
-                        InvoiceId = c.Int(nullable: false),
-                        AmountPaid = c.Decimal(nullable: false, precision: 18, scale: 2),
-                        PaymentDate = c.DateTime(nullable: false),
-                        StripeChargeId = c.String(),
-                        StripePaymentIntentId = c.String(),
-                        Status = c.String(),
-                        PaymentReference = c.String(),
-                        ProofEmailSent = c.Boolean(nullable: false),
+                        Id = c.Int(nullable: false, identity: true),
+                        Name = c.String(nullable: false, maxLength: 200),
+                        Description = c.String(maxLength: 1000),
+                        Price = c.Double(nullable: false),
+                        QuantityInStock = c.Int(nullable: false),
+                        ReorderLevel = c.Int(nullable: false),
+                        ImageUrl = c.String(maxLength: 500),
+                        IsActive = c.Boolean(nullable: false),
+                        CategoryId = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => t.PaymentId)
-                .ForeignKey("dbo.Invoices", t => t.InvoiceId)
-                .Index(t => t.InvoiceId);
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Categories", t => t.CategoryId)
+                .Index(t => t.CategoryId);
+            
+            CreateTable(
+                "dbo.OrderItems",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        OrderId = c.Int(nullable: false),
+                        ProductId = c.Int(nullable: false),
+                        Quantity = c.Int(nullable: false),
+                        UnitPrice = c.Double(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Orders", t => t.OrderId, cascadeDelete: true)
+                .ForeignKey("dbo.Products", t => t.ProductId, cascadeDelete: true)
+                .Index(t => t.OrderId)
+                .Index(t => t.ProductId);
+            
+            CreateTable(
+                "dbo.Orders",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        OrderNumber = c.String(nullable: false, maxLength: 50),
+                        CustomerEmail = c.String(nullable: false, maxLength: 200),
+                        CustomerName = c.String(nullable: false, maxLength: 100),
+                        OrderDate = c.DateTime(nullable: false),
+                        TotalAmount = c.Double(nullable: false),
+                        Status = c.String(maxLength: 50),
+                        Notes = c.String(maxLength: 500),
+                    })
+                .PrimaryKey(t => t.Id);
             
             CreateTable(
                 "dbo.TermResults",
@@ -226,7 +242,6 @@
             AddColumn("dbo.Subjects", "IsMathsOption", c => c.Boolean(nullable: false));
             AddColumn("dbo.Subjects", "RequiresMaths", c => c.Boolean(nullable: false));
             AddColumn("dbo.Subjects", "SortOrder", c => c.Int(nullable: false));
-            AddForeignKey("dbo.OrderItems", "ProductId", "dbo.Products", "Id", cascadeDelete: true);
             DropColumn("dbo.StudentSubjects", "IsElective");
             DropColumn("dbo.Subjects", "SubjectName");
             DropColumn("dbo.Subjects", "SubjectCode");
@@ -241,14 +256,12 @@
             AddColumn("dbo.Subjects", "SubjectCode", c => c.String(maxLength: 10));
             AddColumn("dbo.Subjects", "SubjectName", c => c.String(nullable: false, maxLength: 100));
             AddColumn("dbo.StudentSubjects", "IsElective", c => c.Boolean(nullable: false));
-            DropForeignKey("dbo.OrderItems", "ProductId", "dbo.Products");
             DropForeignKey("dbo.YearResults", "StudentId", "dbo.Students");
             DropForeignKey("dbo.TermResults", "SubjectId", "dbo.Subjects");
             DropForeignKey("dbo.TermResults", "StudentId", "dbo.Students");
-            DropForeignKey("dbo.Invoices", "StudentId", "dbo.Students");
-            DropForeignKey("dbo.Invoices", "RegistrationId", "dbo.Registrations");
-            DropForeignKey("dbo.Payments", "InvoiceId", "dbo.Invoices");
-            DropForeignKey("dbo.Invoices", "ParentId", "dbo.Parents");
+            DropForeignKey("dbo.OrderItems", "ProductId", "dbo.Products");
+            DropForeignKey("dbo.OrderItems", "OrderId", "dbo.Orders");
+            DropForeignKey("dbo.Products", "CategoryId", "dbo.Categories");
             DropForeignKey("dbo.Assessments", "TeacherId", "dbo.Teachers");
             DropForeignKey("dbo.Teachers", "UserId", "dbo.AppUsers");
             DropForeignKey("dbo.TimetableSlots", "TeacherId", "dbo.Teachers");
@@ -265,10 +278,9 @@
             DropIndex("dbo.YearResults", new[] { "StudentId" });
             DropIndex("dbo.TermResults", new[] { "SubjectId" });
             DropIndex("dbo.TermResults", new[] { "StudentId" });
-            DropIndex("dbo.Payments", new[] { "InvoiceId" });
-            DropIndex("dbo.Invoices", new[] { "ParentId" });
-            DropIndex("dbo.Invoices", new[] { "StudentId" });
-            DropIndex("dbo.Invoices", new[] { "RegistrationId" });
+            DropIndex("dbo.OrderItems", new[] { "ProductId" });
+            DropIndex("dbo.OrderItems", new[] { "OrderId" });
+            DropIndex("dbo.Products", new[] { "CategoryId" });
             DropIndex("dbo.TimetableSlots", new[] { "SubjectId" });
             DropIndex("dbo.TimetableSlots", new[] { "TeacherId" });
             DropIndex("dbo.TimetableSlots", new[] { "PeriodId" });
@@ -292,8 +304,10 @@
             DropColumn("dbo.StudentSubjects", "Stream");
             DropTable("dbo.YearResults");
             DropTable("dbo.TermResults");
-            DropTable("dbo.Payments");
-            DropTable("dbo.Invoices");
+            DropTable("dbo.Orders");
+            DropTable("dbo.OrderItems");
+            DropTable("dbo.Products");
+            DropTable("dbo.Categories");
             DropTable("dbo.Periods");
             DropTable("dbo.TimetableSlots");
             DropTable("dbo.TeacherSubjectGrades");
@@ -301,7 +315,6 @@
             DropTable("dbo.Teachers");
             DropTable("dbo.StudentMarks");
             DropTable("dbo.Assessments");
-            AddForeignKey("dbo.OrderItems", "ProductId", "dbo.Products", "Id");
         }
     }
 }
