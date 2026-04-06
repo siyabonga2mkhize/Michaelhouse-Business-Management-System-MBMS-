@@ -1,5 +1,5 @@
-using Michaelhouse.Models;
 using Michaelhouse.Filters;
+using Michaelhouse.Models;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -34,7 +34,7 @@ namespace Michaelhouse.Controllers
             var viewModel = new TeacherAttendanceViewModel
             {
                 TeacherId = teacherId,
-                TeacherName = teacher.FullName,
+                TeacherName = teacher.FirstName,
                 TodayAttendance = todayAttendance,
                 IsCheckedIn = todayAttendance?.SignInTime != null,
                 IsCheckedOut = todayAttendance?.SignOutTime != null,

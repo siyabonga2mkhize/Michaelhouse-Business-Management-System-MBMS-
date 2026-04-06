@@ -1,8 +1,4 @@
 ﻿using System.Data.Entity;
-<<<<<<< HEAD
-
-=======
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
@@ -13,39 +9,43 @@ namespace Michaelhouse.Models
             Database.CommandTimeout = 60;
         }
 
+        // ─── Core User Entities ──────────────────────────────────────────
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
+        public DbSet<Teacher> Teachers { get; set; } // Only declared ONCE now
+
+        // ─── Application & Registration ──────────────────────────────────
         public DbSet<Application> Applications { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<AdminReview> AdminReviews { get; set; }
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<StreamEnrolment> StreamEnrolments { get; set; }
+
+        // ─── Academic Entities ────────────────────────────────────────────
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<StudentSubject> StudentSubjects { get; set; }
-<<<<<<< HEAD
-        public DbSet<Attendance> Attendances { get; set; }
-        public DbSet<TeacherAttendance> TeacherAttendances { get; set; }
-=======
-        public DbSet<StreamEnrolment> StreamEnrolments { get; set; }
-        public DbSet<Invoice> Invoices { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
         public DbSet<TeacherSubjectGrade> TeacherSubjectGrades { get; set; }
-        public DbSet<Period> Periods { get; set; }
-        public DbSet<TimetableSlot> TimetableSlots { get; set; }
         public DbSet<Assessment> Assessments { get; set; }
         public DbSet<StudentMark> StudentMarks { get; set; }
         public DbSet<TermResult> TermResults { get; set; }
         public DbSet<YearResult> YearResults { get; set; }
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
+
+        // ─── Attendance & Timetable ───────────────────────────────────────
+        public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<TeacherAttendance> TeacherAttendances { get; set; }
+        public DbSet<Period> Periods { get; set; }
+        public DbSet<TimetableSlot> TimetableSlots { get; set; }
+
+        // ─── Finance ──────────────────────────────────────────────────────
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             // ── Existing relationships ────────────────────────────────────────
-
             modelBuilder.Entity<Application>()
                 .HasRequired(a => a.Student).WithMany(s => s.Applications)
                 .HasForeignKey(a => a.StudentId).WillCascadeOnDelete(false);
@@ -111,7 +111,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(p => p.InvoiceId).WillCascadeOnDelete(false);
 
             // ── Teacher relationships ─────────────────────────────────────────
-
             modelBuilder.Entity<Teacher>()
                 .HasOptional(t => t.User).WithMany()
                 .HasForeignKey(t => t.UserId);
@@ -128,7 +127,6 @@ namespace Michaelhouse.Models
                 .WillCascadeOnDelete(false);
 
             // ── Timetable relationships ───────────────────────────────────────
-
             modelBuilder.Entity<TimetableSlot>()
                 .HasRequired(ts => ts.Teacher)
                 .WithMany(t => t.TimetableSlots)
@@ -161,7 +159,7 @@ namespace Michaelhouse.Models
                 .HasRequired(sm => sm.Assessment)
                 .WithMany(a => a.StudentMarks)
                 .HasForeignKey(sm => sm.AssessmentmentId)
-                .WillCascadeOnDelete(true);     // deleting an assessment removes its marks
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<StudentMark>()
                 .HasRequired(sm => sm.Student)
@@ -187,7 +185,5 @@ namespace Michaelhouse.Models
                 .HasForeignKey(yr => yr.StudentId)
                 .WillCascadeOnDelete(false);
         }
-
-
     }
 }

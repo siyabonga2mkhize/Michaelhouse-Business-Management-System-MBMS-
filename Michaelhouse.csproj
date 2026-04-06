@@ -218,9 +218,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604042251374_InitialCreate.cs" />
-    <Compile Include="Migrations\202604042251374_InitialCreate.Designer.cs">
-      <DependentUpon>202604042251374_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202604060106579_InitialCreate.cs" />
+    <Compile Include="Migrations\202604060106579_InitialCreate.Designer.cs">
+      <DependentUpon>202604060106579_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604060112113_InitialCreate1.cs" />
+    <Compile Include="Migrations\202604060112113_InitialCreate1.Designer.cs">
+      <DependentUpon>202604060112113_InitialCreate1.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -255,27 +259,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604022244477_InitialCreate.cs" />
-    <Compile Include="Migrations\202604022244477_InitialCreate.Designer.cs">
-      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.cs" />
-    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.Designer.cs">
-      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.cs" />
-    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.Designer.cs">
-      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.cs" />
-    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.Designer.cs">
-      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.cs" />
-    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.Designer.cs">
-      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
     <Compile Include="Models\AiReviewService.cs" />
@@ -479,20 +462,11 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604022244477_InitialCreate.resx">
-      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604060106579_InitialCreate.resx">
+      <DependentUpon>202604060106579_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604032343272_AddStreamsAndEnrolments.resx">
-      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604040034214_AddStreamsAndEnrolments1.resx">
-      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604042317022_AddTeachersAndTimetable.resx">
-      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604051446316_AddCaptureMarkAndReport.resx">
-      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604060112113_InitialCreate1.resx">
+      <DependentUpon>202604060112113_InitialCreate1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

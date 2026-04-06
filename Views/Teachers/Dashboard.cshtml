@@ -1,131 +1,190 @@
 @{
     ViewBag.Title = "Teacher Dashboard";
+    string teacherName = ViewBag.TeacherName ?? "Teacher";
     var todayAttendance = ViewBag.TodayAttendance as Michaelhouse.Models.TeacherAttendance;
+    int subjectCount = ViewBag.SubjectCount ?? 0;
+    var recentAttendance = ViewBag.RecentAttendance as IEnumerable<Michaelhouse.Models.Attendance> ?? new List<Michaelhouse.Models.Attendance>();
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-speedometer2 me-2"></i>Welcome, @ViewBag.TeacherName</h2>
-    </div>
+<div class="mb-4">
+    <h2 style="font-family:'Playfair Display',serif; color:#C21E2E;">
+        Welcome, @teacherName
+    </h2>
+    <p class="text-muted" style="font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">
+        @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+    </p>
+</div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="text-primary">@ViewBag.SubjectCount</h3>
-                    <p class="text-muted mb-0">Subjects Assigned</p>
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #C21E2E !important;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="background:#fff5f5; border-radius:12px; padding:14px;">
+                    <i class="bi bi-book fs-4" style="color:#C21E2E;"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4">@subjectCount</div>
+                    <div class="text-muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">My Subjects</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #198754 !important;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="background:#f0fff4; border-radius:12px; padding:14px;">
+                    <i class="bi bi-person-check fs-4" style="color:#198754;"></i>
+                </div>
+                <div>
                     @if (todayAttendance != null && todayAttendance.SignInTime != null)
                     {
-                        <h3 class="text-success"><i class="bi bi-check-circle"></i></h3>
-                        <p class="text-success mb-0">Checked In @todayAttendance.SignInTime.Value.ToString("HH:mm")</p>
+                        <div class="fw-bold fs-6 text-success">Checked In</div>
+                        <div class="text-muted" style="font-size:0.75rem;">@todayAttendance.SignInTime.Value.ToString("HH:mm")</div>
                     }
                     else
                     {
-                        <h3 class="text-warning"><i class="bi bi-clock"></i></h3>
-                        <p class="text-warning mb-0">Not Checked In</p>
-                    }
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    @if (todayAttendance != null && todayAttendance.SignOutTime != null)
-                    {
-                        <h3 class="text-info">@todayAttendance.SignOutTime.Value.ToString("HH:mm")</h3>
-                        <p class="text-info mb-0">Checked Out</p>
-                    }
-                    else
-                    {
-                        <h3 class="text-secondary">-</h3>
-                        <p class="text-muted mb-0">Not Checked Out</p>
+                        <div class="fw-bold fs-6 text-muted">Not Checked In</div>
+                        <div class="text-muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Today</div>
                     }
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-lightning me-2"></i>Quick Actions
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="background:#f0f5ff; border-radius:12px; padding:14px;">
+                    <i class="bi bi-list-check fs-4" style="color:#0d6efd;"></i>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-primary">
-                            <i class="bi bi-clipboard-check me-2"></i>Check In / Out
-                        </a>
-                        <a href="@Url.Action("Index", "Attendances")" class="btn btn-primary">
-                            <i class="bi bi-list-check me-2"></i>Mark Student Register
-                        </a>
-                        <a href="@Url.Action("History", "Attendances")" class="btn btn-outline-secondary">
-                            <i class="bi bi-clock-history me-2"></i>View Attendance History
-                        </a>
-                    </div>
+                <div>
+                    <div class="fw-bold fs-4">@recentAttendance.Count()</div>
+                    <div class="text-muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Recent Records</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="bi bi-calendar-event me-2"></i>Today - @DateTime.Today.ToString("dd MMMM yyyy")
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="background:#fffbf0; border-radius:12px; padding:14px;">
+                    <i class="bi bi-calendar3 fs-4" style="color:#ffc107;"></i>
                 </div>
-                <div class="card-body">
-                    @if (todayAttendance != null)
-                    {
-                        <table class="table table-sm mb-0">
-                            <tr>
-                                <td><strong>Status</strong></td>
-                                <td>
-                                    @if (todayAttendance.Status == Michaelhouse.Models.TeacherStatus.Present)
-                                    {
-                                        <span class="badge bg-success">Present</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning">@todayAttendance.Status</span>
-                                    }
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Check In</strong></td>
-                                <td>@(todayAttendance.SignInTime?.ToString("HH:mm") ?? "-")</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Check Out</strong></td>
-                                <td>@(todayAttendance.SignOutTime?.ToString("HH:mm") ?? "-")</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Location Verified</strong></td>
-                                <td>
-                                    @if (todayAttendance.IsVerified)
-                                    {
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-x-circle-fill text-danger"></i>
-                                    }
-                                </td>
-                            </tr>
-                        </table>
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-0">No attendance record for today.</p>
-                        <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-sm btn-primary mt-3">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Check In Now
-                        </a>
-                    }
+                <div>
+                    <div class="fw-bold fs-4">@DateTime.Now.ToString("MMM")</div>
+                    <div class="text-muted" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">Current Month</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom" style="font-family:'Playfair Display',serif; font-size:1rem;">
+                Quick Actions
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2">
+                <a href="@Url.Action("Index", "Attendances")" class="btn btn-danger btn-sm px-4" style="border-radius:4px; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px;">
+                    <i class="bi bi-list-check me-2"></i>Mark Register
+                </a>
+                <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-success btn-sm px-4" style="border-radius:4px; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px;">
+                    <i class="bi bi-geo-alt me-2"></i>Check In / Out
+                </a>
+                <a href="@Url.Action("Index", "Marks")" class="btn btn-outline-secondary btn-sm px-4" style="border-radius:4px; text-transform:uppercase; font-size:0.75rem; letter-spacing:1px;">
+                    <i class="bi bi-pen me-2"></i>Assessments
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom" style="font-family:'Playfair Display',serif; font-size:1rem;">
+                Today's Attendance Status
+            </div>
+            <div class="card-body">
+                @if (todayAttendance == null)
+                {
+                    <div class="d-flex align-items-center gap-2 text-muted">
+                        <i class="bi bi-clock fs-5"></i>
+                        <span style="font-size:0.85rem;">You have not checked in today.</span>
+                    </div>
+                    <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-sm btn-success mt-2" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px;">
+                        Check In Now
+                    </a>
+                }
+                else
+                {
+                    <div class="d-flex gap-4">
+                        <div>
+                            <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Sign In</div>
+                            <div class="fw-bold" style="color:#198754;">
+                                @(todayAttendance.SignInTime.HasValue ? todayAttendance.SignInTime.Value.ToString("HH:mm") : "—")
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Sign Out</div>
+                            <div class="fw-bold" style="color:#C21E2E;">
+                                @(todayAttendance.SignOutTime.HasValue ? todayAttendance.SignOutTime.Value.ToString("HH:mm") : "—")
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Verified</div>
+                            <div class="fw-bold">
+                                @if (todayAttendance.IsVerified)
+                                {
+                                    <span class="badge bg-success">On Campus</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Unverified</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Register Activity -->
+@if (recentAttendance.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom" style="font-family:'Playfair Display',serif; font-size:1rem;">
+            Recent Register Activity
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="font-size:0.82rem;">
+                <thead style="background:#fafafa; text-transform:uppercase; font-size:0.72rem; letter-spacing:1px; color:#999;">
+                    <tr>
+                        <th class="px-3 py-2">Date</th>
+                        <th class="px-3 py-2">Student</th>
+                        <th class="px-3 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in recentAttendance)
+                    {
+                        <tr>
+                            <td class="px-3">@record.Date.ToString("dd MMM yyyy")</td>
+                            <td class="px-3">@record.StudentId</td>
+                            <td class="px-3">
+                                <span class="badge @(record.Status.ToString() == "Present" ? "bg-success" : record.Status.ToString() == "Late" ? "bg-warning text-dark" : "bg-danger")">
+                                    @record.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

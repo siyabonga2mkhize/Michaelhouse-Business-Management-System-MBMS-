@@ -1,79 +1,135 @@
 @model Michaelhouse.Controllers.TeacherAttendanceViewModel
-
 @{
-    ViewBag.Title = "Teacher Check In/Out";
-    var schoolCoords = "-30.03481180794199, 30.86786241957887";
+    ViewBag.Title = "My Check-In";
 }
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="bi bi-person-badge me-2"></i>Teacher Check In/Out</h4>
+<div class="mb-4">
+    <h2 style="font-family:'Playfair Display',serif; color:#C21E2E;">My Attendance</h2>
+    <p class="text-muted mb-0" style="font-size:0.82rem; text-transform:uppercase; letter-spacing:1px;">
+        @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+    </p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <!-- Status Banner -->
+                <div id="status-banner" class="rounded-3 p-3 mb-4 text-center"
+                     style="background:#f8f9fa; border: 1px dashed #dee2e6;">
+                    <div id="status-icon" style="font-size:2.5rem; margin-bottom:8px;">
+                        <i class="bi bi-clock text-muted"></i>
+                    </div>
+                    <div id="status-text" class="fw-semibold" style="font-size:0.95rem; color:#666;">
+                        Loading your status…
+                    </div>
+                    <div id="status-sub" class="text-muted mt-1" style="font-size:0.78rem;"></div>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h5>Welcome, @Model.TeacherName</h5>
-                        <p class="text-muted">@DateTime.Today.ToString("dddd, dd MMMM yyyy")</p>
-                    </div>
 
-                    @if (Model.TodayAttendance != null)
-                    {
-                        <div class="alert alert-info">
-                            <strong>Today's Record:</strong>
-                            @if (Model.TodayAttendance.SignInTime != null)
-                            {
-                                <div>Check In: @Model.TodayAttendance.SignInTime.Value.ToString("HH:mm")</div>
-                            }
-                            @if (Model.TodayAttendance.SignOutTime != null)
-                            {
-                                <div>Check Out: @Model.TodayAttendance.SignOutTime.Value.ToString("HH:mm")</div>
-                                var duration = Model.TodayAttendance.SignOutTime.Value - Model.TodayAttendance.SignInTime.Value;
-                                <div>Duration: @duration.Hoursh @duration.Minutesm</div>
-                            }
-                            @if (Model.TodayAttendance.IsVerified)
-                            {
-                                <span class="badge bg-success mt-2"><i class="bi bi-check-circle me-1"></i>Location Verified</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning mt-2"><i class="bi bi-exclamation-triangle me-1"></i>Location Not Verified</span>
-                            }
+                <!-- Today's Times -->
+                @if (Model.TodayAttendance != null)
+                {
+                    <div class="d-flex gap-4 justify-content-center mb-4">
+                        <div class="text-center">
+                            <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Sign In</div>
+                            <div class="fw-bold fs-5" style="color:#198754;">
+                                @(Model.TodayAttendance.SignInTime.HasValue
+                                    ? Model.TodayAttendance.SignInTime.Value.ToString("HH:mm")
+                                    : "—")
+                            </div>
                         </div>
-                    }
-
-                    <div id="locationStatus" class="alert alert-secondary" style="display:none;">
-                        <i class="bi bi-geo-alt me-2"></i><span id="locationText">Detecting your location...</span>
-                    </div>
-
-                    <div class="d-grid gap-3">
-                        @if (Model.CanCheckIn)
+                        @if (Model.TodayAttendance.SignOutTime.HasValue)
                         {
-                            <button type="button" id="btnCheckIn" class="btn btn-success btn-lg" onclick="checkIn()">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Check In
-                            </button>
-                        }
-                        else if (Model.CanCheckOut)
-                        {
-                            <button type="button" id="btnCheckOut" class="btn btn-danger btn-lg" onclick="checkOut()">
-                                <i class="bi bi-box-arrow-right me-2"></i>Check Out
-                            </button>
-                        }
-                        else if (Model.IsCheckedOut)
-                        {
-                            <div class="alert alert-success text-center">
-                                <i class="bi bi-check-circle-fill me-2"></i>You have completed your attendance for today
+                            <div class="text-center">
+                                <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Sign Out</div>
+                                <div class="fw-bold fs-5" style="color:#C21E2E;">
+                                    @Model.TodayAttendance.SignOutTime.Value.ToString("HH:mm")
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Duration</div>
+                                @{
+                                    var dur = Model.TodayAttendance.SignOutTime.Value - Model.TodayAttendance.SignInTime.Value;
+                                }
+                                <div class="fw-bold fs-5" style="color:#0d6efd;">
+                                    @dur.Hours<span style="font-size:0.7rem;">h</span> @dur.Minutes<span style="font-size:0.7rem;">m</span>
+                                </div>
                             </div>
                         }
-
-                        <a href="@Url.Action("History", "TeacherAttendance")" class="btn btn-outline-secondary">
-                            <i class="bi bi-clock-history me-2"></i>View Attendance History
-                        </a>
+                        <div class="text-center">
+                            <div class="text-muted" style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">Location</div>
+                            <div class="fw-bold" style="font-size:0.9rem;">
+                                @if (Model.TodayAttendance.IsVerified)
+                                {
+                                    <span class="badge bg-success">On Campus</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Unverified</span>
+                                }
+                            </div>
+                        </div>
                     </div>
+                }
+
+                <!-- Location Status -->
+                <div id="location-status" class="text-center mb-3" style="font-size:0.8rem; color:#999;">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    <span id="location-text">Checking your location…</span>
                 </div>
-                <div class="card-footer text-center text-muted">
-                    <small>School Location: @schoolCoords</small>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2">
+                    @if (Model.CanCheckIn)
+                    {
+                        <button id="btn-checkin" onclick="doAction('checkin')"
+                                class="btn btn-success btn-lg"
+                                style="text-transform:uppercase; font-size:0.82rem; letter-spacing:1.5px; border-radius:6px;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Check In
+                        </button>
+                    }
+                    else if (Model.CanCheckOut)
+                    {
+                        <button id="btn-checkout" onclick="doAction('checkout')"
+                                class="btn btn-danger btn-lg"
+                                style="text-transform:uppercase; font-size:0.82rem; letter-spacing:1.5px; border-radius:6px;">
+                            <i class="bi bi-box-arrow-right me-2"></i>Check Out
+                        </button>
+                    }
+                    else if (Model.IsCheckedOut)
+                    {
+                        <div class="text-center py-3" style="color:#198754; font-size:0.9rem;">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            You have completed your attendance for today.
+                        </div>
+                    }
+                </div>
+
+                <!-- Result Message -->
+                <div id="action-result" class="mt-3" style="display:none;"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance History Panel -->
+    <div class="col-md-5 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <span style="font-family:'Playfair Display',serif; font-size:1rem;">Recent History</span>
+            </div>
+            <div class="card-body p-0">
+                <a href="@Url.Action("History", "TeacherAttendance")"
+                   class="d-block text-center py-2 text-muted border-bottom"
+                   style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; text-decoration:none;">
+                    View Full History <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+                <div class="list-group list-group-flush" style="font-size:0.82rem;">
+                    <div class="list-group-item border-0 text-muted text-center py-4" id="history-placeholder">
+                        <i class="bi bi-clock-history d-block fs-3 mb-2 text-muted"></i>
+                        Visit the full history page to see past records.
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,126 +137,136 @@
 </div>
 
 @section Scripts {
-    <script>
-        var userLat = 0;
-        var userLng = 0;
+<script>
+    var userLat = null;
+    var userLng = null;
+    var locationReady = false;
 
-        function showLocationStatus(message, type = 'info') {
-            var statusDiv = document.getElementById('locationStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'alert alert-' + type;
-            document.getElementById('locationText').textContent = message;
-        }
-
-        function getLocation() {
-            return new Promise(function(resolve, reject) {
-                if (!navigator.geolocation) {
-                    reject('Geolocation is not supported by your browser');
-                    return;
-                }
-
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        userLat = position.coords.latitude;
-                        userLng = position.coords.longitude;
-                        resolve({ lat: userLat, lng: userLng });
-                    },
-                    function(error) {
-                        var message;
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                message = 'Location permission denied. Please enable location services.';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                message = 'Location information unavailable.';
-                                break;
-                            case error.TIMEOUT:
-                                message = 'Location request timed out.';
-                                break;
-                            default:
-                                message = 'An unknown error occurred.';
-                        }
-                        reject(message);
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
+    // Request geolocation on page load
+    window.addEventListener('load', function () {
+        updateStatusBanner();
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, {
+                enableHighAccuracy: true,
+                timeout: 10000
             });
+        } else {
+            setLocationText('Geolocation is not supported by your browser.', 'text-danger');
+        }
+    });
+
+    function onLocationSuccess(pos) {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        locationReady = true;
+        setLocationText('Location acquired \u2714', 'text-success');
+    }
+
+    function onLocationError(err) {
+        setLocationText('Location unavailable — check-in will not be verified on campus.', 'text-warning');
+        locationReady = true; // still allow check-in, just unverified
+        userLat = 0;
+        userLng = 0;
+    }
+
+    function setLocationText(msg, cls) {
+        var el = document.getElementById('location-text');
+        el.textContent = msg;
+        el.className = cls;
+    }
+
+    function updateStatusBanner() {
+        var banner = document.getElementById('status-banner');
+        var icon = document.getElementById('status-icon');
+        var text = document.getElementById('status-text');
+        var sub = document.getElementById('status-sub');
+
+        @if (Model.IsCheckedOut)
+        {
+            <text>
+            banner.style.background = '#f0fff4';
+            banner.style.borderColor = '#86efac';
+            icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+            text.textContent = 'Attendance Complete';
+            text.style.color = '#198754';
+            sub.textContent = 'You have checked in and out today.';
+            </text>
+        }
+        else if (Model.IsCheckedIn)
+        {
+            <text>
+            banner.style.background = '#fff5f5';
+            banner.style.borderColor = '#fca5a5';
+            icon.innerHTML = '<i class="bi bi-person-check-fill" style="color:#C21E2E;"></i>';
+            text.textContent = 'Checked In';
+            text.style.color = '#C21E2E';
+            sub.textContent = 'Remember to check out when you leave.';
+            </text>
+        }
+        else
+        {
+            <text>
+            banner.style.background = '#f8f9fa';
+            icon.innerHTML = '<i class="bi bi-clock text-muted"></i>';
+            text.textContent = 'Not Checked In';
+            text.style.color = '#666';
+            sub.textContent = 'Press Check In when you arrive on campus.';
+            </text>
+        }
+    }
+
+    function doAction(action) {
+        if (!locationReady) {
+            showResult('warning', 'Please wait — acquiring your location…');
+            return;
         }
 
-        async function checkIn() {
-            var btn = document.getElementById('btnCheckIn');
+        var btn = document.getElementById(action === 'checkin' ? 'btn-checkin' : 'btn-checkout');
+        if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-
-            try {
-                showLocationStatus('Getting your location...', 'info');
-                var location = await getLocation();
-                showLocationStatus('Location detected: ' + location.lat.toFixed(6) + ', ' + location.lng.toFixed(6), 'info');
-
-                var response = await fetch('@Url.Action("CheckIn", "TeacherAttendance")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ latitude: location.lat, longitude: location.lng })
-                });
-
-                var result = await response.json();
-
-                if (result.success) {
-                    showLocationStatus(result.message, 'success');
-                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Checked In';
-                    btn.className = 'btn btn-success btn-lg disabled';
-                    setTimeout(function() { location.reload(); }, 2000);
-                } else {
-                    showLocationStatus(result.message, 'danger');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Check In';
-                }
-            } catch (error) {
-                showLocationStatus(error, 'danger');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Check In';
-            }
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
         }
 
-        async function checkOut() {
-            var btn = document.getElementById('btnCheckOut');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        var token = document.querySelector('input[name="__RequestVerificationToken"]');
 
-            try {
-                showLocationStatus('Getting your location...', 'info');
-                var location = await getLocation();
-                showLocationStatus('Location detected: ' + location.lat.toFixed(6) + ', ' + location.lng.toFixed(6), 'info');
-
-                var response = await fetch('@Url.Action("CheckOut", "TeacherAttendance")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ latitude: location.lat, longitude: location.lng })
-                });
-
-                var result = await response.json();
-
-                if (result.success) {
-                    showLocationStatus(result.message, 'success');
-                    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Checked Out';
-                    btn.className = 'btn btn-danger btn-lg disabled';
-                    setTimeout(function() { location.reload(); }, 2000);
-                } else {
-                    showLocationStatus(result.message, 'danger');
+        fetch('@Url.Action(action === "checkin" ? "CheckIn" : "CheckOut", "TeacherAttendance")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token ? token.value : ''
+            },
+            body: '__RequestVerificationToken=' + encodeURIComponent(token ? token.value : '')
+                + '&latitude=' + userLat
+                + '&longitude=' + userLng
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showResult('success', data.message);
+                setTimeout(function() { location.reload(); }, 1800);
+            } else {
+                showResult('danger', data.message);
+                if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
+                    btn.innerHTML = action === 'checkin'
+                        ? '<i class="bi bi-box-arrow-in-right me-2"></i>Check In'
+                        : '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
                 }
-            } catch (error) {
-                showLocationStatus(error, 'danger');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
             }
-        }
-    </script>
+        })
+        .catch(function(err) {
+            showResult('danger', 'Request failed. Please try again.');
+            if (btn) btn.disabled = false;
+        });
+    }
+
+    function showResult(type, msg) {
+        var el = document.getElementById('action-result');
+        el.style.display = 'block';
+        el.className = 'alert alert-' + type + ' text-center';
+        el.style.fontSize = '0.85rem';
+        el.innerHTML = msg;
+    }
+</script>
+@Html.AntiForgeryToken()
 }

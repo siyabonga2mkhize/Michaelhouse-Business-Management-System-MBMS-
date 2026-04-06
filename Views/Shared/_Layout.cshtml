@@ -249,7 +249,7 @@
         else if (userRole == "Teacher")
         {
             <div class="sidebar-label text-truncate">Teacher Portal</div>
-            <a class="nav-link @(currentController == "Teacher" ? "active" : "")" href="@Url.Action("Dashboard", "Teacher")">
+            <a class="nav-link @(currentController == "Teacher" ? "active" : "")" href="@Url.Action("Dashboard", "Teachers")">
                 <i class="bi bi-house-door me-2"></i> Dashboard
             </a>
             <a class="nav-link @(currentController == "Attendances" ? "active" : "")" href="@Url.Action("Index", "Attendances")">
@@ -270,7 +270,7 @@
     </nav>
 </div>
         }
-
+    <div>
         <div class="main-content @(isHomePage ? "full-width" : "p-4 md:p-8")">
             @if (TempData["Success"] != null)
             {

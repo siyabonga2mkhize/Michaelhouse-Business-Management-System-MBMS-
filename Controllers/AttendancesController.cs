@@ -1,100 +1,53 @@
-﻿using Michaelhouse.Models;
+﻿using Michaelhouse.Filters;
+using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Michaelhouse.Filters;
 
 namespace Michaelhouse.Controllers
 {
     public class AttendancesController : Controller
     {
-        private readonly DBContextClass _context;
+        private readonly DBContextClass _context = new DBContextClass();
 
-        public AttendancesController()
-        {
-            _context = new DBContextClass();
-        }
-
-        public AttendancesController(DBContextClass context)
-        {
-            _context = context;
-        }
-
+        // ── Index: Show subjects assigned to this teacher ─────────────────────────
         [RequireLogin]
         public async Task<ActionResult> Index()
         {
-            var userEmail = Session["UserName"]?.ToString();
             int userId = (int)(Session["UserId"] ?? 0);
-
             var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
 
             List<Subject> subjects;
+
             if (teacher != null)
             {
                 subjects = await _context.Subjects
                     .Where(s => s.TeacherId == teacher.TeacherId)
                     .ToListAsync();
+
+                // If no subjects assigned yet, seed demo subjects for this teacher
+                if (!subjects.Any())
+                {
+                    await SeedDemoSubjects(teacher.TeacherId);
+                    subjects = await _context.Subjects
+                        .Where(s => s.TeacherId == teacher.TeacherId)
+                        .ToListAsync();
+                }
             }
             else
             {
+                // Admin fallback: show all subjects
                 subjects = await _context.Subjects.ToListAsync();
             }
 
             return View(subjects);
         }
 
-        // GET: Attendances/Record
-        public async Task<ActionResult> Record(int? subjectId)
-        {
-            var subject = await _context.Subjects.FindAsync(subjectId);
-            if (subject == null) return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-
-            var students = await _context.Students
-                .Where(s => s.GradeLevel == subject.GradeLevel)
-                .ToListAsync();
-
-            ViewBag.SubjectName = subject.SubjectName;
-            ViewBag.SubjectId = subjectId;
-
-            return View(students);
-        }
-
-        // POST: Attendances/Save
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Save(int subjectId, Dictionary<string, string> attendanceRecords)
-        {
-            if (attendanceRecords != null)
-            {
-                foreach (var key in attendanceRecords.Keys)
-                {
-                    // Convert the key back to int (StudentId) and value to Enum
-                    int studentId = int.Parse(key);
-                    var statusStr = attendanceRecords[key];
-                    AttendanceStatus status = (AttendanceStatus)Enum.Parse(typeof(AttendanceStatus), statusStr);
-
-                    var attendance = new Attendance
-                    {
-                        StudentId = studentId,
-                        Status = status,
-                        Date = DateTime.Today,
-                        SubjectId = subjectId,
-                        RecordedBy = User.Identity.IsAuthenticated ? User.Identity.Name : "Anonymous Teacher"
-                    };
-                    _context.Attendances.Add(attendance);
-                }
-
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction("Index", "Home");
-        }
-
+        // ── MarkRegister: Show student list for a subject ─────────────────────────
         [RequireLogin]
         public async Task<ActionResult> MarkRegister(int subjectId)
         {
@@ -106,84 +59,165 @@ namespace Michaelhouse.Controllers
             var subject = await _context.Subjects.FindAsync(subjectId);
             if (subject == null) return HttpNotFound("Subject not found.");
 
+            // Get students in this grade, ordered by last name
             var students = await _context.Students
                 .Where(s => s.GradeLevel == subject.GradeLevel)
                 .OrderBy(s => s.LastName)
                 .ToListAsync();
 
+            // If no students seeded yet, create demo students
+            if (!students.Any())
+            {
+                await SeedDemoStudents(subject.GradeLevel);
+                students = await _context.Students
+                    .Where(s => s.GradeLevel == subject.GradeLevel)
+                    .OrderBy(s => s.LastName)
+                    .ToListAsync();
+            }
+
             var viewModel = new MarkAttendanceViewModel
             {
                 SubjectId = subject.SubjectId,
-                SubjectName = subject.SubjectName,
+                SubjectName = subject.Name,
                 Date = DateTime.Today,
                 Students = students.Select(s => new StudentAttendanceSelection
                 {
                     StudentId = s.StudentId,
-                    FullName = s.Name
+                    FullName = s.FirstName + " " + s.LastName,
+                    AttendanceStatus = "Present" // default
                 }).ToList()
             };
 
             return View(viewModel);
         }
 
+        // ── SaveRegister: POST – persist attendance records ───────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveRegister(MarkAttendanceViewModel vm)
-        {
-            if (vm.Students == null || !vm.Students.Any()) return RedirectToAction("Index", "Home");
-
-            string recordedBy = Session["UserName"]?.ToString() ?? "Unknown";
-
-            foreach (var item in vm.Students)
-            {
-                var record = new Attendance
-                {
-                    StudentId = item.StudentId,
-                    SubjectId = vm.SubjectId,
-                    Date = DateTime.Today,
-                    Status = (AttendanceStatus)Enum.Parse(typeof(AttendanceStatus), item.Status),
-                    RecordedBy = recordedBy
-                };
-                _context.Attendances.Add(record);
-            }
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Register submitted successfully!";
-            return RedirectToAction("Index", "Attendances");
-        }
-
         [RequireLogin]
-        public async Task<ActionResult> History()
+        public async Task<ActionResult> SaveRegister(MarkAttendanceViewModel model)
         {
             int userId = (int)(Session["UserId"] ?? 0);
             var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
 
-            if (teacher == null)
+            if (teacher == null) return HttpNotFound("Teacher profile not found.");
+
+            var today = model.Date.Date;
+
+            foreach (var entry in model.Students)
             {
-                return RedirectToAction("Index");
+                // 1. Parse the string from the ViewModel into the Enum type
+                AttendanceStatus parsedStatus = (AttendanceStatus)Enum.Parse(typeof(AttendanceStatus), entry.AttendanceStatus);
+
+                // 2. Avoid duplicate entries for same student/subject/date
+                var existing = await _context.Attendances
+                    .FirstOrDefaultAsync(a =>
+                        a.StudentId == entry.StudentId &&
+                        a.SubjectId == model.SubjectId &&
+                        DbFunctions.TruncateTime(a.Date) == today);
+
+                if (existing != null)
+                {
+                    // Use the parsed Enum here
+                    existing.Status = parsedStatus;
+                }
+                else
+                {
+                    _context.Attendances.Add(new Attendance
+                    {
+                        StudentId = entry.StudentId,
+                        SubjectId = model.SubjectId,
+                        Date = today,
+                        // Use the parsed Enum here
+                        Status = parsedStatus,
+                        RecordedBy = teacher.Email
+                    });
+                }
             }
 
-            var records = await _context.Attendances
-                .Include(a => a.Student)
-                .Include(a => a.Subject)
-                .Where(a => a.RecordedBy == teacher.Email)
-                .OrderByDescending(a => a.Date)
-                .Take(50)
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Register saved successfully for {today:dd MMM yyyy}.";
+            return RedirectToAction("Index");
+        }
+
+        // ── Record (legacy GET – kept for compatibility) ──────────────────────────
+        public async Task<ActionResult> Record(int? subjectId)
+        {
+            var subject = await _context.Subjects.FindAsync(subjectId);
+            if (subject == null) return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+
+            var students = await _context.Students
+                .Where(s => s.GradeLevel == subject.GradeLevel)
                 .ToListAsync();
 
-            return View(records);
+            ViewBag.SubjectName = subject.Name;
+            ViewBag.SubjectId = subjectId;
+
+            return View(students);
         }
 
-        // IMPORTANT: Clean up the database connection
-        protected override void Dispose(bool disposing)
+        // ── Demo seed helpers ─────────────────────────────────────────────────────
+
+        private async Task SeedDemoSubjects(int teacherId)
         {
-            if (disposing && _context != null)
+            if (!_context.Subjects.Any(s => s.TeacherId == teacherId))
             {
-                _context.Dispose();
+                _context.Subjects.Add(new Subject
+                {
+                    Name = "Mathematics",
+                    Code = "MATH10",
+                    GradeLevel = 10,
+                    TeacherId = teacherId
+                });
+                _context.Subjects.Add(new Subject
+                {
+                    Name = "Physical Sciences",
+                    Code = "SCI10",
+                    GradeLevel = 10,
+                    TeacherId = teacherId
+                });
+                _context.Subjects.Add(new Subject
+                {
+                    Name = "English Home Language",
+                    Code = "ENG10",
+                    GradeLevel = 10,
+                    TeacherId = teacherId
+                });
+                await _context.SaveChangesAsync();
             }
-            base.Dispose(disposing);
         }
 
+        private async Task SeedDemoStudents(int gradeLevel)
+        {
+            if (!_context.Students.Any(s => s.GradeLevel == gradeLevel))
+            {
+                var names = new[]
+                {
+                    ("Amahle", "Dube"),
+                    ("Sipho", "Nkosi"),
+                    ("Lethabo", "Mokoena"),
+                    ("Thandiwe", "Mthembu"),
+                    ("Kagiso", "Sithole"),
+                    ("Rethabile", "Molefe"),
+                    ("Bongani", "Zulu"),
+                    ("Nokwanda", "Ndlovu")
+                };
+                foreach (var (first, last) in names)
+                {
+                    _context.Students.Add(new Student
+                    {
+                        FirstName = first,
+                        LastName = last,
+                        GradeLevel = gradeLevel,
+                        DOB = new DateTime(2008, 1, 1)
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // ── Misc setup actions ────────────────────────────────────────────────────
         public ActionResult Setup()
         {
             var teacher = _context.Teachers.FirstOrDefault();
@@ -191,60 +225,56 @@ namespace Michaelhouse.Controllers
 
             if (!_context.Subjects.Any())
             {
-                _context.Subjects.Add(new Subject { SubjectName = "Mathematics", SubjectCode = "MATH101", GradeLevel = 12, TeacherId = teacherId });
-                _context.Subjects.Add(new Subject { SubjectName = "English", SubjectCode = "ENG101", GradeLevel = 12, TeacherId = teacherId });
-                _context.Subjects.Add(new Subject { SubjectName = "Physical Science", SubjectCode = "PHY101", GradeLevel = 11, TeacherId = teacherId });
-                _context.Subjects.Add(new Subject { SubjectName = "Life Sciences", SubjectCode = "LSC101", GradeLevel = 11, TeacherId = teacherId });
+                _context.Subjects.Add(new Subject { Name = "Mathematics", Code = "MATH101", GradeLevel = 12, TeacherId = teacherId });
+                _context.Subjects.Add(new Subject { Name = "English", Code = "ENG101", GradeLevel = 12, TeacherId = teacherId });
             }
 
             if (!_context.Students.Any())
             {
-                _context.Students.Add(new Student { FirstName = "John", LastName = "Doe", GradeLevel = 12, StudentNumber = "2024001", Gender = "Male", DOB = new DateTime(2006, 5, 20), EnrollmentDate = DateTime.Now });
-                _context.Students.Add(new Student { FirstName = "Jane", LastName = "Smith", GradeLevel = 12, StudentNumber = "2024002", Gender = "Female", DOB = new DateTime(2006, 1, 15), EnrollmentDate = DateTime.Now });
-                _context.Students.Add(new Student { FirstName = "Mike", LastName = "Johnson", GradeLevel = 12, StudentNumber = "2024003", Gender = "Male", DOB = new DateTime(2005, 8, 10), EnrollmentDate = DateTime.Now });
-                _context.Students.Add(new Student { FirstName = "Sarah", LastName = "Williams", GradeLevel = 11, StudentNumber = "2024004", Gender = "Female", DOB = new DateTime(2007, 3, 25), EnrollmentDate = DateTime.Now });
-                _context.Students.Add(new Student { FirstName = "David", LastName = "Brown", GradeLevel = 11, StudentNumber = "2024005", Gender = "Male", DOB = new DateTime(2006, 11, 8), EnrollmentDate = DateTime.Now });
+                _context.Students.Add(new Student { FirstName = "John", LastName = "Doe", GradeLevel = 12, DOB = new DateTime(2006, 5, 20) });
+                _context.Students.Add(new Student { FirstName = "Jane", LastName = "Smith", GradeLevel = 12, DOB = new DateTime(2006, 1, 15) });
             }
 
             _context.SaveChanges();
             return Content("Demo data seeded successfully!");
         }
+
         public ActionResult CreateTeacherAccount()
         {
-            using (var db = new DBContextClass())
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == "teacher@michaelhouse.org");
+            if (existingUser != null) return Content("User already exists!");
+
+            var newUser = new AppUser
             {
-                var existingUser = db.Users.FirstOrDefault(u => u.Email == "teacher@michaelhouse.org");
-                if (existingUser != null) return Content("User already exists!");
+                Name = "John Staff",
+                Email = "teacher@michaelhouse.org",
+                PasswordHash = AccountController.HashPassword("Teacher@123"),
+                Role = "Teacher"
+            };
 
-                var newUser = new AppUser
-                {
-                    Name = "John Staff",
-                    Email = "teacher@michaelhouse.org",
-                    PasswordHash = AccountController.HashPassword("Teacher@123"),
-                    Role = "Teacher"
-                };
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
 
-                db.Users.Add(newUser);
-                db.SaveChanges();
+            var newTeacher = new Teacher
+            {
+                FirstName = "John",
+                LastName = "Staff",
+                Email = "teacher@michaelhouse.org",
+                Specialization = "Science",
+                HireDate = DateTime.Now,
+                UserId = newUser.UserId
+            };
 
-                var newTeacher = new Teacher
-                {
-                    FirstName = "John",
-                    LastName = "Staff",
-                    Email = "teacher@michaelhouse.org",
-                    EmployeeNumber = "T001",
-                    Department = "Science",
-                    HireDate = DateTime.Now,
-                    UserId = newUser.UserId
-                };
+            _context.Teachers.Add(newTeacher);
+            _context.SaveChanges();
 
-                db.Teachers.Add(newTeacher);
-                db.SaveChanges();
+            return Content("Teacher account created! Email: teacher@michaelhouse.org | Password: Teacher@123");
+        }
 
-                Session["TeacherId"] = newTeacher.TeacherId;
-
-                return Content("Teacher account and profile created! Email: teacher@michaelhouse.org | Password: Teacher@123");
-            }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _context.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

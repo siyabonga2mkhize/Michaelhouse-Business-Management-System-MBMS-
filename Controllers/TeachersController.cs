@@ -1,5 +1,5 @@
-﻿using Michaelhouse.Models;
-using Michaelhouse.Filters;
+﻿using Michaelhouse.Filters;
+using Michaelhouse.Models;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -33,7 +33,7 @@ namespace Michaelhouse.Controllers
                 .Take(5)
                 .ToList();
 
-            ViewBag.TeacherName = teacher.FullName;
+            ViewBag.TeacherName = teacher.FirstName;
             ViewBag.TodayAttendance = todayAttendance;
             ViewBag.SubjectCount = subjectCount;
             ViewBag.RecentAttendance = recentAttendance;

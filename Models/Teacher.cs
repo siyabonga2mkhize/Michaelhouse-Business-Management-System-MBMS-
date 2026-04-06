@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-<<<<<<< HEAD
-=======
 using System.ComponentModel.DataAnnotations.Schema;
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
     public class Teacher
     {
-<<<<<<< HEAD
-        public int? UserId { get; set; } // The Foreign Key
-=======
         [Key]
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         public int TeacherId { get; set; }
 
         [Required, MaxLength(100)]
@@ -25,6 +18,7 @@ namespace Michaelhouse.Models
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
+        // Helper property for the full name
         public string Name => $"{FirstName} {LastName}";
 
         [Required, MaxLength(200)]
@@ -36,15 +30,6 @@ namespace Michaelhouse.Models
         [Display(Name = "Phone Number")]
         public string Phone { get; set; }
 
-        // Linked AppUser account (Role = "Teacher")
-        public int? UserId { get; set; }
-        public virtual AppUser User { get; set; }
-
-        // A teacher teaches up to 2 subjects
-        // Each TeacherSubjectGrade record = one subject + grade assignment
-        public virtual ICollection<TeacherSubjectGrade> SubjectAssignments { get; set; }
-
-<<<<<<< HEAD
         [Display(Name = "Specialization")]
         public string Specialization { get; set; }
 
@@ -52,14 +37,20 @@ namespace Michaelhouse.Models
         [DataType(DataType.Date)]
         public DateTime HireDate { get; set; }
 
-        public string FullName => FirstName + " " + LastName;
+        // --- Relationships ---
 
-        public virtual ICollection<Subject> Subjects { get; set; }
+        // Foreign Key to AppUser (Role = "Teacher")
+        public int? UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual AppUser User { get; set; }
+
+        // Collections for Academic and Attendance data
+        public virtual ICollection<TeacherSubjectGrade> SubjectAssignments { get; set; }
         public virtual ICollection<TeacherAttendance> TeacherAttendances { get; set; }
-        public virtual AppUser User { get; set; } // The Navigation Property
-=======
-        // Timetable slots assigned to this teacher
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
+        public virtual ICollection<Subject> Subjects { get; set; }
+
+
     }
 }

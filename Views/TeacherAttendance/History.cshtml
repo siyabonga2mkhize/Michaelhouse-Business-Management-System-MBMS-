@@ -1,82 +1,87 @@
 @model IEnumerable<Michaelhouse.Models.TeacherAttendance>
-
 @{
     ViewBag.Title = "Attendance History";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-clock-history me-2"></i>Attendance History</h2>
-        <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-left me-2"></i>Back to Check In/Out
-        </a>
+<div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h2 style="font-family:'Playfair Display',serif; color:#C21E2E;">Attendance History</h2>
+        <p class="text-muted mb-0" style="font-size:0.82rem; text-transform:uppercase; letter-spacing:1px;">
+            Your last 30 records
+        </p>
     </div>
+    <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-secondary btn-sm"
+       style="text-transform:uppercase; font-size:0.72rem; letter-spacing:1px;">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted" style="font-family:'Playfair Display',serif;">No Records Yet</h5>
+            <p class="text-muted" style="font-size:0.85rem;">Start checking in to build your attendance history.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:0.84rem;">
+                <thead style="background:#fafafa; text-transform:uppercase; font-size:0.72rem; letter-spacing:1px; color:#999;">
                     <tr>
-                        <th class="ps-4">Date</th>
-                        <th>Check In</th>
-                        <th>Check Out</th>
-                        <th>Duration</th>
-                        <th>Status</th>
-                        <th>Verified</th>
+                        <th class="px-4 py-3">Date</th>
+                        <th class="py-3">Sign In</th>
+                        <th class="py-3">Sign Out</th>
+                        <th class="py-3">Duration</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3">Location</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (!Model.Any())
+                    @foreach (var record in Model)
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                No attendance records found.
+                            <td class="px-4 fw-semibold">@record.Date.ToString("dd MMM yyyy")</td>
+                            <td class="text-success fw-semibold">
+                                @(record.SignInTime.HasValue ? record.SignInTime.Value.ToString("HH:mm") : "—")
+                            </td>
+                            <td style="color:#C21E2E;" class="fw-semibold">
+                                @(record.SignOutTime.HasValue ? record.SignOutTime.Value.ToString("HH:mm") : "—")
+                            </td>
+                            <td>
+                                @if (record.SignInTime.HasValue && record.SignOutTime.HasValue)
+                                {
+                                    var dur = record.SignOutTime.Value - record.SignInTime.Value;
+                                    <span>@dur.Hours<small>h</small> @dur.Minutes<small>m</small></span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(record.Status == Michaelhouse.Models.TeacherStatus.Present ? "bg-success" : record.Status == Michaelhouse.Models.TeacherStatus.Absent ? "bg-danger" : "bg-warning text-dark")">
+                                    @record.Status
+                                </span>
+                            </td>
+                            <td>
+                                @if (record.IsVerified)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-geo-alt-fill me-1"></i>On Campus</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unverified</span>
+                                }
                             </td>
                         </tr>
-                    }
-                    else
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="ps-4 align-middle">@item.Date.ToString("dd MMM yyyy")</td>
-                                <td class="align-middle">
-                                    @(item.SignInTime?.ToString("HH:mm") ?? "-")
-                                </td>
-                                <td class="align-middle">
-                                    @(item.SignOutTime?.ToString("HH:mm") ?? "-")
-                                </td>
-                                <td class="align-middle">
-                                    @if (item.SignInTime != null && item.SignOutTime != null)
-                                    {
-                                        var duration = item.SignOutTime.Value - item.SignInTime.Value;
-                                        <span>@duration.Hoursh @duration.Minutesm</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">-</span>
-                                    }
-                                </td>
-                                <td class="align-middle">
-                                    <span class="badge @(item.Status == TeacherStatus.Present ? "bg-success" : item.Status == TeacherStatus.Leave ? "bg-warning" : "bg-secondary")">
-                                        @item.Status
-                                    </span>
-                                </td>
-                                <td class="align-middle">
-                                    @if (item.IsVerified)
-                                    {
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-x-circle-fill text-danger"></i>
-                                    }
-                                </td>
-                            </tr>
-                        }
                     }
                 </tbody>
             </table>
         </div>
     </div>
-</div>
+}

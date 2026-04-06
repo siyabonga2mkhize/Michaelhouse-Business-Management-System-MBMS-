@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Michaelhouse.Models
-{
-    public class StudentMark
-    {
-=======
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,27 +11,32 @@ namespace Michaelhouse.Models
     public class StudentMark
     {
         [Key]
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         public int StudentMarkId { get; set; }
 
         [ForeignKey("Assessment")]
+        [Display(Name = "Assessment")]
         public int AssessmentmentId { get; set; }
 
         [ForeignKey("Student")]
+        [Display(Name = "Student")]
         public int StudentId { get; set; }
 
         // ─── The captured mark ─────────────────────────────────────────────────────
 
         // Null = not yet captured / absent
+        [Display(Name = "Marks Obtained")]
         public decimal? MarksObtained { get; set; }
 
         // True if student was legitimately absent (mark excluded from average)
+        [Display(Name = "Absent?")]
         public bool IsAbsent { get; set; } = false;
 
         [MaxLength(300)]
+        [Display(Name = "Teacher Comment")]
         public string TeacherComment { get; set; }
 
         // When the mark was last saved
+        [Display(Name = "Date Captured")]
         public DateTime? CapturedAt { get; set; }
 
         // ─── Navigation ───────────────────────────────────────────────────────────

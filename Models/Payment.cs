@@ -1,40 +1,41 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-<<<<<<< HEAD
-=======
 using System.ComponentModel.DataAnnotations.Schema;
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
     public class Payment
     {
-<<<<<<< HEAD
-=======
         [Key]
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         public int PaymentId { get; set; }
 
+        // Foreign Key to the related Invoice
         [ForeignKey("Invoice")]
         public int InvoiceId { get; set; }
         public virtual Invoice Invoice { get; set; }
 
+        [Required]
+        [DataType(DataType.Currency)]
         public decimal AmountPaid { get; set; }
 
+        [Display(Name = "Payment Date")]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
 
-        // Stripe charge ID
+        // Stripe integration fields
+        [Display(Name = "Stripe Charge ID")]
         public string StripeChargeId { get; set; }
 
-        // Stripe payment intent ID (for newer Stripe API)
+        [Display(Name = "Stripe Intent ID")]
         public string StripePaymentIntentId { get; set; }
 
-        public string Status { get; set; } // "Success", "Failed", "Refunded"
+        // Status: "Success", "Failed", "Refunded"
+        [Required]
+        public string Status { get; set; }
 
-        // Reference for proof of payment
+        [Display(Name = "Reference")]
         public string PaymentReference { get; set; }
 
-        // Was proof of payment emailed?
+        [Display(Name = "Receipt Emailed")]
         public bool ProofEmailSent { get; set; }
     }
 }

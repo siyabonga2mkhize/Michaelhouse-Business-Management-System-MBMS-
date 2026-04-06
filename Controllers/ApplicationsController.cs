@@ -1,5 +1,4 @@
-﻿using Michaelhouse.Filters;
-using Michaelhouse.Models;
+﻿using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
@@ -9,39 +8,36 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [Require
-        
-        ]
     public class ApplicationsController : Controller
     {
         private readonly ApplicationService _appService = new ApplicationService();
 
-        private int GetParentId()
-        {
-            return Session["ParentId"] == null ? 0 : (int)Session["ParentId"];
-        }
-
-        private ActionResult RedirectIfNoParent()
+        // ─── DEV HELPER (FIXED) ───────────────────────────────────────────────────
+        // Gets an existing parent OR creates one if none exists
+        private int GetCurrentParentId()
         {
             if (Session["ParentId"] == null)
-                return RedirectToAction("Login", "Account");
-            return null;
+            {
+                // Parent record missing — send them to login
+                Response.Redirect("~/Account/Login");
+                return 0;
+            }
+            return (int)Session["ParentId"];
         }
 
         // ─── My Applications (Parent Dashboard) ───────────────────────────────────
 
         public ActionResult Index()
         {
-            var redirect = RedirectIfNoParent();
-            if (redirect != null) return redirect;
-
             using (var db = new DBContextClass())
             {
+                int parentId = GetCurrentParentId();
+
                 var apps = db.Applications
                     .Include("Student")
                     .Include("Documents")
                     .Include("AdminReviews")
-                    .Where(a => a.ParentId == GetParentId())
+                    .Where(a => a.ParentId == parentId)
                     .OrderByDescending(a => a.Date)
                     .ToList();
 
@@ -59,11 +55,10 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            var redirect = RedirectIfNoParent();
-            if (redirect != null) return redirect;
-
             using (var db = new DBContextClass())
             {
+                int parentId = GetCurrentParentId();
+
                 db.Students.Add(new Student
                 {
                     FirstName = vm.FirstName,
@@ -74,7 +69,7 @@ namespace Michaelhouse.Controllers
                     PreviousSchool = vm.PreviousSchool,
                     CurrentGrade = vm.CurrentGrade,
                     MedicalConditions = vm.MedicalConditions,
-                    ParentId = GetParentId()
+                    ParentId = parentId
                 });
                 db.SaveChanges();
 
@@ -87,13 +82,12 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Create()
         {
-            var redirect = RedirectIfNoParent();
-            if (redirect != null) return redirect;
-
             using (var db = new DBContextClass())
             {
+                int parentId = GetCurrentParentId();
+
                 var students = db.Students
-                    .Where(s => s.ParentId == GetParentId())
+                    .Where(s => s.ParentId == parentId)
                     .ToList();
 
                 if (!students.Any())
@@ -125,14 +119,12 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(ApplicationCreateViewModel vm)
         {
-            var redirect = RedirectIfNoParent();
-            if (redirect != null) return redirect;
-
             if (!ModelState.IsValid)
             {
                 using (var db = new DBContextClass())
                 {
-                    var students = db.Students.Where(s => s.ParentId == GetParentId()).ToList();
+                    int parentId = GetCurrentParentId();
+                    var students = db.Students.Where(s => s.ParentId == parentId).ToList();
                     ViewBag.Students = new SelectList(students, "StudentId", "Name");
                     ViewBag.CurrentYear = DateTime.Now.Year;
                     ViewBag.Grades = new SelectList(new[]
@@ -154,8 +146,10 @@ namespace Michaelhouse.Controllers
                 return View(vm);
             }
 
+            int currentParentId = GetCurrentParentId();
+
             var app = _appService.SubmitApplication(
-                GetParentId(),
+                currentParentId,
                 vm.StudentId,
                 vm.ApplicationYear,
                 vm.GradeApplying,
@@ -169,34 +163,6 @@ namespace Michaelhouse.Controllers
             return RedirectToAction("Status", new { id = app.AppId });
         }
 
-        public ActionResult SyncTeacher(int teacherId)
-        {
-            using (var db = new DBContextClass())
-            {
-                var teacher = db.Teachers.Find(teacherId);
-
-                // If the teacher exists but has no UserId linked
-                if (teacher != null && teacher.UserId == null)
-                {
-                    var newUser = new AppUser
-                    {
-                        Name = $"{teacher.FirstName} {teacher.LastName}",
-                        Email = teacher.Email,
-                        PasswordHash = AccountController.HashPassword("Teacher@123"), // Default pass
-                        Role = "Teacher"
-                    };
-
-                    db.Users.Add(newUser);
-                    db.SaveChanges(); // Generates the UserId
-
-                    teacher.UserId = newUser.UserId;
-                    db.SaveChanges(); // Links the Teacher to the User
-
-                    return Content("Teacher successfully linked to AppUser account.");
-                }
-                return Content("Teacher already linked or not found.");
-            }
-        }
 
         // ─── Application Status Page ──────────────────────────────────────────────
 

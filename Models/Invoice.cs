@@ -1,21 +1,17 @@
 ﻿using System;
+using System.Collections.Generic; // Required for ICollection
 using System.ComponentModel.DataAnnotations;
-<<<<<<< HEAD
-=======
 using System.ComponentModel.DataAnnotations.Schema;
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
     public class Invoice
     {
-<<<<<<< HEAD
-=======
         [Key]
->>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         public int InvoiceId { get; set; }
 
         [Required]
+        [Display(Name = "Invoice Number")]
         public string InvoiceNumber { get; set; } // e.g. MHS-2026-00001
 
         // Linked to registration
@@ -35,23 +31,28 @@ namespace Michaelhouse.Models
 
         [Required]
         public string InvoiceType { get; set; }
-        // "RegistrationFee"         — ZAR 950 (non-refundable, paid before registration)
-        // "AnnualFee"               — ZAR 417,000 (board and tuition)
-        // "DevelopmentLevy"         — ZAR 6,800 (voluntary)
-        // "AnnualFeeAdvanceDiscount" — ZAR -16,680 (discount if paid in full upfront)
+        // Types include:
+        // "RegistrationFee"          — ZAR 950
+        // "AnnualFee"                — ZAR 417,000
+        // "DevelopmentLevy"          — ZAR 6,800
+        // "AnnualFeeAdvanceDiscount" — ZAR -16,680
 
         [Required]
+        [DataType(DataType.Currency)]
         public decimal Amount { get; set; }
 
         public string Description { get; set; }
 
+        [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
+        [Display(Name = "Due Date")]
+        [DataType(DataType.Date)]
         public DateTime DueDate { get; set; }
 
         public string Status { get; set; } = "Pending"; // Pending / Paid / Overdue / Waived
 
-        // Navigation
+        // Navigation for related payments
         public virtual ICollection<Payment> Payments { get; set; }
     }
 }
