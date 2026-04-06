@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Web;
+using static System.Net.WebRequestMethods;
 
 
 namespace Michaelhouse.Services
@@ -35,79 +36,131 @@ namespace Michaelhouse.Services
         // ─── Application Approved — parent must complete registration ─────────────
 
         public void SendApplicationApproved(
-            string parentEmail, string parentName,
-            string studentName, int grade)
+    string parentEmail, string parentName,
+    string studentName, int grade)
         {
-            var subject = $"🎉 Application Approved — Please Complete {studentName}'s Registration";
+            var subject = $"OFFICIAL NOTICE: Enrollment Approved — {studentName} (Grade {grade})";
+
+            // Path to your hosted logo - ensure this is a transparent PNG or white-on-dark version
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
 
             var body = $@"
-<html><body style='font-family:Segoe UI,sans-serif;color:#333;max-width:600px;margin:0 auto;'>
-    <div style='background:#1a3c5e;padding:24px 32px;'>
-        <h2 style='color:#fff;margin:0;'>Michaelhouse</h2>
-        <p style='color:rgba(255,255,255,0.7);margin:4px 0 0;'>Enrollment Management System</p>
-    </div>
-    <div style='padding:32px;background:#fff;'>
-        <div style='background:#e8f5e9;border-left:4px solid #2e7d32;padding:16px;border-radius:4px;margin-bottom:24px;'>
-            <h3 style='margin:0 0 8px;color:#1b5e20;'>✅ Application Approved!</h3>
-            <p style='margin:0;color:#2e7d32;'><strong>{studentName}</strong>'s application for Grade {grade} has been approved.</p>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>Enrollment Management Division</p>
         </div>
-        <p>Dear {parentName},</p>
-        <p>We are pleased to inform you that <strong>{studentName}</strong>'s enrollment application has been approved.</p>
-        <p><strong>The next step is to complete the registration process.</strong> Please log in to the system to:</p>
-        <ul>
-            <li>Confirm student details</li>
-            {(grade >= 10 ? "<li>Select subjects of choice</li>" : "<li>Review the predetermined subject list</li>")}
-            <li>Submit the registration</li>
-        </ul>
-        <p>Once you complete registration, a student account will be created automatically and login credentials will be sent to you.</p>
-        <div style='text-align:center;margin:32px 0;'>
-            <a href='{_baseUrl}/Account/Login'
-               style='background:#1a3c5e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;'>
-                Log In to Complete Registration
-            </a>
+
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {parentName},</h2>
+            
+            <p style='font-size:16px; margin-bottom:25px;'>It is our distinct pleasure to inform you that the application for <strong>{studentName}</strong> has been formally <strong>Approved</strong> for entry into Grade {grade}.</p>
+            
+            <div style='margin:40px 0; padding:30px; border-left:4px solid #C21E2E; background-color:#fafafa;'>
+                <h4 style='margin:0 0 12px; text-transform:uppercase; letter-spacing:2px; font-size:11px; color:#1a1a1a; font-weight:bold;'>Registration Protocol</h4>
+                <p style='margin:0; font-size:14px; color:#555;'>To finalize this placement, you are now required to access the digital ledger and complete the following:</p>
+                <ul style='margin:15px 0 0; padding-left:20px; font-size:13px; color:#444;'>
+                    <li style='margin-bottom:10px;'>Verification of core student data and legal documentation.</li>
+                    {(grade >= 10
+                                ? "<li style='margin-bottom:10px;'><strong>Academic Stream Selection:</strong> Configuration of Senior Phase elective modules.</li>"
+                                : "<li style='margin-bottom:10px;'>Final review of the Grade " + grade + " prescribed curriculum.</li>")}
+                    <li>Authentication and submission of the Institutional Registration.</li>
+                </ul>
+            </div>
+
+            <p style='font-size:14px; color:#666;'>Once this record is formalized, the student's institutional identity will be provisioned, and secure access credentials will be dispatched to this address.</p>
+
+            <div style='text-align:center; margin-top:50px;'>
+                <a href='{_baseUrl}/Account/Login'
+                   style='background-color:#1a1a1a; color:#ffffff; padding:20px 45px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block; border:1px solid #1a1a1a;'>
+                    Log In to Registration Ledger
+                </a>
+            </div>
+        </div>
+
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>
+                Michaelhouse &nbsp;·&nbsp; Balgowan &nbsp;·&nbsp; KwaZulu-Natal
+            </p>
+            <p style='margin:15px 0 0; font-size:8px; color:#cccccc; text-transform:uppercase; letter-spacing:1px;'>
+                Secure Communication &nbsp;·&nbsp; Ref: MHS-ENR-{DateTime.Now.Year}
+            </p>
         </div>
     </div>
-    <div style='background:#f4f6f9;padding:16px 32px;text-align:center;color:#888;font-size:0.8rem;'>
-        Michaelhouse Enrollment System — This is an automated message.
-    </div>
-</body></html>";
+</body>
+</html>";
 
             Send(parentEmail, subject, body);
         }
-
         // ─── Application Flagged ──────────────────────────────────────────────────
 
         public void SendApplicationFlagged(
-            string parentEmail, string parentName,
-            string studentName, int appId, string adminNotes)
+    string parentEmail, string parentName,
+    string studentName, int appId, string adminNotes)
         {
-            var subject = $"Action Required — {studentName}'s Application Has Been Flagged";
+            var subject = $"URGENT: Application Action Required — {studentName} (Ref: #{appId})";
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
 
             var body = $@"
-<html><body style='font-family:Segoe UI,sans-serif;color:#333;max-width:600px;margin:0 auto;'>
-    <div style='background:#1a3c5e;padding:24px 32px;'>
-        <h2 style='color:#fff;margin:0;'>Michaelhouse</h2>
-        <p style='color:rgba(255,255,255,0.7);margin:4px 0 0;'>Enrollment Management System</p>
-    </div>
-    <div style='padding:32px;background:#fff;'>
-        <div style='background:#fff8e1;border-left:4px solid #e8a020;padding:16px;border-radius:4px;margin-bottom:24px;'>
-            <h3 style='margin:0 0 8px;color:#b35c00;'>⚠ Application Flagged — Action Required</h3>
-            <p style='margin:0;color:#5a4000;'>Application #{appId} for <strong>{studentName}</strong> requires your attention.</p>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>Enrollment Management Division</p>
         </div>
-        <p>Dear {parentName},</p>
-        <p>Your application has been reviewed and flagged. Please log in to resubmit the required documents.</p>
-        {(!string.IsNullOrEmpty(adminNotes) ? $"<div style='background:#f8f9fa;padding:16px;border-radius:8px;margin:20px 0;'><p style='margin:0;font-weight:600;'>Message from Admissions:</p><p style='margin:8px 0 0;'>{adminNotes}</p></div>" : "")}
-        <div style='text-align:center;margin:32px 0;'>
-            <a href='{_baseUrl}/Account/Login'
-               style='background:#1a3c5e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;'>
-                Log In to Resubmit
-            </a>
+
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {parentName},</h2>
+            
+            <p style='font-size:16px; margin-bottom:25px;'>The enrollment application for <strong>{studentName}</strong> (Dossier #{appId}) has been reviewed by our admissions office and requires <strong>immediate attention</strong>.</p>
+            
+            <div style='margin:40px 0; padding:30px; border-left:4px solid #C21E2E; background-color:#fff5f5;'>
+                <h4 style='margin:0 0 12px; text-transform:uppercase; letter-spacing:2px; font-size:11px; color:#C21E2E; font-weight:bold;'>Admissions Query / Flag</h4>
+                <p style='margin:0; font-size:14px; color:#1a1a1a;'>An administrative flag has been placed on the record for the following reason:</p>
+                
+                <div style='margin-top:15px; padding:15px; background-color:#ffffff; border:1px solid #ebdada; font-style:italic; font-size:13px; color:#444;'>
+                    ""{(string.IsNullOrEmpty(adminNotes) ? "Please review your submitted documentation for errors or missing attachments." : adminNotes)}""
+                </div>
+            </div>
+
+            <p style='font-size:14px; color:#666;'>To proceed with the enrollment process, please log in to the Parent Portal to resubmit the flagged documentation or provide the requested information.</p>
+
+            <div style='text-align:center; margin-top:50px;'>
+                <a href='{_baseUrl}/Account/Login'
+                   style='background-color:#C21E2E; color:#ffffff; padding:20px 45px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block; border:1px solid #C21E2E;'>
+                    Access Application Dossier
+                </a>
+            </div>
+        </div>
+
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>
+                Michaelhouse &nbsp;·&nbsp; Balgowan &nbsp;·&nbsp; KwaZulu-Natal
+            </p>
+            <p style='margin:15px 0 0; font-size:8px; color:#cccccc; text-transform:uppercase; letter-spacing:1px;'>
+                Secure Communication &nbsp;·&nbsp; Case Ref: FLAG-{appId}-{DateTime.Now.Year}
+            </p>
         </div>
     </div>
-    <div style='background:#f4f6f9;padding:16px 32px;text-align:center;color:#888;font-size:0.8rem;'>
-        Michaelhouse Enrollment System — This is an automated message.
-    </div>
-</body></html>";
+</body>
+</html>";
 
             Send(parentEmail, subject, body);
         }
@@ -115,35 +168,76 @@ namespace Michaelhouse.Services
         // ─── Student Account Created ──────────────────────────────────────────────
 
         public void SendStudentAccountCreated(
-            string parentEmail, string parentName,
-            string studentName, string studentEmail,
-            string tempPassword, int grade)
+    string parentEmail, string parentName,
+    string studentName, string studentEmail,
+    string tempPassword, int grade)
         {
-            var subject = $"Student Account Created — {studentName}'s Login Details";
+            var subject = $"OFFICIAL NOTICE: Student Identity Provisioned — {studentName} (Grade {grade})";
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
 
             var body = $@"
-<html><body style='font-family:Segoe UI,sans-serif;color:#333;max-width:600px;margin:0 auto;'>
-    <div style='background:#1a3c5e;padding:24px 32px;'>
-        <h2 style='color:#fff;margin:0;'>Michaelhouse</h2>
-    </div>
-    <div style='padding:32px;background:#fff;'>
-        <p>Dear {parentName},</p>
-        <p>Registration for <strong>{studentName}</strong> (Grade {grade}) has been completed successfully. A student account has been created.</p>
-        <div style='background:#f8f9fa;padding:20px;border-radius:8px;margin:24px 0;border:1px solid #e0e0e0;'>
-            <p style='margin:0 0 12px;font-weight:600;color:#1a3c5e;'>Student Login Credentials</p>
-            <table style='width:100%;'>
-                <tr><td style='padding:6px 0;color:#666;width:40%;'>Email</td><td style='font-weight:600;'>{studentEmail}</td></tr>
-                <tr><td style='padding:6px 0;color:#666;'>Temporary Password</td><td style='font-weight:600;font-family:monospace;font-size:1.1rem;'>{tempPassword}</td></tr>
-            </table>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>Information Technology Division</p>
         </div>
-        <div style='background:#fff3e0;padding:12px 16px;border-radius:6px;'>
-            <p style='margin:0;font-size:0.9rem;color:#e65100;'><strong>Important:</strong> Please log in and change the temporary password immediately.</p>
+
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {parentName},</h2>
+            
+            <p style='font-size:16px; margin-bottom:25px;'>Registration for <strong>{studentName}</strong> (Grade {grade}) has been finalized. An institutional identity has been provisioned within the Michaelhouse digital network.</p>
+            
+            <div style='margin:40px 0; border:1px solid #1a1a1a; background-color:#ffffff; position:relative;'>
+                <div style='background-color:#1a1a1a; color:#ffffff; padding:10px 20px; font-size:10px; font-weight:bold; letter-spacing:2px; text-transform:uppercase;'>
+                    Access Credentials
+                </div>
+                <div style='padding:30px;'>
+                    <table style='width:100%; border-collapse:collapse;'>
+                        <tr>
+                            <td style='padding:10px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase; width:40%;'>Institutional ID</td>
+                            <td style='padding:10px 0; font-size:14px; color:#1a1a1a; font-weight:bold;'>{studentEmail}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:10px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;'>Access Key</td>
+                            <td style='padding:10px 0; font-size:16px; color:#C21E2E; font-family:""Source Code Pro"", monospace; font-weight:bold;'>{tempPassword}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div style='background-color:#fafafa; border-left:4px solid #1a1a1a; padding:20px; margin-bottom:40px;'>
+                <p style='margin:0; font-size:12px; color:#555;'><strong>Security Protocol:</strong> For the protection of student data, this temporary access key must be rotated upon the first successful authentication.</p>
+            </div>
+
+            <div style='text-align:center;'>
+                <a href='{_baseUrl}/Account/Login'
+                   style='background-color:#1a1a1a; color:#ffffff; padding:20px 45px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block;'>
+                    Initialize Login Sequence
+                </a>
+            </div>
+        </div>
+
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>
+                Michaelhouse &nbsp;·&nbsp; Information Systems &nbsp;·&nbsp; KZN
+            </p>
+            <p style='margin:15px 0 0; font-size:8px; color:#cccccc; text-transform:uppercase; letter-spacing:1px;'>
+                Secure Provisioning Notice &nbsp;·&nbsp; Ref: SYS-ID-{DateTime.Now.Ticks.ToString().Substring(10)}
+            </p>
         </div>
     </div>
-    <div style='background:#f4f6f9;padding:16px 32px;text-align:center;color:#888;font-size:0.8rem;'>
-        Michaelhouse Enrollment System — This is an automated message.
-    </div>
-</body></html>";
+</body>
+</html>";
 
             Send(parentEmail, subject, body);
         }
@@ -181,6 +275,184 @@ namespace Michaelhouse.Services
             {
                 System.Diagnostics.Debug.WriteLine($"Email failed: {ex.Message}");
             }
+        }
+
+        public void SendApplicationApprovedWithPayment(
+     string parentEmail, string parentName,
+     string studentName, int grade,
+     string invoiceNumber, decimal registrationFee)
+        {
+            var subject = $"FINANCIAL NOTICE: Enrollment Approved — Payment Required: {studentName}";
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
+
+            var body = $@"
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>Bursary & Enrollment Division</p>
+        </div>
+
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {parentName},</h2>
+            
+            <p style='font-size:16px; margin-bottom:25px;'>We are pleased to offer <strong>{studentName}</strong> a place at Michaelhouse for Grade {grade}.</p>
+            
+            <div style='margin:40px 0; border:1px solid #1a1a1a; background-color:#ffffff; position:relative;'>
+                <div style='background-color:#1a1a1a; color:#ffffff; padding:12px 20px; font-size:10px; font-weight:bold; letter-spacing:2px; text-transform:uppercase;'>
+                    Securing Placement — Action Required
+                </div>
+                <div style='padding:30px; background-color:#fafafa;'>
+                    <p style='margin:0 0 20px; font-size:13px; color:#666;'>To formally secure this position, the non-refundable registration fee must be settled through the financial ledger.</p>
+                    <table style='width:100%; border-collapse:collapse;'>
+                        <tr style='border-bottom:1px solid #eee;'>
+                            <td style='padding:12px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;'>Invoice Number</td>
+                            <td style='padding:12px 0; font-size:14px; color:#1a1a1a; font-weight:bold; text-align:right;'>{invoiceNumber}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:12px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;'>Amount Due</td>
+                            <td style='padding:12px 0; font-size:22px; color:#C21E2E; font-family:""Playfair Display"", serif; font-weight:bold; text-align:right;'>ZAR {registrationFee:N2}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div style='text-align:center; margin-bottom:50px;'>
+                <a href='{_baseUrl}/Account/Login'
+                   style='background-color:#1a1a1a; color:#ffffff; padding:20px 45px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block; border:1px solid #1a1a1a;'>
+                    Settle Account Ledger
+                </a>
+            </div>
+
+            <div style='border-top:2px solid #1a1a1a; pt-30;'>
+                <h4 style='font-family:""Playfair Display"", serif; font-size:18px; color:#1a1a1a; margin:30px 0 15px;'>Institutional Fee Structure — 2026</h4>
+                <table style='width:100%; border-collapse:collapse; font-size:12px;'>
+                    <tr style='border-bottom:1px solid #f0f0f0;'>
+                        <td style='padding:10px 0; color:#666;'>Registration Fee (Non-Refundable)</td>
+                        <td style='padding:10px 0; font-weight:bold; text-align:right; color:#1a1a1a;'>ZAR 950</td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #f0f0f0;'>
+                        <td style='padding:10px 0; color:#666;'>Annual Board & Tuition (E to A Block)</td>
+                        <td style='padding:10px 0; font-weight:bold; text-align:right; color:#1a1a1a;'>ZAR 417,000</td>
+                    </tr>
+                    <tr style='border-bottom:1px solid #f0f0f0;'>
+                        <td style='padding:10px 0; color:#666;'>Voluntary Development Levy</td>
+                        <td style='padding:10px 0; font-weight:bold; text-align:right; color:#1a1a1a;'>ZAR 6,800</td>
+                    </tr>
+                    <tr>
+                        <td style='padding:10px 0; color:#C21E2E; font-weight:bold;'>Advance Payment Rebate (Annual)</td>
+                        <td style='padding:10px 0; font-weight:bold; text-align:right; color:#C21E2E;'>- ZAR 16,680</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>
+                Michaelhouse &nbsp;·&nbsp; Balgowan &nbsp;·&nbsp; KwaZulu-Natal
+            </p>
+            <p style='margin:15px 0 0; font-size:8px; color:#cccccc; text-transform:uppercase; letter-spacing:1px;'>
+                Official Financial Communication &nbsp;·&nbsp; Ref: MHS-FIN-{DateTime.Now.Year}-{invoiceNumber}
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            Send(parentEmail, subject, body);
+        }
+        public void SendTeacherAccountCreated(
+     string teacherEmail, string teacherName,
+     string loginEmail, string tempPassword,
+     System.Collections.Generic.List<string> subjectAssignments)
+        {
+            var subject = $"OFFICIAL NOTICE: Faculty Provisioning Complete — {teacherName}";
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
+
+            var assignmentRows = string.Join("",
+                subjectAssignments.Select(s =>
+                    $"<tr style='border-bottom:1px solid #f9f9f9;'><td style='padding:12px 0; font-size:13px; color:#1a1a1a;'><span style='color:#C21E2E; margin-right:10px;'>&bull;</span> {s}</td></tr>"));
+
+            var body = $@"
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>Faculty Registry & Human Capital</p>
+        </div>
+
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {teacherName},</h2>
+            
+            <p style='font-size:16px; margin-bottom:25px;'>Your faculty profile has been successfully provisioned within the Michaelhouse digital ledger. Your institutional access credentials have been initialized.</p>
+            
+            <div style='margin:40px 0; border:1px solid #1a1a1a; background-color:#ffffff;'>
+                <div style='background-color:#1a1a1a; color:#ffffff; padding:10px 20px; font-size:10px; font-weight:bold; letter-spacing:2px; text-transform:uppercase;'>
+                    Staff Access Credentials
+                </div>
+                <div style='padding:30px; background-color:#fafafa;'>
+                    <table style='width:100%; border-collapse:collapse;'>
+                        <tr style='border-bottom:1px solid #eee;'>
+                            <td style='padding:10px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase; width:40%;'>Official ID</td>
+                            <td style='padding:10px 0; font-size:14px; color:#1a1a1a; font-weight:bold;'>{loginEmail}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:10px 0; font-size:11px; font-weight:bold; color:#999; text-transform:uppercase;'>Temporary Key</td>
+                            <td style='padding:10px 0; font-size:16px; color:#C21E2E; font-family:""Source Code Pro"", monospace; font-weight:bold;'>{tempPassword}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div style='margin-bottom:40px;'>
+                <h4 style='font-family:""Playfair Display"", serif; font-size:16px; color:#1a1a1a; border-bottom:2px solid #C21E2E; padding-bottom:8px; margin-bottom:15px;'>Current Subject Allocations</h4>
+                <table style='width:100%; border-collapse:collapse;'>
+                    {assignmentRows}
+                </table>
+            </div>
+
+            <div style='background-color:#f9f9f9; border-left:4px solid #1a1a1a; padding:20px; margin-bottom:40px;'>
+                <p style='margin:0; font-size:11px; color:#555; text-transform:uppercase; letter-spacing:1px;'><strong>Security Requirement:</strong> This temporary key must be rotated upon first authentication to secure your staff record.</p>
+            </div>
+
+            <div style='text-align:center;'>
+                <a href='{_baseUrl}/Account/Login'
+                   style='background-color:#1a1a1a; color:#ffffff; padding:20px 45px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block;'>
+                    Access Staff Portal
+                </a>
+            </div>
+        </div>
+
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>
+                Michaelhouse &nbsp;·&nbsp; Academic Administration &nbsp;·&nbsp; Balgowan
+            </p>
+            <p style='margin:15px 0 0; font-size:8px; color:#cccccc; text-transform:uppercase; letter-spacing:1px;'>
+                Institutional Provisioning Notice &nbsp;·&nbsp; Case Ref: FAC-{DateTime.Now.Ticks.ToString().Substring(10)}
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            Send(teacherEmail, subject, body);
         }
     }
 }

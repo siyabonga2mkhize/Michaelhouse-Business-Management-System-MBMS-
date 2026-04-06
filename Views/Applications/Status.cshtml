@@ -3,176 +3,150 @@
 @{
     ViewBag.Title = "Application Status";
     var adminReview = Model.AdminReviews?.OrderByDescending(r => r.Date).FirstOrDefault();
-    int pct = Model.Status == ApplicationStatus.Pending ? 0
-            : Model.Status == ApplicationStatus.UnderAiReview ? 33
-            : Model.Status == ApplicationStatus.AwaitingAdminDecision ? 66
-            : Model.Status == ApplicationStatus.Flagged ? 66 : 100;
 
-    // Check if a registration exists for this application
-    Michaelhouse.Models.Registration registration = null;
-    using (var db = new Michaelhouse.Models.DBContextClass())
-    {
-        registration = db.Registrations.FirstOrDefault(r => r.AppId == Model.AppId);
-    }
+    // Percentage for the refined progress bar
+    int pct = Model.Status == ApplicationStatus.Pending ? 5
+            : Model.Status == ApplicationStatus.UnderAiReview ? 35
+            : Model.Status == ApplicationStatus.AwaitingAdminDecision ? 70
+            : Model.Status == ApplicationStatus.Flagged ? 70 : 100;
 
-    // Quick fix helper for the proxy issue
+    // Helper for display
     string studentName = Model.Student != null ? Model.Student.Name : "Student";
+
+    // Outcome Logic
+    bool isApproved = Model.Status == ApplicationStatus.Approved;
+    bool isRejected = Model.Status == ApplicationStatus.Rejected;
+    bool isFlagged = Model.Status == ApplicationStatus.Flagged;
+    bool isPending = !isApproved && !isRejected && !isFlagged;
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="mb-12 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
     <div>
-        <h3 class="mb-0">
-            <i class="bi bi-file-earmark-text me-2 text-warning"></i>Application #@Model.AppId
-        </h3>
-        <small class="text-muted">Submitted @Model.Date.ToString("dd MMM yyyy HH:mm")</small>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Application Tracking</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Status of MH-@Model.AppId</h2>
+        <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Submitted @Model.Date.ToString("dd MMM yyyy")</p>
     </div>
-    <a href="@Url.Action("Index", "Applications")" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Back
+    <a href="@Url.Action("Index", "Applications")" class="text-[10px] uppercase font-bold tracking-widest text-gray-400 hover:text-[#C21E2E] transition-all">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
     </a>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body py-4">
-        <div class="d-flex justify-content-between align-items-center position-relative">
-            <div class="position-absolute" style="top:22px;left:8%;right:8%;height:4px;background:#e0e0e0;z-index:0;">
-                <div class="h-100 rounded" style="background:#1a3c5e;width:@pct%;"></div>
-            </div>
-            @foreach (var step in new[] {
-                new { Icon = "bi-send",         Label = "Submitted",    Val = 0 },
-                new { Icon = "bi-robot",        Label = "AI Review",    Val = 1 },
-                new { Icon = "bi-person-check", Label = "Admin Review", Val = 2 },
-                new { Icon = "bi-trophy",       Label = "Outcome",      Val = 3 }
-            })
-            {
-                bool active = (int)Model.Status >= step.Val;
-                bool current = (int)Model.Status == step.Val;
-                <div class="text-center position-relative flex-fill" style="z-index:1;">
-                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center"
-                         style="width:44px;height:44px;
-                                background:@(active ? "#1a3c5e" : "#e0e0e0");
-                                color:@(active ? "#fff" : "#aaa");
-                                border:@(current ? "3px solid #e8a020" : "3px solid transparent");">
-                        <i class="bi @step.Icon"></i>
-                    </div>
-                    <div class="mt-2 small fw-semibold" style="color:@(active ? "#1a3c5e" : "#bbb");">@step.Label</div>
+<div class="mb-16 relative px-4">
+    <div class="absolute top-5 left-0 w-full h-[2px] bg-gray-100"></div>
+    <div class="absolute top-5 left-0 h-[2px] bg-[#C21E2E] transition-all duration-1000" style="width: @pct%"></div>
+
+    <div class="row relative z-10">
+        @{
+            var steps = new[] {
+                new { Label = "Submission", Sub = "Received", Icon = "bi-send", Val = 0 },
+                new { Label = "Neural Scan", Sub = "AI Analysis", Icon = "bi-cpu", Val = 1 },
+                new { Label = "Review", Sub = "Admissions Board", Icon = "bi-shield-check", Val = 2 },
+                new { Label = "Outcome", Sub = "Final Decision", Icon = "bi-mortarboard", Val = 3 }
+            };
+        }
+        @foreach (var step in steps)
+        {
+            bool isActive = (int)Model.Status >= step.Val;
+            <div class="col-3 text-center">
+                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-2 transition-all duration-500 @(isActive ? "bg-[#C21E2E] border-[#C21E2E] text-white shadow-lg shadow-red-200" : "bg-white border-gray-100 text-gray-300")">
+                    <i class="bi @step.Icon text-sm"></i>
                 </div>
-            }
-        </div>
+                <h6 class="mt-4 text-[10px] uppercase font-bold tracking-widest @(isActive ? "text-gray-900" : "text-gray-300")">@step.Label</h6>
+                <p class="text-[9px] text-gray-400 italic">@step.Sub</p>
+            </div>
+        }
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-5">
-        <div class="card mb-3">
-            <div class="card-header"><i class="bi bi-person me-2"></i>Student Details</div>
-            <div class="card-body p-0">
-                <table class="table table-sm table-borderless mb-0">
-                    <tr><td class="text-muted ps-3 py-2">Name</td><td class="fw-semibold">@studentName</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Date of Birth</td><td>@Model.Student?.DOB.ToString("dd MMM yyyy")</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Grade Applying</td><td>Grade @Model.GradeApplying</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Year</td><td>@Model.ApplicationYear</td></tr>
-                    <tr><td class="text-muted ps-3 py-2">Status</td><td>@Html.Partial("_StatusBadge", Model.Status)</td></tr>
-                </table>
+<div class="row g-5">
+    <div class="col-lg-4">
+        <div class="space-y-6 sticky top-24">
+            <div class="bg-[#FBFBFB] p-8 border border-gray-100 relative overflow-hidden">
+                <i class="bi bi-person absolute -right-4 -top-4 text-black/5 text-7xl"></i>
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">Student File</h5>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest">Candidate</label>
+                        <p class="text-sm font-bold">@studentName</p>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest">Applying For</label>
+                        <p class="text-sm font-bold font-serif">Grade @Model.GradeApplying, @Model.ApplicationYear</p>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header"><i class="bi bi-paperclip me-2"></i>Documents</div>
-            <ul class="list-group list-group-flush">
-                @if (Model.Documents != null && Model.Documents.Any())
-                {
-                    foreach (var d in Model.Documents)
+            <div class="ps-4 border-l border-gray-100">
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Verification Docs</h5>
+                <ul class="space-y-3">
+                    @foreach (var d in Model.Documents)
                     {
-                        <li class="list-group-item">
-                            <i class="bi bi-file-earmark-fill text-primary me-2"></i>
-                            <strong>@d.Type</strong>
-                            <div class="text-muted small ms-4">@d.FileName</div>
+                        <li class="flex items-center gap-3">
+                            <i class="bi bi-file-earmark-check text-[#C21E2E]"></i>
+                            <span class="text-[11px] font-bold uppercase text-gray-600">@d.Type</span>
                         </li>
                     }
-                }
-                else
-                {
-                    <li class="list-group-item text-muted small">No documents.</li>
-                }
-            </ul>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-7">
-
-        @if (Model.Status == ApplicationStatus.Approved)
+    <div class="col-lg-8">
+        @if (isApproved)
         {
-            <div class="card border-success mb-3">
-                <div class="card-body text-center py-4">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
-                    <h4 class="mt-3 text-success">Application Approved!</h4>
-                    <p class="text-muted">
-                        Congratulations! @studentName has been accepted.
-                        Please complete the registration process to secure the placement.
+            <div class="bg-white border border-green-100 p-10 shadow-2xl shadow-green-900/5 relative overflow-hidden text-center">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <i class="bi bi-stars absolute -right-4 -top-4 text-green-500/10 text-8xl"></i>
+
+                <div class="relative z-10">
+                    <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-6 shadow-xl">
+                        <i class="bi bi-check-lg text-4xl"></i>
+                    </div>
+                    <h3 class="text-4xl font-serif font-bold text-gray-900 mb-4">Welcome to Michaelhouse</h3>
+                    <p class="text-gray-500 italic font-serif leading-relaxed max-w-lg mx-auto mb-8">
+                        Congratulations. We are pleased to inform you that @studentName's application has been successful.
                     </p>
-
-                    @if (registration == null || registration.Status != Michaelhouse.Models.Enums.RegistrationStatus.Completed)
-                    {
-                        <div class="alert alert-warning mt-3">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <strong>Action Required:</strong> Please complete the registration to finalise enrolment.
-                        </div>
-                        <a href="@Url.Action("Index", "Registration", new { appId = Model.AppId })"
-                           class="btn btn-success btn-lg mt-2">
-                            <i class="bi bi-clipboard-check me-2"></i>Complete Registration
-                        </a>
-                    }
-                    else
-                    {
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-patch-check-fill me-2"></i>
-                            <strong>Registration Complete!</strong> @studentName is fully enrolled.
-                        </div>
-                        <a href="@Url.Action("Complete", "Registration", new { appId = Model.AppId })"
-                           class="btn btn-outline-success">
-                            <i class="bi bi-eye me-1"></i>View Registration Summary
-                        </a>
-                    }
+                    <a href="@Url.Action("Index", "Registration", new { appId = Model.AppId })" class="bg-[#C21E2E] text-white px-12 py-4 font-bold uppercase tracking-[4px] text-[11px] hover:bg-black transition-all d-inline-block shadow-lg active:scale-95">
+                        Begin Formal Registration
+                    </a>
                 </div>
             </div>
         }
-        else if (Model.Status == ApplicationStatus.Rejected)
+        else if (isRejected)
         {
-            <div class="card border-danger text-center py-4 mb-3">
-                <div class="card-body">
-                    <i class="bi bi-x-circle-fill text-danger" style="font-size:3rem;"></i>
-                    <h4 class="mt-3 text-danger">Application Unsuccessful</h4>
-                    <p class="text-muted">We regret that @studentName's application was unsuccessful. Please contact the school for more information.</p>
-                </div>
+            <div class="bg-white border border-gray-200 p-12 text-center shadow-sm">
+                <i class="bi bi-x-circle text-red-100 text-6xl mb-6 d-block"></i>
+                <h4 class="font-serif text-2xl text-gray-800">Application Update</h4>
+                <p class="text-gray-400 text-sm mt-4 italic leading-relaxed">
+                    We regret to inform you that we are unable to proceed with this application at this time.
+                    Official correspondence has been sent to your registered email.
+                </p>
             </div>
         }
-        @* ... keeping rest of the branches as they are ... *@
-        else if (Model.Status == ApplicationStatus.Flagged)
+        else if (isFlagged)
         {
-            <div class="card border-warning text-center py-4 mb-3">
-                <div class="card-body">
-                    <i class="bi bi-flag-fill text-warning" style="font-size:3rem;"></i>
-                    <h4 class="mt-3">Application Flagged</h4>
-                    <p class="text-muted">Your application needs attention. Please check your email for details on what to resubmit.</p>
+            <div class="bg-amber-50 border border-amber-200 p-10 relative overflow-hidden">
+                <i class="bi bi-exclamation-triangle absolute -right-6 -bottom-6 text-amber-500/10 text-9xl rotate-12"></i>
+                <div class="relative z-10">
+                    <span class="bg-amber-500 text-white text-[9px] font-bold uppercase tracking-widest px-3 py-1 mb-4 d-inline-block">Action Required</span>
+                    <h4 class="text-2xl font-serif text-amber-900 mb-2">Further Information Required</h4>
+                    <p class="text-amber-800 text-sm italic">Our board has flagged this application for further clarification. Please check the message below.</p>
                 </div>
             </div>
         }
         else
         {
-            <div class="card mb-3">
-                <div class="card-body text-center py-4">
-                    <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
-                    <h5>
-                        @if (Model.Status == ApplicationStatus.Pending)
-                        {<text>Application received — AI review will begin shortly.</text> }
-                    else if (Model.Status == ApplicationStatus.UnderAiReview)
-                    { <text>AI is reviewing your documents...</text> }
-                else if (Model.Status == ApplicationStatus.AwaitingAdminDecision)
-                { <text>Awaiting final decision from our admissions team.</text>}
-                    </h5>
-                    <a href="@Url.Action("Status", "Applications", new { id = Model.AppId })"
-                       class="btn btn-outline-primary btn-sm mt-2">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh Status
+            <div class="bg-white border border-gray-100 p-12 text-center shadow-sm relative overflow-hidden">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+                <div class="spinner-border text-[#C21E2E] mb-6" style="width: 3rem; height: 3rem; border-width: .2em;"></div>
+                <h4 class="text-xl font-serif font-bold text-gray-900 mb-2">Review in Progress</h4>
+                <p class="text-gray-400 text-[10px] uppercase tracking-[3px] font-bold">Secure Processing Environment</p>
+                <div class="mt-8">
+                    <a href="@Url.Action("Status", "Applications", new { id = Model.AppId })" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 hover:text-[#C21E2E] transition-all">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Force Refresh
                     </a>
                 </div>
             </div>
@@ -180,13 +154,22 @@
 
         @if (adminReview != null && !string.IsNullOrEmpty(adminReview.AdminNotes))
         {
-            <div class="card">
-                <div class="card-header"><i class="bi bi-chat-left-text me-2"></i>Message from Admissions</div>
-                <div class="card-body">
-                    <p class="mb-1">@adminReview.AdminNotes</p>
-                    <small class="text-muted">@adminReview.Date.ToString("dd MMM yyyy")</small>
+            <div class="mt-10 pt-10 border-t border-gray-100">
+                <div class="flex items-center gap-2 mb-6">
+                    <i class="bi bi-chat-left-quote text-[#C21E2E]"></i>
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900">Official Correspondence</h5>
+                </div>
+                <div class="ps-8 border-l-2 border-gray-100">
+                    <p class="text-md font-serif italic text-gray-600 leading-relaxed mb-4">"@adminReview.AdminNotes"</p>
+                    <p class="text-[9px] uppercase font-bold text-gray-400 tracking-widest">Admissions Office &mdash; @adminReview.Date.ToString("dd MMM yyyy")</p>
                 </div>
             </div>
         }
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

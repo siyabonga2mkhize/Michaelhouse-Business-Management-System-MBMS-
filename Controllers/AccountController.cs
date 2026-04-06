@@ -39,6 +39,46 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
 
+            using (var db = new DBContextClass())
+            {
+                var hash = HashPassword(vm.Password);
+                var user = db.Users.FirstOrDefault(u =>
+                    u.Email == vm.Email && u.PasswordHash == hash);
+
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "Invalid email or password.");
+                    return View(vm);
+                }
+
+                // Set session
+                Session["UserId"] = user.UserId;
+                Session["UserName"] = user.Name;
+                Session["UserRole"] = user.Role;
+
+                if (user.Role == "Parent")
+                {
+                    var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
+                    if (parent != null)
+                        Session["ParentId"] = parent.ParentId;
+                }
+                else if (user.Role == "Student")
+                {
+                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                    if (student != null)
+                        Session["StudentId"] = student.StudentId;
+                }
+
+				else if (user.Role == "Teacher")
+				{
+					var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+					if (teacher != null)
+						Session["TeacherId"] = teacher.TeacherId;
+				}
+
+				return RedirectByRole(user.Role);
+            }
+        }
 
         // ─── Register ─────────────────────────────────────────────────────────────
 
@@ -196,14 +236,17 @@ namespace Michaelhouse.Controllers
 
         private ActionResult RedirectByRole(string role)
         {
+<<<<<<< HEAD
             if (role == "Admin")
                 return RedirectToAction("Dashboard", "Admin");
-            if (role == "Teacher")
-                return RedirectToAction("Index", "TeacherAttendance");
-            return RedirectToAction("Index", "Applications");
+                case "Parent": return RedirectToAction("Dashboard", "Parents");
+                case "Student": return RedirectToAction("Dashboard", "Students");
+                case "Teacher": return RedirectToAction("Index", "Marks");
+				default: return RedirectToAction("Login", "Account");
+            }
+>>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         }
 
-        public static string HashPassword(string password)
         {
             using (var sha = SHA256.Create())
             {

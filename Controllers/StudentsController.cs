@@ -13,6 +13,12 @@ namespace Michaelhouse.Controllers
     public class StudentsController : Controller
     {
         private DBContextClass db = new DBContextClass();
+        private int GetCurrentStudentId()
+        {
+            if (Session["StudentId"] == null)
+                return 0;
+            return (int)Session["StudentId"];
+        }
 
         // GET: Students
         public ActionResult Index()
@@ -128,5 +134,38 @@ namespace Michaelhouse.Controllers
             }
             base.Dispose(disposing);
         }
+		public ActionResult Dashboard()
+		{
+			int userId = (int)Session["UserId"];
+			using (var db = new DBContextClass())
+			{
+				// CRITICAL: .Include("Parent") ensures the Guardian data is loaded
+				var student = db.Students
+					.Include("Parent")
+					.FirstOrDefault(s => s.UserId == userId);
+
+				if (student == null) return RedirectToAction("Login", "Account");
+
+				var reg = db.Registrations
+					.FirstOrDefault(r => r.StudentId == student.StudentId);
+
+				// CRITICAL: .Include("Subject") ensures the Subject names are loaded
+				var subjects = db.StudentSubjects
+					.Include("Subject")
+					.Where(ss => ss.StudentId == student.StudentId)
+					.ToList();
+
+				var streamEnr = db.StreamEnrolments
+					.FirstOrDefault(se => se.StudentId == student.StudentId);
+
+				ViewBag.Student = student;
+				ViewBag.Registration = reg;
+				ViewBag.Subjects = subjects;
+				ViewBag.StreamEnrolment = streamEnr;
+
+				return View();
+			}
+		}
+	
     }
 }

@@ -1,94 +1,190 @@
 ﻿using System.Data.Entity;
+<<<<<<< HEAD
 
+=======
+>>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
     public class DBContextClass : DbContext
     {
-        public DBContextClass() : base("MichaelHouse")
+        public DBContextClass() : base("name=MichaelHouse")
         {
-            //this.Configuration.ProxyCreationEnabled = false;
             Database.CommandTimeout = 60;
         }
 
+        public DbSet<AppUser> Users { get; set; }
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Application> Applications { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<AdminReview> AdminReviews { get; set; }
-        public DbSet<AppUser> Users { get; set; }
         public DbSet<Registration> Registrations { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<StudentSubject> StudentSubjects { get; set; }
+<<<<<<< HEAD
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<TeacherAttendance> TeacherAttendances { get; set; }
+=======
+        public DbSet<StreamEnrolment> StreamEnrolments { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Teacher> Teachers { get; set; }
+        public DbSet<TeacherSubjectGrade> TeacherSubjectGrades { get; set; }
+        public DbSet<Period> Periods { get; set; }
+        public DbSet<TimetableSlot> TimetableSlots { get; set; }
+        public DbSet<Assessment> Assessments { get; set; }
+        public DbSet<StudentMark> StudentMarks { get; set; }
+        public DbSet<TermResult> TermResults { get; set; }
+        public DbSet<YearResult> YearResults { get; set; }
+>>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Application → Student (no cascade to avoid multiple cascade paths)
+            // ── Existing relationships ────────────────────────────────────────
+
             modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Student)
-                .WithMany(s => s.Applications)
-                .HasForeignKey(a => a.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasRequired(a => a.Student).WithMany(s => s.Applications)
+                .HasForeignKey(a => a.StudentId).WillCascadeOnDelete(false);
 
-            // Application → Parent (no cascade)
             modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Parent)
-                .WithMany()
-                .HasForeignKey(a => a.ParentId)
-                .WillCascadeOnDelete(false);
+                .HasRequired(a => a.Parent).WithMany()
+                .HasForeignKey(a => a.ParentId).WillCascadeOnDelete(false);
 
-            // Document → Application (cascade delete documents with application)
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Application)
-                .WithMany(a => a.Documents)
-                .HasForeignKey(d => d.AppId)
-                .WillCascadeOnDelete(true);
+                .HasRequired(d => d.Application).WithMany(a => a.Documents)
+                .HasForeignKey(d => d.AppId).WillCascadeOnDelete(true);
 
-            // Document → Student (no cascade)
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Student)
-                .WithMany()
-                .HasForeignKey(d => d.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasRequired(d => d.Student).WithMany()
+                .HasForeignKey(d => d.StudentId).WillCascadeOnDelete(false);
 
-            // Parent → AppUser (optional — UserId = 0 in dev mode)
             modelBuilder.Entity<Parent>()
-                .HasOptional(p => p.User) //Remove Id if there's an err
-                .WithMany()
+                .HasOptional(p => p.User).WithMany()
                 .HasForeignKey(p => p.UserId);
 
             modelBuilder.Entity<Student>()
-               .HasOptional(s => s.User)
-               .WithMany()
-               .HasForeignKey(s => s.UserId);
+                .HasOptional(s => s.User).WithMany()
+                .HasForeignKey(s => s.UserId);
 
             modelBuilder.Entity<Registration>()
-               .HasRequired(r => r.Application)
-               .WithMany()
-               .HasForeignKey(r => r.AppId)
-               .WillCascadeOnDelete(false);
+                .HasRequired(r => r.Application).WithMany()
+                .HasForeignKey(r => r.AppId).WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Registration>()
-                .HasRequired(r => r.Student)
+                .HasRequired(r => r.Student).WithMany()
+                .HasForeignKey(r => r.StudentId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasRequired(ss => ss.Student).WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.StudentId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StudentSubject>()
+                .HasRequired(ss => ss.Subject).WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.SubjectId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StreamEnrolment>()
+                .HasRequired(se => se.Student).WithMany()
+                .HasForeignKey(se => se.StudentId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StreamEnrolment>()
+                .HasRequired(se => se.Registration).WithMany()
+                .HasForeignKey(se => se.RegistrationId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Registration).WithMany()
+                .HasForeignKey(i => i.RegistrationId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Student).WithMany()
+                .HasForeignKey(i => i.StudentId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Parent).WithMany()
+                .HasForeignKey(i => i.ParentId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Payment>()
+                .HasRequired(p => p.Invoice).WithMany(i => i.Payments)
+                .HasForeignKey(p => p.InvoiceId).WillCascadeOnDelete(false);
+
+            // ── Teacher relationships ─────────────────────────────────────────
+
+            modelBuilder.Entity<Teacher>()
+                .HasOptional(t => t.User).WithMany()
+                .HasForeignKey(t => t.UserId);
+
+            modelBuilder.Entity<TeacherSubjectGrade>()
+                .HasRequired(tsg => tsg.Teacher)
+                .WithMany(t => t.SubjectAssignments)
+                .HasForeignKey(tsg => tsg.TeacherId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TeacherSubjectGrade>()
+                .HasRequired(tsg => tsg.Subject).WithMany()
+                .HasForeignKey(tsg => tsg.SubjectId)
+                .WillCascadeOnDelete(false);
+
+            // ── Timetable relationships ───────────────────────────────────────
+
+            modelBuilder.Entity<TimetableSlot>()
+                .HasRequired(ts => ts.Teacher)
+                .WithMany(t => t.TimetableSlots)
+                .HasForeignKey(ts => ts.TeacherId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TimetableSlot>()
+                .HasRequired(ts => ts.Subject).WithMany()
+                .HasForeignKey(ts => ts.SubjectId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TimetableSlot>()
+                .HasRequired(ts => ts.Period).WithMany()
+                .HasForeignKey(ts => ts.PeriodId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Assessment>()
+                .HasRequired(a => a.Teacher)
                 .WithMany()
-                .HasForeignKey(r => r.StudentId)
+                .HasForeignKey(a => a.TeacherId)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Student)
-                .WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.StudentId)
+            modelBuilder.Entity<Assessment>()
+                .HasRequired(a => a.Subject)
+                .WithMany()
+                .HasForeignKey(a => a.SubjectId)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Subject)
-                .WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.SubjectId)
+            modelBuilder.Entity<StudentMark>()
+                .HasRequired(sm => sm.Assessment)
+                .WithMany(a => a.StudentMarks)
+                .HasForeignKey(sm => sm.AssessmentmentId)
+                .WillCascadeOnDelete(true);     // deleting an assessment removes its marks
+
+            modelBuilder.Entity<StudentMark>()
+                .HasRequired(sm => sm.Student)
+                .WithMany()
+                .HasForeignKey(sm => sm.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TermResult>()
+                .HasRequired(tr => tr.Student)
+                .WithMany()
+                .HasForeignKey(tr => tr.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TermResult>()
+                .HasRequired(tr => tr.Subject)
+                .WithMany()
+                .HasForeignKey(tr => tr.SubjectId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<YearResult>()
+                .HasRequired(yr => yr.Student)
+                .WithMany()
+                .HasForeignKey(yr => yr.StudentId)
                 .WillCascadeOnDelete(false);
         }
 

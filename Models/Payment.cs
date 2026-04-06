@@ -1,30 +1,40 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+<<<<<<< HEAD
+=======
+using System.ComponentModel.DataAnnotations.Schema;
+>>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
 
 namespace Michaelhouse.Models
 {
     public class Payment
     {
+<<<<<<< HEAD
+=======
+        [Key]
+>>>>>>> fd5ded9f696e1d78c5a52b31a453ae61bc131b0f
         public int PaymentId { get; set; }
 
-        [Display(Name = "Reference Number")]
-        public string ReferenceNumber { get; set; }
-
-        [Display(Name = "Amount")]
-        [DataType(DataType.Currency)]
-        public decimal Amount { get; set; }
-
-        [Display(Name = "Payment Date")]
-        [DataType(DataType.Date)]
-        public DateTime PaymentDate { get; set; }
-
-        [Display(Name = "Payment Method")]
-        public string PaymentMethod { get; set; } // EFT, Card, Cash
-
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Confirmed, Pending
-
+        [ForeignKey("Invoice")]
         public int InvoiceId { get; set; }
         public virtual Invoice Invoice { get; set; }
+
+        public decimal AmountPaid { get; set; }
+
+        public DateTime PaymentDate { get; set; } = DateTime.Now;
+
+        // Stripe charge ID
+        public string StripeChargeId { get; set; }
+
+        // Stripe payment intent ID (for newer Stripe API)
+        public string StripePaymentIntentId { get; set; }
+
+        public string Status { get; set; } // "Success", "Failed", "Refunded"
+
+        // Reference for proof of payment
+        public string PaymentReference { get; set; }
+
+        // Was proof of payment emailed?
+        public bool ProofEmailSent { get; set; }
     }
 }

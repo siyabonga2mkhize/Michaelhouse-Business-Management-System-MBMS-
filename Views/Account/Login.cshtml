@@ -8,138 +8,159 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>f</title>
+    <title>Login — Michaelhouse</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
+        :root {
+            --mh-red: #C21E2E;
+        }
+
         body {
-            background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Montserrat', sans-serif;
         }
 
-        .login-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 420px;
-            overflow: hidden;
+        h1, h2, .font-serif {
+            font-family: 'Playfair Display', serif !important;
         }
 
-        .login-header {
-            background: #1a3c5e;
-            color: #fff;
-            padding: 32px;
-            text-align: center;
+        .bg-image {
+            background-image: url('https://images.unsplash.com/photo-1541339907198-e08756defeec?auto=format&fit=crop&q=80&w=1500');
+            background-size: cover;
+            background-position: center;
         }
 
-            .login-header i {
-                font-size: 2.5rem;
-                color: #e8a020;
-            }
-
-        .login-body {
-            padding: 32px;
+        /* Ensure the logo renders as sharp as possible */
+        .mh-crest {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            max-width: 100%;
         }
 
-        .btn-login {
-            background: #1a3c5e;
-            color: #fff;
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            border: none;
+        .heading-accent::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: var(--mh-red);
+            margin-top: 12px;
         }
 
-            .btn-login:hover {
-                background: #14304d;
-                color: #fff;
-            }
-
-        .divider {
-            text-align: center;
-            color: #aaa;
-            margin: 20px 0;
-            position: relative;
+        .form-input-focus:focus {
+            border-color: var(--mh-red) !important;
+            outline: none;
+            box-shadow: none;
         }
-
-            .divider::before, .divider::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                width: 42%;
-                height: 1px;
-                background: #e0e0e0;
-            }
-
-            .divider::before {
-                left: 0;
-            }
-
-            .divider::after {
-                right: 0;
-            }
     </style>
 </head>
-<body>
-    <div class="login-card">
-        <div class="login-header">
-            <i class="bi bi-mortarboard-fill"></i>
-            <h4 class="mt-2 mb-0">Michaelhouse</h4>
-            <small class="opacity-75">Enrollment Management System</small>
+<body class="bg-white antialiased">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+
+        <div class="hidden md:flex md:w-1/2 bg-image relative items-center justify-center p-16">
+            <div class="absolute inset-0 bg-[#C21E2E]/15 mix-blend-multiply"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+
+            <div class="relative z-10 text-white max-w-lg">
+                <h1 class="text-6xl font-bold mb-6 leading-[1.1] tracking-tight">
+                    Men of Principle <br /><span class="italic font-normal">Tomorrow.</span>
+                </h1>
+                <p class="text-xl text-white/80 italic font-serif leading-relaxed border-l-2 border-white/30 pl-6">
+                    "Our aim is to make, not accountants, not clerks, not clergymen, but men; men of understanding, thought and culture."
+                </p>
+                <div class="mt-12 text-[10px] uppercase tracking-[4px] font-bold text-white/50">
+                    Established 1896
+                </div>
+            </div>
         </div>
-        <div class="login-body">
 
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success small">
-                    <i class="bi bi-check-circle me-1"></i>@TempData["Success"]
+        <div class="w-full md:w-1/2 flex items-center justify-center p-8 lg:p-24 bg-white">
+            <div class="w-full max-w-md">
+
+                <div class="mb-10 text-center md:text-left">
+                    <img src="@Url.Content("~/Content/logo.svg.png")"
+                         alt="Michaelhouse Crest"
+                         class="mh-crest h-32 md:h-40 mx-auto md:mx-0 object-contain mb-6" />
+
+                    <header>
+                        <h2 class="text-3xl text-gray-900 font-bold heading-accent inline-block md:block">Portal Login</h2>
+                        <p class="text-gray-400 mt-4 text-[10px] uppercase tracking-[3px] font-bold">
+                            Management Information System
+                        </p>
+                    </header>
                 </div>
-            }
 
-            @using (Html.BeginForm("Login", "Account", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger small" })
+                @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { @class = "space-y-6" }))
+                {
+                    @Html.AntiForgeryToken()
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@example.com", type = "email" })
+                    if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-red-50 text-red-700 p-4 border-l-4 border-red-600 text-xs mb-6">
+                            @Html.ValidationSummary(true, "")
+                        </div>
+                    }
+
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Email Address</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                <i class="bi bi-envelope text-sm"></i>
+                            </span>
+                            @Html.TextBoxFor(m => m.Email, new
+                            {
+                                @class = "w-full pl-11 pr-4 py-4 border border-gray-200 rounded-none form-input-focus transition-all text-sm",
+                                placeholder = "name@michaelhouse.org",
+                                type = "email"
+                            })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-red-500 text-[10px] mt-1 font-bold uppercase" })
                     </div>
-                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
-                </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "••••••••" })
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Password</label>
+                            <a href="#" class="text-[9px] uppercase tracking-wider font-bold text-gray-400 hover:text-[#C21E2E] transition-colors">Forgot Password?</a>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
+                                <i class="bi bi-lock text-sm"></i>
+                            </span>
+                            @Html.PasswordFor(m => m.Password, new
+                            {
+                                @class = "w-full pl-11 pr-4 py-4 border border-gray-200 rounded-none form-input-focus transition-all text-sm",
+                                placeholder = "••••••••"
+                            })
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-red-500 text-[10px] mt-1 font-bold uppercase" })
                     </div>
-                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+
+                    <button type="submit" class="w-full bg-[#C21E2E] text-white py-4 font-bold uppercase tracking-[3px] text-[11px] hover:bg-[#a01826] transition-all duration-300 active:scale-[0.98] shadow-lg shadow-red-900/10">
+                        Sign Into Portal
+                    </button>
+                }
+
+                <div class="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-center sm:text-left">
+                        <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Parent?</p>
+                        <a href="@Url.Action("Register", "Account")" class="text-[11px] font-bold text-[#C21E2E] uppercase tracking-widest hover:underline">
+                            Apply for Admission
+                        </a>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-login">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                </button>
-            }
-
-            <div class="divider">or</div>
-
-            <div class="text-center">
-                <p class="text-muted small mb-2">Don't have an account?</p>
-                <a href="@Url.Action("Register", "Account")" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-person-plus me-2"></i>Create Parent Account
-                </a>
+                <footer class="mt-16 text-gray-300 text-[9px] uppercase tracking-[3px] text-center md:text-left">
+                    &copy; @DateTime.Now.Year Michaelhouse School.
+                </footer>
             </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

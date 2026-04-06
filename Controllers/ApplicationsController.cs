@@ -9,7 +9,9 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [RequireLogin]
+    [Require
+        
+        ]
     public class ApplicationsController : Controller
     {
         private readonly ApplicationService _appService = new ApplicationService();

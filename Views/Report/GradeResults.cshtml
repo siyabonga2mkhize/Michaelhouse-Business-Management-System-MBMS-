@@ -1,0 +1,298 @@
+﻿@model List<Michaelhouse.Models.TermResult>
+@using System.Linq
+@{
+    int grade = (int)ViewBag.Grade;
+    int term = (int)ViewBag.Term;
+    int year = (int)ViewBag.Year;
+    ViewBag.Title = $"Grade {grade} — Term {term} Results";
+
+    // Pivot: rows = students, columns = subjects
+    //var students = Model.Select(r => r.Student).DistinctBy(s => s.StudentId)
+    //                  .OrderBy(s => s.LastName).ToList();
+    //var subjects = Model.Select(r => r.Subject).DistinctBy(s => s.SubjectId)
+    //                  .OrderBy(s => s.Name).ToList();
+
+    var students = Model.Select(r => r.Student)
+                    .GroupBy(s => s.StudentId)
+                    .Select(g => g.First())
+                    .OrderBy(s => s.LastName)
+                    .ToList();
+
+    var subjects = Model.Select(r => r.Subject)
+                        .GroupBy(s => s.SubjectId)
+                        .Select(g => g.First())
+                        .OrderBy(s => s.Name)
+                        .ToList();
+
+
+    Func<int, int, decimal?> getMark = (sid, subId) =>
+    {
+        var r = Model.FirstOrDefault(x => x.StudentId == sid && x.SubjectId == subId);
+        return r?.TermMarkPercent;
+    };
+    Func<decimal, string> barClass = p =>
+        p >= 60 ? "pass" : p >= 40 ? "warn" : "fail";
+    Func<string, string> symClass = s =>
+    {
+        switch (s)
+        {
+            case "A": return "sym-a";
+            case "B": return "sym-b";
+            case "C": return "sym-c";
+            case "D": return "sym-d";
+            case "E": return "sym-e";
+            default: return "sym-f";
+        }
+    };
+    Func<decimal, string> GetSym = p =>
+    {
+        if (p >= 80) return "A"; if (p >= 70) return "B"; if (p >= 60) return "C";
+        if (p >= 50) return "D"; if (p >= 40) return "E"; return "F";
+    };
+}
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+
+    @if (TempData["Success"] != null)
+    {<div class="ac-alert ac-alert-success">✓ @TempData["Success"]</div>}
+    @if (TempData["Error"] != null)
+    {<div class="ac-alert ac-alert-error">✕ @TempData["Error"]</div> }
+
+@* ── Header ── *@
+    <div class="ac-header">
+        <div class="ac-header-left">
+            <div class="ac-eyebrow">Admin — Academic Results</div>
+            <h1 class="ac-title">Grade @grade &nbsp;·&nbsp; Term @term &nbsp;·&nbsp; @year</h1>
+            <p class="ac-subtitle">
+                @students.Count student(s) &nbsp;·&nbsp;
+                @subjects.Count subject(s) &nbsp;·&nbsp;
+                Pass = ≥ 40% per subject
+            </p>
+        </div>
+        <div class="ac-header-actions no-print">
+            @* Grade & Term switchers *@
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                @foreach (var g in new[] { 8, 9, 10, 11, 12 })
+                {
+                    <a href="@Url.Action("GradeResults","Report",new{grade=g,term,year})"
+                       class="btn btn-sm @(g == grade ? "btn-primary" : "btn-ghost")">Gr @g</a>
+                }
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                @foreach (var t in new[] { 1, 2, 3, 4 })
+                {
+                    <a href="@Url.Action("GradeResults","Report",new{grade,term=t,year})"
+                       class="btn btn-sm @(t == term ? "btn-gold" : "btn-ghost")">T@t</a>
+                }
+            </div>
+            <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Print</button>
+        </div>
+    </div>
+
+    @* ── Year-end batch action (Term 4 only) ── *@
+    @if (term == 4 && students.Any())
+    {
+        <div class="ac-card no-print" style="border-left:4px solid var(--gold);margin-bottom:24px;">
+            <div class="ac-card-body" style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <strong style="color:var(--navy);">Year-End Promotion</strong>
+                    <p style="font-size:13px;color:var(--muted);margin-top:2px;">
+                        Run year-end calculation for all Grade @grade students. Students passing ≥ 5 subjects will be marked Promoted.
+                    </p>
+                </div>
+                @using (Html.BeginForm("CalculateAllYearResults", "Report", FormMethod.Post, new { style = "display:inline;" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="grade" value="@grade" />
+                    <input type="hidden" name="academicYear" value="@year" />
+                    <button type="submit" class="btn btn-gold"
+                            onclick="return confirm('Calculate year-end results for all Grade @grade students?')">
+                        ⟳ Calculate All Year Results
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="ac-card">
+            <div class="ac-card-body" style="text-align:center;padding:48px 20px;">
+                <p style="font-size:2rem;margin-bottom:12px;">📊</p>
+                <p style="color:var(--muted);">No term results recorded yet for Grade @grade, Term @term, @year.</p>
+                <p style="font-size:13px;color:var(--muted);margin-top:8px;">
+                    Teachers must close mark capture and trigger the term calculation for results to appear here.
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* ── Stats ── *@
+        <div class="ac-stats">
+            <div class="ac-stat">
+                <div class="ac-stat-val">@students.Count</div>
+                <div class="ac-stat-lbl">Students</div>
+            </div>
+            <div class="ac-stat">
+                @{
+                    var allAvg = students.Select(s =>
+                        Model.Where(r => r.StudentId == s.StudentId)
+                             .Select(r => r.TermMarkPercent)
+                             .DefaultIfEmpty(0).Average()).ToList();
+                    var classAvg = allAvg.Any() ? Math.Round(allAvg.Average(), 1) : 0m;
+                }
+                <div class="ac-stat-val">@classAvg%</div>
+                <div class="ac-stat-lbl">Class Average</div>
+            </div>
+            <div class="ac-stat">
+                @{ int atRisk = students.Count(s => Model.Count(r => r.StudentId == s.StudentId && !r.Passed) > 1); }
+                <div class="ac-stat-val" style="color:var(--fail);">@atRisk</div>
+                <div class="ac-stat-lbl">At Risk (&gt;1 fail)</div>
+            </div>
+        </div>
+
+        @* ── Results grid ── *@
+        <div class="ac-card">
+            <div class="ac-card-header">
+                <span class="ac-card-title">Results Grid — Grade @grade, Term @term</span>
+            </div>
+            <div class="ac-table-wrap">
+                <table class="ac-table" style="font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th style="min-width:160px;">Student</th>
+                            @foreach (var sub in subjects)
+                            {
+                                <th class="num" style="min-width:90px;">@sub.Name</th>
+                            }
+                            <th class="num">Average</th>
+                            <th style="text-align:center;">Status</th>
+                            @if (term == 4)
+                            {
+                                <th class="no-print" style="width:100px;">Action</th>
+}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in students)
+                        {
+                            var studentResults = Model.Where(r => r.StudentId == s.StudentId).ToList();
+                            var sAvg = studentResults.Any()
+                                ? Math.Round(studentResults.Average(r => r.TermMarkPercent), 1) : 0m;
+                            int failCount = studentResults.Count(r => !r.Passed);
+
+                            <tr>
+                                <td>
+                                    <strong>@s.LastName</strong>, @s.FirstName
+                                    @if (failCount > 1)
+                                    {<span class="badge badge-fail" style="margin-left:4px;">@failCount fails</span>}
+                                </td>
+                                @foreach (var sub in subjects)
+                                {
+                                    var m = getMark(s.StudentId, sub.SubjectId);
+                                    if (m.HasValue)
+                                    {
+                                        var sym = GetSym(m.Value);
+                                        <td class="num">
+                                            <span class="symbol @symClass(sym)" style="width:22px;height:22px;line-height:22px;font-size:11px;">
+                                                @sym
+                                            </span>
+                                            <br />
+                                            <span style="font-family:'Source Code Pro',monospace;font-size:12px;
+                                                         color:@(m >= 40 ? "var(--pass)" : "var(--fail)");">
+                                                @m.Value.ToString("0.0")%
+                                            </span>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td class="num" style="color:var(--muted);">—</td>
+                                    }
+                                }
+                                <td class="num">
+                                    <strong style="color:@(sAvg >= 40 ? "var(--pass)" : "var(--fail)");">
+                                        @sAvg%
+                                    </strong>
+                                </td>
+                                <td style="text-align:center;">
+                                    @if (failCount == 0)
+                                    {<span class="badge badge-pass">All Pass</span> }
+                                    else if (failCount > 2)
+                                    { <span class="badge badge-fail">At Risk</span> }
+                                    else
+                                    { <span class="badge badge-pending">@failCount Fail(s)</span>}
+                                </td>
+                                @if (term == 4)
+                                {
+                                    <td class="no-print">
+                                        <button class="btn btn-sm btn-ghost"
+                                                onclick="openPromoteModal(@s.StudentId,'@s.Name.Replace("'","\\'")', @grade, @year)">
+                                            Promote…
+                                        </button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@* ── Promote Modal ── *@
+@if (term == 4)
+{
+    <div id="promoteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:28px 32px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+            <h2 style="font-family:'Playfair Display',serif;color:var(--navy);margin-bottom:4px;" id="modalName"></h2>
+            <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">Set year-end promotion status</p>
+
+            @using (Html.BeginForm("Promote", "Report", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" id="modalStudentId" value="" />
+                <input type="hidden" name="grade" id="modalGrade" value="@grade" />
+                <input type="hidden" name="academicYear" id="modalYear" value="@year" />
+
+                <div class="ac-field" style="margin-bottom:16px;">
+                    <label class="ac-label">Override Status (leave blank to use calculated result)</label>
+                    <select name="overrideStatus" class="ac-select">
+                        <option value="">— Use calculated result —</option>
+                        <option value="Promoted">Promoted</option>
+                        <option value="Retained">Retained</option>
+                    </select>
+                </div>
+
+                <div class="ac-field" style="margin-bottom:20px;">
+                    <label class="ac-label">Admin Notes</label>
+                    <textarea name="adminNotes" class="ac-textarea"
+                              placeholder="Reason for override, special circumstances…"></textarea>
+                </div>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save &amp; Calculate</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        function openPromoteModal(studentId, name, grade, year) {
+            document.getElementById('modalStudentId').value = studentId;
+            document.getElementById('modalGrade').value     = grade;
+            document.getElementById('modalYear').value      = year;
+            document.getElementById('modalName').textContent = name;
+            document.getElementById('promoteModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('promoteModal').style.display = 'none';
+        }
+        document.getElementById('promoteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+}

@@ -1,253 +1,158 @@
 ﻿@model Michaelhouse.Models.ViewModels.ApplicationCreateViewModel
-@{ ViewBag.Title = "New Application"; }
+@{
+    ViewBag.Title = "New Application";
+}
 
-<div class="page-header">
-    <h3 class="mb-0"><i class="bi bi-plus-circle me-2 text-warning"></i>New Enrollment Application</h3>
-    <small class="text-muted">Complete all sections and upload the required documents</small>
-</div>
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-12 text-center">
+        <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse Crest" class="h-24 mx-auto mb-6 object-contain" />
+        <h2 class="text-4xl font-serif font-bold text-gray-900 mb-2">Enrollment Application</h2>
+        <p class="text-gray-400 uppercase tracking-[4px] text-[10px] font-bold">Begin the journey of a Michaelhouse Man</p>
+    </div>
 
-<div class="row g-4">
-    <div class="col-lg-8">
-        @using (Html.BeginForm("Create", "Applications", FormMethod.Post,
-            new { enctype = "multipart/form-data", id = "appForm" }))
-        {
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+    <div class="row g-5">
+        <div class="col-lg-8">
+            @using (Html.BeginForm("Create", "Applications", FormMethod.Post, new { enctype = "multipart/form-data", id = "appForm", @class = "space-y-12" }))
+            {
+                @Html.AntiForgeryToken()
 
-            <!-- Step 1: Student -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-person-fill me-2"></i>Step 1 — Select Student
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-7">
-                            <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
-                            @Html.DropDownListFor(m => m.StudentId,
-                                (SelectList)ViewBag.Students,
-                                "-- Select a student --",
-                                new { @class = "form-select" })
-                            @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-danger small" })
-                        </div>
-                        <div class="col-md-5 d-flex align-items-end">
-                            <a href="@Url.Action("AddStudent")" class="btn btn-outline-secondary w-100">
-                                <i class="bi bi-person-plus me-2"></i>Add New Student
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <section class="relative pl-12 border-l-2 border-gray-50 pb-10">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">1</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Select Student</h4>
 
-            <!-- Step 2: Grade & Year -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-mortarboard me-2"></i>Step 2 — Grade & Year
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Grade Applying For <span class="text-danger">*</span></label>
-                            @Html.DropDownListFor(m => m.GradeApplying,
-                                (SelectList)ViewBag.Grades,
-                                "-- Select grade --",
-                                new { @class = "form-select" })
-                            @Html.ValidationMessageFor(m => m.GradeApplying, "", new { @class = "text-danger small" })
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Application Year <span class="text-danger">*</span></label>
-                            @{
-                                int currentYear = (int)ViewBag.CurrentYear;
-                                var yearList = new SelectList(new[]
-                                {
-            new { Value = currentYear,     Text = currentYear.ToString()     },
-            new { Value = currentYear + 1, Text = (currentYear + 1).ToString() },
-            new { Value = currentYear + 2, Text = (currentYear + 2).ToString() }
-        }, "Value", "Text");
-                            }
-                            @Html.DropDownListFor(m => m.ApplicationYear, yearList, new { @class = "form-select" })
-                            @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-danger small" })
+                    <div class="bg-white border border-gray-100 p-8 shadow-sm focus-within:border-[#C21E2E] transition-all">
+                        <div class="row g-4 text-left">
+                            <div class="col-md-7">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Prospective Student</label>
+                                @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "-- Select Student --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+                            <div class="col-md-5 flex items-end">
+                                <a href="@Url.Action("AddStudent")" class="w-full text-center py-3 border border-dashed border-gray-300 text-gray-400 text-[10px] uppercase font-bold tracking-widest hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                                    <i class="bi bi-plus-lg me-2"></i>Register New Student
+                                </a>
+                            </div>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Subject info notice — shown dynamically via JS -->
-                    <div id="gradeNotice" class="alert alert-info mt-3 mb-0 d-none">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <span id="gradeNoticeText"></span>
+                <section class="relative pl-12 border-l-2 border-gray-50 pb-10">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">2</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Academic Year</h4>
+
+                    <div class="bg-white border border-gray-100 p-8 shadow-sm">
+                        <div class="row g-4">
+                            <div class="col-md-6 text-left">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Grade Applying For</label>
+                                @{
+                                    var gradeList = Enumerable.Range(8, 5).Select(i => new SelectListItem { Value = i.ToString(), Text = "Grade " + i });
+                                }
+                                @Html.DropDownListFor(m => m.GradeApplying, gradeList, "-- Select Grade --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.GradeApplying, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+
+                            <div class="col-md-6 text-left">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Entrance Year</label>
+                                @{
+                                    int startYear = DateTime.Now.Year;
+                                    var years = Enumerable.Range(startYear, 3).Select(y => new SelectListItem { Value = y.ToString(), Text = y.ToString() });
+                                }
+                                @Html.DropDownListFor(m => m.ApplicationYear, years, "-- Select Year --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+                        </div>
+                        <div id="gradeNotice" class="mt-6 p-4 bg-gray-50 border-l-4 border-gray-200 hidden">
+                            <p id="gradeNoticeText" class="text-[11px] text-gray-500 italic leading-relaxed"></p>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <!-- Step 3: Additional Notes -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-chat-left-text me-2"></i>Step 3 — Additional Information
-                </div>
-                <div class="card-body">
-                    <label class="form-label fw-semibold">Additional Information <small class="text-white-50">(optional)</small></label>
-                    @Html.TextAreaFor(m => m.AdditionalNotes,
-                        new
-                             {
-                                 @class = "form-control",
-                                 rows = "4",
-                              placeholder = "Any additional information you would like the school to know about the student e.g. sporting achievements, special skills, learning needs etc."
-                             })
-                </div>
-            </div>
+                <section class="relative pl-12">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">3</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Documentation</h4>
 
-            <!-- Step 4: Documents -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-paperclip me-2"></i>Step 4 — Upload Documents
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning small mb-3">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <strong>Required:</strong> Birth Certificate and latest Report Card (last 2 years).
-                        Also include ID document if available. Accepted: PDF, JPG, PNG.
+                    <div class="bg-gray-50 p-8 border border-gray-100">
+                        <div id="documentRows" class="space-y-4"></div>
+                        <button type="button" class="mt-4 text-[10px] font-bold text-[#C21E2E] uppercase tracking-[2px] flex items-center hover:opacity-70 transition-opacity" onclick="addRow()">
+                            <i class="bi bi-plus-square-fill me-2 text-lg"></i> Add Document
+                        </button>
                     </div>
-                    <div id="documentRows"></div>
-                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addRow()">
-                        <i class="bi bi-plus-circle me-2"></i>Add Another Document
+                </section>
+
+                <div class="pt-10 flex flex-col sm:flex-row gap-4 items-center pl-12">
+                    <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-[#C21E2E] text-white px-12 py-4 font-bold uppercase tracking-[3px] text-[11px] hover:bg-[#a01826] transition-all active:scale-[0.98]">
+                        Submit Application
                     </button>
+                    <a href="@Url.Action("Index")" class="text-gray-400 text-[10px] uppercase font-bold tracking-widest hover:text-black">Cancel</a>
                 </div>
-            </div>
-
-            <div class="d-flex gap-3">
-                <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn">
-                    <i class="bi bi-send me-2"></i>Submit Application
-                </button>
-                <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">Cancel</a>
-            </div>
-        }
-    </div>
-
-    <!-- Help Panel -->
-    <div class="col-lg-4">
-        <div class="card border-warning mb-3">
-            <div class="card-header bg-warning text-dark fw-semibold">
-                <i class="bi bi-lightbulb-fill me-2"></i>Document Checklist
-            </div>
-            <div class="card-body small">
-                <p class="fw-semibold mb-2 text-success"><i class="bi bi-check-circle me-1"></i>Required</p>
-                <ul class="ps-3 mb-3">
-                    <li>Certified Birth Certificate</li>
-                    <li>Last 2 years Report Cards</li>
-                </ul>
-                <p class="fw-semibold mb-2 text-primary"><i class="bi bi-plus-circle me-1"></i>Recommended</p>
-                <ul class="ps-3 mb-0">
-                    <li>ID / Passport copy</li>
-                    <li>Immunization record</li>
-                    <li>Medical certificate (if applicable)</li>
-                    <li>Referral / transfer letter</li>
-                </ul>
-            </div>
+            }
         </div>
 
-        <div class="card mb-3">
-            <div class="card-header fw-semibold">
-                <i class="bi bi-mortarboard me-2"></i>Subject Information
-            </div>
-            <div class="card-body small">
-                <p class="fw-semibold text-secondary">Grade 8 & 9</p>
-                <p class="text-muted">Subjects are predetermined. All students follow the same curriculum.</p>
-                <p class="fw-semibold text-primary mt-2">Grade 10 – 12</p>
-                <p class="text-muted mb-0">Students choose elective subjects during the registration process after approval.</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header fw-semibold">
-                <i class="bi bi-clock-history me-2"></i>What Happens Next?
-            </div>
-            <div class="card-body small">
-                <div class="d-flex gap-2 mb-2"><span class="badge bg-secondary mt-1">1</span><span>Application submitted</span></div>
-                <div class="d-flex gap-2 mb-2"><span class="badge bg-info text-dark mt-1">2</span><span>AI reviews documents</span></div>
-                <div class="d-flex gap-2 mb-2"><span class="badge bg-primary mt-1">3</span><span>Admin makes final decision</span></div>
-                <div class="d-flex gap-2"><span class="badge bg-success mt-1">4</span><span>Registration (if approved)</span></div>
+        <div class="col-lg-4">
+            <div class="sticky top-24 space-y-6">
+                <div class="bg-[#1a1a1a] text-white p-8">
+                    <h5 class="font-serif text-xl mb-6">Checklist</h5>
+                    <ul class="space-y-4 text-[11px] uppercase tracking-widest text-gray-400">
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> Birth Certificate</li>
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> 2 Year Report History</li>
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> Proof of Identity</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>
 
 @section Scripts {
     <script>
         var rowIdx = 0;
-        var docTypes = [
-            "Birth Certificate",
-            "Report Card (Latest Year)",
-            "Report Card (Previous Year)",
-            "ID / Passport Copy",
-            "Immunization Record",
-            "Medical Certificate",
-            "Transfer Letter",
-            "Other"
-        ];
+        var docTypes = ["Birth Certificate", "Report Card", "ID Copy", "Other"];
 
         function buildOptions() {
-            return docTypes.map(function (t) {
-                return '<option value="' + t + '">' + t + '</option>';
-            }).join('');
+            return docTypes.map(t => `<option value="${t}">${t}</option>`).join('');
         }
 
-        function addRow(isFirst) {
-            isFirst = isFirst || false;
+        function addRow(isFirst = false) {
             var c = document.getElementById('documentRows');
             var div = document.createElement('div');
-            div.className = 'border rounded p-3 mb-3 bg-light position-relative';
-
-            var removeBtn = isFirst ? '' :
-                '<button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2" ' +
-                'onclick="this.closest(\'div.border\').remove()"><i class="bi bi-x-lg"></i></button>';
-
-            div.innerHTML = removeBtn +
-                '<div class="row g-2 align-items-end">' +
-                '<div class="col-md-5">' +
-                '<label class="form-label fw-semibold small">Document Type</label>' +
-                '<select name="DocumentTypes[' + rowIdx + ']" class="form-select form-select-sm"' + (isFirst ? ' required' : '') + '>' +
-                buildOptions() +
-                '</select>' +
-                '</div>' +
-                '<div class="col-md-7">' +
-                '<label class="form-label fw-semibold small">File' + (isFirst ? ' <span class="text-danger">*</span>' : '') + '</label>' +
-                '<input type="file" name="files" class="form-control form-control-sm" ' +
-                'accept=".pdf,.jpg,.jpeg,.png"' + (isFirst ? ' required' : '') + ' />' +
-                '</div>' +
-                '</div>';
-
+            div.className = 'flex flex-col sm:flex-row gap-4 bg-white p-4 border border-gray-100 relative group animate-fade-in';
+            div.innerHTML = `
+                    <div class="flex-1 text-left">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 mb-2">Type</label>
+                        <select name="DocumentTypes[${rowIdx}]" class="w-full text-sm border-b border-gray-100 outline-none pb-2 bg-transparent focus:border-[#C21E2E]">
+                            ${buildOptions()}
+                        </select>
+                    </div>
+                    <div class="flex-[2] text-left">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 mb-2">File</label>
+                        <input type="file" name="files" class="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-gray-100 file:text-gray-600 cursor-pointer" />
+                    </div>
+                    ${!isFirst ? '<button type="button" class="text-gray-300 hover:text-red-500 pt-6" onclick="this.closest(\'div\').remove()"><i class="bi bi-trash"></i></button>' : ''}
+                `;
             c.appendChild(div);
             rowIdx++;
         }
 
-        // Show grade notice based on selection
         document.addEventListener('DOMContentLoaded', function () {
             addRow(true);
+            const gs = document.getElementById('GradeApplying');
+            const gn = document.getElementById('gradeNotice');
+            const gt = document.getElementById('gradeNoticeText');
 
-            var gradeSelect = document.getElementById('GradeApplying');
-            var notice = document.getElementById('gradeNotice');
-            var noticeText = document.getElementById('gradeNoticeText');
-
-            if (gradeSelect) {
-                gradeSelect.addEventListener('change', function () {
-                    var grade = parseInt(this.value);
-                    if (grade === 8 || grade === 9) {
-                        noticeText.innerText = 'Grade ' + grade + ' has a set curriculum. All students follow the same subjects — no subject selection required.';
-                        notice.classList.remove('d-none', 'alert-warning');
-                        notice.classList.add('alert-info');
-                    } else if (grade >= 10) {
-                        noticeText.innerText = 'Grade ' + grade + ' requires subject selection. You will choose your subjects during the registration process after your application is approved.';
-                        notice.classList.remove('d-none', 'alert-info');
-                        notice.classList.add('alert-warning');
-                    } else {
-                        notice.classList.add('d-none');
-                    }
-                });
-            }
-        });
-
-        document.getElementById('appForm').addEventListener('submit', function () {
-            var b = document.getElementById('submitBtn');
-            b.disabled = true;
-            b.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+            gs.addEventListener('change', function () {
+                const val = parseInt(this.value);
+                if (!val) { gn.classList.add('hidden'); return; }
+                gn.classList.remove('hidden');
+                gt.innerText = val >= 10
+                    ? `Grade ${val} requires subject selection after application approval.`
+                    : `Grade ${val} utilizes a fixed core curriculum.`;
+            });
         });
     </script>
 }

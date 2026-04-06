@@ -1,0 +1,185 @@
+﻿/*
+ * Michaelhouse Academic System — Institutional Style
+ * Aesthetic: High-end "White Dossier" — Sharp edges, Michaelhouse Red accents, 
+ * ghost watermarks, and architectural data grids.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Source+Code+Pro:wght@500&display=swap');
+
+/* ── Reset & Variables ────────────────────────────────────────── */
+:root {
+    --mh-red: #C21E2E;
+    --mh-red-lt: #fff5f5;
+    --mh-charcoal: #1a1a1a;
+    --mh-ghost: #fafafa;
+    --mh-border: #eeeeee;
+    --mh-ink: #111111;
+    --mh-muted: #999999;
+    /* Semantic Colors */
+    --pass: #166534;
+    --fail: #C21E2E;
+    --shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: #ffffff;
+    color: var(--mh-ink);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ── Shared Ghost Header ─────────────────────────────────────── */
+.ac-header {
+    position: relative;
+    padding: 48px 0 32px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--mh-border);
+    background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.ac-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--mh-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .ac-eyebrow::before {
+        content: "";
+        height: 1px;
+        width: 24px;
+        background: var(--mh-red);
+    }
+
+.ac-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: var(--mh-charcoal);
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* ── The Michaelhouse Card (No Rounds) ───────────────────────── */
+.ac-card {
+    background: #fff;
+    border: 1px solid var(--mh-border);
+    border-radius: 0; /* Sharp architectural edges */
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+}
+
+.ac-card-header {
+    background: var(--mh-ghost);
+    border-bottom: 1px solid var(--mh-border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ac-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--mh-charcoal);
+    margin: 0;
+}
+
+/* ── Ledger Tables ───────────────────────────────────────────── */
+.ac-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .ac-table th {
+        background: var(--mh-charcoal);
+        color: #fff;
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .ac-table td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--mh-ghost);
+        font-weight: 500;
+    }
+
+    .ac-table tr:hover td {
+        background: var(--mh-red-lt);
+    }
+
+/* ── Stats & Symbol stamps ───────────────────────────────────── */
+.ac-stat {
+    border-left: 4px solid var(--mh-charcoal);
+    padding: 20px;
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+.ac-stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--mh-red);
+}
+
+.symbol {
+    border-radius: 0;
+    border: 1px solid var(--mh-border);
+    width: 32px;
+    height: 32px;
+    line-height: 30px;
+    font-family: 'Playfair Display', serif;
+}
+
+/* ── Form Elements (The Register Look) ───────────────────────── */
+.ac-input, .ac-select {
+    border-radius: 0;
+    border: 1px solid var(--mh-border);
+    padding: 10px 15px;
+    font-weight: 600;
+}
+
+    .ac-input:focus {
+        border-color: var(--mh-red);
+        box-shadow: none;
+    }
+
+.ac-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--mh-muted);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn-primary {
+    background: var(--mh-charcoal);
+    border-radius: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 11px;
+    padding: 12px 24px;
+}
+
+    .btn-primary:hover {
+        background: var(--mh-red);
+    }
+
+.btn-ghost {
+    border: 1px solid var(--mh-charcoal);
+    color: var(--mh-charcoal);
+    border-radius: 0;
+    text-transform: uppercase;
+    font-size: 11px;
+}
