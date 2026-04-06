@@ -3,47 +3,55 @@
 @{
     ViewBag.Title = "Plan Assessment";
     var assignments = ViewBag.Assignments as List<Michaelhouse.Models.TeacherSubjectGrade>;
-    var terms = ViewBag.Terms as IEnumerable<object>;
+    var terms = ViewBag.Terms as SelectList;
     var types = ViewBag.AssessmentTypes as string[];
 }
+
 <link rel="stylesheet" href="~/Content/academic.css" />
 
 <div class="ac-page" style="max-width:900px;">
+    @* --- GHOST HEADER --- *@
+    <div class="ac-header relative overflow-hidden mb-8"
+         style="background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 32px 32px; padding: 60px 0 40px; border-bottom: 2px solid #1a1a1a;">
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="ac-alert ac-alert-error" style="border-radius:0; font-weight:700; text-transform:uppercase; font-size:11px; tracking-widest;">✕ @TempData["Error"]</div>
-    }
+        <i class="bi bi-file-earmark-ruled absolute -right-10 -bottom-10 text-black/[0.02] text-[18rem] rotate-12 pointer-events-none"></i>
 
-    <div class="ac-header">
-        <div class="ac-header-left">
-            <div class="ac-eyebrow">Academic Records — Faculty Portal</div>
-            <h1 class="ac-title">Provision Assessment</h1>
-            <p class="ac-subtitle">Define formal test parameters, examination weightings, and academic scheduling.</p>
+        <div class="ac-header-left relative z-10 text-left">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-[3px] w-10 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Academic Records — Faculty Portal</h5>
+            </div>
+            <h1 class="text-4xl font-serif font-bold text-gray-900 tracking-tight uppercase">Provision Assessment</h1>
+            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-[3px] font-bold">Define formal test parameters, examination weightings, and academic scheduling.</p>
         </div>
-        <div class="ac-header-actions">
-            <a href="@Url.Action("Index", "Marks")" class="btn btn-ghost">
+        <div class="ac-header-actions relative z-10">
+            <a href="@Url.Action("Index", "Marks")" class="bg-white border border-gray-200 px-6 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-all shadow-sm">
                 <i class="bi bi-arrow-left me-1"></i> Back to Ledger
             </a>
         </div>
     </div>
 
-    <div class="ac-card">
-        <div class="ac-card-header">
-            <span class="ac-card-title">Assessment Specification</span>
-            <i class="bi bi-file-earmark-medical text-gray-400"></i>
-        </div>
-        <div class="ac-card-body" style="padding: 40px;">
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-[#C21E2E] text-white p-4 mb-6 text-[10px] uppercase tracking-[2px] font-bold">✕ @TempData["Error"]</div>
+    }
 
-            @using (Html.BeginForm("Plan", "Marks", FormMethod.Post))
+    <div class="ac-card border border-gray-200 shadow-xl bg-white">
+        <div class="ac-card-header bg-gray-50/50 py-4 px-8 border-b border-gray-100 flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase tracking-[3px] text-gray-900">Assessment Specification</span>
+            <i class="bi bi-file-earmark-medical text-gray-300"></i>
+        </div>
+
+        <div class="ac-card-body" style="padding: 50px;">
+            @using (Html.BeginForm("Plan", "Marks", FormMethod.Post, new { id = "assessmentForm" }))
             {
                 @Html.AntiForgeryToken()
 
-                <div class="ac-form-grid" style="margin-bottom:32px;">
+                <div class="ac-form-grid text-left" style="margin-bottom:32px;">
 
                     <div class="ac-field span-2">
-                        <label class="ac-label">Academic Subject & Grade Allocation *</label>
-                        <select name="subjectId" id="subjectSelect" class="ac-select" required onchange="updateGradeStream(this)">
+                        <label class="ac-label text-gray-400">Academic Subject & Grade Allocation *</label>
+                        <select name="subjectId" id="subjectSelect" class="ac-select border-0 border-b border-gray-100 px-0 focus:border-[#C21E2E] w-100 font-bold" required onchange="updateGradeStream(this)">
                             <option value="">— Select Allocation —</option>
                             @if (assignments != null)
                             {
@@ -52,94 +60,60 @@
                                     <option value="@a.SubjectId"
                                             data-grade="@a.Grade"
                                             data-stream="@((int)a.Stream)">
-                                        @a.Subject?.Name — Grade @a.Grade
-                                        @(a.Stream != Michaelhouse.Models.Enums.AcademicStream.None ? $" ({a.Stream})" : "")
+                                        @(a.Subject != null ? a.Subject.Name : "Assignment") — Grade @a.Grade @(a.Stream != Michaelhouse.Models.Enums.AcademicStream.None ? $" ({a.Stream})" : "")
                                     </option>
                                 }
                             }
                         </select>
+                        @* HIDDEN INPUTS: Critical for the controller to receive grade/stream *@
                         <input type="hidden" name="grade" id="hiddenGrade" value="" />
                         <input type="hidden" name="stream" id="hiddenStream" value="0" />
                     </div>
 
-                    <div class="ac-field span-2">
-                        <label class="ac-label">Official Assessment Title *</label>
-                        <input type="text" name="title" class="ac-input" required
-                               placeholder="e.g. TERMINAL EXAMINATION, CLASS TEST 1" maxlength="200" />
+                    <div class="ac-field span-2 mt-4">
+                        <label class="ac-label text-gray-400">Official Assessment Title *</label>
+                        <input type="text" name="title" class="ac-input border-0 border-b border-gray-100 px-0 focus:border-[#C21E2E] w-100 font-bold uppercase" required placeholder="E.G. TERMINAL EXAMINATION" maxlength="200" />
                     </div>
 
-                    <div class="ac-field">
-                        <label class="ac-label">Assessment Category *</label>
-                        <select name="assessmentType" class="ac-select" required>
-                            @if (types != null)
-                            {
-                                foreach (var t in types)
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <label class="ac-label text-gray-400">Category</label>
+                            <select name="assessmentType" class="ac-select border-0 border-b border-gray-100 w-100 font-bold" required>
+                                @foreach (var t in types)
                                 {
                                     <option value="@t">@t</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <div class="ac-field">
-                        <label class="ac-label">Academic Term *</label>
-                        <select name="term" class="ac-select" required>
-                            @if (terms != null)
-                            {
-                                foreach (var t in terms)
-                                {
-                                    var type = t.GetType();
-                                    var valueProp = type.GetProperty("Value");
-                                    var textProp = type.GetProperty("Text");
-                                    var value = valueProp != null ? valueProp.GetValue(t, null) : t;
-                                    var text = textProp != null ? textProp.GetValue(t, null) : t;
-                                    <option value="@value">@text</option>
-                                }
-                            }
-                        </select>
-                    </div>
-
-                    <div class="ac-field">
-                        <label class="ac-label">Academic Year *</label>
-                        <input type="number" name="academicYear" class="ac-input"
-                               value="@DateTime.Now.Year" min="2020" max="2040" required />
-                    </div>
-
-                    <div class="ac-field">
-                        <label class="ac-label">Sitting Date *</label>
-                        <input type="date" name="scheduledDate" class="ac-input" required
-                               value="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                    </div>
-
-                    <div class="ac-field">
-                        <label class="ac-label">Total Raw Marks *</label>
-                        <input type="number" name="totalMarks" class="ac-input font-monospace"
-                               min="1" max="1000" step="0.5" placeholder="100" required />
-                    </div>
-
-                    <div class="ac-field">
-                        <label class="ac-label">Term Weighting (%) *</label>
-                        <input type="number" name="weightingPercent" id="weightingInput" class="ac-input font-monospace"
-                               min="1" max="100" step="1" placeholder="30"
-                               required oninput="updateWeightBar(this.value)" />
-
-                        <div class="ac-progress" style="margin-top:12px; height: 4px; background: #f0f0f0;">
-                            <div id="weightBar" class="ac-progress-bar" style="width:0%; background: var(--mh-red);"></div>
+}
+                            </select>
                         </div>
-                        <p id="weightNote" class="text-[10px] uppercase tracking-wider font-bold mt-2 text-gray-400">Contribution to final mark</p>
+                        <div class="col-md-4">
+                            <label class="ac-label text-gray-400">Term</label>
+                            <select name="term" class="ac-select border-0 border-b border-gray-100 w-100 font-bold" required>
+                                @foreach (var item in terms)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="ac-label text-gray-400">Sitting Date</label>
+                            <input type="date" name="scheduledDate" class="ac-input border-0 border-b border-gray-100 w-100 font-bold" required value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
                     </div>
 
-                    <div class="ac-field span-3">
-                        <label class="ac-label">Administrative Notes</label>
-                        <textarea name="notes" class="ac-textarea" style="min-height: 100px;"
-                                  placeholder="Contextual instructions for invigilators or internal staff..."></textarea>
+                    <div class="row g-4 mt-4">
+                        <div class="col-md-6">
+                            <label class="ac-label text-gray-400">Total Raw Marks *</label>
+                            <input type="number" name="totalMarks" class="ac-input border-0 border-b border-gray-100 w-100 font-monospace font-bold" min="1" max="1000" step="0.5" placeholder="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="ac-label text-gray-400">Term Weighting (%) *</label>
+                            <input type="number" name="weightingPercent" id="weightingInput" class="ac-input border-0 border-b border-gray-100 w-100 font-monospace font-bold" min="1" max="100" step="1" placeholder="30" required />
+                        </div>
                     </div>
-
                 </div>
 
-                <div style="display:flex; gap:16px; justify-content:flex-end; padding-top:24px; border-top:1px solid var(--mh-border);">
-                    <a href="@Url.Action("Index", "Marks")" class="btn btn-ghost" style="border:none; color: #999;">Discard</a>
-                    <button type="submit" class="btn btn-primary" style="padding: 14px 40px; box-shadow: var(--shadow);">
+                <div class="flex justify-end gap-3 pt-8 border-t border-gray-50">
+                    <button type="submit" class="bg-gray-900 text-white px-10 py-4 text-[11px] font-bold uppercase tracking-[4px] hover:bg-[#C21E2E] transition-all shadow-xl border-0">
                         <i class="bi bi-shield-check me-2"></i> Finalize Assessment
                     </button>
                 </div>
@@ -151,43 +125,47 @@
 <script>
     function updateGradeStream(select) {
         var opt = select.options[select.selectedIndex];
-        document.getElementById('hiddenGrade').value = opt.dataset.grade || '';
-        document.getElementById('hiddenStream').value = opt.dataset.stream || '0';
+        // Safely extract attributes from the selected option
+        var grade = opt.getAttribute('data-grade');
+        var stream = opt.getAttribute('data-stream');
+
+        // Fill the hidden inputs so the Controller receives them
+        document.getElementById('hiddenGrade').value = grade || "";
+        document.getElementById('hiddenStream').value = stream || "0";
     }
 
-    function updateWeightBar(val) {
-        var pct = Math.min(Math.max(parseFloat(val) || 0, 0), 100);
-        var bar = document.getElementById('weightBar');
-        var note = document.getElementById('weightNote');
-
-        bar.style.width = pct + '%';
-
-        if (pct > 50) {
-            bar.style.background = '#C21E2E'; // Michaelhouse Red for heavy weight
-            note.style.color = '#C21E2E';
-            note.innerText = "Significant Weighting Applied";
-        } else {
-            bar.style.background = '#1a1a1a'; // Charcoal for standard
-            note.style.color = '#999';
-            note.innerText = "Contribution to final mark";
+    // FORM GUARD: Ensure the hidden grade is actually set before posting
+    document.getElementById('assessmentForm').onsubmit = function () {
+        var gradeValue = document.getElementById('hiddenGrade').value;
+        if (!gradeValue) {
+            alert("FACULTY ERROR: Internal grade mapping lost. Please re-select the Subject/Grade allocation.");
+            return false;
         }
-    }
+        return true;
+    };
 </script>
 
 <style>
-    .ac-select, .ac-input {
-        background-color: #fdfdfd;
-        transition: all 0.2s ease;
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
     }
 
-        .ac-select:hover, .ac-input:hover {
-            border-color: #999;
-        }
+    .font-monospace {
+        font-family: 'Source Code Pro', monospace;
+    }
 
-        .ac-textarea::placeholder, .ac-input::placeholder {
-            color: #ccc;
-            text-transform: uppercase;
-            font-size: 10px;
-            letter-spacing: 1px;
-        }
+    .ac-label {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .ac-select, .ac-input {
+        background: transparent !important;
+        outline: none !important;
+        border-radius: 0 !important;
+    }
 </style>

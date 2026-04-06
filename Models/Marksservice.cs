@@ -115,7 +115,7 @@ namespace Michaelhouse.Services
         /// subject+grade (optionally filtered by stream for Gr 10-12).
         /// Pre-populates existing marks if already captured.
         /// </summary>
-        public List<StudentMarkEntry> GetMarkSheet(int assessmentId)
+        /*public List<StudentMarkEntry> GetMarkSheet(int assessmentId)
         {
             using (var db = new DBContextClass())
             {
@@ -151,6 +151,64 @@ namespace Michaelhouse.Services
                     {
                         StudentId = ss.StudentId,
                         StudentName = ss.Student.Name,
+                        MarksObtained = mark?.MarksObtained,
+                        IsAbsent = mark?.IsAbsent ?? false,
+                        TeacherComment = mark?.TeacherComment,
+                        AlreadyCaptured = mark != null
+                    };
+                })
+                .OrderBy(e => e.StudentName)
+                .ToList();
+            }
+        }*/
+
+        public List<StudentMarkEntry> GetMarkSheet(int assessmentId)
+        {
+            using (var db = new DBContextClass())
+            {
+                // 1. Eager load the Subject and ensure we don't track for speed
+                var assessment = db.Assessments
+                    .Include("Subject")
+                    .AsNoTracking()
+                    .FirstOrDefault(a => a.AssessmentId == assessmentId);
+
+                if (assessment == null) return new List<StudentMarkEntry>();
+
+                // 2. Normalize the Grade string for comparison
+                string targetGrade = assessment.Grade.ToString().Trim();
+
+                // 3. Find students taking this subject in this grade
+                // FIX: Ensure we are joining correctly and trimming the grade string
+                var studentSubjects = db.StudentSubjects
+                    .Include("Student")
+                    .Where(ss => ss.SubjectId == assessment.SubjectId)
+                    .ToList() // Bring to memory to handle complex string logic if needed
+                    .Where(ss => ss.Student.CurrentGrade.Trim() == targetGrade)
+                    .ToList();
+
+                // 4. Filter by stream if the assessment is stream-specific
+                if (assessment.Stream != AcademicStream.None)
+                {
+                    studentSubjects = studentSubjects
+                        .Where(ss => ss.Stream == assessment.Stream)
+                        .ToList();
+                }
+
+                // 5. Load existing marks to a dictionary for O(1) lookup
+                var existingMarks = db.StudentMarks
+                    .AsNoTracking()
+                    .Where(sm => sm.AssessmentmentId == assessmentId)
+                    .ToDictionary(sm => sm.StudentId);
+
+                // 6. Map to DTO
+                return studentSubjects.Select(ss =>
+                {
+                    existingMarks.TryGetValue(ss.StudentId, out var mark);
+                    return new StudentMarkEntry
+                    {
+                        StudentId = ss.StudentId,
+                        // FIX: Use FirstName/LastName explicitly to bypass Proxy issues
+                        StudentName = $"{ss.Student.FirstName} {ss.Student.LastName}".Trim(),
                         MarksObtained = mark?.MarksObtained,
                         IsAbsent = mark?.IsAbsent ?? false,
                         TeacherComment = mark?.TeacherComment,

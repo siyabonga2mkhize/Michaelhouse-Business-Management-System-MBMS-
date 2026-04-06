@@ -129,19 +129,21 @@ namespace Michaelhouse.Controllers
         {
             using (var db = new DBContextClass())
             {
-                // Disable proxies to ensure clean JSON for the JS dropdowns
                 db.Configuration.ProxyCreationEnabled = false;
 
                 var subjects = db.Subjects
                     .AsNoTracking()
-                    .OrderBy(s => s.Name)
+                    .ToList()
                     .Select(s => new
                     {
                         subjectId = s.SubjectId,
                         name = s.Name,
                         stream = (int)s.Stream,
-                        applicableGrades = s.ApplicableGrades ?? "8,9,10,11,12"
+                        isCompulsory = s.IsCompulsory, // Ensure these booleans are in your Model
+                        isLanguage = s.IsLanguage,
+                        applicableGrades = s.ApplicableGrades ?? ""
                     })
+                    .OrderBy(s => s.name)
                     .ToList();
 
                 ViewBag.SubjectsJson = JsonConvert.SerializeObject(subjects);
