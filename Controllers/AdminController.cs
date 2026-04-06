@@ -315,25 +315,42 @@ namespace Michaelhouse.Controllers
         }
         public ActionResult StreamGroups()
         {
-			int currentYear = DateTime.Now.Year;
+            int currentYear = DateTime.Now.Year;
 
-			using (var db = new DBContextClass())
-			{
-				// Eager load everything needed for the 'White Dossier' view
-				var enrolments = db.StreamEnrolments
-					.Include("Student")
-					.Include("Student.User")
-					.Include("Registration")
-					// Optional: Filter by current academic year if your model supports it
-					.Where(se => se.Grade >= 10)
-					.OrderBy(se => se.Grade)
-					.ThenBy(se => se.Stream)
-					.ThenBy(se => se.Student.LastName)
-					.ToList();
+            using (var db = new DBContextClass())
+            {
+                // Eager load everything needed for the 'White Dossier' view
+                var enrolments = db.StreamEnrolments
+                    .Include("Student")
+                    .Include("Student.User")
+                    .Include("Registration")
+                    // Optional: Filter by current academic year if your model supports it
+                    .Where(se => se.Grade >= 10)
+                    .OrderBy(se => se.Grade)
+                    .ThenBy(se => se.Stream)
+                    .ThenBy(se => se.Student.LastName)
+                    .ToList();
 
-				// If the list is null (unlikely with .ToList()), initialize empty to prevent View crashes
-				return View(enrolments ?? new List<Michaelhouse.Models.StreamEnrolment>());
-			}
-		}
+                // If the list is null (unlikely with .ToList()), initialize empty to prevent View crashes
+                return View(enrolments ?? new List<Michaelhouse.Models.StreamEnrolment>());
+            }
+        }
+        public void AssignTeacherToSubjects(int teacherId, int subjectId, int grade, AcademicStream stream = AcademicStream.None)
+        {
+            using (var db = new DBContextClass())
+            {
+                if (!db.TeacherSubjectGrades.Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId))
+                {
+                    db.TeacherSubjectGrades.Add(new TeacherSubjectGrade
+                    {
+                        TeacherId = teacherId,
+                        SubjectId = subjectId,
+                        Grade = grade,
+                        Stream = stream
+                    });
+                    db.SaveChanges();
+                }
+            }
+        }
     }
 }

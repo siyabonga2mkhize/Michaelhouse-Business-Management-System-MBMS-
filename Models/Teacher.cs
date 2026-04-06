@@ -49,10 +49,6 @@ namespace Michaelhouse.Models
         public virtual ICollection<TeacherAttendance> TeacherAttendances { get; set; }
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
         public virtual ICollection<Subject> Subjects { get; set; }
-
-
-        // Timetable slots assigned to this teacher
-        public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
         public virtual ICollection<StreamEnrolment> StreamEnrolments { get; set; }
     }
 }

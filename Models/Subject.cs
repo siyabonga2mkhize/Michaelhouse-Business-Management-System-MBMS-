@@ -1,13 +1,12 @@
 using Michaelhouse.Models.Enums;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
-	public class Subject
-	{
+    public class Subject
+    {
         [Key]
         public int SubjectId { get; set; }
 
@@ -38,7 +37,6 @@ namespace Michaelhouse.Models
 
         // Display order within its stream
         public int SortOrder { get; set; }
-        public int SortOrder { get; set; }
 
         [Required]
         [Display(Name = "Grade Level")]
@@ -55,12 +53,12 @@ namespace Michaelhouse.Models
         // Navigation Collections
         public virtual ICollection<StudentMark> StudentMarks { get; set; }
         public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
-    
 
-    //public int? TeacherId { get; set; }
-    //public virtual Teacher Teacher { get; set; }
-    //public virtual ICollection<StudentMark> StudentMarks { get; set; }
-    //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
+
+        //public int? TeacherId { get; set; }
+        //public virtual Teacher Teacher { get; set; }
+        //public virtual ICollection<StudentMark> StudentMarks { get; set; }
+        //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
 
         // Ensure this matches your TimetableSlot model name
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }

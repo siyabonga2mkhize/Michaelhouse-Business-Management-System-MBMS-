@@ -10,7 +10,6 @@ namespace Michaelhouse.Models
         public int SubjectId { get; set; }
 
         // Navigation properties are key for the dropdowns and lists!
-        public virtual SchoolClass SchoolClass { get; set; }
         public virtual Subject Subject { get; set; }
 
         public string TeacherName { get; set; } //who is the teacher 

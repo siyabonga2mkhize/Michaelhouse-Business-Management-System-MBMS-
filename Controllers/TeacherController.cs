@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity; // CRITICAL: Required for Lambda .Include()
-using System.Linq;
-using System.Web.Mvc;
-using Michaelhouse.Filters;
+﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Services;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity; // CRITICAL: Required for Lambda .Include()
+using System.Linq;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
@@ -147,5 +147,35 @@ namespace Michaelhouse.Controllers
                 ViewBag.SubjectsJson = JsonConvert.SerializeObject(subjects);
             }
         }
+
+        /*public ActionResult Dashboard()
+        {
+            int teacherId = (int)(Session["TeacherId"] ?? 0);
+            var teacher = db.Teachers.FirstOrDefault(t => t.TeacherId == teacherId);
+
+            if (teacher == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var today = System.DateTime.Today;
+            var todayAttendance = db.TeacherAttendances
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+
+            var subjectCount = db.Subjects.Count(s => s.TeacherId == teacherId);
+            var recentAttendance = db.Attendances
+                .Where(a => a.RecordedBy == teacher.Email)
+                .OrderByDescending(a => a.Date)
+                .Take(5)
+                .ToList();
+
+            ViewBag.TeacherName = teacher.FirstName;
+            ViewBag.TodayAttendance = todayAttendance;
+            ViewBag.SubjectCount = subjectCount;
+            ViewBag.RecentAttendance = recentAttendance;
+
+            return View();
+        }*/
+
     }
 }

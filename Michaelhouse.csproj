@@ -213,17 +213,12 @@
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
-    <Compile Include="Controllers\TeachersController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604060106579_InitialCreate.cs" />
-    <Compile Include="Migrations\202604060106579_InitialCreate.Designer.cs">
-      <DependentUpon>202604060106579_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604060112113_InitialCreate1.cs" />
-    <Compile Include="Migrations\202604060112113_InitialCreate1.Designer.cs">
-      <DependentUpon>202604060112113_InitialCreate1.cs</DependentUpon>
+    <Compile Include="Migrations\202604061900027_InitialCreate.cs" />
+    <Compile Include="Migrations\202604061900027_InitialCreate.Designer.cs">
+      <DependentUpon>202604061900027_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -239,7 +234,6 @@
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\MaintananceRequest.cs" />
     <Compile Include="Models\MarkAttendanceViewModel.cs" />
-    <Compile Include="Models\Order.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AdminReviewController.cs" />
@@ -261,14 +255,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604061518172_InitialCreate.cs" />
-    <Compile Include="Migrations\202604061518172_InitialCreate.Designer.cs">
-      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604061520315_InitialCreate1.cs" />
-    <Compile Include="Migrations\202604061520315_InitialCreate1.Designer.cs">
-      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
-    </Compile>
     <!-- Migrations -->
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
@@ -282,7 +268,6 @@
     <Compile Include="Models\Assessment.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
-    <Compile Include="Models\DtoClasses.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
     <Compile Include="Models\Invoice.cs" />
@@ -302,6 +287,7 @@
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\Teacher.cs" />
+    <Compile Include="Models\TeacherAttendance.cs" />
     <Compile Include="Models\Teacherservice.cs" />
     <Compile Include="Models\Teachersubjectgrade.cs" />
     <Compile Include="Models\Termresult.cs" />
@@ -475,11 +461,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604061518172_InitialCreate.resx">
-      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604061520315_InitialCreate1.resx">
-      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604061900027_InitialCreate.resx">
+      <DependentUpon>202604061900027_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
