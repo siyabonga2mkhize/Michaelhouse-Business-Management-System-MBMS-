@@ -1,0 +1,153 @@
+﻿@* Views/Timetable/Generate.cshtml *@
+@{
+    ViewBag.Title = "Generate Timetable";
+    int year = (int)ViewBag.Year;
+}
+
+<div class="relative mb-12 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <i class="bi bi-cpu absolute -right-8 -bottom-10 text-black/5 text-[15rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Academic Operations</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Scheduling Engine</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Configuration for Academic Year @year</p>
+        </div>
+        @if ((bool)ViewBag.HasTimetable)
+        {
+            <a href="@Url.Action("GradeView", "Timetable", new { grade = 8, year })" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black border-b border-gray-200 pb-1 transition-colors">
+                <i class="bi bi-eye me-1"></i> View Live Schedule
+            </a>
+        }
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+    <div class="row g-5 justify-content-center">
+        <div class="col-lg-6">
+            <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 flex items-center gap-3">
+                <i class="bi bi-clipboard-check"></i> System Readiness Checklist
+            </h5>
+
+            <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-8">
+                <div class="divide-y divide-gray-50">
+                    <div class="p-4 flex justify-between items-center group hover:bg-gray-50 transition-colors">
+                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Faculty Provisioning</span>
+                        @if ((int)ViewBag.TeacherCount > 0)
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-green-600 border border-green-100 bg-green-50 px-3 py-1">
+                                <i class="bi bi-check2 me-1"></i> @ViewBag.TeacherCount Staff Found
+                            </span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Create","Teacher")" class="text-[9px] font-bold uppercase tracking-widest text-white bg-[#C21E2E] px-3 py-1 shadow-sm">
+                                Missing Staff
+                            </a>
+                        }
+                    </div>
+
+                    <div class="p-4 flex justify-between items-center group hover:bg-gray-50 transition-colors">
+                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Academic Allocations</span>
+                        @if ((int)ViewBag.AssignmentCount > 0)
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-green-600 border border-green-100 bg-green-50 px-3 py-1">
+                                <i class="bi bi-check2 me-1"></i> @ViewBag.AssignmentCount Linked
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 px-3 py-1">Critical Error</span>
+                        }
+                    </div>
+
+                    <div class="p-4 flex justify-between items-center group hover:bg-gray-50 transition-colors">
+                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Time Definitions</span>
+                        @if ((int)ViewBag.PeriodCount > 0)
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400 border border-gray-100 px-3 py-1">
+                                @ViewBag.PeriodCount Slots Defined
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-amber-600 border border-amber-100 bg-amber-50 px-3 py-1 italic">Auto-Generate Mode</span>
+                        }
+                    </div>
+
+                    <div class="p-4 flex justify-between items-center group hover:bg-gray-50 transition-colors">
+                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">Active Schedule</span>
+                        @if ((bool)ViewBag.HasTimetable)
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-amber-500 border border-amber-100 bg-amber-50 px-3 py-1">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Overwrite Mode
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-300 border border-gray-50 px-3 py-1">Clean State</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @using (Html.BeginForm("Generate", "Timetable", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="academicYear" value="@year" />
+                <button type="submit" class="w-full bg-[#1a1a1a] text-white py-5 text-[10px] font-bold uppercase tracking-[4px] shadow-xl hover:bg-[#C21E2E] transition-all active:scale-[0.98]"
+                        onclick="return confirm('WARNING: This will purge and rebuild the @year timetable. Proceed?')">
+                    <i class="bi bi-magic me-2"></i> Initialize Schedule Generation
+                </button>
+            }
+        </div>
+
+        <div class="col-lg-5">
+            <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6 flex items-center gap-3">
+                <i class="bi bi-info-circle"></i> Engine Parameters
+            </h5>
+
+            <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden">
+                <i class="bi bi-diagram-3 absolute -right-6 -bottom-6 text-black/5 text-8xl rotate-12"></i>
+
+                <div class="space-y-6 relative z-10">
+                    <div class="flex gap-3">
+                        <div class="text-[#C21E2E] mt-1"><i class="bi bi-arrow-right-short"></i></div>
+                        <p class="text-[11px] text-gray-500 leading-relaxed"><strong class="text-gray-800">Primary Curriculum:</strong> Grades 8 & 9 are scheduled as monolithic groups; all students attend identical sessions.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="text-[#C21E2E] mt-1"><i class="bi bi-arrow-right-short"></i></div>
+                        <p class="text-[11px] text-gray-500 leading-relaxed"><strong class="text-gray-800">Faculty Streams:</strong> Senior grades (10-12) utilize simultaneous scheduling for stream-specific electives.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="text-[#C21E2E] mt-1"><i class="bi bi-arrow-right-short"></i></div>
+                        <p class="text-[11px] text-gray-500 leading-relaxed"><strong class="text-gray-800">Conflict Matrix:</strong> The engine enforces a strict zero-overlap rule for individual faculty members.</p>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <div class="text-[#C21E2E] mt-1"><i class="bi bi-arrow-right-short"></i></div>
+                        <p class="text-[11px] text-gray-500 leading-relaxed"><strong class="text-gray-800">Weighted Frequency:</strong> English and Mathematics are prioritized with 5 sessions per cycle.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

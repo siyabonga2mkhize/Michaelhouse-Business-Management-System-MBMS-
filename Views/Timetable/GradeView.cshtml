@@ -1,0 +1,136 @@
+﻿@model List<Michaelhouse.Models.TimetableSlot>
+@using Michaelhouse.Models.Enums
+@using Michaelhouse.Services
+@{
+    ViewBag.Title = "Academic Timetable";
+    var periods = (List<Michaelhouse.Models.Period>)ViewBag.Periods;
+    int grade = (int)(ViewBag.Grade ?? 0);
+    int academicYear = (int)ViewBag.AcademicYear;
+    int[] grades = (int[])ViewBag.Grades ?? new[] { 8, 9, 10, 11, 12 };
+
+    var days = new[] {
+        new { Num = 1, Name = "Monday"    },
+        new { Num = 2, Name = "Tuesday"   },
+        new { Num = 3, Name = "Wednesday" },
+        new { Num = 4, Name = "Thursday"  },
+        new { Num = 5, Name = "Friday"    }
+    };
+
+    string StreamColor(AcademicStream s)
+    {
+        switch (s)
+        {
+            case AcademicStream.ArtsAndCulture: return "bg-purple-50 text-purple-700 border-purple-200";
+            case AcademicStream.HumanAndSocialStudies: return "bg-blue-50 text-blue-700 border-blue-200";
+            case AcademicStream.Sciences: return "bg-emerald-50 text-emerald-700 border-emerald-200";
+            case AcademicStream.Commerce: return "bg-amber-50 text-amber-700 border-amber-200";
+            case AcademicStream.EngineeringAndTechnology: return "bg-red-50 text-red-700 border-red-200";
+            default: return "bg-gray-50 text-gray-700 border-gray-200";
+        }
+    }
+}
+
+<div class="relative mb-10 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Institutional Master Schedule</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Grade @grade Timetable</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Term Cycle &bull; Academic Year @academicYear</p>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            @foreach (var g in grades)
+            {
+                <a href="@Url.Action("GradeView", "Timetable", new { grade = g, year = academicYear })"
+                   class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all @(g == grade ? "bg-[#C21E2E] text-white shadow-lg" : "bg-white border border-gray-200 text-gray-400 hover:text-black")">
+                    Gr @g
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 pb-20">
+    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0 border-gray-100">
+                <thead>
+                    <tr class="bg-gray-900 text-white">
+                        <th class="text-[10px] uppercase tracking-[3px] py-4 ps-4" style="width:140px;">Period</th>
+                        @foreach (var day in days)
+                        {
+                            <th class="text-center text-[10px] uppercase tracking-[3px] py-4">@day.Name</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach (var period in periods)
+                    {
+                        <tr class="@(period.IsBreak ? "bg-gray-50/50" : "")">
+                            <td class="ps-4 py-4 align-middle border-r border-gray-100">
+                                <div class="text-[10px] font-bold text-gray-900 uppercase">@period.Label</div>
+                                <div class="text-[10px] font-monospace text-gray-400">@period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")</div>
+                            </td>
+
+                            @foreach (var day in days)
+                            {
+                                var daySlots = Model.Where(ts => ts.DayOfWeek == day.Num && ts.PeriodId == period.PeriodId)
+                                                    .OrderBy(ts => ts.Stream).ToList();
+
+                                <td class="p-2 align-top h-24 border-gray-100">
+                                    @if (period.IsBreak)
+                                    {
+                                        <div class="flex items-center justify-center h-full opacity-20">
+                                            <span class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500">@period.Label</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        foreach (var slot in daySlots)
+                                        {
+                                            var style = StreamColor(slot.Stream);
+                                            <div class="p-2 mb-1 border-l-2 @style shadow-sm group">
+                                                <div class="text-[10px] font-bold uppercase tracking-tighter leading-tight">
+                                                    @(slot.Subject?.Name ?? "Unassigned")
+                                                </div>
+                                                <div class="text-[9px] opacity-70 font-semibold">
+                                                    @(slot.Teacher?.Name ?? "Staff Pending")
+                                                </div>
+                                                @if (slot.Stream != AcademicStream.None)
+                                                {
+                                                    <div class="text-[8px] uppercase tracking-widest font-bold opacity-40 mt-1">
+                                                        @RegistrationService.GetStreamName(slot.Stream)
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .table td {
+        vertical-align: top !important;
+    }
+
+    .table-bordered > :not(caption) > * > * {
+        border-width: 0 1px;
+    }
+</style>

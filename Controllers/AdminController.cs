@@ -1,11 +1,13 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Mvc;
-using Michaelhouse.Filters;
+﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
@@ -313,20 +315,25 @@ namespace Michaelhouse.Controllers
         }
         public ActionResult StreamGroups()
         {
-            using (var db = new DBContextClass())
-            {
-                var enrolments = db.StreamEnrolments
-                    .Include("Student")
-                    .Include("Student.User")
-                    .Include("Registration")
-                    .Where(se => se.Grade >= 10)
-                    .OrderBy(se => se.Grade)
-                    .ThenBy(se => se.Stream)
-                    .ThenBy(se => se.Student.LastName)
-                    .ToList();
+			int currentYear = DateTime.Now.Year;
 
-                return View(enrolments);
-            }
-        }
+			using (var db = new DBContextClass())
+			{
+				// Eager load everything needed for the 'White Dossier' view
+				var enrolments = db.StreamEnrolments
+					.Include("Student")
+					.Include("Student.User")
+					.Include("Registration")
+					// Optional: Filter by current academic year if your model supports it
+					.Where(se => se.Grade >= 10)
+					.OrderBy(se => se.Grade)
+					.ThenBy(se => se.Stream)
+					.ThenBy(se => se.Student.LastName)
+					.ToList();
+
+				// If the list is null (unlikely with .ToList()), initialize empty to prevent View crashes
+				return View(enrolments ?? new List<Michaelhouse.Models.StreamEnrolment>());
+			}
+		}
     }
 }
