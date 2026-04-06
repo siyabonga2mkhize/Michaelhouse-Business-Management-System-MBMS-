@@ -233,7 +233,7 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<OrderItem>()
                 .HasRequired(oi => oi.Product)
                 .WithMany(p => p.OrderItems)
-                .HasForeignKey(oi => oi.ProductId)
+                .HasForeignKey(oi => oi.ProductId);
             modelBuilder.Entity<StreamEnrolment>()
                 .HasRequired(se => se.Student)
                 .WithMany()
@@ -273,7 +273,7 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<YearResult>()
                 .HasRequired(yr => yr.Student)
                 .WithMany()
-                .HasForeignKey(yr => yr.StudentId)
+                .HasForeignKey(yr => yr.StudentId);
             modelBuilder.Entity<Payment>()
                 .HasRequired(p => p.Invoice)
                 .WithMany(i => i.Payments)
