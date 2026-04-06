@@ -127,7 +127,6 @@
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
@@ -213,13 +212,16 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AdminReviewController.cs" />
     <Compile Include="Controllers\ApplicationsController.cs" />
+    <Compile Include="Controllers\CartController.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MarksController.cs" />
+    <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
     <Compile Include="Controllers\PaymentController.cs" />
     <Compile Include="Controllers\RegistrationController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
+    <Compile Include="Controllers\StoreController.cs" />
     <Compile Include="Controllers\StudentsController.cs" />
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Controllers\TimetableController.cs" />
@@ -227,26 +229,15 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604022244477_InitialCreate.cs" />
-    <Compile Include="Migrations\202604022244477_InitialCreate.Designer.cs">
-      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202604061518172_InitialCreate.cs" />
+    <Compile Include="Migrations\202604061518172_InitialCreate.Designer.cs">
+      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.cs" />
-    <Compile Include="Migrations\202604032343272_AddStreamsAndEnrolments.Designer.cs">
-      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
+    <Compile Include="Migrations\202604061520315_InitialCreate1.cs" />
+    <Compile Include="Migrations\202604061520315_InitialCreate1.Designer.cs">
+      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.cs" />
-    <Compile Include="Migrations\202604040034214_AddStreamsAndEnrolments1.Designer.cs">
-      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.cs" />
-    <Compile Include="Migrations\202604042317022_AddTeachersAndTimetable.Designer.cs">
-      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.cs" />
-    <Compile Include="Migrations\202604051446316_AddCaptureMarkAndReport.Designer.cs">
-      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
-    </Compile>
+    <!-- Migrations -->
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
@@ -255,10 +246,13 @@
     <Compile Include="Models\ApplicationService.cs" />
     <Compile Include="Models\ApplicationStatus.cs" />
     <Compile Include="Models\AppUser.cs" />
+    <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Assessment.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
+    <Compile Include="Models\DtoClasses.cs" />
     <Compile Include="Models\EmailService.cs" />
+    <Compile Include="Models\ICartService.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
@@ -268,6 +262,7 @@
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
@@ -376,6 +371,10 @@
     <Content Include="Views\Registration\Confirm.cshtml" />
     <Content Include="Views\Registration\Complete.cshtml" />
     <Content Include="Views\Admin\Registrations.cshtml" />
+    <Content Include="Views\Store\Index.cshtml" />
+    <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\Success.cshtml" />
     <Content Include="Views\Payment\Index.cshtml" />
     <Content Include="Views\Payment\Pay.cshtml" />
     <Content Include="Views\Payment\Receipt.cshtml" />
@@ -428,20 +427,11 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604022244477_InitialCreate.resx">
-      <DependentUpon>202604022244477_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604061518172_InitialCreate.resx">
+      <DependentUpon>202604061518172_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604032343272_AddStreamsAndEnrolments.resx">
-      <DependentUpon>202604032343272_AddStreamsAndEnrolments.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604040034214_AddStreamsAndEnrolments1.resx">
-      <DependentUpon>202604040034214_AddStreamsAndEnrolments1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604042317022_AddTeachersAndTimetable.resx">
-      <DependentUpon>202604042317022_AddTeachersAndTimetable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604051446316_AddCaptureMarkAndReport.resx">
-      <DependentUpon>202604051446316_AddCaptureMarkAndReport.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604061520315_InitialCreate1.resx">
+      <DependentUpon>202604061520315_InitialCreate1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

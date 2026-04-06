@@ -1,0 +1,179 @@
+﻿@using Michaelhouse.Models
+@model List<Michaelhouse.Models.Product>
+@{
+    ViewBag.Title = "School Store";
+    var categories = ViewBag.Categories as List<Michaelhouse.Models.Category>;
+    var selectedCategory = ViewBag.SelectedCategory as int?;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="@Url.Content("~/Content/css/store-index.css")" />
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-shop me-2 text-primary"></i>School Store</h3>
+        <small class="text-muted">Browse and purchase official school uniforms, books, and stationery</small>
+    </div>
+    <a href="@Url.Action("Index", "Cart")" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-cart3 me-1"></i> View Cart
+        @{ var cartCount = ViewBag.CartItemCount as int? ?? 0; }
+        @if (cartCount > 0)
+        {
+            <span class="badge bg-danger ms-1">@cartCount</span>
+        }
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3">@Model.Count(p => p.IsActive)</div>
+            <div class="small text-muted">Total Products</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-success">
+                @Model.Count(p => p.IsInStock && p.QuantityInStock > 10)
+            </div>
+            <div class="small text-muted">In Stock</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-warning">
+                @Model.Count(p => p.IsLowStock && p.IsInStock)
+            </div>
+            <div class="small text-muted">Low Stock</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center py-3">
+            <div class="fw-bold fs-3 text-danger">
+                @Model.Count(p => !p.IsInStock)
+            </div>
+            <div class="small text-muted">Out of Stock</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <span><i class="bi bi-tags me-2"></i>Categories</span>
+                <div class="d-flex gap-2">
+                    <a href="@Url.Action("Index")"
+                       class="btn btn-sm @(selectedCategory == null ? "btn-primary" : "btn-outline-secondary")">
+                        All Items
+                    </a>
+                    @foreach (var cat in categories)
+                    {
+                        <a href="@Url.Action("Index", new { categoryId = cat.Id })"
+                           class="btn btn-sm @(selectedCategory == cat.Id ? "btn-primary" : "btn-outline-secondary")">
+                            @cat.Name
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    @foreach (var product in Model)
+    {
+        string stockBadgeClass = !product.IsInStock ? "danger"
+                               : product.IsLowStock ? "warning" : "success";
+        string stockText = !product.IsInStock ? "Out of Stock"
+                         : product.IsLowStock ? "Low Stock" : "In Stock";
+
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card h-100 shadow-sm">
+                <div class="card-img-top bg-light text-center py-4">
+                    <i class="bi @(product.Category?.Name == "Uniforms" ? "bi-backpack" : "bi-book") fs-1 text-secondary"></i>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary">@(product.Category?.Name ?? "Uncategorized")</span>
+                        <span class="badge bg-@stockBadgeClass">@stockText</span>
+                    </div>
+                    <h6 class="card-title fw-semibold">@product.Name</h6>
+                    <p class="card-text small text-muted">
+                        @(product.Description.Length > 80 ? product.Description.Substring(0, 80) + "..." : product.Description)
+                    </p>
+                    <div class="d-flex justify-content-between align-items-end mt-3">
+                        <div>
+                            <span class="fs-5 fw-bold text-primary">R @product.Price.ToString("N2")</span>
+                            <br />
+                            <small class="text-muted">@product.QuantityInStock available</small>
+                        </div>
+                        @if (product.IsInStock)
+                        {
+                            using (Html.BeginForm("Add", "Cart", FormMethod.Post, new { @class = "d-inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <div class="input-group input-group-sm" style="width: 130px;">
+                                    <input type="number" name="quantity" value="1" min="1"
+                                           max="@product.QuantityInStock" class="form-control text-center" />
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary btn-sm" disabled>
+                                <i class="bi bi-cart-x"></i> Unavailable
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-emoji-frown display-1 text-muted"></i>
+        <h4 class="mt-3 text-muted">No products found</h4>
+        <p class="text-muted">Try a different category or check back later</p>
+        <a href="@Url.Action("Index")" class="btn btn-primary">View All Products</a>
+    </div>
+}
+
+<div class="row mt-4 g-3">
+    <div class="col-md-4">
+        <div class="card text-center py-3">
+            <i class="bi bi-truck fs-2 text-primary"></i>
+            <div class="fw-semibold mt-2">Free Delivery</div>
+            <small class="text-muted">On orders over R500</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center py-3">
+            <i class="bi bi-shield-check fs-2 text-primary"></i>
+            <div class="fw-semibold mt-2">Quality Guaranteed</div>
+            <small class="text-muted">Official school items</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center py-3">
+            <i class="bi bi-arrow-repeat fs-2 text-primary"></i>
+            <div class="fw-semibold mt-2">Easy Returns</div>
+            <small class="text-muted">14-day return policy</small>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add any store-specific JavaScript here
+        console.log('Store page loaded');
+    </script>
+}
