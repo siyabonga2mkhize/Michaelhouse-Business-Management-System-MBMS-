@@ -18,7 +18,6 @@ namespace Michaelhouse.Models
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        // Helper property for the full name
         public string Name => $"{FirstName} {LastName}";
 
         [Required, MaxLength(200)]
@@ -52,5 +51,8 @@ namespace Michaelhouse.Models
         public virtual ICollection<Subject> Subjects { get; set; }
 
 
+        // Timetable slots assigned to this teacher
+        public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
+        public virtual ICollection<StreamEnrolment> StreamEnrolments { get; set; }
     }
 }

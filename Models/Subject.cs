@@ -1,43 +1,43 @@
-using Michaelhouse.Models.Enums; // Required for AcademicStream enum
+using Michaelhouse.Models.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
-    public class Subject
-    {
+	public class Subject
+	{
         [Key]
         public int SubjectId { get; set; }
 
         [Required, MaxLength(200)]
-        [Display(Name = "Subject Name")]
         public string Name { get; set; }
 
         [MaxLength(50)]
-        [Display(Name = "Subject Code")]
         public string Code { get; set; }
 
-        // Which stream this subject belongs to (e.g., Science, Humanities)
-        [Display(Name = "Academic Stream")]
+        // Which stream this subject belongs to
         public AcademicStream Stream { get; set; }
 
-        [Display(Name = "Compulsory")]
+        // Compulsory = all students must take it (English, LO)
         public bool IsCompulsory { get; set; }
 
-        [Display(Name = "Language Choice")]
+        // Is this a language choice (Afrikaans, isiZulu, French etc.)
         public bool IsLanguage { get; set; }
 
-        [Display(Name = "Maths Option")]
+        // Is this a maths option (Mathematics, Math Literacy, Further Studies Maths)
         public bool IsMathsOption { get; set; }
 
-        [Display(Name = "Requires Core Maths")]
+        // Requires Mathematics (not Math Literacy) as prerequisite
         public bool RequiresMaths { get; set; }
 
         // Comma-separated grades e.g. "8,9" or "10,11,12"
         [Display(Name = "Applicable Grades")]
         public string ApplicableGrades { get; set; }
 
+        // Display order within its stream
+        public int SortOrder { get; set; }
         public int SortOrder { get; set; }
 
         [Required]
@@ -55,6 +55,12 @@ namespace Michaelhouse.Models
         // Navigation Collections
         public virtual ICollection<StudentMark> StudentMarks { get; set; }
         public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
+    
+
+    //public int? TeacherId { get; set; }
+    //public virtual Teacher Teacher { get; set; }
+    //public virtual ICollection<StudentMark> StudentMarks { get; set; }
+    //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
 
         // Ensure this matches your TimetableSlot model name
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }

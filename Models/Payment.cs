@@ -9,33 +9,26 @@ namespace Michaelhouse.Models
         [Key]
         public int PaymentId { get; set; }
 
-        // Foreign Key to the related Invoice
         [ForeignKey("Invoice")]
         public int InvoiceId { get; set; }
         public virtual Invoice Invoice { get; set; }
 
-        [Required]
-        [DataType(DataType.Currency)]
         public decimal AmountPaid { get; set; }
 
-        [Display(Name = "Payment Date")]
         public DateTime PaymentDate { get; set; } = DateTime.Now;
 
-        // Stripe integration fields
-        [Display(Name = "Stripe Charge ID")]
+        // Stripe charge ID
         public string StripeChargeId { get; set; }
 
-        [Display(Name = "Stripe Intent ID")]
+        // Stripe payment intent ID (for newer Stripe API)
         public string StripePaymentIntentId { get; set; }
 
-        // Status: "Success", "Failed", "Refunded"
-        [Required]
-        public string Status { get; set; }
+        public string Status { get; set; } // "Success", "Failed", "Refunded"
 
-        [Display(Name = "Reference")]
+        // Reference for proof of payment
         public string PaymentReference { get; set; }
 
-        [Display(Name = "Receipt Emailed")]
+        // Was proof of payment emailed?
         public bool ProofEmailSent { get; set; }
     }
 }

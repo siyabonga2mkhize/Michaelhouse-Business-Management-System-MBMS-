@@ -46,7 +46,7 @@ namespace Michaelhouse.Controllers
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
 
-                // Link specific Profile IDs to Session based on Role
+                // Store ParentId in session for easy access
                 if (user.Role == "Parent")
                 {
                     var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
@@ -62,8 +62,21 @@ namespace Michaelhouse.Controllers
                     var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
                     if (teacher != null) Session["TeacherId"] = teacher.TeacherId;
                 }
+                else if (user.Role == "Student")
+                {
+                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                    if (student != null)
+                        Session["StudentId"] = student.StudentId;
+                }
 
-                return RedirectByRole(user.Role);
+				else if (user.Role == "Teacher")
+				{
+					var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+					if (teacher != null)
+						Session["TeacherId"] = teacher.TeacherId;
+				}
+
+				return RedirectByRole(user.Role);
             }
         }
 

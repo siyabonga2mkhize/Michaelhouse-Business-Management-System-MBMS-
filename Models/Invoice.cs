@@ -46,8 +46,6 @@ namespace Michaelhouse.Models
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        [Display(Name = "Due Date")]
-        [DataType(DataType.Date)]
         public DateTime DueDate { get; set; }
 
         public string Status { get; set; } = "Pending"; // Pending / Paid / Overdue / Waived
