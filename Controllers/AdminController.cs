@@ -5,6 +5,7 @@ using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -352,5 +353,192 @@ namespace Michaelhouse.Controllers
                 }
             }
         }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // TEACHER ATTENDANCE HISTORY (Admin)
+        // ─────────────────────────────────────────────────────────────────────────
+
+        public ActionResult TeacherAttendanceHistory(DateTime? fromDate, DateTime? toDate, int? teacherId)
+        {
+            using (var db = new DBContextClass())
+            {
+                var query = db.TeacherAttendances
+                    .Include(t => t.Teacher)
+                    .AsQueryable();
+
+                if (fromDate.HasValue)
+                    query = query.Where(ta => ta.Date >= fromDate.Value);
+                if (toDate.HasValue)
+                    query = query.Where(ta => ta.Date <= toDate.Value);
+                if (teacherId.HasValue && teacherId.Value > 0)
+                    query = query.Where(ta => ta.TeacherId == teacherId.Value);
+
+                // First, project into a simple anonymous type (no arithmetic)
+                var intermediate = query
+                    .OrderByDescending(ta => ta.Date)
+                    .Select(ta => new
+                    {
+                        TeacherFirstName = ta.Teacher.FirstName,
+                        TeacherLastName = ta.Teacher.LastName,
+                        ta.Date,
+                        ta.SignInTime,
+                        ta.SignOutTime,
+                        ta.IsVerified
+                    })
+                    .AsEnumerable(); // Switch to LINQ to Objects
+
+                // Now compute duration in memory
+                var records = intermediate
+                    .Select(ta => new TeacherAttendanceRecordViewModel
+                    {
+                        TeacherName = ta.TeacherFirstName + " " + ta.TeacherLastName,
+                        Date = ta.Date,
+                        SignInTime = ta.SignInTime,
+                        SignOutTime = ta.SignOutTime,
+                        Duration = ta.SignInTime.HasValue && ta.SignOutTime.HasValue
+                                    ? ta.SignOutTime.Value - ta.SignInTime.Value
+                                    : (TimeSpan?)null,
+                        IsVerified = ta.IsVerified
+                    })
+                    .ToList();
+
+                ViewBag.Teachers = db.Teachers.OrderBy(t => t.LastName).ThenBy(t => t.FirstName).ToList();
+                return View(records);
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // STUDENT ATTENDANCE REGISTER HISTORY (Admin)
+        // ─────────────────────────────────────────────────────────────────────────
+
+        public ActionResult StudentAttendanceHistory(int? subjectId, int? studentId, DateTime? fromDate, DateTime? toDate)
+        {
+            using (var db = new DBContextClass())
+            {
+                var query = db.Attendances.AsQueryable();
+
+                if (subjectId.HasValue && subjectId.Value > 0)
+                    query = query.Where(a => a.SubjectId == subjectId.Value);
+                if (studentId.HasValue && studentId.Value > 0)
+                    query = query.Where(a => a.StudentId == studentId.Value);
+                if (fromDate.HasValue)
+                    query = query.Where(a => a.Date >= fromDate.Value);
+                if (toDate.HasValue)
+                    query = query.Where(a => a.Date <= toDate.Value);
+
+                var records = query
+                    .OrderByDescending(a => a.Date)
+                    .Select(a => new AttendanceRecordViewModel
+                    {
+                        Date = a.Date,
+                        StudentName = a.Student.FirstName + " " + a.Student.LastName,
+                        StudentGrade = a.Student.GradeLevel,
+                        SubjectName = a.Subject.Name,
+                        Status = a.Status,
+                        RecordedBy = a.RecordedBy
+                    })
+                    .ToList();
+
+                ViewBag.AttendanceRecords = records;
+                ViewBag.Subjects = db.Subjects.OrderBy(s => s.Name).ToList();
+                ViewBag.Students = db.Students.OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToList();
+
+                return View();
+            }
+        }
+
+        public ActionResult FixLowerGradeTeacher()
+        {
+            using (var db = new DBContextClass())
+            {
+                // Configuration – change these as needed
+                string teacherEmail = "teacher.lower@michaelhouse.org";
+                string teacherFirstName = "Jane";
+                string teacherLastName = "Lower";
+                int gradeLevel = 8; // or 9
+                string defaultPassword = "Teacher@123";
+
+                // 1. Get the fixed subjects for grade 8/9 from RegistrationService
+                var gradeSubjects = RegistrationService.Grade8And9Subjects;
+
+                // 2. Ensure each subject exists in the Subjects table (create if missing)
+                foreach (string subjectName in gradeSubjects)
+                {
+                    var existingSubject = db.Subjects.FirstOrDefault(s => s.Name == subjectName && s.GradeLevel == gradeLevel);
+                    if (existingSubject == null)
+                    {
+                        db.Subjects.Add(new Subject
+                        {
+                            Name = subjectName,
+                            Code = subjectName.Replace(" ", "").Substring(0, Math.Min(3, subjectName.Length)) + gradeLevel,
+                            GradeLevel = gradeLevel,
+                            Stream = AcademicStream.None,
+                            IsCompulsory = true, // All grade 8/9 subjects are compulsory
+                            ApplicableGrades = gradeLevel.ToString()
+                        });
+                    }
+                }
+                db.SaveChanges();
+
+                // 3. Find or create the teacher
+                var teacher = db.Teachers.FirstOrDefault(t => t.Email == teacherEmail);
+                if (teacher == null)
+                {
+                    teacher = new Teacher
+                    {
+                        FirstName = teacherFirstName,
+                        LastName = teacherLastName,
+                        Email = teacherEmail,
+                        HireDate = DateTime.Now
+                    };
+                    db.Teachers.Add(teacher);
+                    db.SaveChanges();
+                }
+
+                // 4. Create AppUser account if missing
+                if (teacher.UserId == null)
+                {
+                    var user = new AppUser
+                    {
+                        Name = teacher.Name,
+                        Email = teacher.Email,
+                        PasswordHash = AccountController.HashPassword(defaultPassword),
+                        Role = "Teacher"
+                    };
+                    db.Users.Add(user);
+                    db.SaveChanges();
+                    teacher.UserId = user.UserId;
+                    db.Entry(teacher).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+
+                // 5. Assign all grade 8/9 subjects to the teacher (no streams)
+                var subjectsToAssign = db.Subjects.Where(s => s.GradeLevel == gradeLevel).ToList();
+                foreach (var subject in subjectsToAssign)
+                {
+                    bool alreadyAssigned = db.TeacherSubjectGrades
+                        .Any(tsg => tsg.TeacherId == teacher.TeacherId && tsg.SubjectId == subject.SubjectId);
+                    if (!alreadyAssigned)
+                    {
+                        db.TeacherSubjectGrades.Add(new TeacherSubjectGrade
+                        {
+                            TeacherId = teacher.TeacherId,
+                            SubjectId = subject.SubjectId,
+                            Grade = gradeLevel,
+                            Stream = AcademicStream.None
+                        });
+                    }
+                }
+                db.SaveChanges();
+
+                return Content($@"
+            <h3>Success!</h3>
+            <p>Teacher <strong>{teacher.Name}</strong> (Email: {teacherEmail}) has been activated for Grade {gradeLevel}.</p>
+            <p>Assigned {subjectsToAssign.Count} subjects (all from the fixed grade {gradeLevel} curriculum).</p>
+            <p>Login credentials: <br/>Email: {teacherEmail}<br/>Password: {defaultPassword}</p>
+        ");
+            }
+        }
+
     }
 }

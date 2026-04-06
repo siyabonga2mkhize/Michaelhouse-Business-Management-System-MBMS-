@@ -137,7 +137,7 @@
 </div>
 
 @section Scripts {
-<script>
+    <script>
     var userLat = null;
     var userLng = null;
     var locationReady = false;
@@ -215,50 +215,65 @@
         }
     }
 
+
     function doAction(action) {
-        if (!locationReady) {
-            showResult('warning', 'Please wait — acquiring your location…');
-            return;
-        }
-
-        var btn = document.getElementById(action === 'checkin' ? 'btn-checkin' : 'btn-checkout');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
-        }
-
-        var token = document.querySelector('input[name="__RequestVerificationToken"]');
-
-        fetch('@Url.Action(action === "checkin" ? "CheckIn" : "CheckOut", "TeacherAttendance")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': token ? token.value : ''
-            },
-            body: '__RequestVerificationToken=' + encodeURIComponent(token ? token.value : '')
-                + '&latitude=' + userLat
-                + '&longitude=' + userLng
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                showResult('success', data.message);
-                setTimeout(function() { location.reload(); }, 1800);
-            } else {
-                showResult('danger', data.message);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = action === 'checkin'
-                        ? '<i class="bi bi-box-arrow-in-right me-2"></i>Check In'
-                        : '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
-                }
-            }
-        })
-        .catch(function(err) {
-            showResult('danger', 'Request failed. Please try again.');
-            if (btn) btn.disabled = false;
-        });
+    if (!locationReady) {
+        showResult('warning', 'Please wait — acquiring your location…');
+        return;
     }
+
+    var btn = document.getElementById(action === 'checkin' ? 'btn-checkin' : 'btn-checkout');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+    }
+
+    var token = document.querySelector('input[name="__RequestVerificationToken"]');
+    var url = action === 'checkin'
+        ? '@Url.Action("CheckIn", "TeacherAttendance")'
+        : '@Url.Action("CheckOut", "TeacherAttendance")';
+
+    console.log("Action:", action);
+    console.log("URL:", url);
+    console.log("Latitude:", userLat);
+    console.log("Longitude:", userLng);
+    console.log("Token exists:", token != null);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token ? token.value : ''
+        },
+        body: '__RequestVerificationToken=' + encodeURIComponent(token ? token.value : '') +
+               '&latitude=' + userLat +
+               '&longitude=' + userLng
+    })
+    .then(response => {
+        console.log("Response status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Response data:", data);
+        if (data.success) {
+            showResult('success', data.message);
+            setTimeout(() => location.reload(), 1800);
+        } else {
+            showResult('danger', data.message);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = action === 'checkin'
+                    ? '<i class="bi bi-box-arrow-in-right me-2"></i>Check In'
+                    : '<i class="bi bi-box-arrow-right me-2"></i>Check Out';
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Fetch error:", error);
+        showResult('danger', 'Request failed. Check console.');
+        if (btn) btn.disabled = false;
+    });
+}
 
     function showResult(type, msg) {
         var el = document.getElementById('action-result');
@@ -267,6 +282,6 @@
         el.style.fontSize = '0.85rem';
         el.innerHTML = msg;
     }
-</script>
+    </script>
 @Html.AntiForgeryToken()
 }

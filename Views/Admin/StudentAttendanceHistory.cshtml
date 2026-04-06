@@ -1,0 +1,104 @@
+﻿@model List<Michaelhouse.Models.AttendanceRecordViewModel>
+@{
+    ViewBag.Title = "Student Attendance Register";
+    var records = ViewBag.AttendanceRecords as IEnumerable<dynamic>;
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4">Student Attendance Log</h2>
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    @using (Html.BeginForm("StudentAttendanceHistory", "Admin", FormMethod.Get, new { @class = "row g-3 mb-4 align-items-end" }))
+    {
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Subject</label>
+            <select name="subjectId" class="form-select form-select-sm">
+                <option value="">All Subjects</option>
+                @foreach (var s in ViewBag.Subjects as List<Michaelhouse.Models.Subject>)
+                {
+                    <option value="@s.SubjectId" @(Request.QueryString["subjectId"] == s.SubjectId.ToString() ? "selected" : "")>
+                        @s.Name (Gr @s.GradeLevel)
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Student</label>
+            <select name="studentId" class="form-select form-select-sm">
+                <option value="">All Students</option>
+                @foreach (var st in ViewBag.Students as List<Michaelhouse.Models.Student>)
+                {
+                    <option value="@st.StudentId" @(Request.QueryString["studentId"] == st.StudentId.ToString() ? "selected" : "")>
+                        @st.Name (Gr @st.GradeLevel)
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted">From Date</label>
+            <input type="date" name="fromDate" class="form-control form-control-sm" value="@Request.QueryString["fromDate"]" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted">To Date</label>
+            <input type="date" name="toDate" class="form-control form-control-sm" value="@Request.QueryString["toDate"]" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-12 mt-2">
+            <a href="@Url.Action("StudentAttendanceHistory", "Admin")" class="btn btn-sm btn-outline-secondary">Reset Filters</a>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Grade</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Recorded By</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (records != null && records.Any())
+                {
+                    foreach (var att in records)
+                    {
+                        <tr>
+                            <td>@att.Date.ToString("dd MMM yyyy")</td>
+                            <td>@att.StudentName</td>
+                            <td>@att.StudentGrade</td>
+                            <td>@att.SubjectName</td>
+                            <td>
+                                @if (att.Status == Michaelhouse.Models.AttendanceStatus.Present)
+                                {
+                                    <span class="badge bg-success">Present</span>
+                                }
+                                else if (att.Status == Michaelhouse.Models.AttendanceStatus.Absent)
+                                {
+                                    <span class="badge bg-danger">Absent</span>
+                                }
+                                else if (att.Status == Michaelhouse.Models.AttendanceStatus.Late)
+                                {
+                                    <span class="badge bg-warning text-dark">Late</span>
+                                }
+                            </td>
+                            <td>@att.RecordedBy</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No attendance records found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

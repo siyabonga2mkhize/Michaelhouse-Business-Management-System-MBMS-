@@ -20,7 +20,7 @@ namespace Michaelhouse.Models
         public string LastName { get; set; }
 
         // Full name computed for display
-        public string Name => FirstName + " " + LastName;
+        public string Name => $"{FirstName} {LastName}";
 
         [Required]
         [DataType(DataType.Date)]
