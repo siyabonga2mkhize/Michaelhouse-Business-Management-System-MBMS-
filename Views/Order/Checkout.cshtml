@@ -1,116 +1,142 @@
-﻿@using Michaelhouse.Models
-@model Michaelhouse.Models.ViewModels.CheckoutViewModel
+﻿@model Michaelhouse.Models.ViewModels.CheckoutViewModel
+@using Michaelhouse.Models.Enums
 @{
-    ViewBag.Title = "Checkout";
+    ViewBag.Title = "Procurement Authorization";
     var cart = ViewBag.Cart as Michaelhouse.Models.CartDto;
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h3 class="mb-0"><i class="bi bi-bag-check me-2 text-primary"></i>Checkout</h3>
-        <small class="text-muted">Complete your purchase by providing your details</small>
-    </div>
-    <a href="@Url.Action("Index", "Cart")" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i> Back to Cart
-    </a>
-</div>
+<link rel="stylesheet" href="~/Content/academic.css" />
 
-@if (cart == null || cart.IsEmpty)
-{
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-cart-x display-1 text-muted"></i>
-            <h4 class="mt-3 text-muted">Your cart is empty</h4>
-            <p class="text-muted mb-4">Please add items before checking out</p>
-            <a href="@Url.Action("Index", "Store")" class="btn btn-primary">
-                <i class="bi bi-shop me-2"></i>Start Shopping
+<div class="ac-page">
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="ac-header mb-8">
+        <div class="ac-header-left">
+            <div class="ac-eyebrow">Financial Services • Secure Checkout</div>
+            <h1 class="ac-title">Finalize Order</h1>
+            <p class="ac-subtitle">Authorize the procurement of institutional goods and confirm delivery logistics.</p>
+        </div>
+        <div class="ac-header-actions">
+            <a href="@Url.Action("Index", "Cart")" class="btn-ghost-premium">
+                <i class="bi bi-arrow-left me-2"></i> ADJUST BASKET
             </a>
         </div>
     </div>
-}
-else
-{
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header">
-                    <span><i class="bi bi-person me-2"></i>Customer Details</span>
-                </div>
-                <div class="card-body">
-                    <form method="post" action="@Url.Action("PlaceOrder", "Order")">
-                        @Html.AntiForgeryToken()
 
-                        @if (!ViewData.ModelState.IsValid)
+    @if (cart == null || cart.IsEmpty)
+    {
+        <div class="ac-card py-20 text-center border-dashed">
+            <i class="bi bi-cart-x text-gray-200 text-6xl d-block mb-4"></i>
+            <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Basket is Empty</h4>
+            <p class="text-sm text-gray-400 mb-8">The system cannot authorize a checkout without active line items.</p>
+            <a href="@Url.Action("Index", "Store")" class="btn-premium-red no-underline">
+                OPEN STORE CATALOGUE
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-5">
+            @* --- LEFT: AUTHORIZATION FORM --- *@
+            <div class="col-lg-7">
+                <div class="ac-card border-t-4 border-t-gray-900">
+                    <div class="ac-card-header bg-gray-50">
+                        <span class="ac-card-title">Consignee Identity</span>
+                    </div>
+                    <div class="p-8">
+                        @using (Html.BeginForm("PlaceOrder", "Order", FormMethod.Post, new { @class = "space-y-6" }))
                         {
-                            <div class="alert alert-danger">
-                                @Html.ValidationSummary(true, "Please correct the following errors:")
+                            @Html.AntiForgeryToken()
+
+                            if (!ViewData.ModelState.IsValid)
+                            {
+                                <div class="ac-alert ac-alert-danger mb-6">
+                                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                                    @Html.ValidationSummary(true, "Validation failed for the current dossier:")
+                                </div>
+                            }
+
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <div class="ac-field">
+                                        <label class="ac-label">Full Name of Recipient</label>
+                                        <input type="text" name="CustomerName" class="ac-input"
+                                               value="@Model.CustomerName" placeholder="Full Legal Name" required />
+                                        @Html.ValidationMessage("CustomerName", "", new { @class = "text-[#C21E2E] text-[10px] font-bold uppercase mt-1" })
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="ac-field">
+                                        <label class="ac-label">Institutional Contact Email</label>
+                                        <input type="email" name="CustomerEmail" class="ac-input"
+                                               value="@Model.CustomerEmail" placeholder="email@address.com" required />
+                                        @Html.ValidationMessage("CustomerEmail", "", new { @class = "text-[#C21E2E] text-[10px] font-bold uppercase mt-1" })
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="ac-field">
+                                        <label class="ac-label">Procurement Notes / Special Instructions</label>
+                                        <textarea name="Notes" class="ac-input italic" rows="4"
+                                                  placeholder="Detail any delivery specifics or collection times...">@Model.Notes</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-10 pt-8 border-t border-gray-100">
+                                <button type="submit" class="btn-premium-red w-full flex justify-between items-center px-8">
+                                    <span>PLACE SECURE ORDER</span>
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                                <p class="text-[9px] text-center text-gray-400 mt-4 uppercase tracking-widest font-bold">
+                                    <i class="bi bi-shield-lock-fill me-1"></i> End-to-End Encryption Active
+                                </p>
                             </div>
                         }
-
-                        <div class="mb-3">
-                            <label for="CustomerName" class="form-label fw-semibold">Full Name</label>
-                            <input type="text" name="CustomerName" id="CustomerName" class="form-control"
-                                   value="@Model.CustomerName" placeholder="Enter your full name" />
-                            @Html.ValidationMessage("CustomerName", new { @class = "text-danger small" })
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="CustomerEmail" class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="CustomerEmail" id="CustomerEmail" class="form-control"
-                                   value="@Model.CustomerEmail" placeholder="you@example.com" />
-                            @Html.ValidationMessage("CustomerEmail", new { @class = "text-danger small" })
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="Notes" class="form-label fw-semibold">Notes (Optional)</label>
-                            <textarea name="Notes" id="Notes" class="form-control" rows="4"
-                                      placeholder="Any special instructions or delivery notes...">@Model.Notes</textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-check-circle me-2"></i>Place Order
-                        </button>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-header">
-                    <span><i class="bi bi-receipt me-2"></i>Order Summary</span>
-                </div>
-                <div class="card-body">
-                    @foreach (var item in cart.Items)
-                    {
-                        <div class="d-flex justify-content-between mb-3">
-                            <div>
-                                <span class="fw-semibold">@item.ProductName</span>
-                                <br />
-                                <small class="text-muted">@item.Quantity x R @item.UnitPrice.ToString("N2")</small>
+            @* --- RIGHT: FISCAL SUMMARY --- *@
+            <div class="col-lg-5">
+                <div class="ac-card border-2 border-gray-900 shadow-2xl">
+                    <div class="bg-gray-900 text-white p-6">
+                        <div class="text-[9px] font-bold uppercase tracking-[4px] opacity-60 mb-1">Fiscal Summary</div>
+                        <h4 class="text-serif font-bold text-xl mb-0">Order Confirmation</h4>
+                    </div>
+
+                    <div class="p-8 bg-white">
+                        <div class="space-y-4 mb-8">
+                            @foreach (var item in cart.Items)
+                            {
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="text-[11px] font-bold text-gray-900 uppercase">@item.ProductName</div>
+                                        <div class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">
+                                            @item.Quantity Units x R @item.UnitPrice.ToString("N2")
+                                        </div>
+                                    </div>
+                                    <span class="font-monospace text-sm font-bold">R @item.Subtotal.ToString("N2")</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="border-t-2 border-gray-900 pt-6">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[10px] font-bold uppercase tracking-[3px] text-gray-900">Total Payable</span>
+                                <span class="text-3xl font-bold font-monospace text-[#C21E2E]">R @cart.TotalAmount.ToString("N2")</span>
                             </div>
-                            <span class="fw-bold">R @item.Subtotal.ToString("N2")</span>
                         </div>
-                    }
-                    <hr />
-                    <div class="d-flex justify-content-between mb-3">
-                        <span class="fw-bold fs-5">Total</span>
-                        <span class="fw-bold fs-4 text-primary">R @cart.TotalAmount.ToString("N2")</span>
-                    </div>
-                    <div class="alert alert-secondary small mb-0">
-                        <i class="bi bi-info-circle me-1"></i>
-                        By placing your order, you agree to our terms and conditions
+
+                        <div class="mt-8 p-4 bg-gray-50 border border-gray-100 flex gap-3">
+                            <i class="bi bi-info-circle-fill text-gray-300"></i>
+                            <p class="text-[10px] text-gray-500 leading-relaxed uppercase font-bold tracking-tight mb-0">
+                                Placing this order constitutes an agreement to the institutional procurement policies of Michaelhouse.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-}
-
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
-    <script>
-        console.log('Checkout page loaded');
-    </script>
-}
+    }
+</div>

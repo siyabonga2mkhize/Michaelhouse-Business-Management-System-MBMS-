@@ -53,21 +53,30 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Plan(
-            int subjectId, int grade, int stream,
-            string title, string assessmentType,
-            int term, int academicYear,
-            DateTime scheduledDate,
-            decimal totalMarks, decimal weightingPercent,
-            string notes)
+                  int? subjectId, int? grade, int? stream,
+                  string title, string assessmentType,
+                  int? term, int? academicYear,
+                  DateTime? scheduledDate,
+                  decimal? totalMarks, decimal? weightingPercent,
+                  string notes)
         {
             int teacherId = GetTeacherId();
 
+            // Institutional Validation: Catch missing data before it hits the Service
+            if (!subjectId.HasValue || !grade.HasValue || !term.HasValue || !totalMarks.HasValue || !weightingPercent.HasValue)
+            {
+                TempData["Error"] = "Dossier Incomplete: The internal record mapping (Grade/Subject) failed to transmit.";
+                PopulateAssignmentDropdowns(teacherId);
+                return View();
+            }
+
             var (success, error, assessment) = _marks.CreateAssessment(
-                teacherId, subjectId, grade,
-                (AcademicStream)stream,
+                teacherId, subjectId.Value, grade.Value,
+                (AcademicStream)(stream ?? 0),
                 title, assessmentType,
-                term, academicYear,
-                scheduledDate, totalMarks, weightingPercent, notes);
+                term.Value, academicYear ?? DateTime.Now.Year,
+                scheduledDate ?? DateTime.Today,
+                totalMarks.Value, weightingPercent.Value, notes);
 
             if (!success)
             {
@@ -76,9 +85,7 @@ namespace Michaelhouse.Controllers
                 return View();
             }
 
-            TempData["Success"] =
-                $"'{title}' added for Term {term} " +
-                $"(weighting: {weightingPercent}%).";
+            TempData["Success"] = $"Assessment '{title}' formally provisioned.";
             return RedirectToAction("Index");
         }
 
@@ -222,36 +229,24 @@ namespace Michaelhouse.Controllers
         {
             using (var db = new DBContextClass())
             {
-                // Only the subjects+grades this teacher is assigned to
                 var assignments = db.TeacherSubjectGrades
-                    .Include("Subject")
-                    .Where(tsg => tsg.TeacherId == teacherId)
-                    .ToList();
+             .Include("Subject")
+             .AsNoTracking()
+             .Where(tsg => tsg.TeacherId == teacherId)
+             .ToList();
 
                 ViewBag.Assignments = assignments;
 
-                ViewBag.Terms = new[]
+                // Simplified for the View
+                ViewBag.Terms = new SelectList(new[]
                 {
-                    new { Value = 1, Text = "Term 1" },
-                    new { Value = 2, Text = "Term 2" },
-                    new { Value = 3, Text = "Term 3" },
-                    new { Value = 4, Text = "Term 4" }
-                };
+            new { Value = 1, Text = "Term 1" },
+            new { Value = 2, Text = "Term 2" },
+            new { Value = 3, Text = "Term 3" },
+            new { Value = 4, Text = "Term 4" }
+        }, "Value", "Text");
 
-                ViewBag.AssessmentTypes = new[]
-                {
-                    "Test", "Exam", "Assignment", "Oral", "Practical"
-                };
-
-                ViewBag.Streams = new[]
-                {
-                    new { Value = 0, Text = "All (Compulsory)"         },
-                    new { Value = 1, Text = "Arts & Culture"            },
-                    new { Value = 2, Text = "Human & Social Studies"    },
-                    new { Value = 3, Text = "Sciences"                  },
-                    new { Value = 4, Text = "Commerce"                  },
-                    new { Value = 5, Text = "Engineering & Technology"  }
-                };
+                ViewBag.AssessmentTypes = new[] { "Test", "Exam", "Assignment", "Oral", "Practical" };
             }
         }
     }

@@ -10,45 +10,55 @@
 
     var days = new[] {
         new { Num = 1, Name = "Monday"    },
-        new { Num = 2, Name = "Tuesday"   },
+        new { Num = 2, Name = "Tuesday"    },
         new { Num = 3, Name = "Wednesday" },
         new { Num = 4, Name = "Thursday"  },
         new { Num = 5, Name = "Friday"    }
     };
 
-    string StreamColor(AcademicStream s)
+    // Institutional Stream Palette: Subdued tints for professional archive look
+    string StreamStyle(AcademicStream s)
     {
         switch (s)
         {
-            case AcademicStream.ArtsAndCulture: return "bg-purple-50 text-purple-700 border-purple-200";
-            case AcademicStream.HumanAndSocialStudies: return "bg-blue-50 text-blue-700 border-blue-200";
-            case AcademicStream.Sciences: return "bg-emerald-50 text-emerald-700 border-emerald-200";
-            case AcademicStream.Commerce: return "bg-amber-50 text-amber-700 border-amber-200";
-            case AcademicStream.EngineeringAndTechnology: return "bg-red-50 text-red-700 border-red-200";
-            default: return "bg-gray-50 text-gray-700 border-gray-200";
+            case AcademicStream.Sciences: return "border-l-[#0ea5e9] bg-blue-50/50 text-blue-900";
+            case AcademicStream.Commerce: return "border-l-[#22c55e] bg-emerald-50/50 text-emerald-900";
+            case AcademicStream.EngineeringAndTechnology: return "border-l-[#f97316] bg-orange-50/50 text-orange-900";
+            case AcademicStream.ArtsAndCulture: return "border-l-[#a855f7] bg-purple-50/50 text-purple-900";
+            default: return "border-l-gray-900 bg-gray-50/50 text-gray-900";
         }
     }
 }
 
-<div class="relative mb-10 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
-         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+@* --- INSTITUTIONAL GHOST HEADER --- *@
+<div class="relative mb-12 border-b-2 border-gray-900 bg-white py-16 px-6 overflow-hidden">
+    @* Blueprint Grid Background *@
+    <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+    @* Large Background Watermark *@
+    <i class="bi bi-shield-check absolute -right-10 -bottom-10 text-black/[0.02] text-[20rem] rotate-12 pointer-events-none"></i>
 
     <div class="max-w-7xl mx-auto relative z-10 d-flex justify-content-between align-items-end">
-        <div>
-            <div class="flex items-center gap-2 mb-3">
-                <div class="h-1 w-8 bg-[#C21E2E]"></div>
-                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Institutional Master Schedule</h5>
+        <div class="text-left">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="h-[3px] w-10 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[5px] font-bold text-gray-400">Institutional Master Schedule</h5>
             </div>
-            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Grade @grade Timetable</h2>
-            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Term Cycle &bull; Academic Year @academicYear</p>
+            <h1 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Grade @grade Ledger</h1>
+            <p class="text-gray-400 text-[10px] uppercase tracking-[4px] font-bold mt-3">
+                Cycle @academicYear &bull; <span class="text-[#C21E2E]">Internal Faculty Distribution</span>
+            </p>
         </div>
 
-        <div class="d-flex gap-2 flex-wrap">
+        @* Grade Selection Tabs *@
+        <div class="d-flex gap-2 flex-wrap d-print-none">
             @foreach (var g in grades)
             {
                 <a href="@Url.Action("GradeView", "Timetable", new { grade = g, year = academicYear })"
-                   class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all @(g == grade ? "bg-[#C21E2E] text-white shadow-lg" : "bg-white border border-gray-200 text-gray-400 hover:text-black")">
+                   class="px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all @(g == grade ? "bg-black text-white shadow-xl" : "bg-white border border-gray-200 text-gray-400 hover:text-black hover:border-black")">
                     Gr @g
                 </a>
             }
@@ -56,26 +66,28 @@
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 pb-20">
-    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden">
+<div class="max-w-7xl mx-auto px-6 pb-24">
+    <div class="ac-card border-2 border-gray-900 bg-white shadow-2xl overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-bordered mb-0 border-gray-100">
+            <table class="table table-bordered mb-0 border-gray-200" style="table-layout: fixed; width: 100%;">
                 <thead>
                     <tr class="bg-gray-900 text-white">
-                        <th class="text-[10px] uppercase tracking-[3px] py-4 ps-4" style="width:140px;">Period</th>
+                        <th class="text-[9px] uppercase tracking-[3px] py-5 ps-6 border-0" style="width:150px;">Cycle Period</th>
                         @foreach (var day in days)
                         {
-                            <th class="text-center text-[10px] uppercase tracking-[3px] py-4">@day.Name</th>
+                            <th class="text-center text-[9px] uppercase tracking-[3px] py-5 border-0">@day.Name</th>
                         }
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach (var period in periods)
                     {
-                        <tr class="@(period.IsBreak ? "bg-gray-50/50" : "")">
-                            <td class="ps-4 py-4 align-middle border-r border-gray-100">
-                                <div class="text-[10px] font-bold text-gray-900 uppercase">@period.Label</div>
-                                <div class="text-[10px] font-monospace text-gray-400">@period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")</div>
+                        bool isBreak = period.IsBreak;
+                        <tr class="@(isBreak ? "bg-gray-50/50" : "")">
+                            @* Period Label Column *@
+                            <td class="ps-6 py-5 align-middle border-r border-gray-100 bg-gray-50/30">
+                                <div class="text-[11px] font-bold text-gray-900 uppercase tracking-tighter">@period.Label</div>
+                                <div class="text-[10px] font-monospace text-[#C21E2E] mt-1">@period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")</div>
                             </td>
 
                             @foreach (var day in days)
@@ -83,31 +95,36 @@
                                 var daySlots = Model.Where(ts => ts.DayOfWeek == day.Num && ts.PeriodId == period.PeriodId)
                                                     .OrderBy(ts => ts.Stream).ToList();
 
-                                <td class="p-2 align-top h-24 border-gray-100">
-                                    @if (period.IsBreak)
+                                <td class="p-2 align-top h-32 border-gray-100 relative @(isBreak ? "" : "bg-blueprint")">
+                                    @if (isBreak)
                                     {
-                                        <div class="flex items-center justify-center h-full opacity-20">
-                                            <span class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500">@period.Label</span>
+                                        <div class="flex items-center justify-center h-full">
+                                            <span class="text-[8px] uppercase tracking-[5px] font-bold text-gray-200 rotate-[-90deg]">@period.Label</span>
                                         </div>
                                     }
                                     else
                                     {
                                         foreach (var slot in daySlots)
                                         {
-                                            var style = StreamColor(slot.Stream);
-                                            <div class="p-2 mb-1 border-l-2 @style shadow-sm group">
-                                                <div class="text-[10px] font-bold uppercase tracking-tighter leading-tight">
-                                                    @(slot.Subject?.Name ?? "Unassigned")
+                                            var styleClass = StreamStyle(slot.Stream);
+                                            <div class="p-3 mb-2 border-l-4 @styleClass shadow-sm group transition-all hover:bg-white hover:scale-[1.02] cursor-default">
+                                                <div class="text-[10px] font-bold uppercase tracking-tight leading-tight mb-1 text-gray-900">
+                                                    @(slot.Subject?.Name ?? "Unassigned Module")
                                                 </div>
-                                                <div class="text-[9px] opacity-70 font-semibold">
-                                                    @(slot.Teacher?.Name ?? "Staff Pending")
+                                                <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex justify-between items-center">
+                                                    <span>@(slot.Teacher != null ? $"{slot.Teacher.FirstName} {slot.Teacher.LastName}" : "Pending Staff")</span>
+                                                    @if (slot.Stream != AcademicStream.None)
+                                                    {
+                                                        <i class="bi @RegistrationService.GetStreamIcon(slot.Stream) text-[10px] opacity-30"></i>
+                                                    }
                                                 </div>
-                                                @if (slot.Stream != AcademicStream.None)
-                                                {
-                                                    <div class="text-[8px] uppercase tracking-widest font-bold opacity-40 mt-1">
-                                                        @RegistrationService.GetStreamName(slot.Stream)
-                                                    </div>
-                                                }
+                                            </div>
+                                        }
+
+                                        if (!daySlots.Any())
+                                        {
+                                            <div class="flex items-center justify-center h-full">
+                                                <span class="text-[8px] uppercase tracking-widest font-bold text-gray-100">Free Slot</span>
                                             </div>
                                         }
                                     }
@@ -122,15 +139,48 @@
 </div>
 
 <style>
+    /* Blueprint Hatching Effect */
+    .bg-blueprint {
+        background-color: #ffffff;
+        background-image: linear-gradient(#f8f8f8 1px, transparent 1px), linear-gradient(90deg, #f8f8f8 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
     .font-serif {
         font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-monospace {
+        font-family: 'Source Code Pro', monospace;
     }
 
     .table td {
         vertical-align: top !important;
     }
 
+    /* Clean grid lines */
     .table-bordered > :not(caption) > * > * {
-        border-width: 0 1px;
+        border-width: 1px !important;
+        border-color: #f1f1f1 !important;
+    }
+
+    @@media print {
+        .ac-page {
+            padding: 0 !important;
+        }
+
+        .d-print-none {
+            display: none !important;
+        }
+
+        .bg-blueprint {
+            background: none !important;
+        }
+
+        .bg-gray-900 {
+            background-color: #000 !important;
+            color: #fff !important;
+            -webkit-print-color-adjust: exact;
+        }
     }
 </style>

@@ -2,178 +2,126 @@
 @using Michaelhouse.Models.Enums
 @using Michaelhouse.Services
 @{
-    ViewBag.Title = "My Timetable";
-    var student = (Michaelhouse.Models.Student)ViewBag.Student;
-    var periods = (List<Michaelhouse.Models.Period>)ViewBag.Periods;
-    int academicYear = (int)ViewBag.AcademicYear;
+    ViewBag.Title = "Student Timetable";
+
+    // FIX: Safely cast to Student model
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var periods = ViewBag.Periods as List<Michaelhouse.Models.Period>;
+
     int grade = (int)(ViewBag.Grade ?? 0);
-    var stream = ViewBag.Stream is AcademicStream s ? s : AcademicStream.None;
+    int academicYear = (int)(ViewBag.AcademicYear ?? DateTime.Now.Year);
+    AcademicStream stream = (AcademicStream)(ViewBag.Stream ?? AcademicStream.None);
 
     var days = new[] {
-        new { Num = 1, Name = "Monday",    Short = "Mon" },
-        new { Num = 2, Name = "Tuesday",   Short = "Tue" },
-        new { Num = 3, Name = "Wednesday", Short = "Wed" },
-        new { Num = 4, Name = "Thursday",  Short = "Thu" },
-        new { Num = 5, Name = "Friday",    Short = "Fri" }
+        new { Num = 1, Name = "Monday" },
+        new { Num = 2, Name = "Tuesday" },
+        new { Num = 3, Name = "Wednesday" },
+        new { Num = 4, Name = "Thursday" },
+        new { Num = 5, Name = "Friday" }
     };
-
-    string PeriodColor(AcademicStream str)
-    {
-        switch (str)
-        {
-            case AcademicStream.ArtsAndCulture: return "#e3d5f7";
-            case AcademicStream.HumanAndSocialStudies: return "#d5e8f7";
-            case AcademicStream.Sciences: return "#d5f7e0";
-            case AcademicStream.Commerce: return "#f7f0d5";
-            case AcademicStream.EngineeringAndTechnology: return "#f7d5d5";
-            default: return "#e8f0f7";
-        }
-    }
-    string PeriodBorder(AcademicStream str)
-    {
-        switch (str)
-        {
-            case AcademicStream.ArtsAndCulture: return "#a78bda";
-            case AcademicStream.HumanAndSocialStudies: return "#4a9fd4";
-            case AcademicStream.Sciences: return "#4ad47a";
-            case AcademicStream.Commerce: return "#d4b94a";
-            case AcademicStream.EngineeringAndTechnology: return "#d44a4a";
-            default: return "#1a3c5e";
-        }
-    }
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div>
-        <h3 class="mb-0">
-            <i class="bi bi-calendar3 me-2 text-warning"></i>
-            @student?.Name — Timetable @academicYear
-        </h3>
-        <small class="text-muted">
-            Grade @grade
-            @if (stream != AcademicStream.None)
-            {
-                <span class="badge bg-primary ms-2">@RegistrationService.GetStreamName(stream) Stream</span>
-            }
-        </small>
-    </div>
-    <a href="javascript:window.print()" class="btn btn-outline-secondary btn-sm d-print-none">
-        <i class="bi bi-printer me-1"></i>Print
-    </a>
-</div>
+<link rel="stylesheet" href="~/Content/academic.css" />
 
-@if (!Model.Any())
-{
-    <div class="card text-center py-5">
-        <div class="card-body">
-            <i class="bi bi-calendar-x" style="font-size:3rem;color:#ccc;"></i>
-            <h5 class="mt-3 text-muted">Timetable not yet available</h5>
-            <p class="text-muted small">The timetable has not been generated yet. Please check back later.</p>
+<div class="ac-page" style="background: #fbfbfb;">
+
+    @* --- CENTERED INSTITUTIONAL HEADER --- *@
+    <div class="text-center py-12 mb-8 relative overflow-hidden border-b-2 border-gray-900 bg-white">
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+        <img src="~/Content/logo.svg.png" class="mb-4" style="height: 80px;" alt="Michaelhouse Crest" />
+        <h1 class="text-4xl font-serif font-bold text-gray-900 tracking-tight uppercase">Academic Timetable</h1>
+
+        <p class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mt-2">
+            @if (student != null)
+            {
+                var fName = student.FirstName ?? "Record";
+                var lName = student.LastName ?? "Pending";
+                @($"{fName} {lName} • Grade {grade} • {academicYear} Session")
+            }
+            else
+            {
+                @:Institutional Archive Identity Pending
+            }
+        </p>
+    </div>
+
+    @* --- SUB-INFO DOSSIER BAR --- *@
+    <div class="row g-0 border border-gray-900 mb-10 bg-white d-print-none shadow-sm">
+        <div class="col-md-4 p-5 border-r border-gray-100 text-left">
+            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Assigned Stream</div>
+            <div class="text-sm font-bold text-gray-900 uppercase">@RegistrationService.GetStreamName(stream)</div>
+        </div>
+        <div class="col-md-4 p-5 border-r border-gray-100 text-left">
+            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</div>
+            <div class="flex items-center gap-2">
+                <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                <div class="text-sm font-bold text-gray-900 uppercase">Active Enrollment</div>
+            </div>
+        </div>
+        <div class="col-md-4 p-5 text-left">
+            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Academic Year</div>
+            <div class="text-sm font-bold text-gray-900 uppercase">@academicYear Archive</div>
         </div>
     </div>
-}
-else
-{
-    <!-- Daily summary for mobile -->
-    <div class="d-md-none mb-4">
-        @foreach (var day in days)
-        {
-            var daySlots = Model
-                .Where(ts => ts.DayOfWeek == day.Num)
-                .OrderBy(ts => ts.Period?.PeriodNumber)
-                .ToList();
 
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white fw-semibold">
-                    @day.Name
-                </div>
-                @if (!daySlots.Any())
-                {
-                    <div class="card-body text-muted small py-2">No lessons</div>
-                }
-                else
-                {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var slot in daySlots)
-                        {
-                            string bg = PeriodColor(slot.Stream);
-                            <li class="list-group-item small" style="background:@bg;">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <span class="fw-semibold">@slot.Subject?.Name</span>
-                                        <span class="text-muted ms-2">@slot.Teacher?.Name</span>
-                                    </div>
-                                    <span class="text-muted">@slot.Period?.Label</span>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
-        }
-    </div>
-
-    <!-- Full grid for desktop -->
-    <div class="card d-none d-md-block">
-        <div class="table-responsive">
-            <table class="table table-bordered mb-0" style="min-width:800px;">
+    @* --- THE ARCHITECTURAL GRID --- *@
+    <div class="ac-card border-2 border-gray-900 bg-[#f4f4f4] p-1 shadow-2xl">
+        <div class="table-responsive" style="overflow-x: hidden;">
+            <table class="table table-bordered mb-0 border-gray-300" style="table-layout: fixed; width: 100%;">
                 <thead>
-                    <tr class="table-dark">
-                        <th style="width:110px;">Period</th>
+                    <tr class="bg-gray-900 text-white">
+                        <th class="py-4 text-center border-gray-800" style="width: 12%;">
+                            <i class="bi bi-clock text-gray-500"></i>
+                        </th>
                         @foreach (var day in days)
                         {
-                            <th class="text-center">@day.Name</th>
+                            <th class="text-center py-4 border-gray-800 text-[9px] uppercase tracking-[4px] font-bold">@day.Name</th>
                         }
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var period in periods)
+                    @if (periods != null && periods.Any())
                     {
-                        if (period.IsBreak)
+                        foreach (var period in periods)
                         {
-                            <tr class="table-light">
-                                <td class="text-muted small fw-semibold">
-                                    @period.Label<br />
-                                    <span style="font-size:0.72rem;">
-                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
-                                    </span>
+                            <tr style="height: 120px;">
+                                <td class="bg-gray-800 text-white p-3 flex flex-col justify-center items-center border-gray-700">
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase">@period.Label</div>
+                                    <div class="text-[9px] font-monospace mt-1 text-[#C21E2E]">@period.StartTime.ToString(@"hh\:mm")</div>
                                 </td>
                                 @foreach (var day in days)
                                 {
-                                    <td class="text-center text-muted small" style="background:#f8f9fa;">
-                                        @period.Label
-                                    </td>
-                                }
-                            </tr>
-                        }
-                        else
-                        {
-                            <tr>
-                                <td class="small fw-semibold" style="vertical-align:middle;">
-                                    @period.Label<br />
-                                    <span class="text-muted" style="font-size:0.72rem;">
-                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
-                                    </span>
-                                </td>
-                                @foreach (var day in days)
-                                {
-                                    var slot = Model.FirstOrDefault(ts =>
-                                        ts.DayOfWeek == day.Num &&
-                                        ts.PeriodId == period.PeriodId);
+                                    var slot = Model?.FirstOrDefault(ts => ts.DayOfWeek == day.Num && ts.PeriodId == period.PeriodId);
 
-                                    <td style="vertical-align:middle;padding:6px;text-align:center;">
-                                        @if (slot == null)
+                                    <td class="p-1 relative align-middle @(period.IsBreak ? "bg-gray-200/50" : "bg-blueprint")">
+                                        @if (period.IsBreak)
                                         {
-                                            <span class="text-muted" style="font-size:0.78rem;">—</span>
+                                            <div class="text-center text-[7px] font-bold uppercase tracking-[3px] text-gray-400 rotate-[-90deg] opacity-50">@period.Label</div>
                                         }
-                                        else
+                                        else if (slot != null)
                                         {
-                                            string bg = PeriodColor(slot.Stream);
-                                            string border = PeriodBorder(slot.Stream);
-                                            <div style="background:@bg;border-left:3px solid @border;
-                                                        border-radius:4px;padding:6px 8px;font-size:0.8rem;text-align:left;">
-                                                <div class="fw-semibold">@slot.Subject?.Name</div>
-                                                <div class="text-muted small">@slot.Teacher?.Name</div>
+                                            <div class="h-full w-full bg-white border-l-4 border-l-[#C21E2E] p-3 shadow-sm flex flex-col justify-between group hover:bg-black transition-all duration-300 text-left">
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-gray-900 group-hover:text-white leading-tight uppercase tracking-tighter">
+                                                        @(slot.Subject?.Name ?? "Institutional Module")
+                                                    </div>
+                                                    <div class="text-[8px] font-bold text-gray-400 group-hover:text-gray-500 uppercase tracking-widest mt-2">
+                                                        @if (slot.Teacher != null)
+                                                        {
+                                                            @($"{slot.Teacher.FirstName} {slot.Teacher.LastName}")
+                                                        }
+                                                        else
+                                                        {
+                                                            @:Faculty Pending
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-end">
+                                                    <span class="text-[7px] font-bold text-gray-300 uppercase">Michaelhouse</span>
+                                                    <i class="bi @RegistrationService.GetStreamIcon(slot.Stream) text-[10px] opacity-20 group-hover:opacity-100 group-hover:text-[#C21E2E]"></i>
+                                                </div>
                                             </div>
                                         }
                                     </td>
@@ -181,25 +129,61 @@ else
                             </tr>
                         }
                     }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="py-20 text-center bg-white">
+                                <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">Timetable configuration not found for the current cycle.</p>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     </div>
-}
+</div>
 
 <style>
+    .bg-blueprint {
+        background-color: #ffffff;
+        background-image: linear-gradient(#f0f0f0 1.1px, transparent 1.1px), linear-gradient(90deg, #f0f0f0 1.1px, transparent 1.1px);
+        background-size: 20px 20px;
+    }
+
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-monospace {
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .table-bordered > :not(caption) > * > * {
+        border-width: 1px !important;
+        border-color: #dee2e6 !important;
+    }
+
+    .group:hover * {
+        transition: color 0.3s ease;
+    }
+
     @@media print {
-        .sidebar, .navbar, .page-header a, .d-print-none {
+        .ac-page {
+            padding: 0 !important;
+            background: white !important;
+        }
+
+        .bg-blueprint {
+            background: none !important;
+        }
+
+        .d-print-none {
             display: none !important;
         }
 
-        .card {
+        .ac-card {
+            border: 1px solid #000 !important;
             box-shadow: none !important;
-            border: 1px solid #ccc !important;
-        }
-
-        body {
-            background: white !important;
         }
     }
 </style>

@@ -149,83 +149,110 @@
 </script>
 
 @section Scripts {
-    <script>
-        function getSubjectsForGradeStream(grade, stream) {
-            return ALL_SUBJECTS.filter(function (s) {
-                var grades = s.applicableGrades ? s.applicableGrades.split(',').map(Number) : [];
-                var gradeOk = grades.length === 0 || grades.indexOf(grade) !== -1;
-                if (!gradeOk) return false;
+    
+        <script>
+            // --- 1. PROXY-SAFE FILTERING LOGIC ---
+            function getSubjectsForGradeStream(grade, stream) {
 
-                if (grade <= 9) {
-                    return s.stream === 0;
-                } else {
-                    if (stream === 0) {
-                        return s.stream === 0;
+                if (!window.ALL_SUBJECTS) return [];
+
+                return ALL_SUBJECTS.filter(function (s) {
+                    // GUARD: Ensure applicableGrades exists and is a string before splitting
+                    var gradeStr = String(s.applicableGrades || "");
+                    var grades = gradeStr ? gradeStr.split(',').map(Number) : [];
+
+                    // If the subject has specific grades assigned, check if selected grade matches
+                    if (grades.length > 0 && grades.indexOf(grade) === -1) {
+                        return false;
+                    }
+
+                    // Stream Filtering
+                    if (grade <= 9) {
+                        return s.stream === 0; // Junior: Only General
                     } else {
-                        return s.stream === stream || s.stream === 0;
+                        if (stream === 0) {
+                            return s.stream === 0; // Senior: Only LO/English/Languages
+                        } else {
+                            // Senior: Specific Stream OR Compulsory (stream 0)
+                            return s.stream === stream || s.stream === 0;
+                        }
+                    }
+                });
+            }
+
+            // --- 2. ROW INITIALIZATION LOGIC ---
+            function initAssignmentRow(idx) {
+                var gradeEl = document.getElementById('grade_' + idx);
+                var streamEl = document.getElementById('stream_' + idx);
+                var streamRow = document.getElementById('stream_row_' + idx);
+                var subjectEl = document.getElementById('subject_' + idx);
+
+                if (!gradeEl || !subjectEl) return; // Guard against missing elements
+
+                function updateStream() {
+                    var grade = parseInt(gradeEl.value);
+
+                    if (!grade) {
+                        if (streamRow) streamRow.classList.add('d-none');
+                        subjectEl.innerHTML = '<option value="">-- Select Grade Allocation --</option>';
+                        subjectEl.disabled = true;
+                        return;
+                    }
+
+                    // Show/Hide stream selection based on Grade
+                    if (grade <= 9) {
+                        if (streamRow) streamRow.classList.add('d-none');
+                        if (streamEl) streamEl.value = '0';
+                        updateSubjects();
+                    } else {
+                        if (streamRow) streamRow.classList.remove('d-none');
+                        updateSubjects();
                     }
                 }
+
+                function updateSubjects() {
+                    var grade = parseInt(gradeEl.value);
+                    var stream = streamEl ? (parseInt(streamEl.value) || 0) : 0;
+
+                    if (!grade) return;
+
+                    var subs = getSubjectsForGradeStream(grade, stream);
+
+                    // Enable dropdown only if we found subjects
+                    subjectEl.disabled = false;
+
+                    var isRequired = (idx === 1);
+                    var html = '<option value="">' + (isRequired ? '-- Select Specific Module --' : '-- No Secondary Subject --') + '</option>';
+
+                    // Sort alphabetically and build options
+                    subs.sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); })
+                        .forEach(function (s) {
+                            html += '<option value="' + s.subjectId + '">' + s.name + '</option>';
+                        });
+
+                    subjectEl.innerHTML = html;
+                }
+
+                // Listeners
+                gradeEl.addEventListener('change', updateStream);
+                if (streamEl) {
+                    streamEl.addEventListener('change', updateSubjects);
+                }
+
+                // Set initial state
+                updateStream();
+            }
+
+            // --- 3. EXECUTE ON LOAD ---
+            document.addEventListener('DOMContentLoaded', function () {
+                // Verify data loaded
+                if (!window.ALL_SUBJECTS || window.ALL_SUBJECTS.length === 0) {
+                    console.error("Dossier Error: ALL_SUBJECTS data is missing or empty.");
+                }
+
+                initAssignmentRow(1);
+                initAssignmentRow(2);
             });
-        }
-
-        function initAssignmentRow(idx) {
-            var gradeEl = document.getElementById('grade_' + idx);
-            var streamEl = document.getElementById('stream_' + idx);
-            var streamRow = document.getElementById('stream_row_' + idx);
-            var subjectEl = document.getElementById('subject_' + idx);
-
-            function updateStream() {
-                var grade = parseInt(gradeEl.value);
-                if (!grade) {
-                    streamRow.classList.add('d-none');
-                    subjectEl.innerHTML = '<option value="">-- Select Grade Allocation --</option>';
-                    subjectEl.disabled = true;
-                    return;
-                }
-
-                if (grade <= 9) {
-                    streamRow.classList.add('d-none');
-                    streamEl.value = '0';
-                    updateSubjects();
-                } else {
-                    streamRow.classList.remove('d-none');
-                    updateSubjects();
-                }
-            }
-
-            function updateSubjects() {
-                var grade = parseInt(gradeEl.value);
-                var stream = parseInt(streamEl.value) || 0;
-
-                if (!grade) {
-                    subjectEl.innerHTML = '<option value="">-- Select Grade Allocation --</option>';
-                    subjectEl.disabled = true;
-                    return;
-                }
-
-                var subs = getSubjectsForGradeStream(grade, stream);
-                subjectEl.disabled = false;
-
-                var required = idx === 1;
-                var html = '<option value="">' + (required ? '-- Select Specific Subject --' : '-- No Secondary Subject --') + '</option>';
-
-                subs.sort(function (a, b) { return a.name.localeCompare(b.name); })
-                    .forEach(function (s) {
-                        html += '<option value="' + s.subjectId + '">' + s.name + '</option>';
-                    });
-
-                subjectEl.innerHTML = html;
-            }
-
-            gradeEl.addEventListener('change', updateStream);
-            if (streamEl) streamEl.addEventListener('change', updateSubjects);
-
-            updateStream();
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            initAssignmentRow(1);
-            initAssignmentRow(2);
-        });
-    </script>
+        </script>
+    }
 }

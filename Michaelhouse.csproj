@@ -217,25 +217,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604061900027_InitialCreate.cs" />
-    <Compile Include="Migrations\202604061900027_InitialCreate.Designer.cs">
-      <DependentUpon>202604061900027_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604061924483_InitialCreate1.cs" />
-    <Compile Include="Migrations\202604061924483_InitialCreate1.Designer.cs">
-      <DependentUpon>202604061924483_InitialCreate1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604062212101_InitialCreate2.cs" />
-    <Compile Include="Migrations\202604062212101_InitialCreate2.Designer.cs">
-      <DependentUpon>202604062212101_InitialCreate2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604062337535_InitialCreate3.cs" />
-    <Compile Include="Migrations\202604062337535_InitialCreate3.Designer.cs">
-      <DependentUpon>202604062337535_InitialCreate3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604062348592_InitialCreate4.cs" />
-    <Compile Include="Migrations\202604062348592_InitialCreate4.Designer.cs">
-      <DependentUpon>202604062348592_InitialCreate4.cs</DependentUpon>
+    <Compile Include="Migrations\202604070017449_InitialCreate.cs" />
+    <Compile Include="Migrations\202604070017449_InitialCreate.Designer.cs">
+      <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -484,20 +468,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604061900027_InitialCreate.resx">
-      <DependentUpon>202604061900027_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604061924483_InitialCreate1.resx">
-      <DependentUpon>202604061924483_InitialCreate1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604062212101_InitialCreate2.resx">
-      <DependentUpon>202604062212101_InitialCreate2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604062337535_InitialCreate3.resx">
-      <DependentUpon>202604062337535_InitialCreate3.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604062348592_InitialCreate4.resx">
-      <DependentUpon>202604062348592_InitialCreate4.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604070017449_InitialCreate.resx">
+      <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
