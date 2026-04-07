@@ -1,14 +1,12 @@
-﻿using Michaelhouse.Models.Enums;
-using System;
+using Michaelhouse.Models.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
-	public class Subject
-	{
+    public class Subject
+    {
         [Key]
         public int SubjectId { get; set; }
 
@@ -34,18 +32,37 @@ namespace Michaelhouse.Models
         public bool RequiresMaths { get; set; }
 
         // Comma-separated grades e.g. "8,9" or "10,11,12"
+        [Display(Name = "Applicable Grades")]
         public string ApplicableGrades { get; set; }
 
         // Display order within its stream
         public int SortOrder { get; set; }
 
-        // Navigation
-        public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
-    
+        [Required]
+        [Display(Name = "Grade Level")]
+        public int GradeLevel { get; set; }
 
-    //public int? TeacherId { get; set; }
-    //public virtual Teacher Teacher { get; set; }
-    //public virtual ICollection<StudentMark> StudentMarks { get; set; }
-    //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
+        // --- Relationships ---
+
+        // The Head of Subject or primary teacher
+        public int? TeacherId { get; set; }
+
+        [ForeignKey("TeacherId")]
+        public virtual Teacher Teacher { get; set; }
+
+        // Navigation Collections
+        public virtual ICollection<StudentMark> StudentMarks { get; set; }
+        public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
+
+
+        //public int? TeacherId { get; set; }
+        //public virtual Teacher Teacher { get; set; }
+        //public virtual ICollection<StudentMark> StudentMarks { get; set; }
+        //public virtual ICollection<TimetableEntry> TimetableEntries { get; set; }
+
+        // Ensure this matches your TimetableSlot model name
+        public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
+
+
     }
 }

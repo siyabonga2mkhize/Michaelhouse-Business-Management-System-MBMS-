@@ -9,40 +9,50 @@ namespace Michaelhouse.Models
             Database.CommandTimeout = 60;
         }
 
+        // ─── Core User Entities ──────────────────────────────────────────
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Teacher> Teachers { get; set; } // Only declared ONCE now
+
+        // ─── Application & Registration ──────────────────────────────────
         public DbSet<Application> Applications { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<AdminReview> AdminReviews { get; set; }
         public DbSet<Registration> Registrations { get; set; }
+        public DbSet<StreamEnrolment> StreamEnrolments { get; set; }
+
+        // ─── Academic Entities ────────────────────────────────────────────
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<StudentSubject> StudentSubjects { get; set; }
-
-        
-        //Store
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<StreamEnrolment> StreamEnrolments { get; set; }
-        public DbSet<Invoice> Invoices { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
         public DbSet<TeacherSubjectGrade> TeacherSubjectGrades { get; set; }
-        public DbSet<Period> Periods { get; set; }
-        public DbSet<TimetableSlot> TimetableSlots { get; set; }
         public DbSet<Assessment> Assessments { get; set; }
         public DbSet<StudentMark> StudentMarks { get; set; }
         public DbSet<TermResult> TermResults { get; set; }
         public DbSet<YearResult> YearResults { get; set; }
 
+        // ─── Attendance & Timetable ───────────────────────────────────────
+        public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<TeacherAttendance> TeacherAttendances { get; set; }
+        public DbSet<Period> Periods { get; set; }
+        public DbSet<TimetableSlot> TimetableSlots { get; set; }
+
+        // ─── Finance ──────────────────────────────────────────────────────
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+
+
+        //Store
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        { 
+        {
             base.OnModelCreating(modelBuilder);
 
             // ── Existing relationships ────────────────────────────────────────
-
             modelBuilder.Entity<Application>()
                 .HasRequired(a => a.Student).WithMany(s => s.Applications)
                 .HasForeignKey(a => a.StudentId).WillCascadeOnDelete(false);
@@ -126,11 +136,6 @@ namespace Michaelhouse.Models
 
             // ── Timetable relationships ───────────────────────────────────────
 
-            modelBuilder.Entity<TimetableSlot>()
-                .HasRequired(ts => ts.Teacher)
-                .WithMany(t => t.TimetableSlots)
-                .HasForeignKey(ts => ts.TeacherId)
-                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<TimetableSlot>()
                 .HasRequired(ts => ts.Subject).WithMany()
@@ -172,8 +177,8 @@ namespace Michaelhouse.Models
                 .HasMaxLength(1000);
 
             //modelBuilder.Entity<Product>()
-             //   .Property(p => p.Price)
-              //  .HasPrecision(18, 2);
+            //   .Property(p => p.Price)
+            //  .HasPrecision(18, 2);
 
             modelBuilder.Entity<Product>()
                 .Property(p => p.ImageUrl)
@@ -187,7 +192,7 @@ namespace Michaelhouse.Models
 
             // Order Configuration
             modelBuilder.Entity<Order>()
-                .HasKey(o => o.Id);    
+                .HasKey(o => o.Id);
 
             modelBuilder.Entity<Order>()
                 .Property(o => o.OrderNumber)

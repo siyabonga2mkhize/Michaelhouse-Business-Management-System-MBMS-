@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class BoardingHouse
-	{
+    public class BoardingHouse
+    {
         public int BoardingHouseId { get; set; }
 
         [Required, Display(Name = "House Name")]

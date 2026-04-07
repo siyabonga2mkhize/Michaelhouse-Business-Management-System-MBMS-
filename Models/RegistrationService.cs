@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Michaelhouse.Models;
+using Michaelhouse.Models.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using Michaelhouse.Models;
-using Michaelhouse.Models.Enums;
 
 
 namespace Michaelhouse.Services
@@ -379,6 +378,18 @@ namespace Michaelhouse.Services
                     Stream = stream,
                     IsCompulsory = isCompulsory
                 });
+            }
+        }
+        // Get all subjects assigned to a teacher (via TeacherSubjectGrade)
+        public List<Subject> GetSubjectsForTeacher(int teacherId)
+        {
+            using (var db = new DBContextClass())
+            {
+                return db.TeacherSubjectGrades
+                    .Where(tsg => tsg.TeacherId == teacherId)
+                    .Select(tsg => tsg.Subject)
+                    .Distinct()
+                    .ToList();
             }
         }
     }

@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "Morning Check-In";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    @Html.AntiForgeryToken()
+                    <i class="bi bi-geo-alt-fill fs-1 text-danger mb-3"></i>
+                    <h3 class="mb-3">Welcome, @ViewBag.TeacherName</h3>
+                    <p class="text-muted mb-4">Please check in to record your arrival on campus.</p>
+                    <button id="checkinBtn" class="btn btn-danger btn-lg px-5" onclick="doCheckIn()">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Check In
+                    </button>
+                    <div id="result" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    function doCheckIn() {
+        var btn = document.getElementById('checkinBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+
+        if (!navigator.geolocation) {
+            showResult('danger', 'Geolocation is not supported by your browser.');
+            resetButton();
+            return;
+        }
+
+        // Timeout after 10 seconds
+        var timeoutId = setTimeout(function() {
+            showResult('warning', 'Location request timed out. Please check your GPS and try again.');
+            resetButton();
+        }, 10000);
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            clearTimeout(timeoutId);
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            console.log('Location obtained:', lat, lng);
+            sendCheckIn(lat, lng);
+        }, function(error) {
+            clearTimeout(timeoutId);
+            console.error('Geolocation error:', error);
+            var msg = '';
+            switch(error.code) {
+                case 1: msg = 'Location permission denied. Please allow location access and refresh.'; break;
+                case 2: msg = 'Location unavailable. Check your device GPS.'; break;
+                case 3: msg = 'Location request timed out. Try again.'; break;
+                default: msg = 'An unknown error occurred.';
+            }
+            showResult('warning', msg);
+            resetButton();
+        }, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        });
+    }
+
+    function sendCheckIn(lat, lng) {
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        fetch('@Url.Action("CheckIn", "TeacherAttendance")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: '__RequestVerificationToken=' + encodeURIComponent(token) +
+                  '&latitude=' + lat +
+                  '&longitude=' + lng
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showResult('success', data.message);
+                setTimeout(function() { window.location.href = '@Url.Action("Index", "TeacherDashboard")'; }, 1500);
+            } else {
+                showResult('danger', data.message);
+                resetButton();
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showResult('danger', 'Network error. Please try again.');
+            resetButton();
+        });
+    }
+
+    function resetButton() {
+        var btn = document.getElementById('checkinBtn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Check In';
+    }
+
+    function showResult(type, msg) {
+        var resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+    }
+    </script>
+}

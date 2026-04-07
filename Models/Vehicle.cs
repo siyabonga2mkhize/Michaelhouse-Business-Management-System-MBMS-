@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace MIEMS.Models
+namespace Michaelhouse.Models
 {
-	public class Vehicle
-	{
+    public class Vehicle
+    {
         public int VehicleId { get; set; }
 
         [Required, Display(Name = "Registration Number")]

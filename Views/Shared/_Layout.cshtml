@@ -114,6 +114,11 @@
             font-weight: 700;
         }
 
+        /* Content Area */
+            border-color: rgba(255,255,255,0.1);
+            margin: 8px 16px;
+        }
+
         .main-content {
             flex: 1;
             min-width: 0;
@@ -295,6 +300,18 @@
                             <i class="bi bi-calendar3"></i> <span class="link-text">Timetable</span>
                         </a>
 
+                        <!-- NEW: Attendance Logs Section -->
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Attendance Logs</div>
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "TeacherAttendanceHistory" ? "active" : "")"
+                           href="@Url.Action("TeacherAttendanceHistory", "Admin")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Teacher Check‑In/Out</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "StudentAttendanceHistory" ? "active" : "")"
+                           href="@Url.Action("StudentAttendanceHistory", "Admin")">
+                            <i class="bi bi-journal-bookmark-fill"></i> <span class="link-text">Student Register</span>
+                        </a>
+
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">School Store</div>
                         <a class="nav-link @(currentController == "Store" ? "active" : "")"
@@ -338,6 +355,18 @@
                         <a class="nav-link @(currentController == "Marks" && currentAction == "Index" ? "active" : "")"
                            href="@Url.Action("Index", "Marks")">
                             <i class="bi bi-pen"></i> <span class="link-text">Assessments</span>
+                        </a>
+
+                        <!-- NEW: Mark Register -->
+                        <a class="nav-link @(currentController == "Attendances" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Attendances")">
+                            <i class="bi bi-journal-check"></i> <span class="link-text">Mark Register</span>
+                        </a>
+
+                        <!-- NEW: Check In / Out -->
+                        <a class="nav-link @(currentController == "TeacherAttendance" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "TeacherAttendance")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Check In/Out</span>
                         </a>
 
                         <hr class="sidebar-divider" />

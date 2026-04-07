@@ -1,0 +1,139 @@
+@model Michaelhouse.Models.MarkAttendanceViewModel
+@{
+    ViewBag.Title = "Mark Register – " + Model.SubjectName;
+}
+
+<div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+        <h2 style="font-family:'Playfair Display',serif; color:#C21E2E; margin-bottom:2px;">
+            @Model.SubjectName
+        </h2>
+        <p class="text-muted mb-0" style="font-size:0.82rem; text-transform:uppercase; letter-spacing:1px;">
+            Register for @Model.Date.ToString("dddd, dd MMMM yyyy")
+        </p>
+    </div>
+    <a href="@Url.Action("Index", "Attendances")" class="btn btn-outline-secondary btn-sm"
+       style="text-transform:uppercase; font-size:0.72rem; letter-spacing:1px;">
+        <i class="bi bi-arrow-left me-1"></i> Back to Subjects
+    </a>
+</div>
+
+@using (Html.BeginForm("SaveRegister", "Attendances", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="SubjectId" value="@Model.SubjectId" />
+    <input type="hidden" name="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+
+    <div class="card border-0 shadow-sm mb-4">
+        <!-- Quick-mark all bar -->
+        <div class="card-header bg-white d-flex align-items-center justify-content-between py-2 px-3 border-bottom">
+            <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:#999;">
+                @Model.Students.Count students
+            </span>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="markAll('Present')"
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:1px;">
+                    <i class="bi bi-check-all me-1"></i>All Present
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('Absent')"
+                        style="font-size:0.72rem; text-transform:uppercase; letter-spacing:1px;">
+                    <i class="bi bi-x-circle me-1"></i>All Absent
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size:0.84rem;">
+                <thead style="background:#fafafa; text-transform:uppercase; font-size:0.72rem; letter-spacing:1px; color:#999;">
+                    <tr>
+                        <th class="px-4 py-3">#</th>
+                        <th class="py-3">Student Name</th>
+                        <th class="py-3 text-center">Present</th>
+                        <th class="py-3 text-center">Absent</th>
+                        <th class="py-3 text-center">Late</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Students.Count; i++)
+                    {
+                        var student = Model.Students[i];
+                        <tr class="student-row">
+                            <td class="px-4 text-muted">@(i + 1)</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="background:#f5f5f5; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#C21E2E; font-size:0.85rem; flex-shrink:0;">
+                                        @student.FullName.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <span class="fw-semibold">@student.FullName</span>
+                                </div>
+                                <input type="hidden" name="Students[@i].StudentId" value="@student.StudentId" />
+                                <input type="hidden" name="Students[@i].FullName" value="@student.FullName" />
+                            </td>
+                            <td class="text-center">
+                                <input type="radio" name="Students[@i].AttendanceStatus" value="Present"
+                                       class="status-radio form-check-input"
+                                       style="width:20px; height:20px; border-color:#198754; cursor:pointer;"
+                                       checked="checked" />
+                            </td>
+                            <td class="text-center">
+                                <input type="radio" name="Students[@i].AttendanceStatus" value="Absent"
+                                       class="status-radio form-check-input"
+                                       style="width:20px; height:20px; border-color:#C21E2E; cursor:pointer;" />
+                            </td>
+                            <td class="text-center">
+                                <input type="radio" name="Students[@i].AttendanceStatus" value="Late"
+                                       class="status-radio form-check-input"
+                                       style="width:20px; height:20px; border-color:#ffc107; cursor:pointer;" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a href="@Url.Action("Index", "Attendances")" class="btn btn-outline-secondary"
+           style="text-transform:uppercase; font-size:0.75rem; letter-spacing:1px;">
+            Cancel
+        </a>
+        <button type="submit" class="btn btn-danger px-5"
+                style="text-transform:uppercase; font-size:0.75rem; letter-spacing:1px; border-radius:4px;">
+            <i class="bi bi-save me-2"></i>Save Register
+        </button>
+    </div>
+}
+
+<style>
+    /* Highlight row based on selected status */
+    .student-row { transition: background 0.15s; }
+    input[type="radio"].status-radio:checked + label { font-weight: bold; }
+</style>
+
+@section Scripts {
+    <script>
+        function markAll(status) {
+            document.querySelectorAll('input[type="radio"][value="' + status + '"]').forEach(function(r) {
+                r.checked = true;
+                highlightRow(r);
+            });
+        }
+
+        document.querySelectorAll('.status-radio').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                highlightRow(this);
+            });
+        });
+
+        function highlightRow(radio) {
+            var row = radio.closest('tr');
+            row.style.background = '';
+            if (radio.value === 'Present') row.style.background = '#f0fff4';
+            else if (radio.value === 'Absent') row.style.background = '#fff5f5';
+            else if (radio.value === 'Late') row.style.background = '#fffbf0';
+        }
+
+        // Initialise on page load
+        document.querySelectorAll('.status-radio:checked').forEach(highlightRow);
+    </script>
+}

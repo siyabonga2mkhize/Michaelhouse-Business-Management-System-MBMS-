@@ -1,9 +1,6 @@
 ﻿namespace Michaelhouse.Migrations
 {
     using Michaelhouse.Models;
-    using Michaelhouse.Models.Enums;
-    using System;
-    using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
@@ -83,6 +80,6 @@
                 context.SaveChanges();
             }
         }
-    
+
     }
 }

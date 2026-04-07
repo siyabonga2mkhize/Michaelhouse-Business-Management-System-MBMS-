@@ -162,7 +162,7 @@ namespace Michaelhouse.Controllers
             TempData["Success"] = "Application submitted! AI review has been triggered.";
             return RedirectToAction("Status", new { id = app.AppId });
         }
-        
+
 
         // ─── Application Status Page ──────────────────────────────────────────────
 

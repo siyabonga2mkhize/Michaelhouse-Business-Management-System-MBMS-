@@ -1,0 +1,57 @@
+@model IEnumerable<Michaelhouse.Models.Attendance>
+
+@{
+    ViewBag.Title = "Attendance History";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history me-2"></i>Attendance History</h2>
+        <a href="@Url.Action("Index", "Attendances")" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Mark Register
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No attendance records found.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 align-middle">@item.Date.ToString("dd MMM yyyy")</td>
+                                <td class="align-middle">@(item.Student?.Name ?? "Unknown")</td>
+                                <td class="align-middle">@(item.Subject?.SubjectName ?? "Unknown")</td>
+                                <td class="align-middle">
+                                    <span class="badge @(item.Status == Michaelhouse.Models.AttendanceStatus.Present ? "bg-success" : item.Status == Michaelhouse.Models.AttendanceStatus.Late ? "bg-warning" : "bg-danger")">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td class="align-middle">@item.RecordedBy</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

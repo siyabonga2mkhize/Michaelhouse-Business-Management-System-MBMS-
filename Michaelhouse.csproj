@@ -108,6 +108,8 @@
       <HintPath>packages\System.Diagnostics.DiagnosticSource.10.0.3\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.IO.Pipelines, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.Pipelines.10.0.3\lib\net462\System.IO.Pipelines.dll</HintPath>
     </Reference>
@@ -208,6 +210,32 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AttendancesController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\TeacherAttendanceController.cs" />
+    <Compile Include="Controllers\TeacherDashboardController.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604070017449_InitialCreate.cs" />
+    <Compile Include="Migrations\202604070017449_InitialCreate.Designer.cs">
+      <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\Application.cs" />
+    <Compile Include="Models\Attendance.cs" />
+    <Compile Include="Models\AttendanceRecordViewModel.cs" />
+    <Compile Include="Models\BoardingHouse.cs" />
+    <Compile Include="Models\Class.cs" />
+    <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\Enrollment.cs" />
+    <Compile Include="Models\EnrollmentViewModel.cs.cs" />
+    <Compile Include="Models\Event.cs" />
+    <Compile Include="Models\GeofencingService.cs" />
+    <Compile Include="Models\InventoryItem.cs" />
+    <Compile Include="Models\Invoice.cs" />
+    <Compile Include="Models\MaintananceRequest.cs" />
+    <Compile Include="Models\MarkAttendanceViewModel.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\AdminReviewController.cs" />
@@ -229,14 +257,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604061718578_InitialCreate.cs" />
-    <Compile Include="Migrations\202604061718578_InitialCreate.Designer.cs">
-      <DependentUpon>202604061718578_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604061721217_InitialCreate1.cs" />
-    <Compile Include="Migrations\202604061721217_InitialCreate1.Designer.cs">
-      <DependentUpon>202604061721217_InitialCreate1.cs</DependentUpon>
-    </Compile>
     <!-- Migrations -->
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
@@ -250,7 +270,6 @@
     <Compile Include="Models\Assessment.cs" />
     <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
-    <Compile Include="Models\DtoClasses.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
     <Compile Include="Models\Invoice.cs" />
@@ -270,6 +289,8 @@
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\Teacher.cs" />
+    <Compile Include="Models\TeacherAttendance.cs" />
+    <Compile Include="Models\TeacherAttendanceRecordViewModel.cs" />
     <Compile Include="Models\Teacherservice.cs" />
     <Compile Include="Models\Teachersubjectgrade.cs" />
     <Compile Include="Models\Termresult.cs" />
@@ -320,6 +341,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="SQLQuery.sql" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -334,6 +356,11 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Attendances\Create.cshtml" />
+    <Content Include="Views\Attendances\Delete.cshtml" />
+    <Content Include="Views\Attendances\Record.cshtml" />
+    <Content Include="Views\Attendances\Edit.cshtml" />
+    <Content Include="Views\Attendances\Index.cshtml" />
     <Content Include="Views\AdminReview\Create.cshtml" />
     <Content Include="Views\AdminReview\Delete.cshtml" />
     <Content Include="Views\AdminReview\Details.cshtml" />
@@ -371,10 +398,6 @@
     <Content Include="Views\Registration\Confirm.cshtml" />
     <Content Include="Views\Registration\Complete.cshtml" />
     <Content Include="Views\Admin\Registrations.cshtml" />
-    <Content Include="Views\Store\Index.cshtml" />
-    <Content Include="Views\Cart\Index.cshtml" />
-    <Content Include="Views\Order\Checkout.cshtml" />
-    <Content Include="Views\Order\Success.cshtml" />
     <Content Include="Views\Payment\Index.cshtml" />
     <Content Include="Views\Payment\Pay.cshtml" />
     <Content Include="Views\Payment\Receipt.cshtml" />
@@ -395,9 +418,27 @@
     <Content Include="Views\Timetable\StudentView.cshtml" />
     <Content Include="Views\Timetable\TeacherView.cshtml" />
     <Content Include="Views\Teacher\_SubjectAssignmentFields.cshtml" />
+    <Content Include="Views\Attendances\MarkRegister.cshtml" />
+    <Content Include="Views\TeacherAttendance\History.cshtml" />
+    <Content Include="Views\TeacherAttendance\Index.cshtml" />
+    <Content Include="Views\Teachers\Create.cshtml" />
+    <Content Include="Views\Teachers\Dashboard.cshtml" />
+    <Content Include="Views\Teachers\Delete.cshtml" />
+    <Content Include="Views\Teachers\Details.cshtml" />
+    <Content Include="Views\Teachers\Edit.cshtml" />
+    <Content Include="Views\Teachers\Index.cshtml" />
+    <Content Include="Views\SchoolClasses\ClassList.cshtml" />
+    <Content Include="Views\SchoolClasses\Create.cshtml" />
+    <Content Include="Views\SchoolClasses\Edit.cshtml" />
+    <Content Include="Views\SchoolClasses\Index.cshtml" />
+    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
+    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
+    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -427,11 +468,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604061718578_InitialCreate.resx">
-      <DependentUpon>202604061718578_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604061721217_InitialCreate1.resx">
-      <DependentUpon>202604061721217_InitialCreate1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604070017449_InitialCreate.resx">
+      <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

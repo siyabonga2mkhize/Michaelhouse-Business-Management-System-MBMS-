@@ -1,38 +1,14 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\",
+  "WorkspaceRootPath": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\migrations\\202604070017449_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\202604070017449_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\thesm\\source\\repos\\michaelhouse business management system (mbms)\\michaelhouse\\migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\configuration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\order\\checkout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\order\\checkout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\content\\academic.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:content\\academic.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\cart\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\cart\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\views\\store\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:views\\store\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\migrations\\202604061721217_initialcreate1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\202604061721217_initialcreate1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|c:\\users\\azani\\azania\\michaelhouse-business-management-system-mbms-\\migrations\\202604061718578_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}|Michaelhouse.csproj|solutionrelative:migrations\\202604061718578_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -42,72 +18,23 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 16,
+          "SelectedChildIndex": 12,
           "Children": [
             {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Checkout.cshtml",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Order\\Checkout.cshtml",
-              "RelativeDocumentMoniker": "Views\\Order\\Checkout.cshtml",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Order\\Checkout.cshtml",
-              "RelativeToolTip": "Views\\Order\\Checkout.cshtml",
-              "ViewState": "AgIAACMAAAAAAAAAAADwvzEAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-04-06T18:33:43.832Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "academic.css",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Content\\academic.css",
-              "RelativeDocumentMoniker": "Content\\academic.css",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Content\\academic.css",
-              "RelativeToolTip": "Content\\academic.css",
-              "ViewState": "AgIAAGMBAAAAAAAAAADwv5sBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
-              "WhenOpened": "2026-04-06T18:23:59.399Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "AccountController.cs",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AccountController.cs",
-              "RelativeDocumentMoniker": "Controllers\\AccountController.cs",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Controllers\\AccountController.cs",
-              "RelativeToolTip": "Controllers\\AccountController.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAEwAsAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-06T17:43:36.221Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Cart\\Index.cshtml",
-              "RelativeDocumentMoniker": "Views\\Cart\\Index.cshtml",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Cart\\Index.cshtml",
-              "RelativeToolTip": "Views\\Cart\\Index.cshtml",
-              "ViewState": "AgIAAJwAAAAAAAAAAAAwwKEAAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-04-06T17:28:27.031Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Store\\Index.cshtml",
-              "RelativeDocumentMoniker": "Views\\Store\\Index.cshtml",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Views\\Store\\Index.cshtml",
-              "RelativeToolTip": "Views\\Store\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHUAAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-04-06T17:24:42.601Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
               "$type": "Bookmark",
@@ -116,10 +43,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             },
             {
               "$type": "Bookmark",
@@ -146,50 +69,29 @@
               "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Configuration.cs",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\Configuration.cs",
-              "RelativeDocumentMoniker": "Migrations\\Configuration.cs",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\Configuration.cs",
-              "RelativeToolTip": "Migrations\\Configuration.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-06T17:21:55.407Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "202604061721217_InitialCreate1.cs",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604061721217_InitialCreate1.cs",
-              "RelativeDocumentMoniker": "Migrations\\202604061721217_InitialCreate1.cs",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604061721217_InitialCreate1.cs",
-              "RelativeToolTip": "Migrations\\202604061721217_InitialCreate1.cs",
+              "Title": "202604070017449_InitialCreate.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\202604070017449_InitialCreate.cs",
+              "RelativeDocumentMoniker": "Migrations\\202604070017449_InitialCreate.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\202604070017449_InitialCreate.cs",
+              "RelativeToolTip": "Migrations\\202604070017449_InitialCreate.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-06T17:21:29.62Z",
+              "WhenOpened": "2026-04-07T00:18:11.846Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "202604061718578_InitialCreate.cs",
-              "DocumentMoniker": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604061718578_InitialCreate.cs",
-              "RelativeDocumentMoniker": "Migrations\\202604061718578_InitialCreate.cs",
-              "ToolTip": "C:\\Users\\azani\\Azania\\Michaelhouse-Business-Management-System-MBMS-\\Migrations\\202604061718578_InitialCreate.cs",
-              "RelativeToolTip": "Migrations\\202604061718578_InitialCreate.cs",
-              "ViewState": "AgIAABQBAAAAAAAAAAAowAsAAAAYAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "Configuration.cs",
+              "DocumentMoniker": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\Configuration.cs",
+              "RelativeDocumentMoniker": "Migrations\\Configuration.cs",
+              "ToolTip": "C:\\Users\\thesm\\source\\repos\\Michaelhouse Business Management System (MBMS)\\Michaelhouse\\Migrations\\Configuration.cs",
+              "RelativeToolTip": "Migrations\\Configuration.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAQwCEAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-06T17:19:04.953Z",
+              "WhenOpened": "2026-04-07T00:15:08.749Z",
               "EditorCaption": ""
             }
           ]

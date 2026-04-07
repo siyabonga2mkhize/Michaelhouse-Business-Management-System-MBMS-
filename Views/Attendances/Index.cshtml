@@ -1,0 +1,65 @@
+@model IEnumerable<Michaelhouse.Models.Subject>
+@{
+    ViewBag.Title = "Mark Register";
+}
+
+<div class="mb-4">
+    <h2 style="font-family:'Playfair Display',serif; color:#C21E2E;">Mark Register</h2>
+    <p class="text-muted" style="font-size:0.82rem; text-transform:uppercase; letter-spacing:1px;">
+        Select a subject to mark student attendance
+    </p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-journal-x fs-1 text-muted mb-3 d-block"></i>
+            <h5 class="text-muted" style="font-family:'Playfair Display',serif;">No Subjects Assigned</h5>
+            <p class="text-muted" style="font-size:0.85rem;">You have no subjects assigned yet. Contact the administrator.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var subject in Model)
+        {
+            <div class="col-sm-6 col-lg-4">
+                <a href="@Url.Action("MarkRegister", "Attendances", new { subjectId = subject.SubjectId })"
+                   style="text-decoration:none;">
+                    <div class="card border-0 shadow-sm h-100 subject-card" style="transition: transform 0.15s, box-shadow 0.15s; cursor:pointer;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div style="background:#fff5f5; border-radius:10px; padding:12px;">
+                                    <i class="bi bi-journal-text fs-4" style="color:#C21E2E;"></i>
+                                </div>
+                                <span class="badge" style="background:#C21E2E; font-size:0.7rem; letter-spacing:1px;">
+                                    Grade @subject.GradeLevel
+                                </span>
+                            </div>
+                            <h5 class="mb-1" style="font-family:'Playfair Display',serif; color:#1a1a1a;">
+                                @subject.Name
+                            </h5>
+                            <p class="text-muted mb-0" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px;">
+                                @(string.IsNullOrEmpty(subject.Code) ? "No code" : subject.Code)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-3">
+                            <span style="font-size:0.75rem; color:#C21E2E; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                                Mark Now <i class="bi bi-arrow-right ms-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .subject-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(194,30,46,0.12) !important;
+    }
+</style>

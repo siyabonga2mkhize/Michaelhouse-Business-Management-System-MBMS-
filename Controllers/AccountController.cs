@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Michaelhouse.Filters;
+using Michaelhouse.Models;
+using Michaelhouse.Models.ViewModels;
+using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Mvc;
-using Michaelhouse.Models;
-using Michaelhouse.Models.ViewModels;
-using Michaelhouse.Filters;
 
 namespace Michaelhouse.Controllers
 {
@@ -15,10 +15,11 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Login()
         {
-            // Already logged in — redirect to appropriate portal
             if (Session["UserId"] != null)
-                return RedirectByRole(Session["UserRole"]?.ToString());
-
+            {
+                string role = Session["UserRole"]?.ToString();
+                return RedirectByRole(role);
+            }
             return View();
         }
 
@@ -40,16 +41,26 @@ namespace Michaelhouse.Controllers
                     return View(vm);
                 }
 
-                // Set session
+                // Set Core Session Data
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
 
+                // Store ParentId in session for easy access
                 if (user.Role == "Parent")
                 {
                     var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
-                    if (parent != null)
-                        Session["ParentId"] = parent.ParentId;
+                    if (parent != null) Session["ParentId"] = parent.ParentId;
+                }
+                else if (user.Role == "Student")
+                {
+                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                    if (student != null) Session["StudentId"] = student.StudentId;
+                }
+                else if (user.Role == "Teacher")
+                {
+                    var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+                    if (teacher != null) Session["TeacherId"] = teacher.TeacherId;
                 }
                 else if (user.Role == "Student")
                 {
@@ -58,14 +69,14 @@ namespace Michaelhouse.Controllers
                         Session["StudentId"] = student.StudentId;
                 }
 
-				else if (user.Role == "Teacher")
-				{
-					var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
-					if (teacher != null)
-						Session["TeacherId"] = teacher.TeacherId;
-				}
+                else if (user.Role == "Teacher")
+                {
+                    var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+                    if (teacher != null)
+                        Session["TeacherId"] = teacher.TeacherId;
+                }
 
-				return RedirectByRole(user.Role);
+                return RedirectByRole(user.Role);
             }
         }
 
@@ -81,25 +92,22 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                // Check email not already taken
                 if (db.Users.Any(u => u.Email == vm.Email))
                 {
                     ModelState.AddModelError("Email", "An account with this email already exists.");
                     return View(vm);
                 }
 
-                // Create user account
                 var user = new AppUser
                 {
                     Name = vm.Name,
                     Email = vm.Email,
                     PasswordHash = HashPassword(vm.Password),
-                    Role = "Parent"
+                    Role = "Parent" // Default registration role
                 };
                 db.Users.Add(user);
                 db.SaveChanges();
 
-                // Create linked parent profile
                 var parent = new Parent
                 {
                     Name = vm.Name,
@@ -185,9 +193,7 @@ namespace Michaelhouse.Controllers
                 parent.EmergencyContactName = vm.EmergencyContactName;
                 parent.EmergencyContactPhone = vm.EmergencyContactPhone;
 
-                // Update session name if changed
                 Session["UserName"] = vm.Name;
-
                 db.SaveChanges();
 
                 TempData["Success"] = "Profile updated successfully.";
@@ -195,7 +201,7 @@ namespace Michaelhouse.Controllers
             }
         }
 
-        // ─── Seed Admin (run once) ────────────────────────────────────────────────
+        // ─── Seed Admin ───────────────────────────────────────────────────────────
 
         public ActionResult SeedAdmin()
         {
@@ -227,20 +233,27 @@ namespace Michaelhouse.Controllers
         {
             switch (role)
             {
-                case "Admin": return RedirectToAction("Dashboard", "Admin");
-                case "Parent": return RedirectToAction("Dashboard", "Parents");
-                case "Student": return RedirectToAction("Dashboard", "Students");
-                case "Teacher": return RedirectToAction("Index", "Marks");
-				default: return RedirectToAction("Login", "Account");
+                case "Admin":
+                    return RedirectToAction("Dashboard", "Admin");
+                case "Parent":
+                    return RedirectToAction("Dashboard", "Parents");
+                case "Student":
+                    return RedirectToAction("Dashboard", "Students");
+                case "Teacher":
+                    return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)
+                default:
+                    return RedirectToAction("Index", "Home");
             }
         }
 
         public static string HashPassword(string password)
         {
+            if (string.IsNullOrEmpty(password)) return "";
             using (var sha = SHA256.Create())
             {
                 var bytes = Encoding.UTF8.GetBytes(password);
-                return Convert.ToBase64String(sha.ComputeHash(bytes));
+                var hash = sha.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
             }
         }
     }

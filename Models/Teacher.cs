@@ -29,16 +29,26 @@ namespace Michaelhouse.Models
         [Display(Name = "Phone Number")]
         public string Phone { get; set; }
 
-        // Linked AppUser account (Role = "Teacher")
+        [Display(Name = "Specialization")]
+        public string Specialization { get; set; }
+
+        [Display(Name = "Hire Date")]
+        [DataType(DataType.Date)]
+        public DateTime HireDate { get; set; }
+
+        // --- Relationships ---
+
+        // Foreign Key to AppUser (Role = "Teacher")
         public int? UserId { get; set; }
+
+        [ForeignKey("UserId")]
         public virtual AppUser User { get; set; }
 
-        // A teacher teaches up to 2 subjects
-        // Each TeacherSubjectGrade record = one subject + grade assignment
+        // Collections for Academic and Attendance data
         public virtual ICollection<TeacherSubjectGrade> SubjectAssignments { get; set; }
-
-        // Timetable slots assigned to this teacher
+        public virtual ICollection<TeacherAttendance> TeacherAttendances { get; set; }
         public virtual ICollection<TimetableSlot> TimetableSlots { get; set; }
+        public virtual ICollection<Subject> Subjects { get; set; }
         public virtual ICollection<StreamEnrolment> StreamEnrolments { get; set; }
     }
 }

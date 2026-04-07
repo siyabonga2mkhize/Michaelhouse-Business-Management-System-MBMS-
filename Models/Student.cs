@@ -20,7 +20,7 @@ namespace Michaelhouse.Models
         public string LastName { get; set; }
 
         // Full name computed for display
-        public string Name => FirstName + " " + LastName;
+        public string Name => $"{FirstName} {LastName}";
 
         [Required]
         [DataType(DataType.Date)]
@@ -55,6 +55,26 @@ namespace Michaelhouse.Models
 
         // Set after parent completes registration
         public int? UserId { get; set; }
+
+
+        // --- MISSING PROPERTIES TO ADD ---
+
+        [Required]
+        [Display(Name = "Student Number")]
+        public string StudentNumber { get; set; }
+
+        [Required]
+        public string Gender { get; set; }
+
+        [Required]
+        [Display(Name = "Grade Level")]
+        public int GradeLevel { get; set; } // Matches Subject.GradeLevel
+
+        [Required]
+        [Display(Name = "Enrollment Date")]
+        public DateTime EnrollmentDate { get; set; } = DateTime.Now;
+
+        public int? ClassId { get; set; }
 
         // Navigation
         public Parent Parent { get; set; }

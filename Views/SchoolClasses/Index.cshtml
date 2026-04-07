@@ -1,0 +1,37 @@
+﻿@model IEnumerable<Michaelhouse.Models.SchoolClass>
+
+<div class="container mt-4">
+    <h2><i class="bi bi-door-open me-2"></i>School Classes</h2>
+    <p>
+        @Html.ActionLink("Create New Class", "Create", null, new { @class = "btn btn-primary" })
+    </p>
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Class Name</th>
+                <th>Grade Level</th>
+                <th class="text-center">Total Students</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ClassName</td>
+                    <td>@item.GradeLevel</td>
+                    <td class="text-center">
+                        <a href="@Url.Action("ClassList", "SchoolClasses", new { id = item.ClassId })"
+                           class="badge bg-info text-decoration-none p-2">
+                            <i class="bi bi-people-fill me-1"></i>
+                            @item.Students.Count
+                        </a>
+                    </td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = item.ClassId }, new { @class = "btn btn-sm btn-outline-secondary" })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
