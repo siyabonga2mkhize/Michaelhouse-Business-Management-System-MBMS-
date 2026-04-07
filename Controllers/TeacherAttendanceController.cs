@@ -64,7 +64,7 @@ namespace Michaelhouse.Controllers
             if (existingAttendance?.SignInTime != null)
                 return Json(new { success = false, message = "Already checked in today." });
 
-            var schoolLocation = new Helpers.GeofencingService.Location(-30.03481180794199, 30.86786241957887);
+            var schoolLocation = new Helpers.GeofencingService.Location(-29.850226957474515, 31.006722004291575);
             var teacherLocation = new Helpers.GeofencingService.Location(latitude, longitude);
             bool isWithinGeofence = Helpers.GeofencingService.IsWithinRadius(schoolLocation, teacherLocation, 500);
 
