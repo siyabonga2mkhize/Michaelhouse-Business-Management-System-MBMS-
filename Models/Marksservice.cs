@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data.Entity;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 
@@ -174,17 +175,23 @@ namespace Michaelhouse.Services
 
                 if (assessment == null) return new List<StudentMarkEntry>();
 
-                // 2. Normalize the Grade string for comparison
-                string targetGrade = assessment.Grade.ToString().Trim();
-
-                // 3. Find students taking this subject in this grade
-                // FIX: Ensure we are joining correctly and trimming the grade string
+                // 2. Find students taking this subject in this grade using Student.GradeLevel
                 var studentSubjects = db.StudentSubjects
-                    .Include("Student")
-                    .Where(ss => ss.SubjectId == assessment.SubjectId)
-                    .ToList() // Bring to memory to handle complex string logic if needed
-                    .Where(ss => ss.Student.CurrentGrade.Trim() == targetGrade)
+                    .Include(ss => ss.Student)
+                    .Where(ss => ss.SubjectId == assessment.SubjectId && ss.Student.GradeLevel == assessment.Grade)
                     .ToList();
+
+                // Fallback: some older records may store grade as string in Student.CurrentGrade
+                if (!studentSubjects.Any())
+                {
+                    var targetGradeStr = assessment.Grade.ToString();
+                    studentSubjects = db.StudentSubjects
+                        .Include(ss => ss.Student)
+                        .Where(ss => ss.SubjectId == assessment.SubjectId)
+                        .ToList()
+                        .Where(ss => (ss.Student.CurrentGrade ?? "").Trim().Equals(targetGradeStr, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
 
                 // 4. Filter by stream if the assessment is stream-specific
                 if (assessment.Stream != AcademicStream.None)

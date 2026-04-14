@@ -181,3 +181,5 @@ WHERE s.GradeLevel = 8
   SELECT COUNT(*) AS EnrollmentsAdded FROM StudentSubjects
 WHERE StudentId IN (SELECT StudentId FROM Students WHERE GradeLevel = 8)
   AND SubjectId IN (SELECT SubjectId FROM Subjects WHERE GradeLevel = 8);
+
+  

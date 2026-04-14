@@ -5,13 +5,10 @@ using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Services;
+using System.Data.Entity;
 
 namespace Michaelhouse.Controllers
 {
-    /// <summary>
-    /// Handles assessment planning and mark capture for teachers.
-    /// All routes under /Marks/ require the caller to be a logged-in Teacher.
-    /// </summary>
     [TeacherOnly]
     public class MarksController : Controller
     {
@@ -19,15 +16,12 @@ namespace Michaelhouse.Controllers
 
         private int GetTeacherId()
         {
-            // Session["TeacherId"] is set at login — same pattern as ParentId / StudentId
             return Session["TeacherId"] != null ? (int)Session["TeacherId"] : 0;
         }
 
-        // ─── Dashboard ────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Teacher landing page: lists all their assessments for the current year.
-        /// </summary>
+        // ─────────────────────────────────────────────
+        // DASHBOARD
+        // ─────────────────────────────────────────────
         public ActionResult Index()
         {
             int teacherId = GetTeacherId();
@@ -35,14 +29,13 @@ namespace Michaelhouse.Controllers
 
             var assessments = _marks.GetAssessmentsForTeacher(teacherId, year);
 
-            // Group for easy display: Term → Subject → Assessments
             ViewBag.Year = year;
-            ViewBag.TeacherId = teacherId;
             return View(assessments);
         }
 
-        // ─── Plan Assessment ──────────────────────────────────────────────────────
-
+        // ─────────────────────────────────────────────
+        // PLAN ASSESSMENT
+        // ─────────────────────────────────────────────
         public ActionResult Plan()
         {
             int teacherId = GetTeacherId();
@@ -53,30 +46,54 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Plan(
-                  int? subjectId, int? grade, int? stream,
-                  string title, string assessmentType,
-                  int? term, int? academicYear,
-                  DateTime? scheduledDate,
-                  decimal? totalMarks, decimal? weightingPercent,
-                  string notes)
+            int? subjectId, int? grade, int? stream,
+            string title, string assessmentType,
+            int? term, int? academicYear,
+            DateTime? scheduledDate,
+            decimal? totalMarks, decimal? weightingPercent,
+            string notes)
         {
             int teacherId = GetTeacherId();
 
-            // Institutional Validation: Catch missing data before it hits the Service
+            // BASIC VALIDATION
             if (!subjectId.HasValue || !grade.HasValue || !term.HasValue || !totalMarks.HasValue || !weightingPercent.HasValue)
             {
-                TempData["Error"] = "Dossier Incomplete: The internal record mapping (Grade/Subject) failed to transmit.";
+                TempData["Error"] = "Please fill in all required fields.";
                 PopulateAssignmentDropdowns(teacherId);
                 return View();
             }
 
+            using (var db = new DBContextClass())
+            {
+                // ✅ CRITICAL: Validate teacher assignment WITH STREAM
+                bool valid = db.TeacherSubjectGrades.Any(tsg =>
+                    tsg.TeacherId == teacherId &&
+                    tsg.SubjectId == subjectId.Value &&
+                    tsg.Grade == grade.Value &&
+                    tsg.Stream == (AcademicStream)(stream ?? 0));
+
+                if (!valid)
+                {
+                    TempData["Error"] = "Unauthorized subject assignment.";
+                    PopulateAssignmentDropdowns(teacherId);
+                    return View();
+                }
+            }
+
             var (success, error, assessment) = _marks.CreateAssessment(
-                teacherId, subjectId.Value, grade.Value,
+                teacherId,
+                subjectId.Value,
+                grade.Value,
                 (AcademicStream)(stream ?? 0),
-                title, assessmentType,
-                term.Value, academicYear ?? DateTime.Now.Year,
+                title,
+                assessmentType,
+                term.Value,
+                academicYear ?? DateTime.Now.Year,
                 scheduledDate ?? DateTime.Today,
-                totalMarks.Value, weightingPercent.Value, notes);
+                totalMarks.Value,
+                weightingPercent.Value,
+                notes
+            );
 
             if (!success)
             {
@@ -85,16 +102,13 @@ namespace Michaelhouse.Controllers
                 return View();
             }
 
-            TempData["Success"] = $"Assessment '{title}' formally provisioned.";
+            TempData["Success"] = $"Assessment '{title}' created successfully.";
             return RedirectToAction("Index");
         }
 
-        // ─── Mark Capture ─────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Shows the mark-entry sheet for a specific assessment.
-        /// Lists every student enrolled in that subject+grade.
-        /// </summary>
+        // ─────────────────────────────────────────────
+        // CAPTURE MARKS (GET)
+        // ─────────────────────────────────────────────
         [HttpGet]
         public ActionResult Capture(int id)
         {
@@ -102,18 +116,27 @@ namespace Michaelhouse.Controllers
 
             using (var db = new DBContextClass())
             {
-                // CRITICAL FIX: Eager load Subject to prevent DynamicProxy strings in the header
                 var assessment = db.Assessments
-                    .Include("Subject")
+                    .Include(a => a.Subject)
                     .FirstOrDefault(a => a.AssessmentId == id);
 
-                if (assessment == null) return HttpNotFound();
+                if (assessment == null)
+                    return HttpNotFound();
 
-                // Guard: only the owning teacher can access
+                // ✅ SECURITY: Check ownership
                 if (assessment.TeacherId != teacherId)
                     return new HttpUnauthorizedResult();
 
-                // Note: Ensure _marks.GetMarkSheet internally also handles student name loading
+                // ✅ EXTRA SECURITY: Validate assignment
+                bool valid = db.TeacherSubjectGrades.Any(tsg =>
+                    tsg.TeacherId == teacherId &&
+                    tsg.SubjectId == assessment.SubjectId &&
+                    tsg.Grade == assessment.Grade &&
+                    tsg.Stream == assessment.Stream);
+
+                if (!valid)
+                    return new HttpUnauthorizedResult();
+
                 var sheet = _marks.GetMarkSheet(id);
 
                 ViewBag.Assessment = assessment;
@@ -121,6 +144,9 @@ namespace Michaelhouse.Controllers
             }
         }
 
+        // ─────────────────────────────────────────────
+        // CAPTURE MARKS (POST)
+        // ─────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Capture(int assessmentId, bool closeCapture = false)
@@ -130,41 +156,35 @@ namespace Michaelhouse.Controllers
             using (var db = new DBContextClass())
             {
                 var assessment = db.Assessments.Find(assessmentId);
-                if (assessment == null) return HttpNotFound();
+                if (assessment == null)
+                    return HttpNotFound();
 
-                // Verification: Ensure the teacher actually owns this assessment
-                if (assessment.TeacherId != teacherId) return new HttpUnauthorizedResult();
+                if (assessment.TeacherId != teacherId)
+                    return new HttpUnauthorizedResult();
 
-                // Prevent saving if already closed
                 if (assessment.MarksCaptureClosed)
                 {
-                    TempData["Error"] = "This assessment is sealed and cannot be modified.";
+                    TempData["Error"] = "This assessment is already closed.";
                     return RedirectToAction("Index");
                 }
             }
 
-            // Parse mark inputs from form — keys: mark_{studentId}, absent_{studentId}, comment_{studentId}
             var inputs = new System.Collections.Generic.List<MarkInput>();
 
-            // We iterate through AllKeys to capture every student row submitted
             foreach (var key in Request.Form.AllKeys)
             {
                 if (key == null || !key.StartsWith("mark_")) continue;
 
-                int studentId;
-                if (!int.TryParse(key.Substring(5), out studentId)) continue;
+                if (!int.TryParse(key.Substring(5), out int studentId)) continue;
 
-                // Checkboxes only send a value if they are "on"
                 bool isAbsent = Request.Form["absent_" + studentId] == "on";
                 string comment = Request.Form["comment_" + studentId];
 
                 decimal? marksObtained = null;
-                decimal parsedMark;
 
-                // If not absent, try to parse the mark
-                if (!isAbsent && decimal.TryParse(Request.Form[key], out parsedMark))
+                if (!isAbsent && decimal.TryParse(Request.Form[key], out decimal parsed))
                 {
-                    marksObtained = parsedMark;
+                    marksObtained = parsed;
                 }
 
                 inputs.Add(new MarkInput
@@ -176,7 +196,6 @@ namespace Michaelhouse.Controllers
                 });
             }
 
-            // Service call to handle the business logic of saving/recalculating averages
             var (success, error) = _marks.SaveMarks(assessmentId, teacherId, inputs, closeCapture);
 
             if (!success)
@@ -186,67 +205,125 @@ namespace Michaelhouse.Controllers
             }
 
             TempData["Success"] = closeCapture
-                ? "Mark Ledger successfully sealed and finalized."
-                : "Progress saved to the dossier. The ledger remains open for further entries.";
+                ? "Marks finalized successfully."
+                : "Marks saved successfully.";
 
             return RedirectToAction("Index");
         }
 
-        // ─── Calculate Term Results ───────────────────────────────────────────────
-
-        /// <summary>
-        /// Triggers weighted mark calculation for a subject+grade+term.
-        /// Teacher can do this once all marks are captured for the term.
-        /// </summary>
+        // ─────────────────────────────────────────────
+        // CALCULATE TERM RESULTS
+        // ─────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CalculateTerm(
             int subjectId, int grade, int stream, int term, int academicYear)
         {
-            // Guard: teacher must own this subject+grade
             int teacherId = GetTeacherId();
+
             using (var db = new DBContextClass())
             {
                 bool owns = db.TeacherSubjectGrades.Any(tsg =>
                     tsg.TeacherId == teacherId &&
                     tsg.SubjectId == subjectId &&
-                    tsg.Grade == grade);
+                    tsg.Grade == grade &&
+                    tsg.Stream == (AcademicStream)stream);
 
-                if (!owns) return new HttpUnauthorizedResult();
+                if (!owns)
+                    return new HttpUnauthorizedResult();
             }
 
             var results = _marks.CalculateTermResults(
-                subjectId, grade, term, academicYear, (AcademicStream)stream);
+                subjectId,
+                grade,
+                term,
+                academicYear,
+                (AcademicStream)stream
+            );
 
-            TempData["Success"] =
-                $"Term {term} results calculated for {results.Count} student(s).";
+            TempData["Success"] = $"Results calculated for {results.Count} students.";
             return RedirectToAction("Index");
         }
 
-        // ─── Helper ───────────────────────────────────────────────────────────────
-
+        // ─────────────────────────────────────────────
+        // DROPDOWN DATA (FIXED)
+        // ─────────────────────────────────────────────
         private void PopulateAssignmentDropdowns(int teacherId)
         {
             using (var db = new DBContextClass())
             {
-                var assignments = db.TeacherSubjectGrades
-             .Include("Subject")
-             .AsNoTracking()
-             .Where(tsg => tsg.TeacherId == teacherId)
-             .ToList();
+                // If teacherId is not set in session (0), try to resolve from current AppUser
+                if (teacherId == 0 && Session["UserId"] != null)
+                {
+                    int userId = (int)Session["UserId"];
+                    var teacherFromUser = db.Teachers.FirstOrDefault(t => t.UserId == userId);
+                    if (teacherFromUser != null)
+                    {
+                        teacherId = teacherFromUser.TeacherId;
+                        // persist for subsequent requests
+                        Session["TeacherId"] = teacherId;
+                    }
+                }
 
+                var assignments = db.TeacherSubjectGrades
+                    .Include(t => t.Subject)
+                    .Where(t => t.TeacherId == teacherId)
+                    .ToList();
+
+                // SUBJECTS
+                ViewBag.Subjects = new SelectList(
+                    assignments
+                        .Select(a => new { a.SubjectId, Name = a.Subject.Name })
+                        .Distinct(),
+                    "SubjectId",
+                    "Name"
+                );
+
+                // Expose the raw assignments list to the view (used by Plan.cshtml)
                 ViewBag.Assignments = assignments;
 
-                // Simplified for the View
+                // ✅ GRADES (FIXED)
+                ViewBag.Grades = new SelectList(
+                    assignments
+                        .Select(a => a.Grade)
+                        .Distinct()
+                        .OrderBy(g => g)
+                        .Select(g => new
+                        {
+                            Value = g,
+                            Text = "Grade " + g
+                        }),
+                    "Value",
+                    "Text"
+                );
+
+                // STREAMS
+                ViewBag.Streams = new SelectList(
+                    assignments
+                        .Select(a => a.Stream)
+                        .Distinct()
+                        .Select(s => new
+                        {
+                            Value = (int)s,
+                            Text = s.ToString()
+                        }),
+                    "Value",
+                    "Text"
+                );
+
+                // TERMS
                 ViewBag.Terms = new SelectList(new[]
                 {
-            new { Value = 1, Text = "Term 1" },
-            new { Value = 2, Text = "Term 2" },
-            new { Value = 3, Text = "Term 3" },
-            new { Value = 4, Text = "Term 4" }
-        }, "Value", "Text");
+                    new { Value = 1, Text = "Term 1" },
+                    new { Value = 2, Text = "Term 2" },
+                    new { Value = 3, Text = "Term 3" },
+                    new { Value = 4, Text = "Term 4" }
+                }, "Value", "Text");
 
-                ViewBag.AssessmentTypes = new[] { "Test", "Exam", "Assignment", "Oral", "Practical" };
+                ViewBag.AssessmentTypes = new[]
+                {
+                    "Test", "Exam", "Assignment", "Oral", "Practical"
+                };
             }
         }
     }
