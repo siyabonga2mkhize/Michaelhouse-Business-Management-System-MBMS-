@@ -246,6 +246,9 @@
                            href="@Url.Action("Index", "Payment")">
                             <i class="bi bi-credit-card"></i> <span class="link-text">Payments</span>
                         </a>
+                        <a class="nav-link" href="@Url.Action("ChildrenAttendance", "Parents")">
+                            <i class="bi bi-people"></i> Children's Attendance
+                        </a>
 
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">School Store</div>
@@ -338,12 +341,15 @@
                            href="@Url.Action("StudentView", "Timetable")">
                             <i class="bi bi-calendar3"></i> <span class="link-text">My Timetable</span>
                         </a>
+                        <a class="nav-link" href="@Url.Action("MyAttendance", "Students")">
+                            <i class="bi bi-calendar-check"></i> My Attendance
+                        </a>
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                           href="@Url.Action("Profile", "Account")">
-                            <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                        </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
                     else if (userRole == "Teacher")
                     {
@@ -386,10 +392,10 @@
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                           href="@Url.Action("Profile", "Account")">
-                            <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                        </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
                 </nav>
             </div>

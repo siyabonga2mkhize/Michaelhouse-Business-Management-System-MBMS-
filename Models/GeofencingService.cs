@@ -4,31 +4,35 @@ namespace Michaelhouse.Helpers
 {
     public static class GeofencingService
     {
-        // Add your Location class here or in Models
         public class Location
         {
-            public double lat { get; set; }
-            public double lng { get; set; }
-            public Location(double lat, double lng) { this.lat = lat; this.lng = lng; }
+            public double Latitude { get; set; }
+            public double Longitude { get; set; }
+
+            public Location(double lat, double lng)
+            {
+                Latitude = lat;
+                Longitude = lng;
+            }
         }
 
-        public static double GetDistance(Location pos1, Location pos2)
+        public static double CalculateDistance(Location a, Location b)
         {
-            double e = pos1.lat * (Math.PI / 180);
-            double f = pos1.lng * (Math.PI / 180);
-            double g = pos2.lat * (Math.PI / 180);
-            double h = pos2.lng * (Math.PI / 180);
-            double i = (Math.Cos(e) * Math.Cos(g) * Math.Cos(f) * Math.Cos(h)
-                        + Math.Cos(e) * Math.Sin(f) * Math.Cos(g) * Math.Sin(h)
-                        + Math.Sin(e) * Math.Sin(g));
-            double j = Math.Acos(i);
-            return (6371 * j); // Result in Kilometers
+            var R = 6371000; // Earth radius in meters
+            var dLat = (b.Latitude - a.Latitude) * Math.PI / 180;
+            var dLon = (b.Longitude - a.Longitude) * Math.PI / 180;
+            var lat1 = a.Latitude * Math.PI / 180;
+            var lat2 = b.Latitude * Math.PI / 180;
+            var aVal = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(lat1) * Math.Cos(lat2) *
+                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            var c = 2 * Math.Atan2(Math.Sqrt(aVal), Math.Sqrt(1 - aVal));
+            return R * c;
         }
 
-        public static bool IsWithinRadius(Location center, Location current, double radiusInMeters)
+        public static bool IsWithinRadius(Location school, Location teacher, double radiusMeters)
         {
-            // Convert radius meters to km for comparison
-            return GetDistance(center, current) <= (radiusInMeters * 0.001);
+            return CalculateDistance(school, teacher) <= radiusMeters;
         }
     }
 }

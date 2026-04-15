@@ -22,8 +22,24 @@ namespace Michaelhouse.Controllers
             var teacher = await _context.Teachers.FindAsync(teacherId);
             if (teacher == null) return RedirectToAction("Login", "Account");
 
-            var subjects = _regService.GetSubjectsForTeacher(teacherId);
-            return View(subjects);
+            var subjects = _regService.GetSubjectsForTeacher(teacherId); // returns List<Subject> with grade level
+
+            // Stats
+            int totalSubjects = subjects.Count();
+            int markedToday = await _context.Attendances
+                .Where(a => a.RecordedBy == teacher.Email && DbFunctions.TruncateTime(a.Date) == DateTime.Today)
+                .Select(a => a.SubjectId)
+                .Distinct()
+                .CountAsync();
+
+            int pending = totalSubjects - markedToday;
+
+            ViewBag.TotalSubjects = totalSubjects;
+            ViewBag.MarkedToday = markedToday;
+            ViewBag.Pending = pending;
+            ViewBag.Subjects = subjects;
+
+            return View();
         }
 
         // ── MarkRegister: Show students enrolled in this subject ────────────
@@ -33,7 +49,6 @@ namespace Michaelhouse.Controllers
             var teacher = await _context.Teachers.FindAsync(teacherId);
             if (teacher == null) return HttpNotFound();
 
-            // Verify teacher is actually assigned to this subject
             bool isAssigned = _context.TeacherSubjectGrades
                 .Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId);
             if (!isAssigned) return new HttpUnauthorizedResult();
@@ -41,7 +56,6 @@ namespace Michaelhouse.Controllers
             var subject = await _context.Subjects.FindAsync(subjectId);
             if (subject == null) return HttpNotFound();
 
-            // Get students who are enrolled in this subject (via StudentSubject)
             var students = await _context.StudentSubjects
                 .Where(ss => ss.SubjectId == subjectId)
                 .Select(ss => ss.Student)
@@ -54,16 +68,24 @@ namespace Michaelhouse.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Load existing attendance for today
+            var today = DateTime.Today;
+            var existingAttendances = await _context.Attendances
+                .Where(a => a.SubjectId == subjectId && DbFunctions.TruncateTime(a.Date) == today)
+                .ToDictionaryAsync(a => a.StudentId);
+
             var viewModel = new MarkAttendanceViewModel
             {
                 SubjectId = subject.SubjectId,
                 SubjectName = subject.Name,
-                Date = DateTime.Today,
+                Date = today,
                 Students = students.Select(s => new StudentAttendanceSelection
                 {
                     StudentId = s.StudentId,
                     FullName = s.FirstName + " " + s.LastName,
-                    AttendanceStatus = "Present"
+                    AttendanceStatus = existingAttendances.ContainsKey(s.StudentId)
+                        ? existingAttendances[s.StudentId].Status.ToString()
+                        : "Present"   // default for first-time marking
                 }).ToList()
             };
 
@@ -86,33 +108,109 @@ namespace Michaelhouse.Controllers
             var teacher = await _context.Teachers.FindAsync(teacherId);
             if (teacher == null) return HttpNotFound();
 
+            // Load existing records for this subject & date (if any)
+            var existingRecords = await _context.Attendances
+                .Where(a => a.SubjectId == model.SubjectId && DbFunctions.TruncateTime(a.Date) == model.Date.Date)
+                .ToDictionaryAsync(a => a.StudentId);
+
+            bool hasInvalidChange = false;
+
             foreach (var entry in model.Students)
             {
-                var existing = await _context.Attendances
-                    .FirstOrDefaultAsync(a => a.StudentId == entry.StudentId &&
-                                              a.SubjectId == model.SubjectId &&
-                                              DbFunctions.TruncateTime(a.Date) == model.Date.Date);
+                var newStatus = (AttendanceStatus)Enum.Parse(typeof(AttendanceStatus), entry.AttendanceStatus);
 
-                var status = (AttendanceStatus)Enum.Parse(typeof(AttendanceStatus), entry.AttendanceStatus);
-
-                if (existing != null)
-                    existing.Status = status;
+                if (existingRecords.TryGetValue(entry.StudentId, out var existing))
+                {
+                    // Existing record: only allow change to Late
+                    if (existing.Status != newStatus)
+                    {
+                        if (newStatus == AttendanceStatus.Late)
+                        {
+                            // Allowed: change to Late
+                            existing.Status = newStatus;
+                        }
+                        else
+                        {
+                            // Trying to change from something to Present or Absent -> reject
+                            hasInvalidChange = true;
+                        }
+                    }
+                    // If status unchanged, do nothing
+                }
                 else
                 {
+                    // No existing record: first time marking -> allow any status
                     _context.Attendances.Add(new Attendance
                     {
                         StudentId = entry.StudentId,
                         SubjectId = model.SubjectId,
                         Date = model.Date.Date,
-                        Status = status,
+                        Status = newStatus,
                         RecordedBy = teacher.Email
                     });
                 }
             }
 
+            if (hasInvalidChange)
+            {
+                TempData["Error"] = "You can only change attendance to 'Late' after the register has been saved. Other changes are not allowed.";
+                return RedirectToAction("MarkRegister", new { subjectId = model.SubjectId });
+            }
+
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Attendance saved for {model.Date:dd MMM yyyy}.";
             return RedirectToAction("Index");
+        }
+
+        public async Task<ActionResult> ViewRegister(int subjectId, int? studentId, DateTime? fromDate, DateTime? toDate)
+        {
+            int teacherId = (int)(Session["TeacherId"] ?? 0);
+            bool isAssigned = _context.TeacherSubjectGrades
+                .Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId);
+            if (!isAssigned) return new HttpUnauthorizedResult();
+
+            var subject = await _context.Subjects.FindAsync(subjectId);
+            if (subject == null) return HttpNotFound();
+
+            var query = _context.Attendances
+                .Include(a => a.Student)
+                .Where(a => a.SubjectId == subjectId)
+                .AsQueryable();
+
+            if (studentId.HasValue)
+                query = query.Where(a => a.StudentId == studentId.Value);
+            if (fromDate.HasValue)
+                query = query.Where(a => a.Date >= fromDate.Value);
+            if (toDate.HasValue)
+                query = query.Where(a => a.Date <= toDate.Value);
+
+            var records = await query
+                .OrderByDescending(a => a.Date)
+                .ThenBy(a => a.Student.LastName)
+                .Select(a => new AttendanceRecordViewModel
+                {
+                    Date = a.Date,
+                    StudentName = a.Student.FirstName + " " + a.Student.LastName,
+                    SubjectName = subject.Name,
+                    Status = a.Status,
+                    RecordedBy = a.RecordedBy
+                })
+                .ToListAsync();
+
+            // For filter dropdown: list of students enrolled in this subject
+            var students = await _context.StudentSubjects
+                .Where(ss => ss.SubjectId == subjectId)
+                .Select(ss => ss.Student)
+                .OrderBy(s => s.LastName)
+                .ToListAsync();
+
+            ViewBag.Subject = subject;
+            ViewBag.Students = students;
+            ViewBag.SelectedStudentId = studentId;
+            ViewBag.FromDate = fromDate;
+            ViewBag.ToDate = toDate;
+
+            return View(records);
         }
 
         protected override void Dispose(bool disposing)
