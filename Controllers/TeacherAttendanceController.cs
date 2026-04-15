@@ -64,9 +64,14 @@ namespace Michaelhouse.Controllers
             if (existingAttendance?.SignInTime != null)
                 return Json(new { success = false, message = "Already checked in today." });
 
-            var schoolLocation = new Helpers.GeofencingService.Location(-30.03481180794199, 30.86786241957887);
+            var schoolLocation = new Helpers.GeofencingService.Location(-29.85023161019211, 31.006719322082617);
             var teacherLocation = new Helpers.GeofencingService.Location(latitude, longitude);
             bool isWithinGeofence = Helpers.GeofencingService.IsWithinRadius(schoolLocation, teacherLocation, 500);
+
+            if (!isWithinGeofence)
+            {
+                return Json(new { success = false, message = "You are not within school premises. Check-in denied." });
+            }
 
             var attendance = existingAttendance ?? new TeacherAttendance
             {
@@ -76,18 +81,14 @@ namespace Michaelhouse.Controllers
 
             attendance.SignInTime = DateTime.Now;
             attendance.Status = TeacherStatus.Present;
-            attendance.IsVerified = isWithinGeofence;
+            attendance.IsVerified = true;
 
             if (existingAttendance == null)
                 _context.TeacherAttendances.Add(attendance);
 
             _context.SaveChanges();
 
-            var message = isWithinGeofence
-                ? "Checked in successfully! Location verified within school premises."
-                : "Checked in successfully, but location could not be verified.";
-
-            return Json(new { success = true, message, isVerified = isWithinGeofence, checkInTime = attendance.SignInTime });
+            return Json(new { success = true, message = "Checked in successfully! Location verified within school premises.", isVerified = true, checkInTime = attendance.SignInTime });
         }
 
         [HttpPost]
@@ -108,7 +109,7 @@ namespace Michaelhouse.Controllers
             if (attendance.SignOutTime != null)
                 return Json(new { success = false, message = "Already checked out today." });
 
-            var schoolLocation = new Helpers.GeofencingService.Location(-30.03481180794199, 30.86786241957887);
+            var schoolLocation = new Helpers.GeofencingService.Location(-29.851102176006535, 31.00771554938651);
             var teacherLocation = new Helpers.GeofencingService.Location(latitude, longitude);
             bool isWithinGeofence = Helpers.GeofencingService.IsWithinRadius(schoolLocation, teacherLocation, 500);
 

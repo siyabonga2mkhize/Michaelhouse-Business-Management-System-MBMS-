@@ -221,10 +221,27 @@
     <Compile Include="Migrations\202604070017449_InitialCreate.Designer.cs">
       <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202604070109112_InitialCreate1.cs" />
+    <Compile Include="Migrations\202604070109112_InitialCreate1.Designer.cs">
+      <DependentUpon>202604070109112_InitialCreate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604070135211_InitialCreate2.cs" />
+    <Compile Include="Migrations\202604070135211_InitialCreate2.Designer.cs">
+      <DependentUpon>202604070135211_InitialCreate2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604070209104_InitialCreate3.cs" />
+    <Compile Include="Migrations\202604070209104_InitialCreate3.Designer.cs">
+      <DependentUpon>202604070209104_InitialCreate3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604071152468_InitialCreate4.cs" />
+    <Compile Include="Migrations\202604071152468_InitialCreate4.Designer.cs">
+      <DependentUpon>202604071152468_InitialCreate4.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
+    <Compile Include="Models\AttendanceSummaryViewModel.cs" />
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
@@ -276,6 +293,8 @@
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
     <Compile Include="Models\Parent.cs" />
+    <Compile Include="Models\ParentAttendanceSummaryViewModel.cs" />
+    <Compile Include="Models\ParentAttendanceViewModel.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
     <Compile Include="Models\Registration.cs" />
@@ -285,6 +304,7 @@
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
+    <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\StudentMark.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
@@ -434,7 +454,14 @@
     <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
     <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
     <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\2.cshtml" />
+    <Content Include="Views\Students\MyAttendance.cshtml" />
+    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
     <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Attendances\ViewRegister.cshtml" />
+    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -470,6 +497,18 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202604070017449_InitialCreate.resx">
       <DependentUpon>202604070017449_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604070109112_InitialCreate1.resx">
+      <DependentUpon>202604070109112_InitialCreate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604070135211_InitialCreate2.resx">
+      <DependentUpon>202604070135211_InitialCreate2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604070209104_InitialCreate3.resx">
+      <DependentUpon>202604070209104_InitialCreate3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604071152468_InitialCreate4.resx">
+      <DependentUpon>202604071152468_InitialCreate4.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
