@@ -6,6 +6,8 @@
     using System.Data.Entity.Migrations;
     using System.Linq;
 
+namespace Michaelhouse.Migrations
+{
     internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
     {
         public Configuration()
