@@ -1,8 +1,11 @@
 ﻿using Michaelhouse.Models;
+using Michaelhouse.Controllers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -75,6 +78,90 @@ namespace Michaelhouse.Services
             }
 
             var prompt = BuildPrompt(application, extractedDocs);
+            return await CallOpenAIAsync(prompt);
+        }
+
+        // ─── Review a DriverApplication (reads DriverDocument entries) ───────────
+        public async Task<(string Summary, string Recommendation)> ReviewDriverApplicationAsync(DriverApplication driverApp)
+        {
+            var extractedDocs = new List<string>();
+
+            var docClient = new DocumentAnalysisClient(
+                new Uri(_docEndpoint),
+                new AzureKeyCredential(_docKey));
+
+            foreach (var doc in driverApp.Documents ?? new List<DriverDocument>())
+            {
+                try
+                {
+                    // Normalize file path (stored as "/Uploads/xxx")
+                    var relative = doc.FilePath?.TrimStart('~', '/', '\\') ?? string.Empty;
+                    var fullPath = Path.Combine(_uploadRoot, relative);
+
+                    if (!File.Exists(fullPath))
+                    {
+                        extractedDocs.Add($"=== {doc.DocumentType} ({Path.GetFileName(doc.FilePath)}) — FILE NOT FOUND ===");
+                        continue;
+                    }
+
+                    using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
+                    {
+                        var operation = await docClient.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-read", stream);
+                        var result = operation.Value;
+                        var text = string.Join(" ",
+                            result.Pages
+                                  .SelectMany(p => p.Lines)
+                                  .Select(l => l.Content));
+
+                        extractedDocs.Add($"=== {doc.DocumentType} ({Path.GetFileName(doc.FilePath)}) ===\n{text}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    extractedDocs.Add($"=== {doc.DocumentType} ({Path.GetFileName(doc.FilePath)}) — READ ERROR: {ex.Message} ===");
+                }
+            }
+
+            // Build a driver-specific prompt (concise)
+            var docList = (driverApp.Documents != null && driverApp.Documents.Any())
+                ? string.Join("\n", driverApp.Documents.Select(d => $"  - {d.DocumentType}: {Path.GetFileName(d.FilePath)}"))
+                : "  None submitted";
+
+            var extractedContent = extractedDocs.Count > 0
+                ? string.Join("\n\n", extractedDocs)
+                : "No documents could be read.";
+
+            var prompt = $@"You are a transport admin reviewing a driver application for Michaelhouse. Respond ONLY with valid JSON — no markdown, no code fences, no preamble.
+
+DRIVER APPLICATION:
+- Full Name      : {driverApp.FullName}
+- ID Number      : {driverApp.IDNumber}
+- Phone          : {driverApp.PhoneNumber}
+- Email          : {driverApp.Email}
+- Licence No.    : {driverApp.LicenceNumber}
+- Licence Expiry : {driverApp.LicenceExpiryDate:yyyy-MM-dd}
+- HasPDP         : {driverApp.HasPDP}
+- Submitted On   : {driverApp.DateSubmitted:yyyy-MM-dd HH:mm}
+- Documents Submitted ({driverApp.Documents?.Count ?? 0}):
+{docList}
+
+EXTRACTED DOCUMENT CONTENT:
+{extractedContent}
+
+TASKS:
+1. Verify identity fields across documents.
+2. Ensure licence expiry is valid and not expired.
+3. Check document completeness: required = ID and Licence.
+4. List any red flags.
+
+Respond with JSON:
+{{
+  ""summary"": ""Short professional summary."",
+  ""concerns"": ""Numbered list of concerns or 'None'."",
+  ""document_integrity"": ""Assessment of document authenticity/quality."",
+  ""recommendation"": ""APPROVE or REJECT or FLAG""
+}}";
+
             return await CallOpenAIAsync(prompt);
         }
 

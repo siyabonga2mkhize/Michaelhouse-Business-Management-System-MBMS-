@@ -145,14 +145,18 @@
                     </button>
                 }
 
-                <div class="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-center sm:text-left">
-                        <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Parent?</p>
-                        <a href="@Url.Action("Register", "Account")" class="text-[11px] font-bold text-[#C21E2E] uppercase tracking-widest hover:underline">
-                            Apply for Admission
-                        </a>
-                    </div>
+            <div class="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-center sm:text-left">
+                    <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Parent?</p>
+                    <a href="@Url.Action("Register", "Account")" class="text-[11px] font-bold text-[#C21E2E] uppercase tracking-widest hover:underline">
+                        Apply for Admission
+                    </a>
                 </div>
+                <div style="margin-top:15px;">
+                    <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Parent?</p>
+                    @Html.ActionLink("APPLY AS DRIVER", "Create", "DriverApplications", null, new { @class = "text-danger" })
+                </div>
+            </div>
 
                 <footer class="mt-16 text-gray-300 text-[9px] uppercase tracking-[3px] text-center md:text-left">
                     &copy; @DateTime.Now.Year Michaelhouse School.

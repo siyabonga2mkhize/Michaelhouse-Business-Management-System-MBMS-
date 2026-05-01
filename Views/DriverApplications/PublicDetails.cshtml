@@ -1,0 +1,111 @@
+@model Michaelhouse.Models.DriverApplication
+
+@{
+    ViewBag.Title = "Application Submitted";
+}
+
+<div class="max-w-6xl mx-auto px-4 py-10">
+
+    <!-- HEADER (matches Create style) -->
+    <div class="mb-12 text-center">
+        <h2 class="text-4xl font-serif font-bold text-gray-900 mb-2">
+            Application Submitted
+        </h2>
+
+        <p class="text-gray-400 uppercase tracking-[4px] text-[10px] font-bold">
+            Submission recorded successfully
+        </p>
+
+        <div class="h-1 w-16 bg-[#C21E2E] mx-auto mt-6"></div>
+    </div>
+
+    <!-- SECTION 1 -->
+    <div class="relative pl-12 border-l-2 border-gray-100 pb-10">
+
+        <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">
+            1
+        </div>
+
+        <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">
+            Application Reference
+        </h4>
+
+        <div class="bg-white border border-gray-100 p-8 shadow-sm">
+
+            <p class="text-sm text-gray-600 mb-4">
+                Thank you. Your application has been successfully submitted and is now under review.
+            </p>
+
+            <div class="text-sm">
+                <span class="text-gray-400 uppercase tracking-widest text-[10px] font-bold">
+                    Reference Number
+                </span>
+                <div class="mt-2 font-semibold text-gray-900">
+                    DRV-@Model.Id
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    @if (Request.QueryString["token"] != null)
+    {
+        <div class="relative pl-12 border-l-2 border-gray-100 pb-10">
+
+            <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">
+                2
+            </div>
+
+            <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">
+                Secure Access
+            </h4>
+
+            <div class="bg-white border border-gray-100 p-8 shadow-sm">
+
+                <p class="text-xs uppercase tracking-widest text-[#C21E2E] font-semibold mb-3">
+                    Your Access Link
+                </p>
+
+                <p class="text-sm text-gray-500 mb-5">
+                    Save this link to view or update your application during the access period.
+                </p>
+
+                <div class="bg-gray-50 border border-gray-200 p-4 text-xs break-all">
+                    <a class="text-[#C21E2E] font-semibold hover:underline"
+                       href="@Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Request.QueryString["token"] }, protocol: Request.Url.Scheme)">
+                        @Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Request.QueryString["token"] }, protocol: Request.Url.Scheme)
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    }
+
+    <!-- SECTION 3 -->
+    <div class="relative pl-12">
+
+        <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">
+            3
+        </div>
+
+        <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">
+            Application Summary
+        </h4>
+
+        <div class="bg-white border border-gray-100 p-8 shadow-sm">
+
+            <div class="text-sm text-gray-700 space-y-4">
+                @Html.Partial("Details", Model)
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

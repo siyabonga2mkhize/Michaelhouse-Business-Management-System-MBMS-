@@ -1,30 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Michaelhouse.Models
 {
     public class Vehicle
     {
-        public int VehicleId { get; set; }
+        public int Id { get; set; }
 
-        [Required, Display(Name = "Registration Number")]
-        public string RegistrationNumber { get; set; }
-
-        [Display(Name = "Vehicle Type")]
-        public string VehicleType { get; set; } // Bus, Minibus, Car
-
-        [Display(Name = "Capacity")]
+        [Required]
+        public string VehicleNumber { get; set; }   // e.g. plate number
+        [Required]
+        public string Model { get; set; }
+        [Required]
+        public string Type { get; set; }             // Bus / Van / Car
+        [Required]
         public int Capacity { get; set; }
 
-        [Display(Name = "Driver Name")]
-        public string DriverName { get; set; }
+        public bool IsActive { get; set; }           // ACTIVE vs ARCHIVED
 
-        [Display(Name = "Driver License")]
-        public string DriverLicense { get; set; }
-
-        [Display(Name = "Route")]
-        public string Route { get; set; }
-
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Active, Maintenance, Inactive
+        public DateTime DateAdded { get; set; }
     }
 }

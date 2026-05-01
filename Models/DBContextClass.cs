@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using Michaelhouse.Controllers;
+using System.Data.Entity;
 
 namespace Michaelhouse.Models
 {
@@ -47,6 +48,17 @@ namespace Michaelhouse.Models
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+
+        // ─── Driver ─────────────────────────────────────────────────────
+        public DbSet<DriverApplication> DriverApplications { get; set; }
+        public DbSet<Driver> Drivers { get; set; }
+        public DbSet<DriverAvailability> DriverAvailabilities { get; set; }
+        public DbSet<DriverDocument> DriverDocuments { get; set; }
+        // ─── Vehicle ───────────────────────────────────────────────────
+        public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleIssue> VehicleIssues { get; set; }
+        // ─── Trips ─────────────────────────────────────────────────────
+        public DbSet<Trip> Trips { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -239,10 +251,12 @@ namespace Michaelhouse.Models
                 .HasRequired(oi => oi.Product)
                 .WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId);
+            // Correct StreamEnrolment relationships: Student is required (configured earlier),
+            // Teacher is optional and should use TeacherId as the foreign key.
             modelBuilder.Entity<StreamEnrolment>()
-                .HasRequired(se => se.Student)
-                .WithMany()
-                .HasForeignKey(a => a.TeacherId)
+                .HasOptional(se => se.Teacher)
+                .WithMany(t => t.StreamEnrolments)
+                .HasForeignKey(se => se.TeacherId)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Assessment>()

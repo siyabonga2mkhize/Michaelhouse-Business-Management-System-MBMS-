@@ -1,0 +1,53 @@
+@model IEnumerable<Michaelhouse.Models.DriverApplication>
+
+@{
+    ViewBag.Title = "My Applications";
+}
+
+<h2>My Applications</h2>
+
+<p>
+    @Html.ActionLink("Create New Application", "Create", "DriverApplications", null, new { @class = "btn btn-primary" })
+</p>
+
+@if (Model == null || !Model.Any())
+{
+    <p>You have not submitted any driver applications yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Full Name</th>
+                <th>ID Number</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Licence No.</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var app in Model)
+        {
+            <tr>
+                <td>@app.Id</td>
+                <td>@app.FullName</td>
+                <td>@app.IDNumber</td>
+                <td>@app.PhoneNumber</td>
+                <td>@app.Email</td>
+                <td>@app.LicenceNumber</td>
+                <td>@(app.DateSubmitted?.ToString("yyyy-MM-dd"))</td>
+                <td>@app.Status</td>
+                <td>
+                    @Html.ActionLink("Details", "Details", new { id = app.Id }) |
+                    @Html.ActionLink("Edit", "Edit", new { id = app.Id })
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
