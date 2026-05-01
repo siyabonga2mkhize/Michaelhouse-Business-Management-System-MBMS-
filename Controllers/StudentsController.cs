@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Michaelhouse.Filters;
+using Michaelhouse.Models;
+using System;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
-using Michaelhouse.Models;
 
 namespace Michaelhouse.Controllers
 {
@@ -134,38 +133,128 @@ namespace Michaelhouse.Controllers
             }
             base.Dispose(disposing);
         }
-		public ActionResult Dashboard()
-		{
-			int userId = (int)Session["UserId"];
-			using (var db = new DBContextClass())
-			{
-				// CRITICAL: .Include("Parent") ensures the Guardian data is loaded
-				var student = db.Students
-					.Include("Parent")
-					.FirstOrDefault(s => s.UserId == userId);
+        public ActionResult Dashboard()
+        {
+            int userId = (int)Session["UserId"];
+            using (var db = new DBContextClass())
+            {
+                // CRITICAL: .Include("Parent") ensures the Guardian data is loaded
+                var student = db.Students
+                    .Include("Parent")
+                    .FirstOrDefault(s => s.UserId == userId);
 
-				if (student == null) return RedirectToAction("Login", "Account");
+                if (student == null) return RedirectToAction("Login", "Account");
 
-				var reg = db.Registrations
-					.FirstOrDefault(r => r.StudentId == student.StudentId);
+                var reg = db.Registrations
+                    .FirstOrDefault(r => r.StudentId == student.StudentId);
 
-				// CRITICAL: .Include("Subject") ensures the Subject names are loaded
-				var subjects = db.StudentSubjects
-					.Include("Subject")
-					.Where(ss => ss.StudentId == student.StudentId)
-					.ToList();
+                // CRITICAL: .Include("Subject") ensures the Subject names are loaded
+                var subjects = db.StudentSubjects
+                    .Include("Subject")
+                    .Where(ss => ss.StudentId == student.StudentId)
+                    .ToList();
 
-				var streamEnr = db.StreamEnrolments
-					.FirstOrDefault(se => se.StudentId == student.StudentId);
+                var streamEnr = db.StreamEnrolments
+                    .FirstOrDefault(se => se.StudentId == student.StudentId);
 
-				ViewBag.Student = student;
-				ViewBag.Registration = reg;
-				ViewBag.Subjects = subjects;
-				ViewBag.StreamEnrolment = streamEnr;
+                ViewBag.Student = student;
+                ViewBag.Registration = reg;
+                ViewBag.Subjects = subjects;
+                ViewBag.StreamEnrolment = streamEnr;
 
-				return View();
-			}
-		}
-	
+                return View();
+            }
+        }
+        [RequireLogin]
+        public ActionResult MyAttendance(DateTime? fromDate, DateTime? toDate)
+        {
+            int studentId = (int)(Session["StudentId"] ?? 0);
+            if (studentId == 0) return RedirectToAction("Login", "Account");
+
+            using (var db = new DBContextClass())
+            {
+                var query = db.Attendances
+                    .Where(a => a.StudentId == studentId)
+                    .Include(a => a.Subject)
+                    .AsQueryable();
+
+                if (fromDate.HasValue)
+                    query = query.Where(a => a.Date >= fromDate.Value);
+                if (toDate.HasValue)
+                    query = query.Where(a => a.Date <= toDate.Value);
+
+                // 1. SUMMARY: Group by SubjectId
+                var summaryRaw = query
+                    .GroupBy(a => a.SubjectId)
+                    .Select(g => new
+                    {
+                        SubjectId = g.Key,
+                        TotalClasses = g.Count(),
+                        PresentCount = g.Count(a => a.Status == AttendanceStatus.Present),
+                        LateCount = g.Count(a => a.Status == AttendanceStatus.Late),
+                        AbsentCount = g.Count(a => a.Status == AttendanceStatus.Absent)
+                    })
+                    .ToList();
+
+                var summary = (from s in summaryRaw
+                               join subject in db.Subjects on s.SubjectId equals subject.SubjectId
+                               select new StudentAttendanceSummaryViewModel
+                               {
+                                   SubjectId = s.SubjectId,
+                                   SubjectName = subject.Name,
+                                   TotalClasses = s.TotalClasses,
+                                   PresentCount = s.PresentCount,
+                                   LateCount = s.LateCount,
+                                   AbsentCount = s.AbsentCount
+                               })
+                               .OrderBy(x => x.SubjectName)
+                               .ToList();
+
+                // 2. DETAILED records
+                var records = query
+                    .OrderByDescending(a => a.Date)
+                    .Select(a => new AttendanceRecordViewModel
+                    {
+                        Date = a.Date,
+                        SubjectName = a.Subject.Name,
+                        Status = a.Status,
+                        RecordedBy = a.RecordedBy
+                    })
+                    .ToList();
+
+                ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+                ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+                ViewBag.AttendanceSummary = summary;   // pass to view
+
+                return View(records);
+            }
+        }
+        public ActionResult GetSubjectAttendanceDetails(int subjectId)
+        {
+            int studentId = (int)(Session["StudentId"] ?? 0);
+            if (studentId == 0) return Content("<p class='text-sm text-red-500'>Not authenticated.</p>");
+
+            using (var db = new DBContextClass())
+            {
+                var records = db.Attendances
+                    .Include(a => a.Subject)
+                    .Where(a => a.StudentId == studentId && a.SubjectId == subjectId)
+                    .OrderByDescending(a => a.Date)
+                    .Select(a => new AttendanceRecordViewModel
+                    {
+                        Date = a.Date,
+                        SubjectName = a.Subject.Name,
+                        Status = a.Status,
+                        RecordedBy = a.RecordedBy
+                    })
+                    .ToList();
+
+                if (!records.Any())
+                    return Content("<p class='text-sm text-gray-500'>No attendance records for this subject.</p>");
+
+                return PartialView("_SubjectAttendanceDetails", records);
+            }
+        }
+
     }
 }

@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Web.Mvc;
-using Michaelhouse.Filters;
+﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Services;
+using System;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
@@ -147,7 +147,7 @@ namespace Michaelhouse.Controllers
                     // Case A: Explicit ID provided (Parent/Admin/Link click)
                     student = db.Students.AsNoTracking().FirstOrDefault(s => s.StudentId == studentId.Value);
                 }
-                else if (userRole == "STUDENT")
+                else if (userRole == "Student")
                 {
                     // Case B: Logged in as Student, no ID in URL - find record by UserId link
                     student = db.Students.AsNoTracking().FirstOrDefault(s => s.UserId == userId);

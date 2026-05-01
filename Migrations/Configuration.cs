@@ -1,10 +1,10 @@
-﻿using Michaelhouse.Models;
-using Michaelhouse.Models.Enums;
-using Michaelhouse.Services;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity.Migrations;
-using System.Linq;
+﻿namespace Michaelhouse.Migrations
+{
+    using Michaelhouse.Models;
+    using System;
+    using System.Data.Entity;
+    using System.Data.Entity.Migrations;
+    using System.Linq;
 
 namespace Michaelhouse.Migrations
 {
@@ -15,398 +15,67 @@ namespace Michaelhouse.Migrations
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(Michaelhouse.Models.DBContextClass context)
+        
+       
+        protected override void Seed(DBContextClass context)
         {
-            // =======================
-            // 1. Seed Admin User
-            // =======================
-            if (!context.Users.Any(u => u.Role == "Admin"))
+            if (!context.Users.Any(u => u.Role == "Driver"))
             {
-                context.Users.Add(new AppUser
+                var driversData = new[]
                 {
-                    Name = "System Admin",
-                    Email = "admin@michaelhouse.co.za",
-                    PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Admin@123"),
-                    Role = "Admin"
-                });
-                context.SaveChanges();
-            }
+            new { Name = "Sibusiso Dlamini", Email = "sibusiso", ID = "9001015009087" },
+            new { Name = "Thabo Mkhize", Email = "thabo", ID = "8805056009088" },
+            new { Name = "Andile Zulu", Email = "andile", ID = "9202027009089" },
+            new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
+        };
 
-            // =======================
-            // 2. Seed Parents
-            // =======================
-            if (!context.Parents.Any())
-            {
-                var parent1 = new Parent
+                foreach (var d in driversData)
                 {
-                    Name = "John Doe",
-                    Contact = "parent1@example.com",
-                    CellPhone = "0830000001",
-                    Relationship = "Father",
-                    PhysicalAddress = "12 Main St, Hometown"
-                };
-                var parent2 = new Parent
-                {
-                    Name = "Mary Smith",
-                    Contact = "parent2@example.com",
-                    CellPhone = "0830000002",
-                    Relationship = "Mother",
-                    PhysicalAddress = "34 Park Ave, Hometown"
-                };
-                context.Parents.AddOrUpdate(p => p.Contact, parent1, parent2);
-                context.SaveChanges();
-            }
+                    string schoolEmail = d.Email + "@michealhouse.com";
+                    string password = "Driver@123";
 
-            // =======================
-            // 3. Seed Teachers
-            // =======================
-            if (!context.Teachers.Any())
-            {
-                var teachers = new[]
-                {
-                    // Maths
-                    new Teacher { FirstName = "Alice", LastName = "Brown", Email = "alice.brown@michealhouse.co.za", Phone = "0820000001", Specialization = "Mathematics", HireDate = DateTime.Parse("2015-02-01") },
-                    new Teacher { FirstName = "Brian", LastName = "Dlamini", Email = "brian.dlamini@michealhouse.co.za", Phone = "0820000004", Specialization = "Mathematics", HireDate = DateTime.Parse("2017-05-10") },
-
-                    // Physical Science
-                    new Teacher { FirstName = "David", LastName = "Ngcobo", Email = "david.ngcobo@michealhouse.co.za", Phone = "0820000002", Specialization = "Physical Science", HireDate = DateTime.Parse("2018-07-15") },
-                    new Teacher { FirstName = "Eunice", LastName = "Zuma", Email = "eunice.zuma@michealhouse.co.za", Phone = "0820000005", Specialization = "Physical Science", HireDate = DateTime.Parse("2019-03-12") },
-
-                    // English
-                    new Teacher { FirstName = "Sibongile", LastName = "Mkhize", Email = "sibongile.mkhize@michealhouse.co.za", Phone = "0820000003", Specialization = "English", HireDate = DateTime.Parse("2020-01-10") },
-                    new Teacher { FirstName = "Thabo", LastName = "Mthembu", Email = "thabo.mthembu@michealhouse.co.za", Phone = "0820000006", Specialization = "English", HireDate = DateTime.Parse("2021-06-05") }
-                };
-
-                context.Teachers.AddOrUpdate(t => t.Email, teachers);
-                context.SaveChanges();
-
-                foreach (var t in teachers)
-                {
-                    // Find the persisted teacher entity from DB by email
-                    var teacherEntity = context.Teachers.FirstOrDefault(x => x.Email == t.Email);
-                    if (teacherEntity == null) continue;
-
-                    var existingUser = context.Users.FirstOrDefault(u => u.Email == teacherEntity.Email);
-                    if (existingUser == null)
+                    // 1. Create User (Login)
+                    var user = new AppUser
                     {
-                        var user = new AppUser
-                        {
-                            Name = $"{teacherEntity.FirstName} {teacherEntity.LastName}",
-                            Email = teacherEntity.Email,
-                            PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Teacher@123"),
-                            Role = "Teacher"
-                        };
-                        context.Users.Add(user);
-                        context.SaveChanges();
-
-                        teacherEntity.UserId = user.UserId;
-                        context.SaveChanges();
-                    }
-                    else
-                    {
-                        teacherEntity.UserId = existingUser.UserId;
-                        context.SaveChanges();
-                    }
-                }
-            }
-
-            // Ensure some TeacherSubjectGrade assignments exist so teachers see allocations
-            if (!context.TeacherSubjectGrades.Any())
-            {
-                // Ensure core subjects exist for grades 8-12
-                var coreSubjects = new[] { "Mathematics", "English Home Language", "Physical Science", "Life Orientation" };
-                for (int g = 8; g <= 12; g++)
-                {
-                    foreach (var name in coreSubjects)
-                    {
-                        if (!context.Subjects.Any(s => s.Name == name && s.GradeLevel == g))
-                        {
-                            context.Subjects.Add(new Subject
-                            {
-                                Name = name,
-                                GradeLevel = g,
-                                IsCompulsory = name == "English Home Language" || name == "Life Orientation"
-                            });
-                        }
-                    }
-                }
-                context.SaveChanges();
-
-                var teachersInDb = context.Teachers.ToList();
-
-                // Assign Mathematics and English across grades to matching specializations
-                foreach (var teacher in teachersInDb)
-                {
-                    if (teacher.Specialization != null && teacher.Specialization.ToLower().Contains("math"))
-                    {
-                        for (int g = 8; g <= 12; g++)
-                        {
-                            var subj = context.Subjects.First(s => s.Name == "Mathematics" && s.GradeLevel == g);
-                            if (!context.TeacherSubjectGrades.Any(tsg => tsg.TeacherId == teacher.TeacherId && tsg.SubjectId == subj.SubjectId && tsg.Grade == g))
-                            {
-                                context.TeacherSubjectGrades.Add(new TeacherSubjectGrade
-                                {
-                                    TeacherId = teacher.TeacherId,
-                                    SubjectId = subj.SubjectId,
-                                    Grade = g,
-                                    Stream = AcademicStream.None
-                                });
-                            }
-                        }
-                    }
-
-                    if (teacher.Specialization != null && teacher.Specialization.ToLower().Contains("physical"))
-                    {
-                        for (int g = 8; g <= 12; g++)
-                        {
-                            var subj = context.Subjects.FirstOrDefault(s => (s.Name == "Physical Science" || s.Name == "Physical Sciences" || s.Name == "Physical Sciences") && s.GradeLevel == g)
-                                       ?? context.Subjects.First(s => s.Name == "Physical Science" && s.GradeLevel == g);
-                            if (!context.TeacherSubjectGrades.Any(tsg => tsg.TeacherId == teacher.TeacherId && tsg.SubjectId == subj.SubjectId && tsg.Grade == g))
-                            {
-                                context.TeacherSubjectGrades.Add(new TeacherSubjectGrade
-                                {
-                                    TeacherId = teacher.TeacherId,
-                                    SubjectId = subj.SubjectId,
-                                    Grade = g,
-                                    Stream = AcademicStream.None
-                                });
-                            }
-                        }
-                    }
-
-                    if (teacher.Specialization != null && teacher.Specialization.ToLower().Contains("english"))
-                    {
-                        for (int g = 8; g <= 12; g++)
-                        {
-                            var subj = context.Subjects.First(s => s.Name == "English Home Language" && s.GradeLevel == g);
-                            if (!context.TeacherSubjectGrades.Any(tsg => tsg.TeacherId == teacher.TeacherId && tsg.SubjectId == subj.SubjectId && tsg.Grade == g))
-                            {
-                                context.TeacherSubjectGrades.Add(new TeacherSubjectGrade
-                                {
-                                    TeacherId = teacher.TeacherId,
-                                    SubjectId = subj.SubjectId,
-                                    Grade = g,
-                                    Stream = AcademicStream.None
-                                });
-                            }
-                        }
-                    }
-                }
-
-                context.SaveChanges();
-            }
-
-            // =======================
-            // 4. Seed Students + Applications + Registrations + Subjects
-            // =======================
-            const int desiredStudents = 300;
-            var existingStudents = context.Students.Count();
-            if (existingStudents < desiredStudents)
-            {
-                var toCreate = desiredStudents - existingStudents;
-                var parents = context.Parents.ToList();
-                var parentCount = parents.Count;
-
-                var grade8and9 = RegistrationService.Grade8And9Subjects;
-                var compulsory = RegistrationService.CompulsorySubjects;
-                var languages = RegistrationService.LanguageChoices;
-                var mathsOptions = RegistrationService.MathsOptions;
-                var streamSubjects = RegistrationService.StreamSubjects;
-                var mathLitAllowed = RegistrationService.MathLiteracyAllowedStreams;
-
-                for (int i = 0; i < toCreate; i++)
-                {
-                    var globalIndex = existingStudents + i;
-                    var grade = 8 + (globalIndex % 5);
-                    var parent = parents[globalIndex % parentCount];
-
-                    var studentNumber = $"S{DateTime.Now.Year}{(globalIndex + 1).ToString().PadLeft(4, '0')}";
-                    var age = 6 + grade;
-                    var dob = DateTime.Now.AddYears(-age).Date;
-
-                    var student = new Student
-                    {
-                        FirstName = $"Student{globalIndex + 1}",
-                        LastName = "Generated",
-                        DOB = dob,
-                        HomeLanguage = "English",
-                        IdNumber = $"ID{DateTime.Now.Year}{(globalIndex + 1).ToString().PadLeft(6, '0')}",
-                        PreviousSchool = "Auto-generated Primary",
-                        CurrentGrade = $"Grade {grade}",
-                        ParentId = parent.ParentId,
-                        StudentNumber = studentNumber,
-                        Gender = (globalIndex % 2 == 0) ? "Male" : "Female",
-                        GradeLevel = grade,
-                        EnrollmentDate = DateTime.Now.AddMonths(-6)
+                        Name = d.Name,
+                        Email = schoolEmail,
+                        PasswordHash = HashPassword(password),
+                        Role = "Driver"
                     };
-                    context.Students.Add(student);
-                    context.SaveChanges();
 
-                    // AppUser for student
-                    var studentEmail = $"student{globalIndex + 1}@michealhouse.co.za";
-                    var studentUser = context.Users.FirstOrDefault(u => u.Email == studentEmail);
-                    if (studentUser == null)
-                    {
-                        studentUser = new AppUser
-                        {
-                            Name = $"{student.FirstName} {student.LastName}",
-                            Email = studentEmail,
-                            PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Student@123"),
-                            Role = "Student"
-                        };
-                        context.Users.Add(studentUser);
-                        context.SaveChanges();
-                    }
-                    student.UserId = studentUser.UserId;
-                    context.SaveChanges();
+                    context.Users.Add(user);
+                    context.SaveChanges(); // needed to get UserId
 
-                    // Application + Registration
-                    var application = new Application
+                    // 2. Create Driver (Profile)
+                    var driver = new Driver
                     {
-                        ParentId = parent.ParentId,
-                        StudentId = student.StudentId,
-                        ApplicationYear = DateTime.Now.Year,
-                        GradeApplying = grade,
-                        Date = DateTime.UtcNow,
-                        AdditionalNotes = "Auto-generated application"
+                        FullName = d.Name,
+                        IDNumber = d.ID,
+                        PhoneNumber = "0710000000",
+                        Email = schoolEmail,
+                        LicenceNumber = "LIC" + new Random().Next(1000, 9999),
+                        LicenceExpiryDate = DateTime.Now.AddYears(5),
+                        HasPDP = true,
+                        IsActive = true,
+                        DateCreated = DateTime.Now,
+                        UserId = user.UserId
                     };
-                    context.Applications.Add(application);
-                    context.SaveChanges();
 
-                    var registration = new Registration
-                    {
-                        AppId = application.AppId,
-                        StudentId = student.StudentId,
-                        GradeEnrolling = grade,
-                        Status = RegistrationStatus.Pending,
-                        CreatedAt = DateTime.Now
-                    };
-                    context.Registrations.Add(registration);
-                    context.SaveChanges();
-
-                    // Assign subjects
-                    var subjectsForStudent = new List<Subject>();
-                    if (grade <= 9)
-                    {
-                        foreach (var name in grade8and9)
-                        {
-                            var subj = context.Subjects.FirstOrDefault(s => s.Name == name && s.GradeLevel == grade)
-                                ?? new Subject { Name = name, GradeLevel = grade, IsCompulsory = true, IsLanguage = name.ToLower().Contains("language") };
-                            context.Subjects.AddOrUpdate(subj);
-                            context.SaveChanges();
-                            subjectsForStudent.Add(subj);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var name in compulsory)
-                        {
-                            var subj = context.Subjects.FirstOrDefault(s => s.Name == name && s.GradeLevel == grade)
-                                ?? new Subject { Name = name, GradeLevel = grade, IsCompulsory = true };
-                            context.Subjects.AddOrUpdate(subj);
-                            context.SaveChanges();
-                            subjectsForStudent.Add(subj);
-                        }
-
-                        // Language
-                        var lang = languages[globalIndex % languages.Count];
-                        var langSub = context.Subjects.FirstOrDefault(s => s.Name == lang && s.GradeLevel == grade)
-                            ?? new Subject { Name = lang, GradeLevel = grade, IsLanguage = true };
-                        context.Subjects.AddOrUpdate(langSub);
-                        context.SaveChanges();
-                        subjectsForStudent.Add(langSub);
-
-                        // Maths choice
-                        var takesMaths = (globalIndex % 4) != 0;
-                        var mathsChoice = takesMaths ? "Mathematics" : "Mathematical Literacy";
-                        var mathSub = context.Subjects.FirstOrDefault(s => s.Name == mathsChoice && s.GradeLevel == grade)
-                            ?? new Subject { Name = mathsChoice, GradeLevel = grade, IsMathsOption = true };
-                        context.Subjects.AddOrUpdate(mathSub);
-                        context.SaveChanges();
-                        subjectsForStudent.Add(mathSub);
-
-                        // Stream subjects
-                        var allStreams = streamSubjects.Keys.ToList();
-                        AcademicStream stream = allStreams[(globalIndex / 5) % allStreams.Count];
-                        if (!takesMaths && !mathLitAllowed.Contains(stream)) stream = mathLitAllowed.First();
-
-                        var required = RegistrationService.RequiredStreamSubjects;
-                        var available = streamSubjects[stream];
-                        for (int si = 0; si < required; si++)
-                        {
-                            var name = available[si % available.Count];
-                            var subj = context.Subjects.FirstOrDefault(s => s.Name == name && s.GradeLevel == grade)
-                                ?? new Subject { Name = name, GradeLevel = grade, Stream = stream, RequiresMaths = name.ToLower().Contains("physics") || name.ToLower().Contains("engineering") };
-                            context.Subjects.AddOrUpdate(subj);
-                            context.SaveChanges();
-                            subjectsForStudent.Add(subj);
-                        }
-
-                        // Stream enrolment with assigned teacher
-                        var teacherSubj = context.TeacherSubjectGrades
-                            .FirstOrDefault(tsg => tsg.Grade == grade && subjectsForStudent.Select(s => s.SubjectId).Contains(tsg.SubjectId));
-
-                        if (teacherSubj != null)
-                        {
-                            var streamEnrol = new StreamEnrolment
-                            {
-                                StudentId = student.StudentId,
-                                RegistrationId = registration.RegistrationId,
-                                Grade = grade,
-                                Stream = stream,
-                                TakesMathematics = takesMaths,
-                                EnrolledAt = DateTime.Now,
-                                TeacherId = teacherSubj.TeacherId
-                            };
-                            context.StreamEnrolments.Add(streamEnrol);
-                            context.SaveChanges();
-                        }
-                    }
-
-                    // Link student subjects
-                    foreach (var subj in subjectsForStudent)
-                    {
-                        if (!context.StudentSubjects.Any(ss => ss.StudentId == student.StudentId && ss.SubjectId == subj.SubjectId))
-                        {
-                            context.StudentSubjects.Add(new StudentSubject
-                            {
-                                StudentId = student.StudentId,
-                                SubjectId = subj.SubjectId,
-                                Stream = subj.Stream,
-                                IsCompulsory = subj.IsCompulsory
-                            });
-                            context.SaveChanges();
-                        }
-                    }
+                    context.Drivers.Add(driver);
                 }
-            }
 
-            // =======================
-            // 5. Seed Categories + Products
-            // =======================
-            if (!context.Categories.Any())
-            {
-                var uniforms = new Category { Name = "Uniforms", Description = "Official school uniform items for all grades" };
-                var stationery = new Category { Name = "Books & Stationery", Description = "Textbooks, exercise books and stationery" };
-                context.Categories.AddOrUpdate(c => c.Name, uniforms, stationery);
                 context.SaveChanges();
             }
 
-            if (!context.Products.Any())
+        }
+        private string HashPassword(string password)
+        {
+            using (var sha = System.Security.Cryptography.SHA256.Create())
             {
-                var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
-                var stationeryCat = context.Categories.First(c => c.Name == "Books & Stationery");
-
-                var products = new[]
-                {
-                    new Product { Name = "School Shirt (White) - Small", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 50, ReorderLevel = 10, Description = "Official white school shirt, small size.", IsActive = true },
-                    new Product { Name = "Grade 8 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 220.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 8.", IsActive = true }
-                    // add remaining products similarly
-                };
-                context.Products.AddOrUpdate(p => p.Name, products);
-                context.SaveChanges();
+                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+                var hash = sha.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
             }
         }
     }
-
 }

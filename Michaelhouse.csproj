@@ -201,23 +201,59 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
+    <Compile Include="Controllers\DriverDashboardController.cs" />
+    <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
+    <Compile Include="Controllers\DriverApplicationsController.cs" />
+    <Compile Include="Controllers\DriverAvailabilitiesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604080943282_InitialCreate.cs" />
-    <Compile Include="Migrations\202604080943282_InitialCreate.Designer.cs">
-      <DependentUpon>202604080943282_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202604251922501_InitialCreate.cs" />
+    <Compile Include="Migrations\202604251922501_InitialCreate.Designer.cs">
+      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604251947005_AddDriverTable.cs" />
+    <Compile Include="Migrations\202604251947005_AddDriverTable.Designer.cs">
+      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.cs" />
+    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.Designer.cs">
+      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604261239172_FixDateTime.cs" />
+    <Compile Include="Migrations\202604261239172_FixDateTime.Designer.cs">
+      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604262042350_UpdatedStuff.cs" />
+    <Compile Include="Migrations\202604262042350_UpdatedStuff.Designer.cs">
+      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604262112276_MyApplications.cs" />
+    <Compile Include="Migrations\202604262112276_MyApplications.Designer.cs">
+      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604262149179_FixDateFields.cs" />
+    <Compile Include="Migrations\202604262149179_FixDateFields.Designer.cs">
+      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202604301945323_FixedVers.cs" />
+    <Compile Include="Migrations\202604301945323_FixedVers.Designer.cs">
+      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
+    <Compile Include="Models\AttendanceSummaryViewModel.cs" />
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\Driver.cs" />
+    <Compile Include="Models\DriverApplication.cs" />
+    <Compile Include="Models\DriverAvailability.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
     <Compile Include="Models\Event.cs" />
@@ -266,6 +302,8 @@
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
     <Compile Include="Models\Parent.cs" />
+    <Compile Include="Models\ParentAttendanceSummaryViewModel.cs" />
+    <Compile Include="Models\ParentAttendanceViewModel.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
     <Compile Include="Models\Registration.cs" />
@@ -275,6 +313,7 @@
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
+    <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\StudentMark.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
@@ -286,9 +325,15 @@
     <Compile Include="Models\Termresult.cs" />
     <Compile Include="Models\Timetablegenerator .cs" />
     <Compile Include="Models\Timetablemodels.cs" />
+    <Compile Include="Models\Trip.cs" />
+    <Compile Include="Models\Vehicle.cs" />
+    <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Controllers\TripsController.cs" />
+    <Compile Include="Controllers\VehicleIssuesController.cs" />
+    <Compile Include="Controllers\VehiclesController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\academic.css" />
@@ -424,7 +469,43 @@
     <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
     <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
     <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\2.cshtml" />
+    <Content Include="Views\Students\MyAttendance.cshtml" />
+    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
     <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Attendances\ViewRegister.cshtml" />
+    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\DriverApplications\Create.cshtml" />
+    <Content Include="Views\DriverApplications\Delete.cshtml" />
+    <Content Include="Views\DriverApplications\Details.cshtml" />
+    <Content Include="Views\DriverApplications\Edit.cshtml" />
+    <Content Include="Views\DriverApplications\Index.cshtml" />
+    <Content Include="Views\DriverAvailabilities\Create.cshtml" />
+    <Content Include="Views\DriverAvailabilities\Delete.cshtml" />
+    <Content Include="Views\DriverAvailabilities\Details.cshtml" />
+    <Content Include="Views\DriverAvailabilities\Edit.cshtml" />
+    <Content Include="Views\DriverAvailabilities\Index.cshtml" />
+    <Content Include="Views\Trips\Create.cshtml" />
+    <Content Include="Views\Trips\Delete.cshtml" />
+    <Content Include="Views\Trips\Details.cshtml" />
+    <Content Include="Views\Trips\Edit.cshtml" />
+    <Content Include="Views\Trips\Index.cshtml" />
+    <Content Include="Views\Vehicles\Create.cshtml" />
+    <Content Include="Views\Vehicles\Delete.cshtml" />
+    <Content Include="Views\Vehicles\Details.cshtml" />
+    <Content Include="Views\Vehicles\Edit.cshtml" />
+    <Content Include="Views\Vehicles\Index.cshtml" />
+    <Content Include="Views\VehicleIssues\Create.cshtml" />
+    <Content Include="Views\VehicleIssues\Delete.cshtml" />
+    <Content Include="Views\VehicleIssues\Details.cshtml" />
+    <Content Include="Views\VehicleIssues\Edit.cshtml" />
+    <Content Include="Views\VehicleIssues\Index.cshtml" />
+    <Content Include="Views\DriverAvailability.cshtml" />
+    <Content Include="Views\DriverDashboard\Index.cshtml" />
+    <Content Include="Views\DriverApplications\PublicDetails.cshtml" />
+    <Content Include="Views\DriverApplications\MyApplications.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -458,8 +539,29 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604080943282_InitialCreate.resx">
-      <DependentUpon>202604080943282_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202604251922501_InitialCreate.resx">
+      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604251947005_AddDriverTable.resx">
+      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.resx">
+      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604261239172_FixDateTime.resx">
+      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604262042350_UpdatedStuff.resx">
+      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604262112276_MyApplications.resx">
+      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604262149179_FixDateFields.resx">
+      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202604301945323_FixedVers.resx">
+      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

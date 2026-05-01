@@ -20,6 +20,7 @@
     </div>
 
     <div class="row">
+        <!-- Mark Register Card -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
@@ -30,6 +31,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- My Timetable Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-week fs-1 text-info"></i>
+                    <h5 class="card-title mt-3">My Timetable</h5>
+                    <p class="card-text">View your weekly teaching schedule.</p>
+                    <a href="@Url.Action("MyTimetable", "Timetable")" class="btn btn-info text-white">View Timetable</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessments Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square fs-1 text-danger"></i>
+                    <h5 class="card-title mt-3">Assessments</h5>
+                    <p class="card-text">Manage tests, exams, and marks.</p>
+                    <a href="@Url.Action("Index", "Marks")" class="btn btn-danger">Go to Assessments</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-In/Out Card -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
@@ -40,6 +67,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- My Subjects Card -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">

@@ -182,4 +182,206 @@ WHERE s.GradeLevel = 8
 WHERE StudentId IN (SELECT StudentId FROM Students WHERE GradeLevel = 8)
   AND SubjectId IN (SELECT SubjectId FROM Subjects WHERE GradeLevel = 8);
 
-  
+
+  Select * from TeacherAttendances;
+
+  -- Delete all teacher attendance records (careful!)
+DELETE FROM TeacherAttendances where TeacherAttendanceId = 1006;
+
+
+Select * from Students;
+
+
+Select * from StudentSubjects;
+
+Select  * from Subjects;
+
+SELECT TOP 1 PasswordHash FROM AppUsers;
+
+INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+VALUES 
+('Sipho Nkosi', 'sipho.nkosi@student.michaelhouse.org', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Student'),
+('Thabo Nkosi', 'thabo.nkosi@student.michaelhouse.org', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Student'),
+('Lerato Molefe', 'lerato.molefe@student.michaelhouse.org', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Student'),
+('Sipho Dlamini', 'sipho.dlamini@student.michaelhouse.org', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Student'),
+('Zanele Khumalo', 'zanele.khumalo@student.michaelhouse.org', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Student');
+
+-- Then link them (assuming the AppUser identities are in the same order as student IDs)
+UPDATE Students SET UserId = (SELECT UserId FROM AppUsers WHERE Email = 'sipho.nkosi@student.michaelhouse.org') WHERE StudentId = 2;
+UPDATE Students SET UserId = (SELECT UserId FROM AppUsers WHERE Email = 'thabo.nkosi@student.michaelhouse.org') WHERE StudentId = 3;
+UPDATE Students SET UserId = (SELECT UserId FROM AppUsers WHERE Email = 'lerato.molefe@student.michaelhouse.org') WHERE StudentId = 4;
+UPDATE Students SET UserId = (SELECT UserId FROM AppUsers WHERE Email = 'sipho.dlamini@student.michaelhouse.org') WHERE StudentId = 5;
+UPDATE Students SET UserId = (SELECT UserId FROM AppUsers WHERE Email = 'zanele.khumalo@student.michaelhouse.org') WHERE StudentId = 6;
+
+-- Get the ParentId for the parent with email notprobmx@gmail.com
+DECLARE @ParentId INT = (SELECT ParentId FROM Parents WHERE Contact = 'notprobmx@gmail.com');
+
+-- If the parent doesn't exist in Parents table, create it
+IF @ParentId IS NULL
+BEGIN
+    INSERT INTO Parents (Name, Contact, CellPhone, UserId)
+    VALUES ('Parent Name', 'notprobmx@gmail.com', NULL, (SELECT UserId FROM AppUsers WHERE Email = 'notprobmx@gmail.com'));
+    SET @ParentId = SCOPE_IDENTITY();
+END
+
+-- Update all students that don't have a ParentId or specifically the ones linked to UserIds 5-9
+-- Assuming StudentId corresponds to UserId (from your screenshot, StudentId 2-6 are the students)
+UPDATE Students 
+SET ParentId = @ParentId 
+WHERE StudentId IN (2, 3, 4, 5, 6);  -- Adjust these IDs based on actual StudentId values
+
+SELECT s.StudentId, s.FirstName, s.LastName, s.ParentId, p.Name AS ParentName
+FROM Students s
+LEFT JOIN Parents p ON s.ParentId = p.ParentId
+WHERE s.StudentId IN (2, 3, 4, 5, 6);
+
+INSERT INTO Parents (Name, Contact, CellPhone, UserId)
+SELECT 'Parent Name', Email, NULL, UserId
+FROM AppUsers 
+WHERE Email = 'notprobmx@gmail.com' AND Role = 'Parent';
+
+Select * from Parents;
+
+
+SELECT UserId, Email, Role FROM AppUsers WHERE Email = 'notprobmx@gmail.com';
+
+Select * from Students;
+
+UPDATE Students 
+SET ParentId = 1
+WHERE StudentId IN (2, 3, 4, 5);
+
+SELECT StudentId, FirstName, LastName, ParentId 
+FROM Students 
+WHERE StudentId IN (1,2,3,4,5);
+
+
+
+SELECT u.UserId, u.Email, u.Role, s.StudentId
+FROM Users u
+LEFT JOIN Students s ON u.UserId = s.UserId
+WHERE u.Role = 'Student';
+
+
+SELECT TABLE_NAME 
+FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_NAME LIKE '%user%' OR TABLE_NAME LIKE '%Student%';
+
+
+
+    SELECT 
+    fk.name AS FK_Name,
+    OBJECT_NAME(fk.parent_object_id) AS ChildTable,
+    COL_NAME(fkc.parent_object_id, fkc.parent_column_id) AS ChildColumn,
+    OBJECT_NAME(fk.referenced_object_id) AS ReferencedTable,
+    COL_NAME(fkc.referenced_object_id, fkc.referenced_column_id) AS ReferencedColumn
+FROM 
+    sys.foreign_keys fk
+INNER JOIN 
+    sys.foreign_key_columns fkc ON fk.object_id = fkc.constraint_object_id
+WHERE 
+    OBJECT_NAME(fk.referenced_object_id) = 'Students';
+
+
+    SELECT u.UserId, u.Email, u.Name
+FROM AppUsers u
+LEFT JOIN Students s ON u.UserId = s.UserId
+WHERE u.Role = 'Student' AND s.StudentId IS NULL;
+
+
+INSERT INTO Students (UserId, FirstName, LastName, DOB, ParentId, GradeLevel, EnrollmentDate, Gender)
+SELECT 
+    u.UserId,
+    CASE 
+        WHEN CHARINDEX(' ', u.Name) > 0 
+        THEN LEFT(u.Name, CHARINDEX(' ', u.Name) - 1)
+        ELSE u.Name 
+    END AS FirstName,
+    CASE 
+        WHEN CHARINDEX(' ', u.Name) > 0 
+        THEN RIGHT(u.Name, LEN(u.Name) - CHARINDEX(' ', u.Name))
+        ELSE '' 
+    END AS LastName,
+    '2005-01-01',          -- default DOB (adjust as needed)
+    2,                  -- ParentId (can be linked later)
+    8,                     -- GradeLevel
+    GETDATE(),             -- EnrollmentDate
+    'Male'                 -- Gender (change to 'Female' or 'Other' if required)
+FROM AppUsers u
+LEFT JOIN Students s ON u.UserId = s.UserId
+WHERE u.Role = 'Student' AND s.StudentId IS NULL;
+
+
+-- 1. Check if the email already exists (optional, but good practice)
+IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Email = 'parent@demo.com')
+BEGIN
+    -- 2. Insert new user
+    --    Default password: 'Password123' hashed with SHA256 (same as your HashPassword method)
+    --    You can change the password and role as needed.
+    DECLARE @NewUserId INT;
+    
+    INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+    VALUES (
+        (SELECT Name FROM Parents WHERE ParentId = 2),   -- Name from Parents table
+        'parent@demo.com',
+        -- Hash of 'Password123' (use your actual hash logic; below is a SHA256 base64 example)
+        'jZae727K08KaOmKSgOaGzww/XVqGr/PKEgIMkjrcbJI=',   -- Replace with actual hash if different
+        'Parent'   -- Role
+    );
+    
+    SET @NewUserId = SCOPE_IDENTITY();
+    
+    -- 3. Update the parent record with the new UserId
+    UPDATE Parents
+    SET UserId = @NewUserId
+    WHERE ParentId = 2;
+    
+    -- Optional: verify
+    SELECT 'Parent user created and linked.' AS Result;
+END
+ELSE
+BEGIN
+    SELECT 'Email already exists in AppUsers.' AS Result;
+END
+
+UPDATE AppUsers
+SET PasswordHash = 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U='
+WHERE Email = 'parent@demo.com';
+
+
+DELETE FROM Students
+WHERE UserId IS NULL;
+
+SELECT s.*, u.Email
+FROM Students s
+LEFT JOIN AppUsers u ON s.UserId = u.UserId
+WHERE s.UserId IS NULL;   -- or any other condition
+
+
+-- List of subject IDs to enroll every student in
+DECLARE @SubjectIds TABLE (SubjectId INT);
+INSERT INTO @SubjectIds VALUES 
+(1002), (1003), (1004), (1005), (1006),
+(1007), (1008), (1009), (1010), (1011);
+
+-- Insert for each student and each subject, if not already enrolled
+INSERT INTO StudentSubjects (StudentId, SubjectId, Stream, IsCompulsory)
+SELECT s.StudentId, sub.SubjectId, '', 1   -- Stream = '' (empty string) instead of NULL
+FROM Students s
+CROSS JOIN @SubjectIds sub
+WHERE NOT EXISTS (
+    SELECT 1 FROM StudentSubjects ss
+    WHERE ss.StudentId = s.StudentId AND ss.SubjectId = sub.SubjectId
+);
+
+SELECT s.StudentId, s.FirstName, s.LastName, sub.SubjectId
+FROM Students s
+CROSS JOIN (VALUES (1002),(1003),(1004),(1005),(1006),(1007),(1008),(1009),(1010),(1011)) AS sub(SubjectId)
+WHERE NOT EXISTS (
+    SELECT 1 FROM StudentSubjects ss
+    WHERE ss.StudentId = s.StudentId AND ss.SubjectId = sub.SubjectId
+)
+ORDER BY s.StudentId, sub.SubjectId;
+
+ALTER DATABASE MichaelHouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+DROP DATABASE MichaelHouse;

@@ -415,18 +415,82 @@ namespace Michaelhouse.Controllers
         {
             using (var db = new DBContextClass())
             {
-                var query = db.Attendances.AsQueryable();
+                // Base query for attendances (include navigation properties)
+                var query = db.Attendances
+                    .Include(a => a.Student)
+                    .Include(a => a.Subject)
+                    .AsQueryable();
 
-                if (subjectId.HasValue && subjectId.Value > 0)
+                // Apply filters
+                if (subjectId.HasValue)
                     query = query.Where(a => a.SubjectId == subjectId.Value);
-                if (studentId.HasValue && studentId.Value > 0)
+                if (studentId.HasValue)
                     query = query.Where(a => a.StudentId == studentId.Value);
                 if (fromDate.HasValue)
                     query = query.Where(a => a.Date >= fromDate.Value);
                 if (toDate.HasValue)
                     query = query.Where(a => a.Date <= toDate.Value);
 
+                // 1. SUMMARY: Group by StudentId + SubjectId, compute counts
+                var summaryRaw = query
+                    .GroupBy(a => new { a.StudentId, a.SubjectId })
+                    .Select(g => new
+                    {
+                        g.Key.StudentId,
+                        g.Key.SubjectId,
+                        TotalClasses = g.Count(),
+                        PresentCount = g.Count(a => a.Status == AttendanceStatus.Present || a.Status == AttendanceStatus.Late)
+                    })
+                    .ToList();  // materialize to memory
+
+                // Now join with Student and Subject tables to get names
+                var summary = (from s in summaryRaw
+                               join student in db.Students on s.StudentId equals student.StudentId
+                               join subject in db.Subjects on s.SubjectId equals subject.SubjectId
+                               select new AttendanceSummaryViewModel
+                               {
+                                   StudentId = s.StudentId,
+                                   StudentName = student.FirstName + " " + student.LastName,   // adjust if you have FullName property
+                                   GradeLevel = student.GradeLevel,
+                                   SubjectId = s.SubjectId,
+                                   SubjectName = subject.Name,   // ensure Subject has a 'Name' column
+                                   TotalClasses = s.TotalClasses,
+                                   PresentCount = s.PresentCount
+                               })
+                               .OrderBy(x => x.StudentName)
+                               .ThenBy(x => x.SubjectName)
+                               .ToList();
+
+                // 2. DETAILED records (original)
                 var records = query
+                    .OrderByDescending(a => a.Date)
+                    .Select(a => new AttendanceRecordViewModel
+                    {
+                        Date = a.Date,
+                        StudentName = a.Student.FirstName + " " + a.Student.LastName,   // adjust as needed
+                        StudentGrade = a.Student.GradeLevel,
+                        SubjectName = a.Subject.Name,
+                        Status = a.Status,
+                        RecordedBy = a.RecordedBy
+                    })
+                    .ToList();
+
+                // Dropdown data
+                ViewBag.Subjects = db.Subjects.OrderBy(s => s.Name).ToList();
+                ViewBag.Students = db.Students.OrderBy(s => s.FirstName).ToList();   // or use FullName
+                ViewBag.AttendanceSummary = summary;
+
+                return View(records);
+            }
+        }
+        public ActionResult GetSubjectAttendanceDetails(int studentId, int subjectId)
+        {
+            using (var db = new DBContextClass())
+            {
+                var records = db.Attendances
+                    .Include(a => a.Student)
+                    .Include(a => a.Subject)
+                    .Where(a => a.StudentId == studentId && a.SubjectId == subjectId)
                     .OrderByDescending(a => a.Date)
                     .Select(a => new AttendanceRecordViewModel
                     {
@@ -439,11 +503,13 @@ namespace Michaelhouse.Controllers
                     })
                     .ToList();
 
-                ViewBag.AttendanceRecords = records;
-                ViewBag.Subjects = db.Subjects.OrderBy(s => s.Name).ToList();
-                ViewBag.Students = db.Students.OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToList();
+                if (!records.Any())
+                {
+                    return Content("<p class='text-muted'>No attendance records found for this subject.</p>");
+                }
 
-                return View();
+                // Return a partial view (or build HTML manually)
+                return PartialView("_SubjectAttendanceDetails", records);
             }
         }
 
@@ -539,6 +605,7 @@ namespace Michaelhouse.Controllers
         ");
             }
         }
+
 
     }
 }

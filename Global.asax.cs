@@ -1,4 +1,5 @@
-﻿using Stripe;
+﻿using Michaelhouse.Models;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,76 @@ namespace Michaelhouse
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             StripeConfiguration.ApiKey = "sk_test_51TGkmpCX1ORzTt6NEmDOc0b3JZfikEKfkgwHx2ulmuep6cuNGTAFlY3WE65A5bUy8BQ2A0HShSCBqze2A4jFGkJ300YdaTPxkN";
+            SeedDrivers();
         }
+        private void SeedDrivers()
+        {
+            using (var db = new DBContextClass())
+            {
+                // Prevent duplicate seeding
+                if (db.Drivers.Any())
+                    return;
+
+                var drivers = new List<Driver>
+        {
+            new Driver
+            {
+                FullName = "Sibusiso Mthembu",
+                IDNumber = "9001015009087",
+                PhoneNumber = "0721111111",
+                Email = "sibusiso@michaelhouse.com",
+                LicenceNumber = "LIC1001",
+                LicenceExpiryDate = DateTime.Now.AddYears(3),
+                HasPDP = true,
+                IsActive = true,
+                DateCreated = DateTime.Now,
+                PasswordHash = "123456"
+            },
+            new Driver
+            {
+                FullName = "Thabo Khumalo",
+                IDNumber = "9202025009088",
+                PhoneNumber = "0722222222",
+                Email = "thabo@michaelhouse.com",
+                LicenceNumber = "LIC1002",
+                LicenceExpiryDate = DateTime.Now.AddYears(2),
+                HasPDP = true,
+                IsActive = true,
+                DateCreated = DateTime.Now,
+                PasswordHash = "123456"
+            },
+            new Driver
+            {
+                FullName = "Mandla Dlamini",
+                IDNumber = "9303035009089",
+                PhoneNumber = "0723333333",
+                Email = "mandla@michaelhouse.com",
+                LicenceNumber = "LIC1003",
+                LicenceExpiryDate = DateTime.Now.AddYears(4),
+                HasPDP = true,
+                IsActive = true,
+                DateCreated = DateTime.Now,
+                PasswordHash = "123456"
+            },
+            new Driver
+            {
+                FullName = "Sipho Zulu",
+                IDNumber = "9404045009090",
+                PhoneNumber = "0724444444",
+                Email = "sipho@michaelhouse.com",
+                LicenceNumber = "LIC1004",
+                LicenceExpiryDate = DateTime.Now.AddYears(1),
+                HasPDP = true,
+                IsActive = true,
+                DateCreated = DateTime.Now,
+                PasswordHash = "123456"
+            }
+        };
+
+                db.Drivers.AddRange(drivers);
+                db.SaveChanges();
+            }
+        }
+
     }
 }
