@@ -382,3 +382,6 @@ WHERE NOT EXISTS (
     WHERE ss.StudentId = s.StudentId AND ss.SubjectId = sub.SubjectId
 )
 ORDER BY s.StudentId, sub.SubjectId;
+
+ALTER DATABASE MichaelHouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+DROP DATABASE MichaelHouse;

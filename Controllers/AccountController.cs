@@ -243,6 +243,8 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)
                 default:
                     return RedirectToAction("Index", "Home");
+                case "Driver":
+                    return RedirectToAction("Index", "DriverDashboard");
             }
         }
 

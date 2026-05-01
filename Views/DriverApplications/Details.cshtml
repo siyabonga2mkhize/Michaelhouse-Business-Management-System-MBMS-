@@ -1,0 +1,170 @@
+﻿@model Michaelhouse.Models.DriverApplication
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+<h3>
+    Status:
+    <span class="label label-info">@Model.Status</span>
+</h3>
+
+<div>
+    <h4>DriverApplication</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IDNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IDNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PhoneNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LicenceNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LicenceNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LicenceExpiryDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LicenceExpiryDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.HasPDP)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.HasPDP)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DateSubmitted)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DateSubmitted)
+        </dd>
+
+    </dl>
+    <h4>Uploaded Documents</h4>
+
+    @if (Model.Documents != null && Model.Documents.Any())
+    {
+        <table class="table">
+            <tr>
+                <th>Document Type</th>
+                <th>View</th>
+            </tr>
+
+            @foreach (var doc in Model.Documents)
+            {
+                <tr>
+                    <td>@doc.DocumentType</td>
+                    <td>
+                        <a href="@Url.Content(doc.FilePath)" target="_blank" class="btn btn-info btn-sm">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+    else
+    {
+        <p>No documents uploaded.</p>
+    }
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id, token = Request.QueryString["token"] }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
+
+@{
+    var isPublicViewer = ViewBag.IsPublicViewer == true || !User.Identity.IsAuthenticated;
+}
+
+@if (!isPublicViewer)
+{
+    if (Model.Status == "Pending" || string.IsNullOrEmpty(Model.Status))
+    {
+        <h3>Admin Review</h3>
+
+        using (Html.BeginForm("Review", "DriverApplications", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.Hidden("id", Model.Id)
+
+            <div class="form-group">
+                <label>Admin Notes</label>
+                <textarea name="adminNotes" class="form-control"></textarea>
+            </div>
+
+            <br />
+
+            <button type="submit" name="decision" value="Approve" class="btn btn-success">
+                Approve
+            </button>
+
+            <button type="submit" name="decision" value="Reject" class="btn btn-danger">
+                Reject
+            </button>
+        }
+    }
+    else
+    {
+        <h3>Review Completed</h3>
+        <p><strong>Decision:</strong> @Model.Status</p>
+        <p><strong>Notes:</strong> @Model.AdminNotes</p>
+    }
+}
+else
+{
+    <h3>Application Status</h3>
+    <p><strong>Status:</strong> @Model.Status</p>
+    if (!string.IsNullOrEmpty(Model.AdminNotes))
+    {
+        <p><strong>Admin Notes:</strong> @Model.AdminNotes</p>
+    }
+}

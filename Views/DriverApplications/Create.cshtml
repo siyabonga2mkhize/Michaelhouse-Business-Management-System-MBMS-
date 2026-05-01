@@ -1,0 +1,79 @@
+﻿@model Michaelhouse.Models.DriverApplication
+@{
+    Layout = null;
+}
+
+<div class="flex min-h-screen">
+
+    <!-- LEFT IMAGE (same style as Register) -->
+    <div class="hidden md:flex md:w-5/12 bg-[#C21E2E] items-center justify-center text-white p-10">
+        <div>
+            <h1 class="text-4xl font-serif font-bold mb-4">Driver Application</h1>
+            <p class="text-sm text-white/80">Join the transport system</p>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="w-full md:w-7/12 flex items-center justify-center p-10">
+        <div class="w-full max-w-xl">
+
+            <h2 class="text-3xl font-bold mb-6">Apply as Driver</h2>
+            <div class="h-1 w-12 bg-[#C21E2E] mb-8"></div>
+
+            @using (Html.BeginForm("Create", "DriverApplications", FormMethod.Post, new { enctype = "multipart/form-data", @class = "space-y-8" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <!-- SECTION 1 -->
+                <div>
+                    <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                        01. Personal Info
+                    </p>
+
+                    <div class="space-y-4">
+                        @Html.TextBoxFor(m => m.FullName, new { @class = "w-full p-3 border border-gray-200 form-input-focus", placeholder = "Full Name" })
+                        @Html.TextBoxFor(m => m.IDNumber, new { @class = "w-full p-3 border border-gray-200", placeholder = "ID Number" })
+                        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "w-full p-3 border border-gray-200", placeholder = "Phone Number" })
+                        @Html.TextBoxFor(m => m.Email, new { @class = "w-full p-3 border border-gray-200", placeholder = "Email" })
+                    </div>
+                </div>
+
+                <!-- SECTION 2 -->
+                <div>
+                    <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                        02. Licence Details
+                    </p>
+
+                    <div class="space-y-4">
+                        @Html.TextBoxFor(m => m.LicenceNumber, new { @class = "w-full p-3 border border-gray-200", placeholder = "Licence Number" })
+                        @Html.TextBoxFor(m => m.LicenceExpiryDate, "{0:yyyy-MM-dd}", new { type = "date", @class = "w-full p-3 border border-gray-200" })
+
+                        <label class="flex items-center gap-2 text-sm">
+                            @Html.CheckBoxFor(m => m.HasPDP)
+                            <span>Has PDP</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- SECTION 3 -->
+                <div>
+                    <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                        03. Documents
+                    </p>
+
+                    <div class="space-y-3">
+                        <input type="file" name="idFile" class="w-full text-sm" required />
+                        <input type="file" name="licenceFile" class="w-full text-sm" required />
+                        <input type="file" name="otherFiles" multiple class="w-full text-sm" />
+                        <input type="text" name="otherDescription" placeholder="Other document description" class="w-full p-3 border border-gray-200" />
+                    </div>
+                </div>
+
+                <!-- SUBMIT -->
+                <button type="submit" class="w-full bg-[#C21E2E] text-white py-3 uppercase text-xs tracking-widest font-bold hover:bg-black transition">
+                    Submit Application
+                </button>
+            }
+        </div>
+    </div>
+</div>
