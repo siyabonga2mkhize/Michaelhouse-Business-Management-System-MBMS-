@@ -12,16 +12,19 @@
                 c => new
                     {
                         ReviewId = c.Int(nullable: false, identity: true),
-                        AppId = c.Int(nullable: false),
+                        AppId = c.Int(),
+                        DriverAppId = c.Int(),
                         AdminId = c.String(nullable: false),
-                        Date = c.DateTime(nullable: false),
+                        Date = c.DateTime(),
                         Decision = c.String(nullable: false),
                         AdminNotes = c.String(),
                         AgreedWithAi = c.Boolean(nullable: false),
                     })
                 .PrimaryKey(t => t.ReviewId)
-                .ForeignKey("dbo.Applications", t => t.AppId, cascadeDelete: true)
-                .Index(t => t.AppId);
+                .ForeignKey("dbo.Applications", t => t.AppId)
+                .ForeignKey("dbo.DriverApplications", t => t.DriverAppId)
+                .Index(t => t.AppId)
+                .Index(t => t.DriverAppId);
             
             CreateTable(
                 "dbo.Applications",
@@ -232,7 +235,7 @@
                     {
                         StreamEnrolmentId = c.Int(nullable: false, identity: true),
                         StudentId = c.Int(nullable: false),
-                        TeacherId = c.Int(nullable: false),
+                        TeacherId = c.Int(),
                         RegistrationId = c.Int(nullable: false),
                         Grade = c.Int(nullable: false),
                         Stream = c.Int(nullable: false),
@@ -241,8 +244,9 @@
                     })
                 .PrimaryKey(t => t.StreamEnrolmentId)
                 .ForeignKey("dbo.Registrations", t => t.RegistrationId)
-                .ForeignKey("dbo.Students", t => t.TeacherId)
-                .ForeignKey("dbo.Teachers", t => t.TeacherId, cascadeDelete: true)
+                .ForeignKey("dbo.Students", t => t.StudentId)
+                .ForeignKey("dbo.Teachers", t => t.TeacherId)
+                .Index(t => t.StudentId)
                 .Index(t => t.TeacherId)
                 .Index(t => t.RegistrationId);
             
@@ -335,6 +339,45 @@
                 .PrimaryKey(t => t.PeriodId);
             
             CreateTable(
+                "dbo.DriverApplications",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        FullName = c.String(nullable: false),
+                        IDNumber = c.String(nullable: false),
+                        PhoneNumber = c.String(nullable: false),
+                        Email = c.String(nullable: false),
+                        LicenceNumber = c.String(nullable: false),
+                        LicenceExpiryDate = c.DateTime(nullable: false),
+                        HasPDP = c.Boolean(nullable: false),
+                        DocumentPath = c.String(),
+                        Status = c.String(),
+                        AdminNotes = c.String(),
+                        DateSubmitted = c.DateTime(),
+                        ReviewedDate = c.DateTime(),
+                        UserId = c.Int(),
+                        PublicTokenHash = c.String(),
+                        PublicTokenExpiry = c.DateTime(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.AppUsers", t => t.UserId)
+                .Index(t => t.UserId);
+            
+            CreateTable(
+                "dbo.DriverDocuments",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        DriverApplicationId = c.Int(nullable: false),
+                        FilePath = c.String(),
+                        DocumentType = c.String(),
+                        OtherDocumentType = c.String(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.DriverApplications", t => t.DriverApplicationId, cascadeDelete: true)
+                .Index(t => t.DriverApplicationId);
+            
+            CreateTable(
                 "dbo.Attendances",
                 c => new
                     {
@@ -411,6 +454,42 @@
                 .PrimaryKey(t => t.Id);
             
             CreateTable(
+                "dbo.DriverAvailabilities",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        DriverId = c.Int(nullable: false),
+                        StartDate = c.DateTime(),
+                        EndDate = c.DateTime(nullable: false),
+                        Reason = c.String(nullable: false),
+                        DateCreated = c.DateTime(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.Drivers", t => t.DriverId, cascadeDelete: true)
+                .Index(t => t.DriverId);
+            
+            CreateTable(
+                "dbo.Drivers",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        FullName = c.String(),
+                        IDNumber = c.String(),
+                        PhoneNumber = c.String(),
+                        Email = c.String(),
+                        LicenceNumber = c.String(),
+                        LicenceExpiryDate = c.DateTime(),
+                        HasPDP = c.Boolean(nullable: false),
+                        IsActive = c.Boolean(nullable: false),
+                        DateCreated = c.DateTime(),
+                        PasswordHash = c.String(),
+                        UserId = c.Int(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.AppUsers", t => t.UserId)
+                .Index(t => t.UserId);
+            
+            CreateTable(
                 "dbo.Invoices",
                 c => new
                     {
@@ -474,6 +553,46 @@
                 .Index(t => t.SubjectId);
             
             CreateTable(
+                "dbo.Trips",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        Destination = c.String(nullable: false),
+                        TripDate = c.DateTime(nullable: false),
+                        DriverId = c.Int(),
+                        VehicleId = c.Int(),
+                        Status = c.String(),
+                    })
+                .PrimaryKey(t => t.Id);
+            
+            CreateTable(
+                "dbo.VehicleIssues",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        DriverId = c.Int(nullable: false),
+                        VehicleId = c.Int(nullable: false),
+                        Description = c.String(),
+                        DateReported = c.DateTime(nullable: false),
+                        Status = c.String(),
+                    })
+                .PrimaryKey(t => t.Id);
+            
+            CreateTable(
+                "dbo.Vehicles",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        VehicleNumber = c.String(nullable: false),
+                        Model = c.String(nullable: false),
+                        Type = c.String(nullable: false),
+                        Capacity = c.Int(nullable: false),
+                        IsActive = c.Boolean(nullable: false),
+                        DateAdded = c.DateTime(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id);
+            
+            CreateTable(
                 "dbo.YearResults",
                 c => new
                     {
@@ -501,11 +620,16 @@
             DropForeignKey("dbo.Invoices", "RegistrationId", "dbo.Registrations");
             DropForeignKey("dbo.Payments", "InvoiceId", "dbo.Invoices");
             DropForeignKey("dbo.Invoices", "ParentId", "dbo.Parents");
+            DropForeignKey("dbo.DriverAvailabilities", "DriverId", "dbo.Drivers");
+            DropForeignKey("dbo.Drivers", "UserId", "dbo.AppUsers");
             DropForeignKey("dbo.OrderItems", "ProductId", "dbo.Products");
             DropForeignKey("dbo.OrderItems", "OrderId", "dbo.Orders");
             DropForeignKey("dbo.Products", "CategoryId", "dbo.Categories");
             DropForeignKey("dbo.Attendances", "SubjectId", "dbo.Subjects");
             DropForeignKey("dbo.Attendances", "StudentId", "dbo.Students");
+            DropForeignKey("dbo.AdminReviews", "DriverAppId", "dbo.DriverApplications");
+            DropForeignKey("dbo.DriverApplications", "UserId", "dbo.AppUsers");
+            DropForeignKey("dbo.DriverDocuments", "DriverApplicationId", "dbo.DriverApplications");
             DropForeignKey("dbo.AdminReviews", "AppId", "dbo.Applications");
             DropForeignKey("dbo.Applications", "StudentId", "dbo.Students");
             DropForeignKey("dbo.Applications", "ParentId", "dbo.Parents");
@@ -526,7 +650,7 @@
             DropForeignKey("dbo.TeacherSubjectGrades", "TeacherId", "dbo.Teachers");
             DropForeignKey("dbo.TeacherSubjectGrades", "SubjectId", "dbo.Subjects");
             DropForeignKey("dbo.StreamEnrolments", "TeacherId", "dbo.Teachers");
-            DropForeignKey("dbo.StreamEnrolments", "TeacherId", "dbo.Students");
+            DropForeignKey("dbo.StreamEnrolments", "StudentId", "dbo.Students");
             DropForeignKey("dbo.StreamEnrolments", "RegistrationId", "dbo.Registrations");
             DropForeignKey("dbo.Registrations", "StudentId", "dbo.Students");
             DropForeignKey("dbo.Registrations", "AppId", "dbo.Applications");
@@ -542,11 +666,15 @@
             DropIndex("dbo.Invoices", new[] { "ParentId" });
             DropIndex("dbo.Invoices", new[] { "StudentId" });
             DropIndex("dbo.Invoices", new[] { "RegistrationId" });
+            DropIndex("dbo.Drivers", new[] { "UserId" });
+            DropIndex("dbo.DriverAvailabilities", new[] { "DriverId" });
             DropIndex("dbo.OrderItems", new[] { "ProductId" });
             DropIndex("dbo.OrderItems", new[] { "OrderId" });
             DropIndex("dbo.Products", new[] { "CategoryId" });
             DropIndex("dbo.Attendances", new[] { "SubjectId" });
             DropIndex("dbo.Attendances", new[] { "StudentId" });
+            DropIndex("dbo.DriverDocuments", new[] { "DriverApplicationId" });
+            DropIndex("dbo.DriverApplications", new[] { "UserId" });
             DropIndex("dbo.TimetableSlots", new[] { "Subject_SubjectId" });
             DropIndex("dbo.TimetableSlots", new[] { "SubjectId" });
             DropIndex("dbo.TimetableSlots", new[] { "TeacherId" });
@@ -558,6 +686,7 @@
             DropIndex("dbo.Registrations", new[] { "AppId" });
             DropIndex("dbo.StreamEnrolments", new[] { "RegistrationId" });
             DropIndex("dbo.StreamEnrolments", new[] { "TeacherId" });
+            DropIndex("dbo.StreamEnrolments", new[] { "StudentId" });
             DropIndex("dbo.Teachers", new[] { "UserId" });
             DropIndex("dbo.Assessments", new[] { "SubjectId" });
             DropIndex("dbo.Assessments", new[] { "TeacherId" });
@@ -574,16 +703,24 @@
             DropIndex("dbo.Documents", new[] { "StudentId" });
             DropIndex("dbo.Applications", new[] { "StudentId" });
             DropIndex("dbo.Applications", new[] { "ParentId" });
+            DropIndex("dbo.AdminReviews", new[] { "DriverAppId" });
             DropIndex("dbo.AdminReviews", new[] { "AppId" });
             DropTable("dbo.YearResults");
+            DropTable("dbo.Vehicles");
+            DropTable("dbo.VehicleIssues");
+            DropTable("dbo.Trips");
             DropTable("dbo.TermResults");
             DropTable("dbo.Payments");
             DropTable("dbo.Invoices");
+            DropTable("dbo.Drivers");
+            DropTable("dbo.DriverAvailabilities");
             DropTable("dbo.Orders");
             DropTable("dbo.OrderItems");
             DropTable("dbo.Products");
             DropTable("dbo.Categories");
             DropTable("dbo.Attendances");
+            DropTable("dbo.DriverDocuments");
+            DropTable("dbo.DriverApplications");
             DropTable("dbo.Periods");
             DropTable("dbo.TimetableSlots");
             DropTable("dbo.TeacherAttendances");

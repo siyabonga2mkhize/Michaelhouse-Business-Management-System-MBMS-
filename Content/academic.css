@@ -409,3 +409,50 @@ body {
         background: #C21E2E;
         color: white;
     }
+/* Custom Archival Input Style */
+.ac-input-line {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #f0f0f0;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    transition: border-color 0.3s ease;
+    outline: none !important;
+}
+
+    .ac-input-line:focus {
+        border-bottom-color: #C21E2E;
+    }
+
+.ac-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #bbb;
+    margin-bottom: 2px;
+}
+
+.doc-upload-box {
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    background: white;
+    transition: all 0.2s;
+}
+
+    .doc-upload-box:hover {
+        border-color: #C21E2E;
+    }
+
+.ac-field {
+    margin-bottom: 5px;
+}
+
+/* Typography alignment with rest of app */
+.font-serif {
+    font-family: 'Playfair Display', serif !important;
+}

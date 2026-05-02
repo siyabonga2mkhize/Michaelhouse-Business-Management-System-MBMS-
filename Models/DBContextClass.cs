@@ -60,6 +60,13 @@ namespace Michaelhouse.Models
         // ─── Trips ─────────────────────────────────────────────────────
         public DbSet<Trip> Trips { get; set; }
 
+        // ── Inventory & Suppliers ─────────────────────────────────────────────────
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<SupplierProduct> SupplierProducts { get; set; }
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+        public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; }
+        public DbSet<StockMovement> StockMovements { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -298,6 +305,29 @@ namespace Michaelhouse.Models
                 .WithMany(i => i.Payments)
                 .HasForeignKey(p => p.InvoiceId)
                 .WillCascadeOnDelete(false);
+
+            // ── Suppliers & PurchaseOrders ────────────────────────────────────────
+            modelBuilder.Entity<SupplierProduct>()
+                .HasRequired(sp => sp.Supplier).WithMany(s => s.SupplierProducts)
+                .HasForeignKey(sp => sp.SupplierId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<SupplierProduct>()
+                .HasRequired(sp => sp.Product).WithMany()
+                .HasForeignKey(sp => sp.ProductId).WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasRequired(po => po.Supplier).WithMany(s => s.PurchaseOrders)
+                .HasForeignKey(po => po.SupplierId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<PurchaseOrderLine>()
+                .HasRequired(pol => pol.PurchaseOrder).WithMany(po => po.LineItems)
+                .HasForeignKey(pol => pol.PurchaseOrderId).WillCascadeOnDelete(true);
+            modelBuilder.Entity<PurchaseOrderLine>()
+                .HasRequired(pol => pol.Product).WithMany()
+                .HasForeignKey(pol => pol.ProductId).WillCascadeOnDelete(false);
+
+            // ── Stock Movements ───────────────────────────────────────────────────
+            modelBuilder.Entity<StockMovement>()
+                .HasRequired(sm => sm.Product).WithMany()
+                .HasForeignKey(sm => sm.ProductId).WillCascadeOnDelete(false);
         }
     }
 }
