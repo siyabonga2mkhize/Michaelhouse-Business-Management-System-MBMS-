@@ -1,0 +1,198 @@
+﻿@model List<Michaelhouse.Models.TripSchedule>
+@{
+    ViewBag.Title = "Upcoming Trips";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<h2>Upcoming Trips</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No upcoming trips scheduled.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Destination</th>
+                <th>Scheduled Date</th>
+                <th>Driver</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var schedule in Model)
+            {
+                var request = schedule.TripRequest;
+                <tr>
+                    <td>
+                        @request.Title
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(request.Destination))
+                    {
+                        <a href="#" class="view-map-link"
+                           data-lat="@(request.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                           data-lng="@(request.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                           data-address="@request.Destination">
+                            📍 View Map
+                        </a>
+                    }
+                    else
+                    {
+                        @:No destination
+                    }
+                </td>
+                <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")
+            </td>
+            <td>
+                @if (schedule.Driver != null)
+                {
+                    <a href="#" class="view-driver-details clickable-link" data-driverid="@schedule.DriverId">
+                        @schedule.Driver.FullName
+                    </a>
+                }
+                else
+                {
+                    <span>Not assigned</span>
+                }
+            </td>
+            <td>
+                @if (schedule.Vehicle != null)
+                {
+                    <a href="#" class="view-vehicle-details clickable-link" data-vehicleid="@schedule.VehicleId">
+                        @schedule.Vehicle.VehicleNumber
+                    </a>
+                }
+                else
+                {
+                    <span>Not assigned</span>
+                }
+            </td>
+            <td>
+                @if (schedule.Status == "Draft")
+                {<span class="badge bg-warning text-dark">Awaiting Assignment</span> }
+                else if (schedule.Status == "Confirmed")
+                { <span class="badge bg-success">Confirmed</span> }
+                else if (schedule.Status == "Cancelled")
+                { <span class="badge bg-danger">Cancelled</span> }
+                else
+                { <span>@schedule.Status</span>}
+            </td>
+            <td>
+                <a href="@Url.Action("Manifest", "Trip", new { scheduleId = schedule.Id })" class="btn btn-sm btn-primary">
+                    <i class="bi bi-clipboard-check"></i> Manifest
+                </a>
+                @if (schedule.Status == "Draft")
+                {
+                    using (Html.BeginForm("CancelSchedule", "Trip", FormMethod.Post, new { style = "display:inline;" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="scheduleId" value="@schedule.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Cancel this trip?');">Cancel</button>
+                    }
+                }
+            </td>
+        </tr>
+    }
+        </tbody>
+    </table>
+}
+
+<!-- Map Modal -->
+@Html.Partial("_TripMapModal")
+
+<!-- Driver Details Modal -->
+<div class="modal fade" id="driverDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Driver Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="driverDetailsContent">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Details Modal -->
+<div class="modal fade" id="vehicleDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Vehicle Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="vehicleDetailsContent">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let currentMap = null;
+
+        // Map link click
+        $('.view-map-link').click(function(e) {
+            e.preventDefault();
+            var lat = parseFloat($(this).data('lat'));
+            var lng = parseFloat($(this).data('lng'));
+            var address = $(this).data('address');
+            $('#modalAddress').text(address);
+            $('#tripMapModal').modal('show');
+            $('#tripMapModal').on('shown.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12);
+                }
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                }).addTo(currentMap);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
+            });
+            $('#tripMapModal').on('hidden.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                currentMap = null;
+            });
+        });
+
+        // Driver details modal
+        $('.view-driver-details').click(function(e) {
+            e.preventDefault();
+            var driverId = $(this).data('driverid');
+            $('#driverDetailsContent').html('Loading...');
+            $('#driverDetailsModal').modal('show');
+            $.get('@Url.Action("DriverDetails", "Transport")?id=' + driverId, function(data) {
+                $('#driverDetailsContent').html(data);
+            });
+        });
+
+        // Vehicle details modal
+        $('.view-vehicle-details').click(function(e) {
+            e.preventDefault();
+            var vehicleId = $(this).data('vehicleid');
+            $('#vehicleDetailsContent').html('Loading...');
+            $('#vehicleDetailsModal').modal('show');
+            $.get('@Url.Action("VehicleDetails", "Transport")?id=' + vehicleId, function(data) {
+                $('#vehicleDetailsContent').html(data);
+            });
+        });
+    </script>
+}

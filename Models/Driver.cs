@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace Michaelhouse.Models
 {
@@ -29,5 +26,8 @@ namespace Michaelhouse.Models
         public string PasswordHash { get; internal set; }
         public int? UserId { get; set; }
         public virtual AppUser User { get; set; }
+
+        // NEW: image support
+        public string ImageUrl { get; set; }   // relative path or full URL
     }
 }

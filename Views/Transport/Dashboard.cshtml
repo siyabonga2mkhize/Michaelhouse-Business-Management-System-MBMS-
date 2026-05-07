@@ -1,0 +1,146 @@
+﻿@{
+    ViewBag.Title = "Transport Manager Dashboard";
+}
+
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Transport Manager Dashboard</h1>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Pending Requests</p>
+            <p class="text-2xl font-bold">@ViewBag.PendingRequests</p>
+            <a href="@Url.Action("PendingRequests", "Transport")" class="text-xs text-blue-600">View all →</a>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Approved Trips</p>
+            <p class="text-2xl font-bold">@ViewBag.ApprovedTrips</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Unassigned Schedules</p>
+            <p class="text-2xl font-bold">@ViewBag.UnassignedSchedules</p>
+            <a href="@Url.Action("UnassignedSchedules", "Transport")" class="text-xs text-yellow-600">Assign →</a>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Active Vehicles</p>
+            <p class="text-2xl font-bold">@ViewBag.TotalVehicles</p>
+            <a href="@Url.Action("Vehicles", "Transport")" class="text-xs text-purple-600">Manage →</a>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-indigo-500">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Upcoming Trips</p>
+            <p class="text-2xl font-bold">@ViewBag.UpcomingTripsCount</p>
+            <a href="@Url.Action("AllTrips", "Transport")" class="text-xs text-indigo-600">View all →</a>
+        </div>
+    </div>
+
+    <!-- Recent Trip Requests -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="px-6 py-4 border-b">
+            <h2 class="text-lg font-semibold">Recent Trip Requests</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Departure</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var req in ViewBag.RecentRequests as List<Michaelhouse.Models.TripRequest>)
+                    {
+                        <tr>
+                            <td class="px-6 py-4 text-sm">@req.Title</td>
+                            <td class="px-6 py-4 text-sm">@(req.Teacher?.FirstName) @(req.Teacher?.LastName)</td>
+                            <td class="px-6 py-4 text-sm">@req.DepartureTime.ToString("dd MMM yyyy HH:mm")</td>
+                            <td class="px-6 py-4">
+                                @if (req.Status == "Pending")
+                                {
+                                    <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                }
+                                else if (req.Status == "Approved")
+                                {
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Approved</span>
+                                }
+                                else if (req.Status == "Rejected")
+                                {
+                                    <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Rejected</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="@Url.Action("ApproveRequest", "Transport", new { id = req.Id })" class="text-blue-600 hover:text-blue-800 text-sm mr-2">Review</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-3 border-t">
+            <a href="@Url.Action("PendingRequests", "Transport")" class="text-sm text-blue-600">View all pending requests →</a>
+        </div>
+    </div>
+
+    <!-- Upcoming Schedules -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b">
+            <h2 class="text-lg font-semibold">Upcoming Trip Schedules</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trip</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Driver/Vehicle</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var sched in ViewBag.UpcomingSchedules as List<Michaelhouse.Models.TripSchedule>)
+                    {
+                        <tr>
+                            <td class="px-6 py-4 text-sm">@sched.TripRequest?.Title</td>
+                            <td class="px-6 py-4 text-sm">@(sched.Teacher?.FirstName) @(sched.Teacher?.LastName)</td>
+                            <td class="px-6 py-4 text-sm">@sched.ScheduledDate.ToString("dd MMM yyyy")</td>
+                            <td class="px-6 py-4 text-sm">
+                                @if (sched.DriverId.HasValue)
+                                {
+                                    <span>Driver assigned</span>
+                                }
+                                else
+                                {
+                                    <span class="text-red-500">Not assigned</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (sched.Status == "Draft")
+                                {
+                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Draft</span>
+                                }
+                                else if (sched.Status == "Confirmed")
+                                {
+                                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Confirmed</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (!sched.DriverId.HasValue)
+                                {
+                                    <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = sched.Id })" class="text-blue-600 text-sm">Assign</a>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400 text-sm">Assigned</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

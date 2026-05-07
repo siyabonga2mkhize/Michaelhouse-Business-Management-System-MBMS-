@@ -1,0 +1,70 @@
+﻿@model List<Michaelhouse.Models.TripRequest>
+@{
+    ViewBag.Title = "Pending Trip Requests";
+}
+
+<h2>Pending Trip Requests</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr><th>Teacher</th><th>Title</th><th>Departure</th><th>Return</th><th>Destination</th><th>Max Students</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var req in Model)
+        {
+            <tr>
+                <td>@(req.Teacher?.FirstName + " " + req.Teacher?.LastName)</td>
+                <td>@req.Title</td>
+                <td>@req.DepartureTime.ToString("g")</td>
+                <td>@req.ReturnTime.ToString("g")</td>
+                <td>@req.Destination</td>
+                <td>@req.MaxStudents</td>
+                <td>
+                    <form method="post" action="@Url.Action("ApproveRequest", "Transport")" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@req.Id" />
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#rejectModal" data-id="@req.Id" data-title="@req.Title">Reject</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Trip Request</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form method="post" action="@Url.Action("ApproveRequest", "Transport")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="rejectId" />
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Reason for rejection</label>
+                        <textarea name="rejectionReason" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $('#rejectModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var id = button.data('id');
+            var modal = $(this);
+            modal.find('#rejectId').val(id);
+        });
+    </script>
+}
