@@ -91,15 +91,11 @@ namespace Michaelhouse.Controllers
             var created = _inventoryService.AutoCreateLowStockOrders();
 
             if (!created.Any())
-            {
                 TempData["Info"] = "No low-stock products with linked suppliers found.";
-            }
             else
-            {
                 TempData["Success"] =
                     $"{created.Count} purchase order(s) created as Draft. " +
-                    $"Review and approve them to send to suppliers.";
-            }
+                    "Review and approve them to send to suppliers.";
 
             return RedirectToAction("Index");
         }
@@ -119,7 +115,7 @@ namespace Michaelhouse.Controllers
             return View(po);
         }
 
-        // ─── Approve PO (auto-approve, sends to supplier) ─────────────────────────
+        // ─── Approve PO ───────────────────────────────────────────────────────────
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -128,8 +124,7 @@ namespace Michaelhouse.Controllers
             var (success, error) = _inventoryService.ApprovePurchaseOrder(id);
 
             if (success)
-                TempData["Success"] =
-                    "Purchase order approved and sent to supplier via email.";
+                TempData["Success"] = "Purchase order approved and sent to supplier via email.";
             else
                 TempData["Error"] = error;
 
@@ -145,8 +140,7 @@ namespace Michaelhouse.Controllers
             var (success, error) = _inventoryService.ReceivePurchaseOrder(id, notes);
 
             if (success)
-                TempData["Success"] =
-                    "Delivery received. Stock has been updated for all items.";
+                TempData["Success"] = "Delivery received. Stock has been updated for all items.";
             else
                 TempData["Error"] = error;
 
@@ -159,10 +153,14 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Cancel(int id)
         {
-            var (success, error) = _inventoryService.CancelPurchaseOrder(id);
+            var (success, warning) = _inventoryService.CancelPurchaseOrder(id);
 
-            if (success) TempData["Success"] = "Purchase order cancelled.";
-            else TempData["Error"] = error;
+            if (success)
+                // warning is non-null when the PO was already sent to the supplier.
+                TempData[warning != null ? "Warning" : "Success"] =
+                    warning ?? "Purchase order cancelled.";
+            else
+                TempData["Error"] = warning; // error message when success == false
 
             return RedirectToAction("Details", new { id });
         }

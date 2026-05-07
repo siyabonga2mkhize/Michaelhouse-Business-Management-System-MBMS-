@@ -1,0 +1,177 @@
+﻿@model List<Michaelhouse.Models.Supplier>
+@{
+    ViewBag.Title = "Suppliers";
+
+    // Quick Stats for Hero Cards
+    int totalVendors = Model.Count;
+    int activeVendors = Model.Count(s => s.IsActive);
+    int totalPOs = Model.Sum(s => s.PurchaseOrders?.Count ?? 0);
+}
+
+@* --- STRETCH CONTAINER --- *@
+<div class="flex flex-col h-full w-full">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply Division</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Suppliers</h2>
+        </div>
+        <div class="text-right">
+            <a href="@Url.Action("Create")" class="inline-block bg-gray-900 text-white px-8 py-4 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-xl active:scale-95">
+                <i class="bi bi-plus-lg me-2"></i> Add New Supplier
+            </a>
+        </div>
+    </div>
+
+    @* --- HERO STATS --- *@
+    <div class="row g-4 mb-12 flex-shrink-0">
+        <div class="col-md-4">
+            <div class="bg-[#1a1a1a] text-white p-8 shadow-xl relative overflow-hidden group h-full">
+                <i class="bi bi-truck absolute -right-2 -bottom-4 text-white/5 text-8xl rotate-12 transition-transform group-hover:scale-110"></i>
+                <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-500 mb-4 relative z-10">Authorized Supplier</p>
+                <h3 class="text-5xl font-serif font-bold relative z-10">@activeVendors</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden group h-full">
+                <i class="bi bi-file-earmark-text absolute -right-2 -bottom-4 text-black/5 text-8xl rotate-12"></i>
+                <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 relative z-10">Total Purchase Orders</p>
+                <h3 class="text-5xl font-serif font-bold text-gray-900 relative z-10">@totalPOs</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden group h-full">
+                <i class="bi bi-archive absolute -right-2 -bottom-4 text-gray-400/5 text-8xl rotate-12"></i>
+                <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 relative z-10">Total Suppliers Registered</p>
+                <h3 class="text-5xl font-serif font-bold text-gray-400 relative z-10">@totalVendors</h3>
+            </div>
+        </div>
+    </div>
+
+    @* --- DATA LEDGER SECTION (The Part that Scrolls) --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0">
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            @* Archival Dot Grid Background *@
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10">
+                <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-1">Active Vendor Dossiers</h5>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Balgowan, South Africa • Procurement Registry</p>
+            </div>
+
+            <div class="relative z-10 flex items-center border-b border-gray-100">
+                <i class="bi bi-search text-gray-300 mr-2"></i>
+                <input type="text" id="vendorSearch" class="pr-4 py-2 border-0 outline-none bg-transparent text-[11px] font-bold uppercase tracking-widest w-48"
+                       placeholder="Search Dossiers..." onkeyup="filterVendors()" />
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="py-20 text-center border-dashed flex-grow">
+                <i class="bi bi-journal-x text-gray-100 text-6xl d-block mb-4"></i>
+                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Registry Empty</h4>
+            </div>
+        }
+        else
+        {
+            @* Scrollable Area *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                <table class="table table-hover mb-0 align-middle w-full" id="vendorTable">
+                    <thead class="sticky top-0 z-10 bg-white">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                            <th class="ps-8 py-5">Vendor ID / Name</th>
+                            <th>Primary Contact</th>
+                            <th>Payment Terms</th>
+                            <th class="text-center">Catalog Size</th>
+                            <th>Status</th>
+                            <th class="pe-8 text-end">Administrative Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @foreach (var s in Model)
+                        {
+                            string statusColor = s.IsActive ? "#10b981" : "#9ca3af";
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 @(!s.IsActive ? "opacity-50" : "")">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">@s.Name</div>
+                                    <div class="text-[9px] text-gray-300 font-bold font-mono tracking-tighter">#MH-VN-@s.SupplierId.ToString("D3")</div>
+                                </td>
+                                <td>
+                                    <div class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">@(s.ContactPerson ?? "—")</div>
+                                    <div class="text-[9px] text-gray-400 font-mono lowercase">@(s.Email ?? "no-email-recorded")</div>
+                                </td>
+                                <td>
+                                    <span class="font-serif italic text-sm text-gray-600">Net @s.PaymentTermsDays Days</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="text-[11px] font-bold text-gray-400 font-mono">@(s.SupplierProducts?.Count ?? 0) Units</span>
+                                </td>
+                                <td>
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                          style="color: @statusColor; border-color: @statusColor;">
+                                        @(s.IsActive ? "AUTHORIZED" : "ARCHIVED")
+                                    </span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="@Url.Action("Details", new { id = s.SupplierId })" class="inline-block bg-gray-50 text-gray-400 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+                                            Open File
+                                        </a>
+                                        <a href="@Url.Action("Edit", new { id = s.SupplierId })" class="inline-block bg-gray-50 text-gray-400 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-sm" title="Edit Registry">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Custom scrollbar for internal table */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function filterVendors() {
+            var q = document.getElementById('vendorSearch').value.toLowerCase();
+            document.querySelectorAll('#vendorTable tbody tr').forEach(function (r) {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

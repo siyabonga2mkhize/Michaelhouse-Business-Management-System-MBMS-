@@ -20,9 +20,9 @@
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
     <IISExpressSSLPort>44321</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -204,6 +204,9 @@
     <Compile Include="Controllers\DriverDashboardController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\InventoryController.cs" />
+    <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
@@ -211,37 +214,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604251922501_InitialCreate.cs" />
-    <Compile Include="Migrations\202604251922501_InitialCreate.Designer.cs">
-      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604251947005_AddDriverTable.cs" />
-    <Compile Include="Migrations\202604251947005_AddDriverTable.Designer.cs">
-      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.cs" />
-    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.Designer.cs">
-      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604261239172_FixDateTime.cs" />
-    <Compile Include="Migrations\202604261239172_FixDateTime.Designer.cs">
-      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604262042350_UpdatedStuff.cs" />
-    <Compile Include="Migrations\202604262042350_UpdatedStuff.Designer.cs">
-      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604262112276_MyApplications.cs" />
-    <Compile Include="Migrations\202604262112276_MyApplications.Designer.cs">
-      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604262149179_FixDateFields.cs" />
-    <Compile Include="Migrations\202604262149179_FixDateFields.Designer.cs">
-      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202604301945323_FixedVers.cs" />
-    <Compile Include="Migrations\202604301945323_FixedVers.Designer.cs">
-      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
+    <Compile Include="Migrations\202605051737052_InitialFix.cs" />
+    <Compile Include="Migrations\202605051737052_InitialFix.Designer.cs">
+      <DependentUpon>202605051737052_InitialFix.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -259,6 +234,8 @@
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
     <Compile Include="Models\InventoryItem.cs" />
+    <Compile Include="Models\Inventorymodels.cs" />
+    <Compile Include="Models\InventoryService.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\MaintananceRequest.cs" />
     <Compile Include="Models\MarkAttendanceViewModel.cs" />
@@ -506,6 +483,20 @@
     <Content Include="Views\DriverDashboard\Index.cshtml" />
     <Content Include="Views\DriverApplications\PublicDetails.cshtml" />
     <Content Include="Views\DriverApplications\MyApplications.cshtml" />
+    <Content Include="Views\Inventory\Index.cshtml" />
+    <Content Include="Views\Inventory\StockHistory.cshtml" />
+    <Content Include="Views\Supplier\Index.cshtml" />
+    <Content Include="Views\Supplier\Create.cshtml" />
+    <Content Include="Views\Supplier\Details.cshtml" />
+    <Content Include="Views\PurchaseOrder\Index.cshtml" />
+    <Content Include="Views\Store\Index.cshtml" />
+    <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Enrollments\Create.cshtml" />
+    <Content Include="Views\Enrollments\Index.cshtml" />
+    <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\Success.cshtml" />
+    <Content Include="Views\PurchaseOrder\Create.cshtml" />
+    <Content Include="Views\PurchaseOrder\Details.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -539,29 +530,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604251922501_InitialCreate.resx">
-      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604251947005_AddDriverTable.resx">
-      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.resx">
-      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604261239172_FixDateTime.resx">
-      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262042350_UpdatedStuff.resx">
-      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262112276_MyApplications.resx">
-      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262149179_FixDateFields.resx">
-      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604301945323_FixedVers.resx">
-      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605051737052_InitialFix.resx">
+      <DependentUpon>202605051737052_InitialFix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

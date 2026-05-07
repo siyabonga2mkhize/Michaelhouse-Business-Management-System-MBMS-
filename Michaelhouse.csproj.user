@@ -4,11 +4,10 @@
     <LastActiveSolutionConfig>Debug|Any CPU</LastActiveSolutionConfig>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
-    <IISExpressSSLPort>
-    </IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
+    <IISExpressSSLPort>44321</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <UseGlobalApplicationHostFile />
     <Controller_SelectedScaffolderID>MvcControllerWithContextScaffolder</Controller_SelectedScaffolderID>
     <Controller_SelectedScaffolderCategoryPath>root/Common/MVC/Controller</Controller_SelectedScaffolderCategoryPath>
@@ -25,6 +24,7 @@
     <WebStackScaffolding_ViewDialogWidth>600</WebStackScaffolding_ViewDialogWidth>
     <_SelectedScaffolderID>MvcControllerWithContextScaffolder</_SelectedScaffolderID>
     <_SelectedScaffolderCategoryPath>root/Common</_SelectedScaffolderCategoryPath>
+    <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
