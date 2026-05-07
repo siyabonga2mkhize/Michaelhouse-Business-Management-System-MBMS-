@@ -1,0 +1,242 @@
+﻿@model List<Michaelhouse.Models.Product>
+@using Michaelhouse.Models
+@{
+    ViewBag.Title = "Inventory";
+    var lowStock = (List<Product>)ViewBag.LowStockProducts;
+    var openOrders = (List<PurchaseOrder>)ViewBag.OpenOrders;
+    int totalProducts = (int)ViewBag.TotalProducts;
+    int lowStockCount = (int)ViewBag.LowStockCount;
+    int totalStock = (int)ViewBag.TotalStock;
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER (Fixed) --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Inventory</h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "Supplier")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-truck me-2"></i> Vendor Registry
+            </a>
+            <a href="@Url.Action("Create", "PurchaseOrder")" class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> New Purchase Order
+            </a>
+        </div>
+    </div>
+
+    @* --- SUMMARY CARDS (Fixed) --- *@
+    <div class="row g-4 mb-8 flex-shrink-0">
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                <i class="bi bi-boxes absolute -right-2 -bottom-2 text-black/5 text-6xl rotate-12"></i>
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Total Products</p>
+                <h3 class="text-4xl font-serif font-bold text-gray-900 relative z-10">@totalProducts</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                <i class="bi bi-exclamation-triangle absolute -right-2 -bottom-2 text-red-600/5 text-6xl rotate-12"></i>
+                <p class="text-[9px] uppercase tracking-widest font-bold text-red-600 mb-2 relative z-10">Critical Stock</p>
+                <h3 class="text-4xl font-serif font-bold text-[#C21E2E] relative z-10">@lowStockCount</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                <i class="bi bi-layers absolute -right-2 -bottom-2 text-green-600/5 text-6xl rotate-12"></i>
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Total Units</p>
+                <h3 class="text-4xl font-serif font-bold text-green-700 relative z-10">@totalStock</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-[#1a1a1a] p-6 shadow-lg relative overflow-hidden group h-full">
+                <i class="bi bi-file-earmark-medical absolute -right-2 -bottom-2 text-white/10 text-6xl rotate-12"></i>
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-2 relative z-10">Open Orders</p>
+                <h3 class="text-4xl font-serif font-bold text-white relative z-10">@openOrders.Count</h3>
+            </div>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+
+        @if (lowStock.Any())
+        {
+            <div class="bg-white shadow-sm border-2 border-[#C21E2E] overflow-hidden relative mb-10">
+                <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center bg-white relative sticky top-0 z-20">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div class="relative z-10">
+                        <h5 class="text-xs uppercase tracking-[4px] font-bold text-[#C21E2E] mb-1">Stock Depletion Alerts</h5>
+                    </div>
+                    @using (Html.BeginForm("AutoCreate", "PurchaseOrder", FormMethod.Post, new { @class = "relative z-10" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="bg-[#C21E2E] text-white px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] border-0 hover:bg-black transition-all"
+                                onclick="return confirm('Generate automated procurement orders?')">
+                            <i class="bi bi-magic me-2"></i> Auto-Generate POs
+                        </button>
+                    }
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-gray-50/50 sticky top-0">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b">
+                                <th class="ps-8 py-4">Item Identity</th>
+                                <th>Category</th>
+                                <th class="text-center">Current Level</th>
+                                <th class="text-center">Threshold</th>
+                                <th class="pe-8 text-end">Logistics</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in lowStock)
+                            {
+                                <tr class="group hover:bg-red-50/30 transition-all border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-5">
+                                        <div class="fw-bold text-gray-900">@p.Name</div>
+                                        <div class="text-[9px] text-gray-300 font-bold font-mono tracking-tighter uppercase">SKU: MH-INV-@p.Id</div>
+                                    </td>
+                                    <td>
+                                        @* FIXED: Proxy Error Fix *@
+                                        <span class="font-serif italic text-sm text-gray-600">
+                                            @(p.Category != null ? p.Category.Name.ToString() : "Unclassified")
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border @(p.QuantityInStock == 0 ? "text-red-600 border-red-600" : "text-amber-600 border-amber-600")">
+                                            @(p.QuantityInStock == 0 ? "Depleted" : p.QuantityInStock.ToString() + " Units")
+                                        </span>
+                                    </td>
+                                    <td class="text-center text-[11px] font-bold text-gray-400 font-mono">@p.ReorderLevel</td>
+                                    <td class="pe-8 text-end">
+                                        <a href="@Url.Action("StockHistory", "Inventory", new { id = p.Id })" class="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#C21E2E]">History</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        @* --- CENTRAL ASSET REGISTRY --- *@
+        <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-10">
+            <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center bg-white relative sticky top-0 z-20">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Central Asset Registry</h5>
+                </div>
+                <div class="relative z-10 flex items-center border-b border-gray-100">
+                    <i class="bi bi-search text-gray-300 mr-2"></i>
+                    <input type="text" id="stockSearch" class="pr-4 py-2 border-0 outline-none bg-transparent text-[11px] font-bold uppercase tracking-widest w-48"
+                           placeholder="Search registry..." onkeyup="filterTable(this)" />
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle" id="stockTable">
+                    <thead class="bg-gray-50/30 sticky top-0">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b">
+                            <th class="ps-8 py-5">Product Description</th>
+                            <th>Classification</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Registry Level</th>
+                            <th class="text-end">Fiscal Unit Price</th>
+                            <th class="pe-8 text-end">Record</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            string statusClass = p.QuantityInStock == 0 ? "text-red-600 border-red-600"
+                                               : p.QuantityInStock <= p.ReorderLevel ? "text-amber-600 border-amber-600"
+                                               : "text-green-700 border-green-700";
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">@p.Name</div>
+                                    <div class="text-[9px] text-gray-300 font-bold font-mono tracking-tighter uppercase">MH-PRD-@p.Id</div>
+                                </td>
+                                <td>
+                                    @* FIXED: Proxy Error Fix *@
+                                    <span class="font-serif italic text-sm text-gray-600">
+                                        @(p.Category != null ? p.Category.Name.ToString() : "Unclassified")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border @statusClass">
+                                        @(p.QuantityInStock == 0 ? "Depleted" : p.QuantityInStock <= p.ReorderLevel ? "Critical" : "Standard")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center gap-3">
+                                        <div class="h-[3px] w-12 bg-gray-100">
+                                            <div class="h-full bg-[#C21E2E]" style="width: @Math.Min(100, (p.QuantityInStock * 5))%;"></div>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-gray-400 font-mono">@p.QuantityInStock</span>
+                                    </div>
+                                </td>
+                                <td class="text-end font-mono text-[11px] font-bold text-gray-900">ZAR @p.Price.ToString("N2")</td>
+                                <td class="pe-8 text-end">
+                                    <a href="@Url.Action("StockHistory", "Inventory", new { id = p.Id })" class="inline-block bg-gray-50 text-gray-400 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-sm">View File</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        function filterTable(input) {
+            var q = input.value.toLowerCase();
+            document.querySelectorAll('#stockTable tbody tr').forEach(function (r) {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

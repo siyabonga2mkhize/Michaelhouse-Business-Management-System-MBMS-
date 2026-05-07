@@ -1,0 +1,183 @@
+﻿@model List<Michaelhouse.Models.PurchaseOrder>
+@using Michaelhouse.Models
+@{
+    ViewBag.Title = "Purchase Orders";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER (Fixed) --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Purchase Orders</h2>
+        </div>
+        <div class="flex gap-3">
+            @using (Html.BeginForm("AutoCreate", "PurchaseOrder", FormMethod.Post, new { @class = "m-0" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="inline-block bg-white border border-amber-200 text-amber-700 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-amber-50 transition-all shadow-sm"
+                        onclick="return confirm('Authorize automated generation of POs for all low-stock items?')">
+                    <i class="bi bi-magic me-2"></i> Auto-Generate POs
+                </button>
+            }
+            <a href="@Url.Action("Create")" class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> Create New Order
+            </a>
+        </div>
+    </div>
+
+    @* --- STATUS SUMMARY CARDS (Fixed) --- *@
+    <div class="row g-4 mb-8 flex-shrink-0">
+        @foreach (var status in new[] { PurchaseOrderStatus.Draft, PurchaseOrderStatus.Sent,
+                                       PurchaseOrderStatus.Received, PurchaseOrderStatus.Cancelled })
+        {
+            int count = Model.Count(po => po.Status == status);
+            string accentColor = status == PurchaseOrderStatus.Received ? "text-green-600"
+                               : status == PurchaseOrderStatus.Sent ? "text-[#C21E2E]"
+                               : status == PurchaseOrderStatus.Cancelled ? "text-gray-400"
+                               : "text-amber-600";
+
+            string bgClass = status == PurchaseOrderStatus.Sent ? "bg-[#1a1a1a] text-white" : "bg-white border border-gray-100";
+            string iconOpacity = status == PurchaseOrderStatus.Sent ? "text-white/10" : "text-black/5";
+
+            <div class="col-md-3">
+                <div class="@bgClass p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-file-earmark-text absolute -right-2 -bottom-2 @iconOpacity text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold @(status == PurchaseOrderStatus.Sent ? "text-gray-500" : "text-gray-400") mb-2 relative z-10">@status.ToString().ToUpper()</p>
+                    <h3 class="text-4xl font-serif font-bold @(status == PurchaseOrderStatus.Sent ? "text-white" : "text-gray-900") relative z-10">@count</h3>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* --- MAIN LEDGER TABLE (Scrollable Area) --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0">
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Authorization Registry</h5>
+            </div>
+
+            <div class="relative z-10 flex items-center border-b border-gray-100">
+                <i class="bi bi-search text-gray-300 mr-2"></i>
+                <input type="text" id="poSearch" class="pr-4 py-2 border-0 outline-none bg-transparent text-[11px] font-bold uppercase tracking-widest w-48"
+                       placeholder="Search records..." onkeyup="filterTable(this)" />
+            </div>
+        </div>
+
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="poTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/30">
+                        <th class="ps-8 py-4">Order Reference</th>
+                        <th>Vendor Identity</th>
+                        <th>Status</th>
+                        <th class="text-center">Line Items</th>
+                        <th>Origination Date</th>
+                        <th class="text-center">Dispatch</th>
+                        <th class="pe-8 text-end">Record</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var po in Model)
+                    {
+                        string statusColor = po.Status == PurchaseOrderStatus.Received ? "#10b981"
+                                           : po.Status == PurchaseOrderStatus.Sent ? "#C21E2E"
+                                           : po.Status == PurchaseOrderStatus.Cancelled ? "#9ca3af" : "#f59e0b";
+
+                        <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                            <td class="ps-8 py-5">
+                                <span class="text-[11px] font-bold text-gray-900 font-mono tracking-tighter group-hover:text-[#C21E2E]">@po.PoNumber</span>
+                            </td>
+                            <td>
+                                @* FIXED: Explicit ToString conversion to prevent Proxy leakage error *@
+                                <div class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">
+                                    @(po.Supplier != null ? po.Supplier.Name.ToString() : "Unspecified Vendor")
+                                </div>
+                            </td>
+                            <td>
+                                <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                      style="color: @statusColor; border-color: @statusColor;">
+                                    @po.Status
+                                </span>
+                            </td>
+                            <td class="text-center text-[11px] font-bold text-gray-400 font-mono">@(po.LineItems?.Count ?? 0)</td>
+                            <td class="text-[11px] text-gray-500 font-serif italic">@po.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <td class="text-center">
+                                @if (po.EmailSent)
+                                {
+                                    <i class="bi bi-send-check-fill text-green-500" title="Email Dispatched"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-dash text-gray-200"></i>
+                                }
+                            </td>
+                            <td class="pe-8 text-end">
+                                <a href="@Url.Action("Details", new { id = po.PurchaseOrderId })"
+                                   class="inline-block bg-gray-50 text-gray-400 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-sm">
+                                    Open File
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-20">
+                                <i class="bi bi-file-earmark-x text-gray-100 text-6xl d-block mb-4"></i>
+                                <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-300">No Procurement Records Found</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function filterTable(input) {
+            var q = input.value.toLowerCase();
+            document.querySelectorAll('#poTable tbody tr').forEach(function (r) {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+}

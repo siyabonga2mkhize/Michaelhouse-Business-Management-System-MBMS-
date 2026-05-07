@@ -5,7 +5,33 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Source+Code+Pro:wght@500&display=swap');
+/* Layout Wrapper */
+.main-wrapper {
+    display: flex; /* Enables side-by-side flex behavior */
+    min-h-screen; /* Ensures it always hits the bottom of the monitor */
+    width: 100%;
+    overflow: hidden; /* Prevents double scrollbars */
+}
 
+/* Sidebar Consideration */
+.sidebar {
+    width: 280px; /* Your fixed sidebar width */
+    flex-shrink: 0; /* Prevents the sidebar from squishing on small screens */
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+/* Dynamic Content Area */
+.ac-page {
+    flex-grow: 1; /* Forces the view to fill all remaining space */
+    height: 100vh;
+    overflow-y: auto; /* Allows the content to scroll independently */
+    padding: 3rem; /* Generous "Institutional" white space */
+    background-color: #FBFBFB;
+    display: flex;
+    flex-direction: column;
+}
 /* ── Reset & Variables ────────────────────────────────────────── */
 :root {
     --mh-red: #C21E2E;

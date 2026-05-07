@@ -27,6 +27,19 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
+            if (!context.Users.Any(u => u.Role == "InventoryManager"))
+            {
+                context.Users.Add(new Michaelhouse.Models.AppUser
+                {
+                    Name = "System Inventory Manager",
+                    Email = "inventory@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Stock@123"),
+                    Role = "InventoryManager"
+                });
+
+                context.SaveChanges();
+            }
+
             // 2. Seed Categories (only if empty)
             if (!context.Categories.Any())
             {
