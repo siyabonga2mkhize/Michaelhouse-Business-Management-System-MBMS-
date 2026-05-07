@@ -1,0 +1,53 @@
+﻿@model List<Michaelhouse.Models.TripSchedule>
+@{
+    ViewBag.Title = "Unassigned Trip Schedules";
+}
+
+<h2>Unassigned Trip Schedules</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">All trips have been assigned a driver and vehicle.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Trip Title</th>
+                <th>Destination</th>
+                <th>Scheduled Date</th>
+                <th>Students Count</th>
+                <th>Teacher</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var schedule in Model)
+            {
+                var request = schedule.TripRequest;
+                var studentCount = schedule.TripStudents?.Count ?? 0;
+                <tr>
+                    <td>
+                        @request.Title
+                </td>
+                <td>
+                    @request.Destination
+            </td>
+            <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")
+        </td>
+        <td>
+            @studentCount
+    </td>
+    <td>@(request.Teacher?.FirstName + " " + request.Teacher?.LastName)
+    </td>
+    <td>
+        <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = schedule.Id })" class="btn btn-sm btn-primary">
+            Assign Driver & Vehicle
+        </a>
+    </td>
+</tr>
+}
+        </tbody>
+    </table>
+}

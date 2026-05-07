@@ -157,6 +157,15 @@
             border-radius: 10px;
             margin-left: 8px;
         }
+        .clickable-link {
+            color: #0d6efd;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+            .clickable-link:hover {
+                color: #0a58ca;
+            }
     </style>
 </head>
 <body>
@@ -184,20 +193,24 @@
     }
 
     <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid">
-            @if (isLoggedIn)
-            {
-                <button type="button" id="sidebarCollapse">
-                    <i class="bi bi-list"></i>
-                </button>
-            }
+        <div class="container-fluid position-relative">
+            <!-- Left: sidebar toggle button -->
+            <button type="button" id="sidebarCollapse" class="me-2">
+                <i class="bi bi-list"></i>
+            </button>
 
-            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
-                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
+            <!-- Center: brand logo + text -->
+            <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
+                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
                 <span class="d-none d-sm-inline">Michaelhouse</span>
             </a>
 
+            <!-- Right: notification, user pill, logout -->
             <div class="ms-auto d-flex align-items-center gap-3">
+                <!-- Notification bell (child action) -->
+                @Html.Action("NotificationBadge", "Notification")
+
+                <!-- User info pill (only when logged in) -->
                 @if (isLoggedIn)
                 {
                     <div class="user-pill d-none d-md-block">
@@ -205,6 +218,11 @@
                         <span class="fw-bold">@userName</span>
                         <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
                     </div>
+                }
+
+                <!-- Logout button (only when logged in) -->
+                @if (isLoggedIn)
+                {
                     <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
                         <i class="bi bi-box-arrow-right fs-5"></i>
                     </a>
@@ -351,10 +369,10 @@
                         </a>
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                     }
                     else if (userRole == "Teacher")
                     {
@@ -394,13 +412,58 @@
                                 <span class="cart-badge">@cartCount</span>
                             }
                         </a>
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Trips</div>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "BookTrip" ? "active" : "")"
+                           href="@Url.Action("BookTrip", "Trip")">
+                            <i class="bi bi-calendar-plus"></i> <span class="link-text">Book a Trip</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "MyRequests" ? "active" : "")"
+                           href="@Url.Action("MyRequests", "Trip")">
+                            <i class="bi bi-list-ul"></i> <span class="link-text">My Trip Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "UpcomingTrips" ? "active" : "")"
+                           href="@Url.Action("UpcomingTrips", "Trip")">
+                            <i class="bi bi-calendar-week"></i> <span class="link-text">Upcoming Trips</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "Manifest" ? "active" : "")"
+                           href="@Url.Action("Manifest", "Trip")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Student Manifest</span>
+                        </a>
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
+                    }
+                    else if (userRole == "TransportManager")
+                    {
+                        <div class="sidebar-label">Transport Management</div>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Transport")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "PendingRequests" ? "active" : "")"
+                           href="@Url.Action("PendingRequests", "Transport")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Pending Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "UnassignedSchedules" ? "active" : "")"
+                           href="@Url.Action("UnassignedSchedules", "Transport")">
+                            <i class="bi bi-person-plus"></i> <span class="link-text">Assign Driver/Vehicle</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "AllTrips" ? "active" : "")"
+                           href="@Url.Action("AllTrips", "Transport")">
+                            <i class="bi bi-calendar-check"></i> <span class="link-text">All Trips</span>
+                        </a>
+                        <a class="nav-link" href="@Url.Action("Index", "Driver")">
+                            <i class="bi bi-person-badge"></i> Manage Drivers
+                        </a>
+
+                        <a class="nav-link" href="@Url.Action("Index", "Vehicle")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Manage Vehicles</span>
+                        </a>
                     }
                 </nav>
             </div>
@@ -425,7 +488,7 @@
             @RenderBody()
         </div>
     </div>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -437,6 +500,28 @@
                 });
             }
         });
+        function loadNotifications() {
+    $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
+        $('#notificationList').html(data);
+        updateBadge();
+    });
+}
+
+function updateBadge() {
+    $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
+        if (count > 0) {
+            $('#notificationBadge').text(count).show();
+        } else {
+            $('#notificationBadge').hide();
+        }
+    });
+}
+
+// Load initially and every 30 seconds
+$(function() {
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+});
     </script>
     @RenderSection("Scripts", required: false)
 </body>

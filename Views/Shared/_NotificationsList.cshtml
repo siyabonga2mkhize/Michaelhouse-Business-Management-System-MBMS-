@@ -1,0 +1,30 @@
+﻿@model List<Michaelhouse.Models.Notification>
+
+@if (Model.Any())
+{
+    foreach (var n in Model)
+    {
+        <a href="#" class="dropdown-item notification-item" data-id="@n.Id">
+            <div class="small text-muted">@n.CreatedAt.ToString("dd MMM, HH:mm")</div>
+            <div>@n.Message</div>
+            <hr class="dropdown-divider" />
+        </a>
+    }
+}
+else
+{
+    <div class="dropdown-item text-muted text-center">No new notifications</div>
+}
+
+<script>
+    $(function() {
+        $('.notification-item').click(function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function() {
+                $(this).remove();
+                updateBadge();
+            });
+        });
+    });
+</script>

@@ -34,6 +34,12 @@ namespace Michaelhouse.Services
             _enabled = !string.IsNullOrEmpty(_smtpHost) && !string.IsNullOrEmpty(_smtpUser);
         }
 
+        // Public wrapper to send arbitrary HTML emails. Uses internal configuration to decide whether to actually deliver.
+        public void SendPlain(string toEmail, string subject, string htmlBody)
+        {
+            Send(toEmail, subject, htmlBody);
+        }
+
         // ─── Application Approved — parent must complete registration ─────────────
 
         public void SendApplicationApproved(

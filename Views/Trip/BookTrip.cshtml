@@ -1,0 +1,273 @@
+﻿@model Michaelhouse.Models.TripRequestCreateViewModel
+@{
+    ViewBag.Title = "Book a Trip";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<h2>Request a Trip</h2>
+
+@using (Html.BeginForm("CreateTripRequest", "Trip", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Title)
+        @Html.TextBoxFor(m => m.Title, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Title)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Description)
+        @Html.TextAreaFor(m => m.Description, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.DepartureTime)
+        <input type="datetime-local" name="DepartureTime" class="form-control" required
+               value="@Model.DepartureTime.ToString("yyyy-MM-ddTHH:mm")"
+               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.ReturnTime)
+        <input type="datetime-local" name="ReturnTime" class="form-control" required
+               value="@Model.ReturnTime.ToString("yyyy-MM-ddTHH:mm")"
+               min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+    </div>
+
+    <!-- Map + Search -->
+    <div class="form-group">
+        <label>Destination (click on map or search)</label>
+        <div id="map" style="height: 400px; width: 100%; margin-bottom: 10px;"></div>
+
+        <div class="form-group">
+            <label>Search location</label>
+            <div class="input-group">
+                <input type="text" id="locationSearch" class="form-control" placeholder="City, school, landmark..." autocomplete="off" />
+                <div class="input-group-append">
+                    <button id="searchBtn" class="btn btn-secondary" type="button">Search</button>
+                </div>
+            </div>
+            <ul id="suggestions" class="list-group" style="position: absolute; z-index: 1000; width: auto; display: none;"></ul>
+        </div>
+
+        @Html.HiddenFor(m => m.Destination, new { @id = "Destination" })
+        @Html.HiddenFor(m => m.DestinationLat, new { @id = "DestinationLat" })
+        @Html.HiddenFor(m => m.DestinationLng, new { @id = "DestinationLng" })
+        <p class="help-block">Selected address: <span id="selectedAddress">@Model.Destination</span></p>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.MaxStudents)
+        @Html.TextBoxFor(m => m.MaxStudents, new { @class = "form-control", type = "number", min = "1" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Request</button>
+    <a href="@Url.Action("MyRequests", "Trip")" class="btn btn-default">Cancel</a>
+}
+
+@section Scripts {
+    <style>
+        .custom-fullscreen-btn {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+            .custom-fullscreen-btn:hover {
+                background: #f0f0f0;
+            }
+    </style>
+    <script>
+        let map, marker;
+        let searchTimeout;
+
+        function initMap(centerLatLng) {
+            map = L.map('map').setView(centerLatLng, 12);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }).addTo(map);
+
+            // Fullscreen button
+            var fullscreenControl = L.control({ position: 'topright' });
+            fullscreenControl.onAdd = function () {
+                var div = L.DomUtil.create('div', 'custom-fullscreen-btn');
+                div.innerHTML = '⛶';
+                div.title = 'Fullscreen';
+                div.onclick = function () {
+                    var mapContainer = document.getElementById('map');
+                    if (mapContainer.requestFullscreen) mapContainer.requestFullscreen();
+                    else if (mapContainer.webkitRequestFullscreen) mapContainer.webkitRequestFullscreen();
+                    else if (mapContainer.msRequestFullscreen) mapContainer.msRequestFullscreen();
+                };
+                return div;
+            };
+            fullscreenControl.addTo(map);
+
+            map.on('click', function (e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                setMarker(lat, lng);
+                reverseGeocode(lat, lng);
+            });
+        }
+
+        function setMarker(lat, lng) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map);
+            document.getElementById("DestinationLat").value = lat;
+            document.getElementById("DestinationLng").value = lng;
+        }
+
+        function reverseGeocode(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name || "Address not found";
+                    document.getElementById("Destination").value = address;
+                    document.getElementById("selectedAddress").innerText = address;
+                })
+                .catch(() => {
+                    document.getElementById("selectedAddress").innerText = "Address not found";
+                });
+        }
+
+        function searchLocation(query, lat = null, lon = null, name = null) {
+            if (lat && lon && name) {
+                const latNum = parseFloat(lat);
+                const lonNum = parseFloat(lon);
+                map.setView([latNum, lonNum], 15);
+                setMarker(latNum, lonNum);
+                document.getElementById("Destination").value = name;
+                document.getElementById("selectedAddress").innerText = name;
+                document.getElementById("locationSearch").value = name;
+                hideSuggestions();
+                return;
+            }
+
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data[0]) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        const displayName = data[0].display_name;
+                        map.setView([lat, lon], 15);
+                        setMarker(lat, lon);
+                        document.getElementById("Destination").value = displayName;
+                        document.getElementById("selectedAddress").innerText = displayName;
+                        document.getElementById("locationSearch").value = displayName;
+                    } else {
+                        alert("Location not found in South Africa");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Search failed");
+                });
+        }
+
+        function fetchSuggestions(query) {
+            if (query.length < 3) {
+                hideSuggestions();
+                return;
+            }
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length) {
+                        const results = data.map(item => ({
+                            lat: item.lat,
+                            lon: item.lon,
+                            display: item.display_name
+                        }));
+                        showSuggestions(results);
+                    } else {
+                        hideSuggestions();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    hideSuggestions();
+                });
+        }
+
+        function showSuggestions(results) {
+            const ul = document.getElementById("suggestions");
+            ul.innerHTML = "";
+            results.forEach(item => {
+                const li = document.createElement("li");
+                li.className = "list-group-item list-group-item-action";
+                li.textContent = item.display;
+                li.style.cursor = "pointer";
+                li.addEventListener("click", () => {
+                    searchLocation("", item.lat, item.lon, item.display);
+                });
+                ul.appendChild(li);
+            });
+            ul.style.display = "block";
+            const input = document.getElementById("locationSearch");
+            const rect = input.getBoundingClientRect();
+            ul.style.position = "absolute";
+            ul.style.top = (rect.bottom + window.scrollY) + "px";
+            ul.style.left = (rect.left + window.scrollX) + "px";
+            ul.style.width = rect.width + "px";
+            ul.style.maxHeight = "200px";
+            ul.style.overflowY = "auto";
+        }
+
+        function hideSuggestions() {
+            document.getElementById("suggestions").style.display = "none";
+        }
+
+        // Geolocation
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => initMap([position.coords.latitude, position.coords.longitude]),
+                () => initMap([-29.850269, 31.006702])
+            );
+        } else {
+            initMap([-29.850269, 31.006702]);
+        }
+
+        // Search button
+        document.getElementById("searchBtn").addEventListener("click", () => {
+            const query = document.getElementById("locationSearch").value;
+            if (query) searchLocation(query);
+        });
+
+        // Autocomplete
+        const searchInput = document.getElementById("locationSearch");
+        searchInput.addEventListener("input", (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => fetchSuggestions(e.target.value), 300);
+        });
+
+        // Click outside
+        document.addEventListener("click", (e) => {
+            if (!searchInput.contains(e.target) && !document.getElementById("suggestions").contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+
+        // Enter key
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const query = searchInput.value;
+                if (query) searchLocation(query);
+                hideSuggestions();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,40 @@
+﻿@model List<Michaelhouse.Models.Notification>
+
+@if (Model.Any())
+{
+    foreach (var notif in Model)
+    {
+        <a href="#" class="dropdown-item notification-item" data-id="@notif.Id">
+            <div class="small text-muted">@notif.CreatedAt.ToString("dd MMM, HH:mm")</div>
+            <div>@notif.Message</div>
+            <hr class="dropdown-divider" />
+        </a>
+    }
+}
+else
+{
+    <div class="dropdown-item text-muted text-center">No new notifications</div>
+}
+
+<script>
+    $(function() {
+        $('.notification-item').click(function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function() {
+                $(this).remove();
+                // update badge count
+                var badgeSpan = $('#notificationBadge');
+                var current = parseInt(badgeSpan.text()) || 0;
+                var newCount = current - 1;
+                if (newCount > 0) {
+                    badgeSpan.text(newCount).show();
+                } else {
+                    badgeSpan.hide();
+                }
+                // reload notification list? or just remove the clicked one
+                location.reload(); // optional: reload to refresh list
+            });
+        });
+    });
+</script>

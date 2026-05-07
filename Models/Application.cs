@@ -22,7 +22,6 @@ namespace Michaelhouse.Models
 
         [Required]
         public int ApplicationYear { get; set; }
-
         [Required]
         [Display(Name = "Grade Applying For")]
         public int GradeApplying { get; set; } // 8, 9, 10, 11, or 12

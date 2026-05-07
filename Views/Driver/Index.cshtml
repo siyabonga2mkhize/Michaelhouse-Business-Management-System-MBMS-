@@ -1,0 +1,65 @@
+﻿@model List<Michaelhouse.Models.Driver>
+@{
+    ViewBag.Title = "Manage Drivers";
+}
+
+<h2>Drivers</h2>
+
+<p>
+    <a href="@Url.Action("Create", "Driver")" class="btn btn-primary">+ Add New Driver</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No drivers found. Add one above.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Licence Number</th>
+                <th>PDP</th>
+                <th>Active</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td>
+                        @d.FullName
+                </td>
+                <td>
+                    @d.Email
+            </td>
+            <td>@d.PhoneNumber
+        </td>
+        <td>
+            @d.LicenceNumber
+    </td>
+    <td>@(d.HasPDP ? "Yes" : "No")
+    </td>
+    <td>
+        @(d.IsActive ? "Active" : "Inactive")
+    </td>
+    <td>
+        @if (!string.IsNullOrEmpty(d.ImageUrl))
+        {
+            <img src="@d.ImageUrl" alt="Driver" style="width: 300px; height: 220px; object-fit: cover;" />
+        }
+    </td>
+    <td>
+        <a href="@Url.Action("Edit", "Driver", new { id = d.Id })" class="btn btn-sm btn-warning">Edit</a>
+        <a href="@Url.Action("Delete", "Driver", new { id = d.Id })" class="btn btn-sm btn-danger">Delete</a>
+    </td>
+</tr>
+}
+        </tbody>
+    </table>
+}

@@ -1,0 +1,53 @@
+﻿@model List<Michaelhouse.Models.Vehicle>
+@{
+    ViewBag.Title = "Manage Vehicles";
+}
+
+<h2>Vehicles</h2>
+
+<p>
+    <a href="@Url.Action("Create", "Vehicle")" class="btn btn-primary">+ Add New Vehicle</a>
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No vehicles found. Add one above.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Vehicle Number</th>
+                <th>Model</th>
+                <th>Type</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var v in Model)
+            {
+                <tr>
+                    <td>@v.VehicleNumber</td>
+                    <td>@v.Model</td>
+                    <td>@v.Type</td>
+                    <td>@v.Capacity</td>
+                    <td>@(v.IsActive ? "Active" : "Inactive")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(v.ImageUrl))
+                        {
+                            <img src="@v.ImageUrl" alt="Vehicle" style="width: 240px; height: 160px; object-fit: cover;" />
+                        }
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Edit", "Vehicle", new { id = v.Id })" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="@Url.Action("Delete", "Vehicle", new { id = v.Id })" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

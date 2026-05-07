@@ -1,0 +1,23 @@
+﻿@model List<Michaelhouse.Models.Student>
+
+@if (Model != null && Model.Any())
+{
+    <div class="form-group">
+        <label>Select Students</label>
+        <div class="checkbox-list" style="max-height: 300px; overflow-y: auto;">
+            @foreach (var student in Model)
+            {
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="selectedStudentIds" value="@student.StudentId" />
+                        @student.FirstName @student.LastName (Gr @student.GradeLevel)
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">No students match the selected filters.</div>
+}

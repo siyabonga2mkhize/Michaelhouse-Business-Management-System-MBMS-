@@ -1,9 +1,10 @@
-﻿namespace Michaelhouse.Migrations
-{
-    using Michaelhouse.Models;
-    using System.Data.Entity.Migrations;
-    using System.Linq;
+﻿using Michaelhouse.Models;
+using System;
+using System.Data.Entity.Migrations;
+using System.Linq;
 
+namespace Michaelhouse.Migrations
+{
     internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
     {
         public Configuration()
@@ -13,21 +14,20 @@
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)
         {
-            // Seed default admin account
-            // Login: admin@michaelhouse.co.za / Admin@123
+            // 1. Seed default admin account
             if (!context.Users.Any(u => u.Role == "Admin"))
             {
-                context.Users.Add(new Michaelhouse.Models.AppUser
+                context.Users.Add(new AppUser
                 {
                     Name = "System Admin",
                     Email = "admin@michaelhouse.co.za",
-                    PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Admin@123"),
+                    PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
                 });
                 context.SaveChanges();
             }
 
-            // 1. Seed Categories (only if empty)
+            // 2. Seed Categories (only if empty)
             if (!context.Categories.Any())
             {
                 var uniforms = new Category
@@ -44,10 +44,9 @@
                 context.SaveChanges();
             }
 
-            // 2. Seed Products (only if empty)
+            // 3. Seed Products (only if empty)
             if (!context.Products.Any())
             {
-                // Get category IDs after they are saved
                 var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
                 var stationeryCat = context.Categories.First(c => c.Name == "Books & Stationery");
 
@@ -79,7 +78,60 @@
                 context.Products.AddOrUpdate(p => p.Name, products);
                 context.SaveChanges();
             }
+
+            // 4. Seed Drivers (including their AppUser accounts)
+            if (!context.Users.Any(u => u.Role == "Driver"))
+            {
+                var driversData = new[]
+                {
+                    new { Name = "Sibusiso Dlamini", Email = "sibusiso", ID = "9001015009087" },
+                    new { Name = "Thabo Mkhize", Email = "thabo", ID = "8805056009088" },
+                    new { Name = "Andile Zulu", Email = "andile", ID = "9202027009089" },
+                    new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
+                };
+
+                foreach (var d in driversData)
+                {
+                    string schoolEmail = d.Email + "@michealhouse.com";
+                    string password = "Driver@123";
+
+                    var user = new AppUser
+                    {
+                        Name = d.Name,
+                        Email = schoolEmail,
+                        PasswordHash = HashPassword(password),
+                        Role = "Driver"
+                    };
+                    context.Users.Add(user);
+                    context.SaveChanges(); // needed to get UserId
+
+                    var driver = new Driver
+                    {
+                        FullName = d.Name,
+                        IDNumber = d.ID,
+                        PhoneNumber = "0710000000",
+                        Email = schoolEmail,
+                        LicenceNumber = "LIC" + new Random().Next(1000, 9999),
+                        LicenceExpiryDate = DateTime.Now.AddYears(5),
+                        HasPDP = true,
+                        IsActive = true,
+                        DateCreated = DateTime.Now,
+                        UserId = user.UserId
+                    };
+                    context.Drivers.Add(driver);
+                }
+                context.SaveChanges();
+            }
         }
 
+        private string HashPassword(string password)
+        {
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+                var hash = sha.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
     }
 }

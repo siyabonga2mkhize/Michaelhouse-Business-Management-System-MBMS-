@@ -241,6 +241,10 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Dashboard", "Students");
                 case "Teacher":
                     return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)
+                case "TransportManager":
+                    return RedirectToAction("Dashboard", "Transport");
+                case "Driver":
+                    return RedirectToAction("Index", "DriverDashboard");
                 default:
                     return RedirectToAction("Index", "Home");
             }
@@ -255,6 +259,12 @@ namespace Michaelhouse.Controllers
                 var hash = sha.ComputeHash(bytes);
                 return Convert.ToBase64String(hash);
             }
+        }
+
+        //Get Password 
+        public ActionResult GetHash(string pwd)
+        {
+            return Content(HashPassword(pwd));
         }
     }
 }

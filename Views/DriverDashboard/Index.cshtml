@@ -1,0 +1,74 @@
+﻿@model Michaelhouse.Models.Driver
+
+@{
+    ViewBag.Title = "Driver Dashboard";
+}
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Driver Overview</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">
+            Welcome, @Model.FullName
+        </h2>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Availability -->
+    <div class="col-md-4">
+        <div class="bg-white border border-gray-100 p-8 shadow-sm h-100">
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-500 mb-2">
+                Availability
+            </p>
+            <h4 class="text-lg font-bold text-gray-900 mb-3">Manage Schedule</h4>
+            <p class="text-sm text-gray-500 mb-4">
+                Submit or update your availability for trips.
+            </p>
+
+            <a href="@Url.Action("Index", "DriverAvailabilities")"
+               class="inline-block bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                Manage Availability
+            </a>
+        </div>
+    </div>
+
+    <!-- Trips -->
+    <div class="col-md-4">
+        <div class="bg-white border border-gray-100 p-8 shadow-sm h-100">
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-green-600 mb-2">
+                Trips
+            </p>
+            <h4 class="text-lg font-bold text-gray-900 mb-3">Assigned Trips</h4>
+            <p class="text-sm text-gray-500 mb-4">
+                View and manage your assigned trips.
+            </p>
+
+            <a href="@Url.Action("Index", "Trips")"
+               class="inline-block bg-green-600 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                View Trips
+            </a>
+        </div>
+    </div>
+
+    <!-- Vehicle Issues -->
+    <div class="col-md-4">
+        <div class="bg-white border border-gray-100 p-8 shadow-sm h-100">
+            <p class="text-[10px] uppercase tracking-[3px] font-bold text-red-600 mb-2">
+                Vehicle Issues
+            </p>
+            <h4 class="text-lg font-bold text-gray-900 mb-3">Report Problem</h4>
+            <p class="text-sm text-gray-500 mb-4">
+                Report any vehicle-related issues immediately.
+            </p>
+
+            <a href="@Url.Action("Create", "VehicleIssues")"
+               class="inline-block bg-red-600 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                Report Issue
+            </a>
+        </div>
+    </div>
+
+</div>
