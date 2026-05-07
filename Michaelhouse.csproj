@@ -214,6 +214,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202605071006223_initialcreate.cs" />
+    <Compile Include="Migrations\202605071006223_initialcreate.Designer.cs">
+      <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -230,6 +234,8 @@
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
     <Compile Include="Models\InventoryItem.cs" />
+    <Compile Include="Models\Inventorymodels.cs" />
+    <Compile Include="Models\InventoryService.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\MaintananceRequest.cs" />
     <Compile Include="Models\MarkAttendanceViewModel.cs" />
@@ -281,6 +287,7 @@
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
@@ -526,6 +533,11 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202605071006223_initialcreate.resx">
+      <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

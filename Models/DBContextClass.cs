@@ -64,6 +64,11 @@ namespace Michaelhouse.Models
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
+        // ─── Trips Management ───────────────────────────────────────────────
+        public DbSet<TripRequest> TripRequests { get; set; }
+        public DbSet<TripSchedule> TripSchedules { get; set; }
+        public DbSet<TripStudent> TripStudents { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
