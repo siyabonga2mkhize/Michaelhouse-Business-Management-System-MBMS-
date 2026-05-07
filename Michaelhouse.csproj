@@ -201,6 +201,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
+    <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDashboardController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -280,6 +281,10 @@
     <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.cs" />
     <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.Designer.cs">
       <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070159353_AddLatLngToTripRequest.cs" />
+    <Compile Include="Migrations\202605070159353_AddLatLngToTripRequest.Designer.cs">
+      <DependentUpon>202605070159353_AddLatLngToTripRequest.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -527,11 +532,11 @@
     <Content Include="Views\DriverAvailabilities\Details.cshtml" />
     <Content Include="Views\DriverAvailabilities\Edit.cshtml" />
     <Content Include="Views\DriverAvailabilities\Index.cshtml" />
-    <Content Include="Views\Vehicles\Create.cshtml" />
-    <Content Include="Views\Vehicles\Delete.cshtml" />
-    <Content Include="Views\Vehicles\Details.cshtml" />
-    <Content Include="Views\Vehicles\Edit.cshtml" />
-    <Content Include="Views\Vehicles\Index.cshtml" />
+    <Content Include="Views\Vehicle\Create.cshtml" />
+    <Content Include="Views\Vehicle\Delete.cshtml" />
+    <Content Include="Views\Vehicle\Details.cshtml" />
+    <Content Include="Views\Vehicle\Edit.cshtml" />
+    <Content Include="Views\Vehicle\Index.cshtml" />
     <Content Include="Views\VehicleIssues\Create.cshtml" />
     <Content Include="Views\VehicleIssues\Delete.cshtml" />
     <Content Include="Views\VehicleIssues\Details.cshtml" />
@@ -552,11 +557,20 @@
     <Content Include="Views\Trip\ScheduleTrip.cshtml" />
     <Content Include="Views\Transport\AssignDriverVehicle.cshtml" />
     <Content Include="Views\Trip\_StudentCheckboxList.cshtml" />
+    <Content Include="Views\Driver\Index.cshtml" />
+    <Content Include="Views\Driver\Create.cshtml" />
+    <Content Include="Views\Driver\Edit.cshtml" />
+    <Content Include="Views\Transport\AllTrips.cshtml" />
+    <Content Include="Views\Shared\_TripMapModal.cshtml" />
+    <Content Include="Views\Shared\_DriverDetails.cshtml" />
+    <Content Include="Views\Shared\_VehicleDetails.cshtml" />
+    <Content Include="Views\Shared\_NotificationsList.cshtml" />
+    <Content Include="Views\Shared\_NotificationBadge.cshtml" />
+    <Content Include="Views\Notification\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Data\" />
-    <Folder Include="Views\NotificationControlleR\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -636,6 +650,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202605070112043_AddDriverVehicleImages1.resx">
       <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070159353_AddLatLngToTripRequest.resx">
+      <DependentUpon>202605070159353_AddLatLngToTripRequest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -3,31 +3,112 @@
     ViewBag.Title = "My Trip Requests";
 }
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <h2>My Trip Requests</h2>
 
 <table class="table table-striped">
     <thead>
-        <tr><th>Title</th><th>Departure</th><th>Return</th><th>Destination</th><th>Max Students</th><th>Status</th><th>Rejection Reason</th><th>Action</th></tr>
+        <tr>
+            <th>Title</th>
+            <th>Departure</th>
+            <th>Return</th>
+            <th>Destination</th>
+            <th>Max Students</th>
+            <th>Status</th>
+            <th>Rejection Reason</th>
+            <th>Action</th>
+        </tr>
     </thead>
     <tbody>
         @foreach (var req in Model)
         {
             <tr>
-                <td>@req.Title</td>
-                <td>@req.DepartureTime.ToString("g")</td>
-                <td>@req.ReturnTime.ToString("g")</td>
-                <td>@req.Destination</td>
-                <td>@req.MaxStudents</td>
-                <td><span class="badge @(req.Status == "Approved" ? "badge-success" : (req.Status == "Rejected" ? "badge-danger" : "badge-warning"))">@req.Status</span></td>
-                <td>@req.RejectionReason</td>
                 <td>
-                    @if (req.Status == "Approved")
-                    {
-                        <a href="@Url.Action("ScheduleTrip", "Trip", new { tripRequestId = req.Id })" class="btn btn-sm btn-primary">Schedule Students</a>
-                    }
-                </td>
-            </tr>
+                    @req.Title
+            </td>
+            <td>
+                @req.DepartureTime.ToString("g")
+        </td>
+        <td>@req.ReturnTime.ToString("g")
+    </td>
+    <td>
+        @if (!string.IsNullOrEmpty(req.Destination))
+        {
+            <a href="#" class="view-map-link"
+               data-lat="@(req.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+               data-lng="@(req.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+               data-address="@req.Destination">
+                📍 View Map
+            </a>
         }
+        else
+        {
+            <span>No destination</span>
+        }
+    </td>
+    <td>
+        @req.MaxStudents
+</td>
+<td>
+    @if (req.Status == "Pending")
+    {<span class="badge bg-warning text-dark">Pending</span> }
+    else if (req.Status == "Approved")
+    { <span class="badge bg-success">Approved</span> }
+    else if (req.Status == "Rejected")
+    { <span class="badge bg-danger">Rejected</span> }
+    else
+    { <span>@req.Status</span>}
+</td>
+<td>@req.RejectionReason
+</td>
+<td>
+    @if (req.Status == "Approved")
+    {
+        <a href="@Url.Action("ScheduleTrip", "Trip", new { tripRequestId = req.Id })" class="btn btn-sm btn-primary">Schedule Students</a>
+    }
+</td>
+</tr>
+}
     </tbody>
 </table>
+
 <a href="@Url.Action("BookTrip", "Trip")" class="btn btn-primary">New Trip Request</a>
+
+@Html.Partial("_TripMapModal")
+
+@section Scripts {
+    <script>
+        let currentMap = null;
+        $('.view-map-link').click(function(e) {
+            e.preventDefault();
+            var lat = parseFloat($(this).data('lat'));
+            var lng = parseFloat($(this).data('lng'));
+            var address = $(this).data('address');
+            $('#modalAddress').text(address);
+            $('#tripMapModal').modal('show');
+            $('#tripMapModal').on('shown.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                // If coordinates are provided, use them; otherwise geocode the address (optional)
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12); // fallback
+                }
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                }).addTo(currentMap);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
+            });
+            $('#tripMapModal').on('hidden.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                currentMap = null;
+            });
+        });
+    </script>
+}

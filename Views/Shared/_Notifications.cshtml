@@ -17,12 +17,23 @@ else
 }
 
 <script>
-    $(function () {
-        $('.notification-item').click(function (e) {
+    $(function() {
+        $('.notification-item').click(function(e) {
             e.preventDefault();
             var id = $(this).data('id');
-            $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function () {
+            $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function() {
                 $(this).remove();
+                // update badge count
+                var badgeSpan = $('#notificationBadge');
+                var current = parseInt(badgeSpan.text()) || 0;
+                var newCount = current - 1;
+                if (newCount > 0) {
+                    badgeSpan.text(newCount).show();
+                } else {
+                    badgeSpan.hide();
+                }
+                // reload notification list? or just remove the clicked one
+                location.reload(); // optional: reload to refresh list
             });
         });
     });

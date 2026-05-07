@@ -527,3 +527,6 @@ VALUES
 ('GP 345 678', 'Ford Transit',  'Bus', 12, 1, GETDATE(), '/Content/Images/Vehicles/ford1.jpg'),
 ('GP 901 234', 'Mercedes Sprinter', 'Bus', 10, 1, GETDATE(), '/Content/Images/Vehicles/mercedes1.jpg'),
 ('GP 456 789', 'Nissan NP200',  'Van', 3,  1, GETDATE(), '/Content/Images/Vehicles/nissan1.jpg');
+
+
+Select * from TripRequests;

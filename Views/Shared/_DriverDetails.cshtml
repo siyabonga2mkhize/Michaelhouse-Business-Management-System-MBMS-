@@ -1,0 +1,12 @@
+﻿@model Michaelhouse.Models.Driver
+<div class="text-center">
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <img src="@Model.ImageUrl" alt="@Model.FullName" style="max-width: 150px; border-radius: 50%;" />
+    }
+    <h4>@Model.FullName</h4>
+    <p>Email: @Model.Email</p>
+    <p>Phone: @Model.PhoneNumber</p>
+    <p>Licence: @Model.LicenceNumber (exp: @Model.LicenceExpiryDate?.ToString("yyyy-MM-dd"))</p>
+    <p>PDP: @(Model.HasPDP ? "Yes" : "No")</p>
+</div>

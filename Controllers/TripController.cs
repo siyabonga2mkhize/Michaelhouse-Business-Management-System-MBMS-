@@ -84,6 +84,8 @@ namespace Michaelhouse.Controllers
                     DepartureTime = model.DepartureTime,
                     ReturnTime = model.ReturnTime,
                     Destination = model.Destination,
+                    DestinationLat = model.DestinationLat,
+                    DestinationLng = model.DestinationLng,
                     MaxStudents = model.MaxStudents,
                     Status = "Pending",
                     RequestedAt = DateTime.Now
@@ -234,6 +236,8 @@ namespace Michaelhouse.Controllers
             int teacherId = GetCurrentTeacherId();
             var trips = db.TripSchedules
                 .Include(ts => ts.TripRequest)
+                .Include(ts => ts.Driver)
+                .Include(ts => ts.Vehicle)
                 .Include(ts => ts.TripStudents)
                 .Where(ts => ts.TeacherId == teacherId && ts.Status != "Completed")
                 .OrderBy(ts => ts.ScheduledDate)

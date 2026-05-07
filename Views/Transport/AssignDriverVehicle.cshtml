@@ -5,6 +5,13 @@
     ViewBag.Title = "Assign Driver and Vehicle";
 }
 
+@if (Model == null || Model.TripRequest == null)
+{
+    <div class="alert alert-danger">Trip schedule not found.</div>
+    <a href="@Url.Action("UnassignedSchedules", "Transport")" class="btn btn-primary">Back to Unassigned Schedules</a>
+    return;
+}
+
 <h2>Assign Driver & Vehicle for Trip: @Model.TripRequest.Title</h2>
 
 @using (Html.BeginForm("AssignDriverVehicle", "Transport", FormMethod.Post))
@@ -16,9 +23,12 @@
         <label>Select Driver</label>
         <select name="driverId" class="form-select" required>
             <option value="">-- Choose Driver --</option>
-            @foreach (var driver in drivers ?? new List<Michaelhouse.Models.Driver>())
+            @if (drivers != null)
             {
-                <option value="@driver.Id">@driver.FullName - @driver.Email</option>
+                foreach (var driver in drivers)
+                {
+                    <option value="@driver.Id">@driver.FullName - @driver.Email</option>
+                }
             }
         </select>
     </div>
@@ -27,9 +37,12 @@
         <label>Select Vehicle</label>
         <select name="vehicleId" class="form-select" required>
             <option value="">-- Choose Vehicle --</option>
-            @foreach (var vehicle in vehicles ?? new List<Michaelhouse.Models.Vehicle>())
+            @if (vehicles != null)
             {
-                <option value="@vehicle.Id">@vehicle.VehicleNumber - @vehicle.Model (Capacity: @vehicle.Capacity)</option>
+                foreach (var vehicle in vehicles)
+                {
+                    <option value="@vehicle.Id">@vehicle.VehicleNumber - @vehicle.Model (Capacity: @vehicle.Capacity)</option>
+                }
             }
         </select>
     </div>

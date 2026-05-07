@@ -8,8 +8,7 @@ using System.Web.Mvc;
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
-    //[Authorize(Roles = "Admin,TransportManager")]
-    [TransportManagerOnly]
+    //[Authorize(Roles = "Admin,TransportManager")
     public class TransportController : Controller
     {
         private DBContextClass db = new DBContextClass();
@@ -105,14 +104,14 @@ namespace Michaelhouse.Controllers
         public ActionResult AssignDriverVehicle(int scheduleId)
         {
             var schedule = db.TripSchedules
-                .Include(s => s.TripRequest)
+                .Include(s => s.TripRequest)   // Required for navigation property
                 .FirstOrDefault(s => s.Id == scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null)
+                return HttpNotFound();
 
             ViewBag.Drivers = db.Drivers.Where(d => d.IsActive).OrderBy(d => d.FullName).ToList();
             ViewBag.Vehicles = db.Vehicles.Where(v => v.IsActive).OrderBy(v => v.VehicleNumber).ToList();
-            ViewBag.Schedule = schedule;
-            return View();
+            return View(schedule);
         }
 
         // POST: Save assignment
@@ -154,21 +153,20 @@ namespace Michaelhouse.Controllers
         }
 
         // All Trips (filterable)
-        public ActionResult AllTrips(string status = null)
+        public ActionResult AllTrips(string statusFilter = null)
         {
-            var trips = db.TripSchedules
+            var query = db.TripSchedules
                 .Include(s => s.TripRequest)
-                .Include(s => s.Teacher)
-                .Include(s => s.Driver)
-                .Include(s => s.Vehicle)
+                .Include(s => s.TripRequest.Teacher)
+                .Include(s => s.Driver)          // <-- ensure Driver is loaded
+                .Include(s => s.Vehicle)         // <-- ensure Vehicle is loaded
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(status))
-                trips = trips.Where(s => s.Status == status);
+            if (!string.IsNullOrEmpty(statusFilter))
+                query = query.Where(s => s.Status == statusFilter);
 
-            var list = trips.OrderByDescending(s => s.ScheduledDate).ToList();
-            ViewBag.CurrentStatus = status;
-            return View(list);
+            var schedules = query.OrderByDescending(s => s.ScheduledDate).ToList();
+            return View(schedules);
         }
 
         // Vehicle Management (basic CRUD)
@@ -190,12 +188,27 @@ namespace Michaelhouse.Controllers
             }
             return RedirectToAction("Vehicles");
         }
+        [RequireLogin]
+        public ActionResult DriverDetails(int id)
+        {
+            var driver = db.Drivers.Find(id);
+            if (driver == null) return Content("Driver not found");
+            return PartialView("_DriverDetails", driver);
+        }
+        [RequireLogin]
+        public ActionResult VehicleDetails(int id)
+        {
+            var vehicle = db.Vehicles.Find(id);
+            if (vehicle == null) return Content("Vehicle not found");
+            return PartialView("_VehicleDetails", vehicle);
+        }
 
         public ActionResult Drivers()
         {
             var drivers = db.Drivers.Where(d => d.IsActive).ToList();
             return View(drivers);
         }
+
 
         protected override void Dispose(bool disposing)
         {

@@ -41,6 +41,8 @@ namespace Michaelhouse.Models
         public DateTime RequestedAt { get; set; }
         public int? ApprovedByAdminId { get; set; }
         public DateTime? ApprovedAt { get; set; }
+        public double? DestinationLat { get; set; }
+        public double? DestinationLng { get; set; }
 
         // Navigation properties
         public virtual Teacher Teacher { get; set; }
@@ -136,6 +138,8 @@ namespace Michaelhouse.Models
 
         [Required]
         public int MaxStudents { get; set; }
+
+
     }
 
     public class TripScheduleCreateViewModel

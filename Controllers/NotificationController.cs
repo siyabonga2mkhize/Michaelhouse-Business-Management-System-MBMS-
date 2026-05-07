@@ -25,8 +25,9 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         public JsonResult MarkAsRead(int id)
         {
+            int userId = (int)(Session["UserId"] ?? 0);
             var notif = db.Notifications.Find(id);
-            if (notif != null)
+            if (notif != null && notif.UserId == userId)
             {
                 notif.IsRead = true;
                 db.SaveChanges();
@@ -39,11 +40,36 @@ namespace Michaelhouse.Controllers
         public ActionResult Index()
         {
             int userId = (int)(Session["UserId"] ?? 0);
-            var all = db.Notifications
-                        .Where(n => n.UserId == userId)
-                        .OrderByDescending(n => n.CreatedAt)
-                        .ToList();
-            return View(all);
+            var notifications = db.Notifications
+                                 .Where(n => n.UserId == userId)
+                                 .OrderByDescending(n => n.CreatedAt)
+                                 .ToList();
+            return View(notifications);
+        }
+        public PartialViewResult GetNotificationsPartial()
+        {
+            int userId = (int)(Session["UserId"] ?? 0);
+            var notifications = db.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(10)
+                .ToList();
+            return PartialView("_NotificationsList", notifications);
+        }
+
+        public JsonResult GetUnreadCount()
+        {
+            int userId = (int)(Session["UserId"] ?? 0);
+            int count = db.Notifications.Count(n => n.UserId == userId && !n.IsRead);
+            return Json(count, JsonRequestBehavior.AllowGet);
+        }
+        [ChildActionOnly]
+        public ActionResult NotificationBadge()
+        {
+            int userId = (int)(Session["UserId"] ?? 0);
+            int count = db.Notifications.Count(n => n.UserId == userId && !n.IsRead);
+            ViewBag.Count = count;
+            return PartialView("_NotificationBadge");
         }
 
         protected override void Dispose(bool disposing)

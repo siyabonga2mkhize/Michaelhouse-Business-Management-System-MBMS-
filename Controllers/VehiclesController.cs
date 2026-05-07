@@ -1,38 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Mvc;
+﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using System.Linq;
+using System.Web.Mvc;
 
-namespace Michaelhouse
+namespace Michaelhouse.Controllers
 {
-    public class VehiclesController : Controller
+    [RequireLogin]
+    [TransportManagerOnly]   // or [AdminOnly] if you want both to have access
+    public class VehicleController : Controller
     {
         private DBContextClass db = new DBContextClass();
 
-        // GET: Vehicles
+        // GET: Vehicles (list all active vehicles)
         public ActionResult Index()
         {
-            return View(db.Vehicles.ToList());
-        }
-
-        // GET: Vehicles/Details/5
-        public ActionResult Details(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Vehicle vehicle = db.Vehicles.Find(id);
-            if (vehicle == null)
-            {
-                return HttpNotFound();
-            }
-            return View(vehicle);
+            var vehicles = db.Vehicles.OrderBy(v => v.VehicleNumber).ToList();
+            return View(vehicles);
         }
 
         // GET: Vehicles/Create
@@ -42,65 +25,50 @@ namespace Michaelhouse
         }
 
         // POST: Vehicles/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,VehicleNumber,Model,Type,Capacity,IsActive,DateAdded")] Vehicle vehicle)
+        public ActionResult Create(Vehicle vehicle)
         {
             if (ModelState.IsValid)
             {
+                vehicle.DateAdded = System.DateTime.Now;
+                vehicle.IsActive = true;
                 db.Vehicles.Add(vehicle);
                 db.SaveChanges();
+                TempData["Success"] = "Vehicle added successfully.";
                 return RedirectToAction("Index");
             }
-
             return View(vehicle);
         }
 
         // GET: Vehicles/Edit/5
-        public ActionResult Edit(int? id)
+        public ActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Vehicle vehicle = db.Vehicles.Find(id);
-            if (vehicle == null)
-            {
-                return HttpNotFound();
-            }
+            var vehicle = db.Vehicles.Find(id);
+            if (vehicle == null) return HttpNotFound();
             return View(vehicle);
         }
 
         // POST: Vehicles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,VehicleNumber,Model,Type,Capacity,IsActive,DateAdded")] Vehicle vehicle)
+        public ActionResult Edit(Vehicle vehicle)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(vehicle).State = EntityState.Modified;
+                db.Entry(vehicle).State = System.Data.Entity.EntityState.Modified;
                 db.SaveChanges();
+                TempData["Success"] = "Vehicle updated.";
                 return RedirectToAction("Index");
             }
             return View(vehicle);
         }
 
         // GET: Vehicles/Delete/5
-        public ActionResult Delete(int? id)
+        public ActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Vehicle vehicle = db.Vehicles.Find(id);
-            if (vehicle == null)
-            {
-                return HttpNotFound();
-            }
+            var vehicle = db.Vehicles.Find(id);
+            if (vehicle == null) return HttpNotFound();
             return View(vehicle);
         }
 
@@ -109,18 +77,16 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Vehicle vehicle = db.Vehicles.Find(id);
+            var vehicle = db.Vehicles.Find(id);
             db.Vehicles.Remove(vehicle);
             db.SaveChanges();
+            TempData["Success"] = "Vehicle removed.";
             return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
+            if (disposing) db.Dispose();
             base.Dispose(disposing);
         }
     }
