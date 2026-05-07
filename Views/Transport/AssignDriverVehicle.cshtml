@@ -1,0 +1,39 @@
+﻿@model Michaelhouse.Models.TripSchedule
+@{
+    var drivers = ViewBag.Drivers as List<Michaelhouse.Models.Driver>;
+    var vehicles = ViewBag.Vehicles as List<Michaelhouse.Models.Vehicle>;
+    ViewBag.Title = "Assign Driver and Vehicle";
+}
+
+<h2>Assign Driver & Vehicle for Trip: @Model.TripRequest.Title</h2>
+
+@using (Html.BeginForm("AssignDriverVehicle", "Transport", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="scheduleId" value="@Model.Id" />
+
+    <div class="form-group">
+        <label>Select Driver</label>
+        <select name="driverId" class="form-select" required>
+            <option value="">-- Choose Driver --</option>
+            @foreach (var driver in drivers ?? new List<Michaelhouse.Models.Driver>())
+            {
+                <option value="@driver.Id">@driver.FullName - @driver.Email</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group mt-3">
+        <label>Select Vehicle</label>
+        <select name="vehicleId" class="form-select" required>
+            <option value="">-- Choose Vehicle --</option>
+            @foreach (var vehicle in vehicles ?? new List<Michaelhouse.Models.Vehicle>())
+            {
+                <option value="@vehicle.Id">@vehicle.VehicleNumber - @vehicle.Model (Capacity: @vehicle.Capacity)</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Assign</button>
+    <a href="@Url.Action("UnassignedSchedules", "Transport")" class="btn btn-secondary mt-3">Cancel</a>
+}

@@ -385,3 +385,145 @@ ORDER BY s.StudentId, sub.SubjectId;
 
 ALTER DATABASE MichaelHouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 DROP DATABASE MichaelHouse;
+
+
+select * from DriverApplications;
+
+select * from StreamEnrolments;
+
+
+SELECT COLUMN_NAME 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'StreamEnrolments' 
+  AND COLUMN_NAME = 'TeacherId';
+
+
+  ALTER TABLE dbo.Applications ADD DriverAppId INT NULL;
+
+Select * from Applications;
+
+-- Transport 
+-- 1. Check if a Transport Manager already exists
+IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Role = 'TransportManager')
+BEGIN
+    -- 2. Insert the Transport Manager
+    INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+    VALUES (
+        'Transport Manager',                    -- Name
+        'transport@michaelhouse.co.za',        -- Email
+        'vZ4cL5K0yRr2xW8nF3qA9bH7jM1pU6tY2eC4dG5sW7=',  -- Hash of "Transport@123"
+        'TransportManager'                     -- Role (exact spelling)
+    );
+    
+    -- Optional: get the new UserId
+    DECLARE @NewUserId INT = SCOPE_IDENTITY();
+    
+    -- 3. If you have a Drivers table and want to link this manager to a Driver record (optional), uncomment:
+    -- INSERT INTO Drivers (UserId, FullName, Email, IsActive, DateCreated, HasPDP, LicenceNumber)
+    -- VALUES (@NewUserId, 'Transport Manager', 'transport@michaelhouse.co.za', 1, GETDATE(), 1, 'MGR000');
+    
+    SELECT 'Transport Manager added. Login: transport@michaelhouse.co.za / Password: Transport@123' AS Result;
+END
+ELSE
+BEGIN
+    SELECT 'Transport Manager already exists. No action taken.' AS Result;
+END
+
+
+UPDATE AppUsers
+SET PasswordHash = 'Nt5wp81dThJvZ2gsftCIr4v5RBsK76mnokNklLWFy70='
+WHERE Email = 'transport@michaelhouse.co.za';
+
+
+ALTER TABLE dbo.Applications ADD DriverAppId INT NULL;
+
+
+SELECT COLUMN_NAME 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'Applications' AND COLUMN_NAME = 'DriverAppId';
+
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Applications' AND COLUMN_NAME = 'DriverAppId')
+BEGIN
+    ALTER TABLE dbo.Applications DROP COLUMN DriverAppId;
+    PRINT 'Column dropped successfully.';
+END
+ELSE
+BEGIN
+    PRINT 'Column does not exist – no action taken.';
+END
+
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Applications' AND COLUMN_NAME = 'DriverAppId')
+    ALTER TABLE dbo.Applications DROP COLUMN DriverAppId;
+
+
+
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Applications' AND COLUMN_NAME = 'DriverAppId')
+BEGIN
+    ALTER TABLE dbo.Applications ADD DriverAppId INT NULL;
+    PRINT 'Column added – error bypassed.';
+END
+ELSE
+BEGIN
+    PRINT 'Column already exists – nothing to do.';
+END
+
+-- 1. Add missing column to Applications (bypass current error)
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Applications' AND COLUMN_NAME = 'DriverAppId')
+    ALTER TABLE dbo.Applications ADD DriverAppId INT NULL;
+
+-- 2. Add missing column to AdminReviews (prevent future error)
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'AdminReviews' AND COLUMN_NAME = 'DriverAppId')
+    ALTER TABLE dbo.AdminReviews ADD DriverAppId INT NULL;
+
+select * from AdminReviews;
+
+
+select * from TripStudents;
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.TripStudents') AND name = 'TripSchedule_Id')
+    ALTER TABLE dbo.TripStudents DROP COLUMN TripSchedule_Id;
+
+
+
+   -- Delete duplicate schedules that have no students, but keep the first one per TripRequestId
+WITH Duplicates AS (
+    SELECT Id, TripRequestId, Status,
+           ROW_NUMBER() OVER (PARTITION BY TripRequestId ORDER BY 
+               CASE WHEN (SELECT COUNT(*) FROM TripStudents WHERE TripScheduleId = TripSchedules.Id) > 0 THEN 0 ELSE 1 END, Id) AS rn
+    FROM TripSchedules
+)
+DELETE FROM TripSchedules WHERE Id IN (SELECT Id FROM Duplicates WHERE rn > 1);
+
+
+Select * from Drivers;
+-- Insert drivers
+INSERT INTO Drivers (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, IsActive, DateCreated, PasswordHash, UserId, ImageUrl)
+VALUES 
+('Themba Nkosi', '9001015009087', '0711111111', 'themba@michaelhouse.co.za', 'LIC1001', '2028-12-31', 1, 1, GETDATE(), 'uPP4iORv7L0HNZ5o6+q6FpL3mW2y9TdD9ZcXmFvKbQY=', NULL, '/Content/Images/Drivers/themba.jpg'),
+('Thabo Mkhize',  '8805056009088', '0722222222', 'thabo@michaelhouse.co.za',   'LIC1002', '2027-10-15', 1, 1, GETDATE(), 'uPP4iORv7L0HNZ5o6+q6FpL3mW2y9TdD9ZcXmFvKbQY=', NULL, '/Content/Images/Drivers/thabo.jpg'),
+('Andile Zulu',   '9202027009089', '0733333333', 'andile@michaelhouse.co.za',  'LIC1003', '2029-05-20', 1, 1, GETDATE(), 'uPP4iORv7L0HNZ5o6+q6FpL3mW2y9TdD9ZcXmFvKbQY=', NULL, '/Content/Images/Drivers/andile.jpg'),
+('Nkosi Khumalo', '8703038009090', '0744444444', 'nkosi@michaelhouse.co.za',   'LIC1004', '2026-11-30', 1, 1, GETDATE(), 'uPP4iORv7L0HNZ5o6+q6FpL3mW2y9TdD9ZcXmFvKbQY=', NULL, '/Content/Images/Drivers/nkosi.jpg');
+
+-- Create AppUser accounts for each driver (same email, role 'Driver')
+INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+SELECT FullName, Email, 'uPP4iORv7L0HNZ5o6+q6FpL3mW2y9TdD9ZcXmFvKbQY=', 'Driver'
+FROM Drivers WHERE UserId IS NULL;
+
+-- Link UserId to Drivers
+UPDATE d
+SET UserId = u.UserId
+FROM Drivers d
+INNER JOIN AppUsers u ON d.Email = u.Email
+WHERE d.UserId IS NULL;
+
+
+---
+INSERT INTO Vehicles (VehicleNumber, Model, Type, Capacity, IsActive, DateAdded, ImageUrl)
+VALUES 
+('GP 123 456', 'Toyota Quantum', 'Bus', 14, 1, GETDATE(), '/Content/Images/Vehicles/quantum1.jpg'),
+('GP 789 012', 'Hyundai H1',    'Bus', 11, 1, GETDATE(), '/Content/Images/Vehicles/hyundai1.jpg'),
+('GP 345 678', 'Ford Transit',  'Bus', 12, 1, GETDATE(), '/Content/Images/Vehicles/ford1.jpg'),
+('GP 901 234', 'Mercedes Sprinter', 'Bus', 10, 1, GETDATE(), '/Content/Images/Vehicles/mercedes1.jpg'),
+('GP 456 789', 'Nissan NP200',  'Van', 3,  1, GETDATE(), '/Content/Images/Vehicles/nissan1.jpg');

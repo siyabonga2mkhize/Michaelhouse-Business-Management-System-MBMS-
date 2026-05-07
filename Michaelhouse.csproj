@@ -204,44 +204,82 @@
     <Compile Include="Controllers\DriverDashboardController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
     <Compile Include="Controllers\DriverAvailabilitiesController.cs" />
+    <Compile Include="Controllers\TransportController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604251922501_InitialCreate.cs" />
-    <Compile Include="Migrations\202604251922501_InitialCreate.Designer.cs">
-      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605012244456_InitialCreate.cs" />
+    <Compile Include="Migrations\202605012244456_InitialCreate.Designer.cs">
+      <DependentUpon>202605012244456_InitialCreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604251947005_AddDriverTable.cs" />
-    <Compile Include="Migrations\202604251947005_AddDriverTable.Designer.cs">
-      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
+    <Compile Include="Migrations\202605012309181_AddDriverAppIdToApplications.cs" />
+    <Compile Include="Migrations\202605012309181_AddDriverAppIdToApplications.Designer.cs">
+      <DependentUpon>202605012309181_AddDriverAppIdToApplications.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.cs" />
-    <Compile Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.Designer.cs">
-      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
+    <Compile Include="Migrations\202605012318412_AddDriverAppIdToApplications1.cs" />
+    <Compile Include="Migrations\202605012318412_AddDriverAppIdToApplications1.Designer.cs">
+      <DependentUpon>202605012318412_AddDriverAppIdToApplications1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604261239172_FixDateTime.cs" />
-    <Compile Include="Migrations\202604261239172_FixDateTime.Designer.cs">
-      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
+    <Compile Include="Migrations\202605061617400_AddTripNavigationProperties.cs" />
+    <Compile Include="Migrations\202605061617400_AddTripNavigationProperties.Designer.cs">
+      <DependentUpon>202605061617400_AddTripNavigationProperties.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604262042350_UpdatedStuff.cs" />
-    <Compile Include="Migrations\202604262042350_UpdatedStuff.Designer.cs">
-      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
+    <Compile Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.cs" />
+    <Compile Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.Designer.cs">
+      <DependentUpon>202605061745405_RemoveDriverAppIdFromApplications.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604262112276_MyApplications.cs" />
-    <Compile Include="Migrations\202604262112276_MyApplications.Designer.cs">
-      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
+    <Compile Include="Migrations\202605061750253_DropDriverAppIdFromApplications.cs" />
+    <Compile Include="Migrations\202605061750253_DropDriverAppIdFromApplications.Designer.cs">
+      <DependentUpon>202605061750253_DropDriverAppIdFromApplications.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604262149179_FixDateFields.cs" />
-    <Compile Include="Migrations\202604262149179_FixDateFields.Designer.cs">
-      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
+    <Compile Include="Migrations\202605061904565_UseDateTime2ForTripRequests.cs" />
+    <Compile Include="Migrations\202605061904565_UseDateTime2ForTripRequests.Designer.cs">
+      <DependentUpon>202605061904565_UseDateTime2ForTripRequests.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202604301945323_FixedVers.cs" />
-    <Compile Include="Migrations\202604301945323_FixedVers.Designer.cs">
-      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
+    <Compile Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.cs" />
+    <Compile Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.Designer.cs">
+      <DependentUpon>202605061916195_UseDateTime2ForTripRequests1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605062351485_FixTripStudentForeignKey.cs" />
+    <Compile Include="Migrations\202605062351485_FixTripStudentForeignKey.Designer.cs">
+      <DependentUpon>202605062351485_FixTripStudentForeignKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605062355375_FixTripStudentForeignKey1.cs" />
+    <Compile Include="Migrations\202605062355375_FixTripStudentForeignKey1.Designer.cs">
+      <DependentUpon>202605062355375_FixTripStudentForeignKey1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605062359080_FixTripStudentForeignKey2.cs" />
+    <Compile Include="Migrations\202605062359080_FixTripStudentForeignKey2.Designer.cs">
+      <DependentUpon>202605062359080_FixTripStudentForeignKey2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070004335_FixTripStudentForeignKey3.cs" />
+    <Compile Include="Migrations\202605070004335_FixTripStudentForeignKey3.Designer.cs">
+      <DependentUpon>202605070004335_FixTripStudentForeignKey3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070015206_SyncTripStudentMapping.cs" />
+    <Compile Include="Migrations\202605070015206_SyncTripStudentMapping.Designer.cs">
+      <DependentUpon>202605070015206_SyncTripStudentMapping.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070035516_updateDB.cs" />
+    <Compile Include="Migrations\202605070035516_updateDB.Designer.cs">
+      <DependentUpon>202605070035516_updateDB.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070042554_updateDB.cs" />
+    <Compile Include="Migrations\202605070042554_updateDB.Designer.cs">
+      <DependentUpon>202605070042554_updateDB.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070107096_AddDriverVehicleImages.cs" />
+    <Compile Include="Migrations\202605070107096_AddDriverVehicleImages.Designer.cs">
+      <DependentUpon>202605070107096_AddDriverVehicleImages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.cs" />
+    <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.Designer.cs">
+      <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -284,7 +322,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <!-- Migrations -->
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
     <Compile Include="Models\AiReviewService.cs" />
@@ -301,6 +338,8 @@
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
+    <Compile Include="Models\Notification.cs" />
+    <Compile Include="Models\NotificationHelper.cs" />
     <Compile Include="Models\Parent.cs" />
     <Compile Include="Models\ParentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\ParentAttendanceViewModel.cs" />
@@ -325,13 +364,14 @@
     <Compile Include="Models\Termresult.cs" />
     <Compile Include="Models\Timetablegenerator .cs" />
     <Compile Include="Models\Timetablemodels.cs" />
+    <Compile Include="Models\Transport.cs" />
     <Compile Include="Models\Trip.cs" />
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Controllers\TripsController.cs" />
+    <Compile Include="Controllers\TripController.cs" />
     <Compile Include="Controllers\VehicleIssuesController.cs" />
     <Compile Include="Controllers\VehiclesController.cs" />
   </ItemGroup>
@@ -487,11 +527,6 @@
     <Content Include="Views\DriverAvailabilities\Details.cshtml" />
     <Content Include="Views\DriverAvailabilities\Edit.cshtml" />
     <Content Include="Views\DriverAvailabilities\Index.cshtml" />
-    <Content Include="Views\Trips\Create.cshtml" />
-    <Content Include="Views\Trips\Delete.cshtml" />
-    <Content Include="Views\Trips\Details.cshtml" />
-    <Content Include="Views\Trips\Edit.cshtml" />
-    <Content Include="Views\Trips\Index.cshtml" />
     <Content Include="Views\Vehicles\Create.cshtml" />
     <Content Include="Views\Vehicles\Delete.cshtml" />
     <Content Include="Views\Vehicles\Details.cshtml" />
@@ -506,10 +541,22 @@
     <Content Include="Views\DriverDashboard\Index.cshtml" />
     <Content Include="Views\DriverApplications\PublicDetails.cshtml" />
     <Content Include="Views\DriverApplications\MyApplications.cshtml" />
+    <Content Include="Views\Transport\Dashboard.cshtml" />
+    <Content Include="Views\Trip\BookTrip.cshtml" />
+    <Content Include="Views\Trip\MyRequests.cshtml" />
+    <Content Include="Views\Trip\UpcomingTrips.cshtml" />
+    <Content Include="Views\Trip\Manifest.cshtml" />
+    <Content Include="Views\Transport\PendingRequests.cshtml" />
+    <Content Include="Views\Transport\UnassignedSchedules.cshtml" />
+    <Content Include="Views\Shared\_Notifications.cshtml" />
+    <Content Include="Views\Trip\ScheduleTrip.cshtml" />
+    <Content Include="Views\Transport\AssignDriverVehicle.cshtml" />
+    <Content Include="Views\Trip\_StudentCheckboxList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Data\" />
+    <Folder Include="Views\NotificationControlleR\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -539,29 +586,56 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202604251922501_InitialCreate.resx">
-      <DependentUpon>202604251922501_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605012244456_InitialCreate.resx">
+      <DependentUpon>202605012244456_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604251947005_AddDriverTable.resx">
-      <DependentUpon>202604251947005_AddDriverTable.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605012309181_AddDriverAppIdToApplications.resx">
+      <DependentUpon>202605012309181_AddDriverAppIdToApplications.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604261123019_Add_UserId_To_DriverApplication.resx">
-      <DependentUpon>202604261123019_Add_UserId_To_DriverApplication.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605012318412_AddDriverAppIdToApplications1.resx">
+      <DependentUpon>202605012318412_AddDriverAppIdToApplications1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604261239172_FixDateTime.resx">
-      <DependentUpon>202604261239172_FixDateTime.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605061617400_AddTripNavigationProperties.resx">
+      <DependentUpon>202605061617400_AddTripNavigationProperties.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262042350_UpdatedStuff.resx">
-      <DependentUpon>202604262042350_UpdatedStuff.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.resx">
+      <DependentUpon>202605061745405_RemoveDriverAppIdFromApplications.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262112276_MyApplications.resx">
-      <DependentUpon>202604262112276_MyApplications.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605061750253_DropDriverAppIdFromApplications.resx">
+      <DependentUpon>202605061750253_DropDriverAppIdFromApplications.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604262149179_FixDateFields.resx">
-      <DependentUpon>202604262149179_FixDateFields.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605061904565_UseDateTime2ForTripRequests.resx">
+      <DependentUpon>202605061904565_UseDateTime2ForTripRequests.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202604301945323_FixedVers.resx">
-      <DependentUpon>202604301945323_FixedVers.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.resx">
+      <DependentUpon>202605061916195_UseDateTime2ForTripRequests1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605062351485_FixTripStudentForeignKey.resx">
+      <DependentUpon>202605062351485_FixTripStudentForeignKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605062355375_FixTripStudentForeignKey1.resx">
+      <DependentUpon>202605062355375_FixTripStudentForeignKey1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605062359080_FixTripStudentForeignKey2.resx">
+      <DependentUpon>202605062359080_FixTripStudentForeignKey2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070004335_FixTripStudentForeignKey3.resx">
+      <DependentUpon>202605070004335_FixTripStudentForeignKey3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070015206_SyncTripStudentMapping.resx">
+      <DependentUpon>202605070015206_SyncTripStudentMapping.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070035516_updateDB.resx">
+      <DependentUpon>202605070035516_updateDB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070042554_updateDB.resx">
+      <DependentUpon>202605070042554_updateDB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070107096_AddDriverVehicleImages.resx">
+      <DependentUpon>202605070107096_AddDriverVehicleImages.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605070112043_AddDriverVehicleImages1.resx">
+      <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

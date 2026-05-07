@@ -1,0 +1,33 @@
+﻿@model List<Michaelhouse.Models.TripRequest>
+@{
+    ViewBag.Title = "My Trip Requests";
+}
+
+<h2>My Trip Requests</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr><th>Title</th><th>Departure</th><th>Return</th><th>Destination</th><th>Max Students</th><th>Status</th><th>Rejection Reason</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var req in Model)
+        {
+            <tr>
+                <td>@req.Title</td>
+                <td>@req.DepartureTime.ToString("g")</td>
+                <td>@req.ReturnTime.ToString("g")</td>
+                <td>@req.Destination</td>
+                <td>@req.MaxStudents</td>
+                <td><span class="badge @(req.Status == "Approved" ? "badge-success" : (req.Status == "Rejected" ? "badge-danger" : "badge-warning"))">@req.Status</span></td>
+                <td>@req.RejectionReason</td>
+                <td>
+                    @if (req.Status == "Approved")
+                    {
+                        <a href="@Url.Action("ScheduleTrip", "Trip", new { tripRequestId = req.Id })" class="btn btn-sm btn-primary">Schedule Students</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a href="@Url.Action("BookTrip", "Trip")" class="btn btn-primary">New Trip Request</a>

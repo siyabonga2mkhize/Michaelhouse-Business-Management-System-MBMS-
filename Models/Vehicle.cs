@@ -19,5 +19,8 @@ namespace Michaelhouse.Models
         public bool IsActive { get; set; }           // ACTIVE vs ARCHIVED
 
         public DateTime DateAdded { get; set; }
+
+        // NEW: image support
+        public string ImageUrl { get; set; }
     }
 }

@@ -1,0 +1,73 @@
+﻿@model List<Michaelhouse.Models.TripSchedule>
+@{
+    ViewBag.Title = "Upcoming Trips";
+}
+
+<h2>Upcoming Trips</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No upcoming trips scheduled.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Destination</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th>Students</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var schedule in Model)
+            {
+                var request = schedule.TripRequest;
+                var studentCount = schedule.TripStudents?.Count ?? 0;
+                <tr>
+                    <td>@request.Title</td>
+                    <td>@request.Destination</td>
+                    <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
+                    <td>
+                        @if (schedule.Status == "Draft")
+                        {
+                            <span class="badge badge-warning">Awaiting Assignment</span>
+                        }
+                        else if (schedule.Status == "Confirmed")
+                        {
+                            <span class="badge badge-success">Confirmed</span>
+                        }
+                        else if (schedule.Status == "Cancelled")
+                        {
+                            <span class="badge badge-danger">Cancelled</span>
+                        }
+                        else
+                        {
+                            <span>@schedule.Status</span>
+                        }
+                    </td>
+                    <td>@studentCount student(s)</td>
+                    <td>
+                        <a href="@Url.Action("Manifest", "Trip", new { scheduleId = schedule.Id })" class="btn btn-sm btn-primary">
+                            <i class="bi bi-clipboard-check"></i> Manifest
+                        </a>
+                        @if (schedule.Status == "Draft")
+                        {
+                            using (Html.BeginForm("CancelSchedule", "Trip", FormMethod.Post, new { style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="scheduleId" value="@schedule.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this trip?');">
+                                    Cancel
+                                </button>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+</table>
+}

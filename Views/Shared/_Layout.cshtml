@@ -198,6 +198,24 @@
             </a>
 
             <div class="ms-auto d-flex align-items-center gap-3">
+                <div class="dropdown me-2">
+                    <a href="#" class="text-secondary position-relative" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5"></i>
+                        @if (ViewBag.UnreadNotificationCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">@ViewBag.UnreadNotificationCount</span>
+                        }
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end shadow-sm" style="width: 300px;">
+                        <div class="px-3 py-2 border-bottom">Notifications</div>
+                        <div id="notification-list" style="max-height: 300px; overflow-y: auto;">
+                            @Html.Action("GetNotifications", "Notification")
+                        </div>
+                        <div class="px-3 py-2 border-top">
+                            <a href="@Url.Action("Index", "Notification")" class="small">View all</a>
+                        </div>
+                    </div>
+                </div>
                 @if (isLoggedIn)
                 {
                     <div class="user-pill d-none d-md-block">
@@ -389,6 +407,24 @@
                                 <span class="cart-badge">@cartCount</span>
                             }
                         </a>
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Trips</div>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "BookTrip" ? "active" : "")"
+                           href="@Url.Action("BookTrip", "Trip")">
+                            <i class="bi bi-calendar-plus"></i> <span class="link-text">Book a Trip</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "MyRequests" ? "active" : "")"
+                           href="@Url.Action("MyRequests", "Trip")">
+                            <i class="bi bi-list-ul"></i> <span class="link-text">My Trip Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "UpcomingTrips" ? "active" : "")"
+                           href="@Url.Action("UpcomingTrips", "Trip")">
+                            <i class="bi bi-calendar-week"></i> <span class="link-text">Upcoming Trips</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "Manifest" ? "active" : "")"
+                           href="@Url.Action("Manifest", "Trip")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Student Manifest</span>
+                        </a>
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
@@ -396,6 +432,30 @@
                href="@Url.Action("Profile", "Account")">
                 <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
             </a>*@
+                    }
+                    else if (userRole == "TransportManager")
+                    {
+                        <div class="sidebar-label">Transport Management</div>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Transport")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "PendingRequests" ? "active" : "")"
+                           href="@Url.Action("PendingRequests", "Transport")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Pending Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "UnassignedSchedules" ? "active" : "")"
+                           href="@Url.Action("UnassignedSchedules", "Transport")">
+                            <i class="bi bi-person-plus"></i> <span class="link-text">Assign Driver/Vehicle</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "AllTrips" ? "active" : "")"
+                           href="@Url.Action("AllTrips", "Transport")">
+                            <i class="bi bi-calendar-check"></i> <span class="link-text">All Trips</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "VehicleManagement" ? "active" : "")"
+                           href="@Url.Action("VehicleManagement", "Transport")">
+                            <i class="bi bi-tools"></i> <span class="link-text">Vehicles</span>
+                        </a>
                     }
                 </nav>
             </div>
