@@ -445,18 +445,6 @@
     <Content Include="Views\SchoolClasses\ClassList.cshtml" />
     <Content Include="Views\SchoolClasses\Create.cshtml" />
     <Content Include="Views\SchoolClasses\Edit.cshtml" />
-    <Content Include="Views\SchoolClasses\Index.cshtml" />
-    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
-    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
-    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\2.cshtml" />
-    <Content Include="Views\Students\MyAttendance.cshtml" />
-    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
-    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Attendances\ViewRegister.cshtml" />
-    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
     <Content Include="Views\DriverApplications\Create.cshtml" />
     <Content Include="Views\DriverApplications\Delete.cshtml" />
     <Content Include="Views\DriverApplications\Details.cshtml" />
@@ -502,6 +490,24 @@
     <Content Include="Views\Shared\_NotificationsList.cshtml" />
     <Content Include="Views\Shared\_NotificationBadge.cshtml" />
     <Content Include="Views\Notification\Index.cshtml" />
+    <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\Success.cshtml" />
+    <Content Include="Views\Store\Index.cshtml" />
+    <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Order\TrackOrder.cshtml" />
+    <Content Include="Views\Order\OrderDetails.cshtml" />
+    <Content Include="Views\SchoolClasses\Index.cshtml" />
+    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
+    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
+    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\2.cshtml" />
+    <Content Include="Views\Students\MyAttendance.cshtml" />
+    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
+    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Attendances\ViewRegister.cshtml" />
+    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -523,16 +529,6 @@
     <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
-    <Content Include="Content\bootstrap-grid.css.map" />
-    <None Include="packages.config" />
-    <Content Include="Scripts\bootstrap.min.js.map" />
-    <Content Include="Scripts\bootstrap.js.map" />
-    <Content Include="Scripts\bootstrap.esm.min.js.map" />
-    <Content Include="Scripts\bootstrap.esm.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.min.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.js.map" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
-    <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">

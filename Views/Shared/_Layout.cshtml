@@ -282,6 +282,11 @@
                                 <span class="cart-badge">@cartCount</span>
                             }
                         </a>
+                        //Track order link for parents(Second Increment)
+                        <a class="nav-link @(currentAction == "TrackOrder" ? "active" : "")"
+                           href="@Url.Action("TrackOrder", "Order")">
+                            <i class="bi bi-search"></i> <span class="link-text">Track Order</span>
+                        </a>
 
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Settings</div>
