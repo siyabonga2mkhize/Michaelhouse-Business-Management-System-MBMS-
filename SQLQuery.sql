@@ -533,3 +533,45 @@ VALUES
 Select * from TripRequests;
 
 Delete from TripRequests where Id = 5;
+
+Select * from TripSchedules;
+
+
+DECLARE @fkName NVARCHAR(128)
+SELECT @fkName = name FROM sys.foreign_keys WHERE parent_object_id = OBJECT_ID('dbo.TripStudents') AND referenced_object_id = OBJECT_ID('dbo.TripSchedules')
+IF @fkName IS NOT NULL
+    EXEC('ALTER TABLE dbo.TripStudents DROP CONSTRAINT ' + @fkName)
+
+
+    -- Drop all foreign keys from TripStudents to TripSchedules
+DECLARE @sql NVARCHAR(MAX) = ''
+SELECT @sql = @sql + 'ALTER TABLE dbo.TripStudents DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+FROM sys.foreign_keys
+WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
+  AND referenced_object_id = OBJECT_ID('dbo.TripSchedules')
+EXEC sp_executesql @sql
+
+-- Also drop any default constraints on TripScheduleId (if any)
+DECLARE @defaultSql NVARCHAR(MAX) = ''
+SELECT @defaultSql = @defaultSql + 'ALTER TABLE dbo.TripStudents DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+FROM sys.default_constraints
+WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
+  AND col_name(parent_object_id, parent_column_id) = 'TripScheduleId'
+EXEC sp_executesql @defaultSql
+
+
+-- Drop all foreign keys from TripStudents to TripSchedules
+DECLARE @sql NVARCHAR(MAX) = '';
+SELECT @sql = @sql + 'ALTER TABLE dbo.TripStudents DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+FROM sys.foreign_keys
+WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
+  AND referenced_object_id = OBJECT_ID('dbo.TripSchedules');
+EXEC sp_executesql @sql;
+
+-- Also drop any default constraint on TripScheduleId
+DECLARE @defaultSql NVARCHAR(MAX) = '';
+SELECT @defaultSql = @defaultSql + 'ALTER TABLE dbo.TripStudents DROP CONSTRAINT ' + QUOTENAME(name) + ';'
+FROM sys.default_constraints
+WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
+  AND col_name(parent_object_id, parent_column_id) = 'TripScheduleId';
+EXEC sp_executesql @defaultSql;

@@ -1,82 +1,57 @@
-﻿    using Michaelhouse.Models;
-    using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Migrations;
-    using System.Linq;
+﻿using Michaelhouse.Models;
+using System;
+using System.Data.Entity.Migrations;
+using System.Linq;
 
-internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
+namespace Michaelhouse.Migrations
 {
-    public Configuration()
+    internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
     {
-        AutomaticMigrationsEnabled = false;
-    }
-
-
-
-        protected override void Seed(DBContextClass context)
+        public Configuration()
         {
-            // Seed default admin account
-            // Login: admin@michaelhouse.co.za / Admin@123
+            AutomaticMigrationsEnabled = false;
+        }
+
+        protected override void Seed(Michaelhouse.Models.DBContextClass context)
+        {
+            // 1. Seed default admin account
             if (!context.Users.Any(u => u.Role == "Admin"))
             {
-                context.Users.Add(new Michaelhouse.Models.AppUser
+                context.Users.Add(new AppUser
                 {
                     Name = "System Admin",
                     Email = "admin@michaelhouse.co.za",
-                    PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Admin@123"),
+                    PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
                 });
                 context.SaveChanges();
+            }
 
-                if (!context.Users.Any(u => u.Role == "Driver"))
+            // 2. Seed Categories (only if empty)
+            if (!context.Categories.Any())
+            {
+                var uniforms = new Category
                 {
-                    var driversData = new[]
-                    {
-            new { Name = "Sibusiso Dlamini", Email = "sibusiso", ID = "9001015009087" },
-            new { Name = "Thabo Mkhize", Email = "thabo", ID = "8805056009088" },
-            new { Name = "Andile Zulu", Email = "andile", ID = "9202027009089" },
-            new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
-        };
-    protected override void Seed(Michaelhouse.Models.DBContextClass context)
-    {
-        // 1. Seed default admin account
-        if (!context.Users.Any(u => u.Role == "Admin"))
-        {
-            context.Users.Add(new AppUser
-            {
-                Name = "System Admin",
-                Email = "admin@michaelhouse.co.za",
-                PasswordHash = HashPassword("Admin@123"),
-                Role = "Admin"
-            });
-            context.SaveChanges();
-        }
+                    Name = "Uniforms",
+                    Description = "Official school uniform items for all grades"
+                };
+                var stationery = new Category
+                {
+                    Name = "Books & Stationery",
+                    Description = "Textbooks, exercise books and stationery"
+                };
+                context.Categories.AddOrUpdate(c => c.Name, uniforms, stationery);
+                context.SaveChanges();
+            }
 
-        // 2. Seed Categories (only if empty)
-        if (!context.Categories.Any())
-        {
-            var uniforms = new Category
+            // 3. Seed Products (only if empty)
+            if (!context.Products.Any())
             {
-                Name = "Uniforms",
-                Description = "Official school uniform items for all grades"
-            };
-            var stationery = new Category
-            {
-                Name = "Books & Stationery",
-                Description = "Textbooks, exercise books and stationery"
-            };
-            context.Categories.AddOrUpdate(c => c.Name, uniforms, stationery);
-            context.SaveChanges();
-        }
+                var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
+                var stationeryCat = context.Categories.First(c => c.Name == "Books & Stationery");
 
-        // 3. Seed Products (only if empty)
-        if (!context.Products.Any())
-        {
-            var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
-            var stationeryCat = context.Categories.First(c => c.Name == "Books & Stationery");
-
-            var products = new[]
-            {
+                var products = new[]
+                {
                     // Uniforms
                     new Product { Name = "School Shirt (White) - Small", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 50, ReorderLevel = 10, Description = "Official white school shirt, small size.", IsActive = true },
                     new Product { Name = "School Shirt (White) - Medium", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Official white school shirt, medium size.", IsActive = true },
@@ -100,61 +75,55 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
                     new Product { Name = "Coloured Pencils (24 pack)", CategoryId = stationeryCat.Id, Price = 45.00, QuantityInStock = 150, ReorderLevel = 30, Description = "24 assorted coloured pencils.", IsActive = true }
                 };
 
-            context.Products.AddOrUpdate(p => p.Name, products);
-            context.SaveChanges();
-        }
+                context.Products.AddOrUpdate(p => p.Name, products);
+                context.SaveChanges();
+            }
 
-        // 4. Seed Drivers (including their AppUser accounts)
-        if (!context.Users.Any(u => u.Role == "Driver"))
-        {
-            var driversData = new[]
+            // 4. Seed Drivers (including their AppUser accounts)
+            if (!context.Users.Any(u => u.Role == "Driver"))
             {
+                var driversData = new[]
+                {
                     new { Name = "Sibusiso Dlamini", Email = "sibusiso", ID = "9001015009087" },
                     new { Name = "Thabo Mkhize", Email = "thabo", ID = "8805056009088" },
                     new { Name = "Andile Zulu", Email = "andile", ID = "9202027009089" },
                     new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
                 };
 
-                    foreach (var d in driversData)
+                foreach (var d in driversData)
+                {
+                    string schoolEmail = d.Email + "@michealhouse.com";
+                    string password = "Driver@123";
+
+                    var user = new AppUser
                     {
-                        string schoolEmail = d.Email + "@michealhouse.com";
-                        string password = "Driver@123";
+                        Name = d.Name,
+                        Email = schoolEmail,
+                        PasswordHash = HashPassword(password),
+                        Role = "Driver"
+                    };
+                    context.Users.Add(user);
+                    context.SaveChanges(); // needed to get UserId
 
-                        // 1. Create User (Login)
-                        var user = new AppUser
-                        {
-                            Name = d.Name,
-                            Email = schoolEmail,
-                            PasswordHash = HashPassword(password),
-                            Role = "Driver"
-                        };
-
-                        context.Users.Add(user);
-                        context.SaveChanges(); // needed to get UserId
-
-                        // 2. Create Driver (Profile)
-                        var driver = new Driver
-                        {
-                            FullName = d.Name,
-                            IDNumber = d.ID,
-                            PhoneNumber = "0710000000",
-                            Email = schoolEmail,
-                            LicenceNumber = "LIC" + new Random().Next(1000, 9999),
-                            LicenceExpiryDate = DateTime.Now.AddYears(5),
-                            HasPDP = true,
-                            IsActive = true,
-                            DateCreated = DateTime.Now,
-                            UserId = user.UserId
-                        };
-
-                        context.Drivers.Add(driver);
-                    }
-
-                    context.SaveChanges();
+                    var driver = new Driver
+                    {
+                        FullName = d.Name,
+                        IDNumber = d.ID,
+                        PhoneNumber = "0710000000",
+                        Email = schoolEmail,
+                        LicenceNumber = "LIC" + new Random().Next(1000, 9999),
+                        LicenceExpiryDate = DateTime.Now.AddYears(5),
+                        HasPDP = true,
+                        IsActive = true,
+                        DateCreated = DateTime.Now,
+                        UserId = user.UserId
+                    };
+                    context.Drivers.Add(driver);
                 }
-
+                context.SaveChanges();
             }
         }
+
         private string HashPassword(string password)
         {
             using (var sha = System.Security.Cryptography.SHA256.Create())
