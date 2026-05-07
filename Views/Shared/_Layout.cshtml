@@ -459,6 +459,25 @@
                         <a class="nav-link" href="@Url.Action("Index", "Vehicle")">
                             <i class="bi bi-truck"></i> <span class="link-text">Manage Vehicles</span>
                         </a>
+
+                    }
+                    else if (userRole == "Driver")
+                    {
+                        <div class="sidebar-label">Driver Portal</div>
+                        <a class="nav-link @(currentController == "DriverDashboard" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "DriverDashboard")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "Manifest" ? "active" : "")"
+                           href="@Url.Action("Manifest", "Trip")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Manifest</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
                     }
                 </nav>
             </div>

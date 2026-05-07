@@ -1,0 +1,72 @@
+﻿@model IEnumerable<Michaelhouse.Models.DriverApplication>
+
+@{
+    ViewBag.Title = "Driver Applications Review";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <h2 class="text-3xl font-bold tracking-tight mb-6">
+        Driver Applications
+    </h2>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="table table-hover mb-0">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th>Applicant</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var a in Model)
+                    {
+                        <tr>
+                            <td class="font-medium">
+                                @a.FullName
+                            </td>
+
+                            <td>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    @(a.Status == "Rejected" ? "bg-red-100 text-red-700" :
+                                      a.Status == "Approved" ? "bg-green-100 text-green-700" :
+                                      a.Status == "InterviewScheduled" ? "bg-blue-100 text-blue-700" :
+                                      "bg-yellow-100 text-yellow-700")">
+                                    @a.Status
+                                </span>
+                            </td>
+
+                            <td>
+                                @a.DateSubmitted?.ToString("yyyy-MM-dd")
+                            </td>
+
+                            <td class="text-right">
+                                @Html.ActionLink(
+                                    "Review",
+                                    "Details",
+                                    "DriverApplications",
+                                    new { id = a.Id },
+                                    new { @class = "btn btn-sm btn-outline-primary" }
+                                )
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-gray-400 py-6">
+                            No driver applications found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

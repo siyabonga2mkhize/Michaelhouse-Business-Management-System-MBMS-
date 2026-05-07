@@ -68,39 +68,15 @@ namespace Michaelhouse
         {
             return View();
         }
-
-        // GET: DriverApplications/Edit/5
-        [AllowAnonymous]
-        public ActionResult Edit(int? id, string token = null)
-        {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            DriverApplication driverApplication = db.DriverApplications.Find(id);
-            if (driverApplication == null) return HttpNotFound();
-
-            var uid = GetCurrentAppUserId();
-            // Allow owner (authenticated), admin, or a matching public token to edit
-            bool tokenMatches = false;
-            if (!string.IsNullOrEmpty(token) && driverApplication.PublicTokenExpiry != null && driverApplication.PublicTokenExpiry > DateTime.UtcNow)
-            {
-                tokenMatches = ComputeSha256Hash(token) == driverApplication.PublicTokenHash;
-            }
-
-            if (!User.IsInRole("Admin") && driverApplication.UserId != uid && !tokenMatches)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
-
-            return View(driverApplication);
-        }
-
-        // POST: DriverApplications/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
         public ActionResult Create(
-            DriverApplication driverApplication,
-            HttpPostedFileBase idFile,
-            HttpPostedFileBase licenceFile,
-            IEnumerable<HttpPostedFileBase> otherFiles,
-            string otherDescription)
+           DriverApplication driverApplication,
+           HttpPostedFileBase idFile,
+           HttpPostedFileBase licenceFile,
+           IEnumerable<HttpPostedFileBase> otherFiles,
+           string otherDescription)
         {
             if (!ModelState.IsValid) return View(driverApplication);
 
@@ -108,7 +84,7 @@ namespace Michaelhouse
             driverApplication.UserId = GetCurrentAppUserId();
 
             // Generate a public token for unauthenticated applicants so they can return and edit/view
-        var rawToken = Guid.NewGuid().ToString("N");
+            var rawToken = Guid.NewGuid().ToString("N");
             driverApplication.PublicTokenExpiry = DateTime.UtcNow.AddDays(14); // token valid for 14 days
             driverApplication.PublicTokenHash = ComputeSha256Hash(rawToken);
 
@@ -221,6 +197,31 @@ namespace Michaelhouse
 
             return RedirectToAction("MyApplications");
         }
+
+        // GET: DriverApplications/Edit/5
+        [AllowAnonymous]
+        public ActionResult Edit(int? id, string token = null)
+        {
+            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            DriverApplication driverApplication = db.DriverApplications.Find(id);
+            if (driverApplication == null) return HttpNotFound();
+
+            var uid = GetCurrentAppUserId();
+            // Allow owner (authenticated), admin, or a matching public token to edit
+            bool tokenMatches = false;
+            if (!string.IsNullOrEmpty(token) && driverApplication.PublicTokenExpiry != null && driverApplication.PublicTokenExpiry > DateTime.UtcNow)
+            {
+                tokenMatches = ComputeSha256Hash(token) == driverApplication.PublicTokenHash;
+            }
+
+            if (!User.IsInRole("Admin") && driverApplication.UserId != uid && !tokenMatches)
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
+            return View(driverApplication);
+        }
+
+        // POST: DriverApplications/Create
+       
 
         // POST: DriverApplications/Delete/5
         [HttpPost, ActionName("Delete")]

@@ -1,0 +1,45 @@
+﻿@model Michaelhouse.Controllers.TransportDashboardViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Active = "dashboard";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            @Html.Partial("_TransportSidebar")
+        </div>
+        <div class="col-md-9">
+            <h2>Transport Manager Dashboard</h2>
+
+            <div class="row">
+                <div class="col-sm-6 col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Applications</h5>
+                            <p class="card-text display-4">@Model.TotalApplications</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Pending</h5>
+                            <p class="card-text display-4">@Model.Pending</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Interview Scheduled</h5>
+                            <p class="card-text display-4">@Model.InterviewScheduled</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a class="btn btn-primary" href="@Url.Action("ReviewQueue","Transport")">Open Review Queue</a>
+        </div>
+    </div>
+</div>
+
