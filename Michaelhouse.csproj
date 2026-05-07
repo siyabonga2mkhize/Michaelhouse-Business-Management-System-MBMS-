@@ -20,9 +20,9 @@
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
     <IISExpressSSLPort>44321</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -213,78 +213,6 @@
     <Compile Include="Controllers\TransportController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605012244456_InitialCreate.cs" />
-    <Compile Include="Migrations\202605012244456_InitialCreate.Designer.cs">
-      <DependentUpon>202605012244456_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605012309181_AddDriverAppIdToApplications.cs" />
-    <Compile Include="Migrations\202605012309181_AddDriverAppIdToApplications.Designer.cs">
-      <DependentUpon>202605012309181_AddDriverAppIdToApplications.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605012318412_AddDriverAppIdToApplications1.cs" />
-    <Compile Include="Migrations\202605012318412_AddDriverAppIdToApplications1.Designer.cs">
-      <DependentUpon>202605012318412_AddDriverAppIdToApplications1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605061617400_AddTripNavigationProperties.cs" />
-    <Compile Include="Migrations\202605061617400_AddTripNavigationProperties.Designer.cs">
-      <DependentUpon>202605061617400_AddTripNavigationProperties.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.cs" />
-    <Compile Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.Designer.cs">
-      <DependentUpon>202605061745405_RemoveDriverAppIdFromApplications.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605061750253_DropDriverAppIdFromApplications.cs" />
-    <Compile Include="Migrations\202605061750253_DropDriverAppIdFromApplications.Designer.cs">
-      <DependentUpon>202605061750253_DropDriverAppIdFromApplications.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605061904565_UseDateTime2ForTripRequests.cs" />
-    <Compile Include="Migrations\202605061904565_UseDateTime2ForTripRequests.Designer.cs">
-      <DependentUpon>202605061904565_UseDateTime2ForTripRequests.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.cs" />
-    <Compile Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.Designer.cs">
-      <DependentUpon>202605061916195_UseDateTime2ForTripRequests1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605062351485_FixTripStudentForeignKey.cs" />
-    <Compile Include="Migrations\202605062351485_FixTripStudentForeignKey.Designer.cs">
-      <DependentUpon>202605062351485_FixTripStudentForeignKey.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605062355375_FixTripStudentForeignKey1.cs" />
-    <Compile Include="Migrations\202605062355375_FixTripStudentForeignKey1.Designer.cs">
-      <DependentUpon>202605062355375_FixTripStudentForeignKey1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605062359080_FixTripStudentForeignKey2.cs" />
-    <Compile Include="Migrations\202605062359080_FixTripStudentForeignKey2.Designer.cs">
-      <DependentUpon>202605062359080_FixTripStudentForeignKey2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070004335_FixTripStudentForeignKey3.cs" />
-    <Compile Include="Migrations\202605070004335_FixTripStudentForeignKey3.Designer.cs">
-      <DependentUpon>202605070004335_FixTripStudentForeignKey3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070015206_SyncTripStudentMapping.cs" />
-    <Compile Include="Migrations\202605070015206_SyncTripStudentMapping.Designer.cs">
-      <DependentUpon>202605070015206_SyncTripStudentMapping.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070035516_updateDB.cs" />
-    <Compile Include="Migrations\202605070035516_updateDB.Designer.cs">
-      <DependentUpon>202605070035516_updateDB.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070042554_updateDB.cs" />
-    <Compile Include="Migrations\202605070042554_updateDB.Designer.cs">
-      <DependentUpon>202605070042554_updateDB.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070107096_AddDriverVehicleImages.cs" />
-    <Compile Include="Migrations\202605070107096_AddDriverVehicleImages.Designer.cs">
-      <DependentUpon>202605070107096_AddDriverVehicleImages.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.cs" />
-    <Compile Include="Migrations\202605070112043_AddDriverVehicleImages1.Designer.cs">
-      <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605070159353_AddLatLngToTripRequest.cs" />
-    <Compile Include="Migrations\202605070159353_AddLatLngToTripRequest.Designer.cs">
-      <DependentUpon>202605070159353_AddLatLngToTripRequest.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -598,62 +526,6 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605012244456_InitialCreate.resx">
-      <DependentUpon>202605012244456_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605012309181_AddDriverAppIdToApplications.resx">
-      <DependentUpon>202605012309181_AddDriverAppIdToApplications.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605012318412_AddDriverAppIdToApplications1.resx">
-      <DependentUpon>202605012318412_AddDriverAppIdToApplications1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605061617400_AddTripNavigationProperties.resx">
-      <DependentUpon>202605061617400_AddTripNavigationProperties.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605061745405_RemoveDriverAppIdFromApplications.resx">
-      <DependentUpon>202605061745405_RemoveDriverAppIdFromApplications.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605061750253_DropDriverAppIdFromApplications.resx">
-      <DependentUpon>202605061750253_DropDriverAppIdFromApplications.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605061904565_UseDateTime2ForTripRequests.resx">
-      <DependentUpon>202605061904565_UseDateTime2ForTripRequests.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605061916195_UseDateTime2ForTripRequests1.resx">
-      <DependentUpon>202605061916195_UseDateTime2ForTripRequests1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605062351485_FixTripStudentForeignKey.resx">
-      <DependentUpon>202605062351485_FixTripStudentForeignKey.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605062355375_FixTripStudentForeignKey1.resx">
-      <DependentUpon>202605062355375_FixTripStudentForeignKey1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605062359080_FixTripStudentForeignKey2.resx">
-      <DependentUpon>202605062359080_FixTripStudentForeignKey2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070004335_FixTripStudentForeignKey3.resx">
-      <DependentUpon>202605070004335_FixTripStudentForeignKey3.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070015206_SyncTripStudentMapping.resx">
-      <DependentUpon>202605070015206_SyncTripStudentMapping.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070035516_updateDB.resx">
-      <DependentUpon>202605070035516_updateDB.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070042554_updateDB.resx">
-      <DependentUpon>202605070042554_updateDB.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070107096_AddDriverVehicleImages.resx">
-      <DependentUpon>202605070107096_AddDriverVehicleImages.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070112043_AddDriverVehicleImages1.resx">
-      <DependentUpon>202605070112043_AddDriverVehicleImages1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605070159353_AddLatLngToTripRequest.resx">
-      <DependentUpon>202605070159353_AddLatLngToTripRequest.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

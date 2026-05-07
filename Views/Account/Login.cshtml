@@ -153,8 +153,10 @@
                     </a>
                 </div>
                 <div style="margin-top:15px;">
-                    <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Parent?</p>
-                    @Html.ActionLink("APPLY AS DRIVER", "Create", "DriverApplications", null, new { @class = "text-danger" })
+                    <p class="text-gray-400 text-[11px] font-medium uppercase tracking-wider">New Driver?</p>
+                    <a href="@Url.Action("Create", "DriverApplications")" class="text-[11px] font-bold text-[#C21E2E] uppercase tracking-widest hover:underline">
+                        Apply as Driver
+                      </a>
                 </div>
             </div>
 

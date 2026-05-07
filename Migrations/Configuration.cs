@@ -1,7 +1,8 @@
-﻿using Michaelhouse.Models;
-using System;
-using System.Data.Entity.Migrations;
-using System.Linq;
+﻿    using Michaelhouse.Models;
+    using System;
+    using System.Data.Entity;
+    using System.Data.Entity.Migrations;
+    using System.Linq;
 
 internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
 {
@@ -10,6 +11,32 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         AutomaticMigrationsEnabled = false;
     }
 
+
+
+        protected override void Seed(DBContextClass context)
+        {
+            // Seed default admin account
+            // Login: admin@michaelhouse.co.za / Admin@123
+            if (!context.Users.Any(u => u.Role == "Admin"))
+            {
+                context.Users.Add(new Michaelhouse.Models.AppUser
+                {
+                    Name = "System Admin",
+                    Email = "admin@michaelhouse.co.za",
+                    PasswordHash = Michaelhouse.Controllers.AccountController.HashPassword("Admin@123"),
+                    Role = "Admin"
+                });
+                context.SaveChanges();
+
+                if (!context.Users.Any(u => u.Role == "Driver"))
+                {
+                    var driversData = new[]
+                    {
+            new { Name = "Sibusiso Dlamini", Email = "sibusiso", ID = "9001015009087" },
+            new { Name = "Thabo Mkhize", Email = "thabo", ID = "8805056009088" },
+            new { Name = "Andile Zulu", Email = "andile", ID = "9202027009089" },
+            new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
+        };
     protected override void Seed(Michaelhouse.Models.DBContextClass context)
     {
         // 1. Seed default admin account
@@ -88,47 +115,54 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
                     new { Name = "Nkosi Khumalo", Email = "nkosi", ID = "8703038009090" }
                 };
 
-            foreach (var d in driversData)
-            {
-                string schoolEmail = d.Email + "@michealhouse.com";
-                string password = "Driver@123";
+                    foreach (var d in driversData)
+                    {
+                        string schoolEmail = d.Email + "@michealhouse.com";
+                        string password = "Driver@123";
 
-                var user = new AppUser
-                {
-                    Name = d.Name,
-                    Email = schoolEmail,
-                    PasswordHash = HashPassword(password),
-                    Role = "Driver"
-                };
-                context.Users.Add(user);
-                context.SaveChanges(); // to get UserId
+                        // 1. Create User (Login)
+                        var user = new AppUser
+                        {
+                            Name = d.Name,
+                            Email = schoolEmail,
+                            PasswordHash = HashPassword(password),
+                            Role = "Driver"
+                        };
 
-                var driver = new Driver
-                {
-                    FullName = d.Name,
-                    IDNumber = d.ID,
-                    PhoneNumber = "0710000000",
-                    Email = schoolEmail,
-                    LicenceNumber = "LIC" + new Random().Next(1000, 9999),
-                    LicenceExpiryDate = DateTime.Now.AddYears(5),
-                    HasPDP = true,
-                    IsActive = true,
-                    DateCreated = DateTime.Now,
-                    UserId = user.UserId
-                };
-                context.Drivers.Add(driver);
+                        context.Users.Add(user);
+                        context.SaveChanges(); // needed to get UserId
+
+                        // 2. Create Driver (Profile)
+                        var driver = new Driver
+                        {
+                            FullName = d.Name,
+                            IDNumber = d.ID,
+                            PhoneNumber = "0710000000",
+                            Email = schoolEmail,
+                            LicenceNumber = "LIC" + new Random().Next(1000, 9999),
+                            LicenceExpiryDate = DateTime.Now.AddYears(5),
+                            HasPDP = true,
+                            IsActive = true,
+                            DateCreated = DateTime.Now,
+                            UserId = user.UserId
+                        };
+
+                        context.Drivers.Add(driver);
+                    }
+
+                    context.SaveChanges();
+                }
+
             }
-            context.SaveChanges();
         }
-    }
-
-    private string HashPassword(string password)
-    {
-        using (var sha = System.Security.Cryptography.SHA256.Create())
+        private string HashPassword(string password)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-            var hash = sha.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(password);
+                var hash = sha.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
         }
     }
 }

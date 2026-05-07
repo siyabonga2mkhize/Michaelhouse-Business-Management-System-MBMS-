@@ -460,5 +460,15 @@ namespace Michaelhouse.Services
 
             Send(teacherEmail, subject, body);
         }
+        // InventoryService uses this to send supplier PO emails directly.
+
+        /// <summary>
+        /// Sends a raw HTML email. Used for purchase orders and other system emails
+        /// that don't need the standard Michaelhouse template wrapper.
+        /// </summary>
+        public void SendRaw(string toEmail, string subject, string htmlBody)
+        {
+            Send(toEmail, subject, htmlBody);
+        }
     }
 }

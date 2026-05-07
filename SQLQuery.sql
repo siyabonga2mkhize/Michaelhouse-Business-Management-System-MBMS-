@@ -519,6 +519,7 @@ INNER JOIN AppUsers u ON d.Email = u.Email
 WHERE d.UserId IS NULL;
 
 
+
 ---
 INSERT INTO Vehicles (VehicleNumber, Model, Type, Capacity, IsActive, DateAdded, ImageUrl)
 VALUES 
@@ -530,3 +531,5 @@ VALUES
 
 
 Select * from TripRequests;
+
+Delete from TripRequests where Id = 5;
