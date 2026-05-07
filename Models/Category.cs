@@ -198,5 +198,45 @@ namespace Michaelhouse.Models
         public bool IsInStock { get; set; }
     }
 
+    //Tracking and Cancelling Orders (Second Increment)
+    public enum OrderStatus
+    {
+        Pending = 1,
+        Processing = 2,
+        Shipped = 3,
+        Delivered = 4,
+        Cancelled = 5
+    }
 
+    public class TrackOrderViewModel
+    {
+        [Required(ErrorMessage = "Order number is required")]
+        [Display(Name = "Order Number")]
+        [StringLength(50)]
+        public string OrderNumber { get; set; } = string.Empty;
+    }
+
+    public class OrderItemViewModel
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public double UnitPrice { get; set; }
+        public double Subtotal { get; set; }
+    }
+
+    public class OrderDetailsViewModel
+    {
+        public int Id { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public DateTime OrderDate { get; set; }
+        public double TotalAmount { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusClass { get; set; } = string.Empty;
+        public string Notes { get; set; }
+        public bool CanCancel { get; set; }
+        public List<OrderItemViewModel> Items { get; set; } = new List<OrderItemViewModel>();
+    }
 }
+

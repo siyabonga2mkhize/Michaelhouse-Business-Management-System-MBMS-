@@ -388,10 +388,11 @@ namespace Michaelhouse.Services
         Michaelhouse — This is an official purchase order.
     </div>
 </body></html>";
-
-            _email.SendRaw(po.Supplier.Email,
-                $"Purchase Order {po.PoNumber} — Michaelhouse", body);
         }
+
+          /*  _email.SendRaw(po.Supplier.Email,
+                $"Purchase Order {po.PoNumber} — Michaelhouse", body);
+        }*/
 
         private string GeneratePoNumber(DBContextClass db)
         {
