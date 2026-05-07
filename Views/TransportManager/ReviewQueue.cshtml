@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Michaelhouse.Models.DriverApplication>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Active = "queue";
+}
+<div class="row">
+    <div class="col-md-3">
+        @Html.Partial("_TransportSidebar")
+    </div>
+    <div class="col-md-9">
+        <h2>Review Queue</h2>
+
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Submitted</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Interview</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td>@(a.DateSubmitted.HasValue ? a.DateSubmitted.Value.ToString("yyyy-MM-dd") : "-")</td>
+                        <td>@a.FullName</td>
+                        <td>@a.Email</td>
+                        <td>@a.Status</td>
+                        <td>@(a.InterviewDate.HasValue ? a.InterviewDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Details","Transport", new { id = a.Id })">Details</a>
+                            <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details","Transport", new { id = a.Id })#actions">Actions</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

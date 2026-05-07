@@ -214,13 +214,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605072155057_InitialCreate.cs" />
-    <Compile Include="Migrations\202605072155057_InitialCreate.Designer.cs">
-      <DependentUpon>202605072155057_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605072157159_InitialCreate1.cs" />
-    <Compile Include="Migrations\202605072157159_InitialCreate1.Designer.cs">
-      <DependentUpon>202605072157159_InitialCreate1.cs</DependentUpon>
+    <Compile Include="Migrations\202605071604471_InitialCreate.cs" />
+    <Compile Include="Migrations\202605071604471_InitialCreate.Designer.cs">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -535,11 +531,8 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605072155057_InitialCreate.resx">
-      <DependentUpon>202605072155057_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605072157159_InitialCreate1.resx">
-      <DependentUpon>202605072157159_InitialCreate1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
