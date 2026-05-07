@@ -575,3 +575,4 @@ FROM sys.default_constraints
 WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
   AND col_name(parent_object_id, parent_column_id) = 'TripScheduleId';
 EXEC sp_executesql @defaultSql;
+Drop Database MichaelHouse;

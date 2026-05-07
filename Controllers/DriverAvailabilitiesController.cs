@@ -38,6 +38,23 @@ namespace Michaelhouse
         // GET: DriverAvailabilities/Create
         public ActionResult Create()
         {
+            // Resolve logged-in driver's profile so the view doesn't access the DB
+            try
+            {
+                var uidObj = Session["UserId"];
+                if (uidObj != null)
+                {
+                    var uid = (int)uidObj;
+                    var driver = db.Drivers.FirstOrDefault(d => d.UserId == uid);
+                    if (driver != null)
+                    {
+                        ViewBag.DriverName = driver.FullName;
+                        ViewBag.DriverId = driver.Id;
+                    }
+                }
+            }
+            catch { }
+
             return View();
         }
 
@@ -48,6 +65,29 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,DriverId,StartDate,EndDate,Reason,DateCreated")] DriverAvailability driverAvailability)
         {
+            // Ensure DriverId is taken from the logged-in driver (do not trust client input)
+            int resolvedDriverId = 0;
+            try
+            {
+                if (Session["DriverId"] != null)
+                    resolvedDriverId = Convert.ToInt32(Session["DriverId"]);
+                else if (Session["UserId"] != null)
+                {
+                    var uid = Convert.ToInt32(Session["UserId"]);
+                    var drv = db.Drivers.FirstOrDefault(d => d.UserId == uid);
+                    if (drv != null) resolvedDriverId = drv.Id;
+                }
+            }
+            catch { }
+
+            if (resolvedDriverId == 0)
+            {
+                ModelState.AddModelError("", "Could not determine driver identity. Please contact administrator.");
+            }
+
+            // set the resolved driver id regardless of what was posted
+            driverAvailability.DriverId = resolvedDriverId;
+
             // 1. Validate date logic first
             if (driverAvailability.EndDate < driverAvailability.StartDate)
             {

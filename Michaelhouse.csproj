@@ -220,6 +220,9 @@
     <Compile Include="Migrations\202605072300463_InitialCreate.cs" />
     <Compile Include="Migrations\202605072300463_InitialCreate.Designer.cs">
       <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605071604471_InitialCreate.cs" />
+    <Compile Include="Migrations\202605071604471_InitialCreate.Designer.cs">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -550,6 +553,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202605072300463_InitialCreate.resx">
       <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
