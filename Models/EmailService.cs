@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Michaelhouse.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -454,5 +455,76 @@ namespace Michaelhouse.Services
 
             Send(teacherEmail, subject, body);
         }
+
+        // ========== NEW: School Store Order Confirmation ==========
+        public void SendOrderConfirmation(string customerEmail, string customerName, string orderNumber, double totalAmount, List<OrderItem> items)
+        {
+            var subject = $"Order Confirmation - Michaelhouse School Store (#{orderNumber})";
+            string logoUrl = $"https://i.postimg.cc/Ss8DWBVf/Content/logo.svg.png";
+
+            var itemsHtml = string.Join("", items.Select(item => $@"
+                <tr style='border-bottom:1px solid #eeeeee;'>
+                    <td style='padding:12px 5px;'>{item.Product.Name}</td>
+                    <td style='padding:12px 5px; text-align:center;'>{item.Quantity}</td>
+                    <td style='padding:12px 5px; text-align:right;'>R {item.UnitPrice:N2}</td>
+                    <td style='padding:12px 5px; text-align:right;'>R {item.Subtotal:N2}</td>
+                </tr>"));
+
+            var body = $@"
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap' rel='stylesheet'>
+</head>
+<body style='font-family:sans-serif; background-color:#f4f4f4; margin:0; padding:40px 0;'>
+    <div style='max-width:600px; margin:0 auto; background-color:#ffffff; border:1px solid #dddddd; box-shadow:0 15px 40px rgba(0,0,0,0.05);'>
+        <div style='background-color:#1a1a1a; padding:50px 40px; border-bottom:5px solid #C21E2E; text-align:center;'>
+            <img src='{logoUrl}' alt='Michaelhouse' style='height:80px; width:auto; margin-bottom:20px; display:inline-block;' />
+            <h1 style='color:#ffffff; margin:0; font-family:""Playfair Display"", serif; letter-spacing:5px; text-transform:uppercase; font-size:22px;'>Michaelhouse</h1>
+            <div style='height:1px; width:40px; background-color:#C21E2E; margin:15px auto;'></div>
+            <p style='color:#999999; margin:0; letter-spacing:3px; text-transform:uppercase; font-size:9px; font-weight:bold;'>School Store</p>
+        </div>
+        <div style='padding:60px 50px; color:#333333; line-height:1.8;'>
+            <h2 style='font-family:""Playfair Display"", serif; font-size:30px; color:#1a1a1a; margin-top:0; margin-bottom:25px;'>Dear {customerName},</h2>
+            <p style='font-size:16px; margin-bottom:25px;'>Thank you for shopping at the Michaelhouse School Store. Your order <strong>#{orderNumber}</strong> has been received and is now being processed.</p>
+            <div style='margin:40px 0;'>
+                <h4 style='margin:0 0 15px; text-transform:uppercase; letter-spacing:2px; font-size:11px; color:#1a1a1a; border-bottom:2px solid #C21E2E; display:inline-block;'>Order Summary</h4>
+                <table style='width:100%; border-collapse:collapse; margin-top:15px;'>
+                    <thead>
+                        <tr style='background-color:#f5f5f5;'>
+                            <th style='padding:10px 5px; text-align:left;'>Product</th>
+                            <th style='padding:10px 5px; text-align:center;'>Qty</th>
+                            <th style='padding:10px 5px; text-align:right;'>Unit Price</th>
+                            <th style='padding:10px 5px; text-align:right;'>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr style='border-top:2px solid #1a1a1a;'>
+                            <td colspan='3' style='padding:15px 5px; text-align:right; font-weight:bold;'>Total</td>
+                            <td style='padding:15px 5px; text-align:right; font-weight:bold; color:#C21E2E;'>R {totalAmount:N2}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p style='font-size:14px; color:#666;'>You can track the status of your order by visiting the <a href='{_baseUrl}/Order/TrackOrder' style='color:#C21E2E;'>Track Order</a> page and entering your order number.</p>
+            <div style='text-align:center; margin-top:50px;'>
+                <a href='{_baseUrl}/Order/TrackOrder' style='background-color:#1a1a1a; color:#ffffff; padding:15px 30px; text-decoration:none; font-size:11px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; display:inline-block;'>Track Your Order</a>
+            </div>
+        </div>
+        <div style='background-color:#fafafa; padding:40px; text-align:center; border-top:1px solid #eeeeee;'>
+            <p style='margin:0; font-size:10px; color:#999999; letter-spacing:1px; text-transform:uppercase;'>Michaelhouse School Store &nbsp;·&nbsp; Balgowan</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            Send(customerEmail, subject, body);
+        }
     }
 }
+
+
+//Add email after placing the order 
+//Send email to the user with the order details and a link to view the order 
