@@ -111,6 +111,46 @@ INSERT INTO Parents (Name, Email, Phone) VALUES
 ('Sipho Parent', 'sipho.parent@demo.com', '0833333333'),
 ('Zanele Parent', 'zanele.parent@demo.com', '0844444444');
 
+INSERT INTO Parents (Name, Contact, CellPhone)
+VALUES 
+('Nomvula Zuma', 'nomvula.z@webmail.co.za', '0732228899'), -- Will be ParentId 12
+('Kevin Naidoo', 'k.naidoo@telkomsa.net', '0817773344');   -- Will be ParentId 13
+
+Select * from Parents;
+
+-- Update for Siya
+UPDATE Parents SET EmergencyContactName = 'Siya', EmergencyContactPhone = '1234567890' WHERE ParentId = 1;
+
+-- Update for Demo Parent
+UPDATE Parents SET EmergencyContactName = 'Demo Parent', EmergencyContactPhone = '123456789' WHERE ParentId = 2;
+
+-- Update for Parent
+UPDATE Parents SET EmergencyContactName = 'Parent', EmergencyContactPhone = '1234567890' WHERE ParentId = 6;
+
+-- Update for Busi Naidoo
+UPDATE Parents SET EmergencyContactName = 'Busi Naidoo', EmergencyContactPhone = '0825551234' WHERE ParentId = 7;
+
+-- Update for Johannes Steyn
+UPDATE Parents SET EmergencyContactName = 'Johannes Steyn', EmergencyContactPhone = '0714449876' WHERE ParentId = 8;
+
+-- Update for Lindiwe Mazibuko
+UPDATE Parents SET EmergencyContactName = 'Lindiwe Mazibuko', EmergencyContactPhone = '0831112233' WHERE ParentId = 9;
+
+-- Update for David Mokwena
+UPDATE Parents SET EmergencyContactName = 'David Mokwena', EmergencyContactPhone = '0849994455' WHERE ParentId = 10;
+
+-- Update for Sarah Pillay
+UPDATE Parents SET EmergencyContactName = 'Sarah Pillay', EmergencyContactPhone = '0728886677' WHERE ParentId = 11;
+
+-- Update for Nomvula Zuma
+UPDATE Parents SET EmergencyContactName = 'Nomvula Zuma', EmergencyContactPhone = '0732228899' WHERE ParentId = 12;
+
+-- Update for Kevin Naidoo
+UPDATE Parents SET EmergencyContactName = 'Kevin Naidoo', EmergencyContactPhone = '0817773344' WHERE ParentId = 13;
+
+
+
+
 -- Now insert students, each with a different ParentId (assuming IDs are sequential starting from some value)
 -- Use actual IDs from the insert above. If you just inserted these four, they will likely be e.g. 1,2,3,4.
 INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId)
@@ -124,6 +164,14 @@ VALUES
 INSERT INTO Parents (Name, Contact, CellPhone)
 VALUES ('Demo Parent', 'parent@demo.com', '1234566789');
 
+INSERT INTO Parents (Name, Contact, CellPhone)
+VALUES 
+('Busi Naidoo', 'busi.n@gmail.com', '0825551234'),
+('Johannes Steyn', 'jsteyn@mweb.co.za', '0714449876'),
+('Lindiwe Mazibuko', 'lindi.mazi@outlook.com', '0831112233'),
+('David Mokwena', 'dmokwena@work.co.za', '0849994455'),
+('Sarah Pillay', 'spillay@fnb.co.za', '0728886677');
+
 -- Get the generated ParentId
 DECLARE @ParentId INT = SCOPE_IDENTITY();
 
@@ -134,6 +182,54 @@ VALUES
 ('Lerato', 'Molefe', 8, '2012-08-22', @ParentId, 'Female'),
 ('Sipho', 'Dlamini', 8, '2012-02-15', @ParentId, 'Male'),
 ('Zanele', 'Khumalo', 8, '2012-11-30', @ParentId, 'Female');
+
+
+INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
+VALUES 
+-- Assigned to Busi Naidoo (ParentId 7)
+('Bongani', 'Ndlovu', 8, '2012-04-05', 7, 'Male'),
+('Nandi', 'Mokoena', 8, '2012-09-12', 7, 'Female'),
+('Sibusiso', 'Gumede', 8, '2012-01-20', 7, 'Male'),
+
+-- Assigned to Johannes Steyn (ParentId 8)
+('Thandi', 'Mbatha', 8, '2012-06-18', 8, 'Female'),
+('Lethabo', 'Baloyi', 8, '2012-03-25', 8, 'Male'),
+('Melokuhle', 'Mabuza', 8, '2012-07-08', 8, 'Female'),
+
+-- Assigned to Lindiwe Mazibuko (ParentId 9)
+('Bandile', 'Jacobs', 8, '2012-10-14', 9, 'Male'),
+('Palesa', 'Van Wyk', 8, '2012-12-05', 9, 'Female'),
+('Lubanzi', 'Mokoena', 9, '2011-04-12', 9, 'Male'),
+
+-- Assigned to David Mokwena (ParentId 10)
+('Onalerona', 'Sibiya', 9, '2011-09-05', 10, 'Female'),
+('Nkazimulo', 'Zuma', 9, '2011-01-22', 10, 'Male'),
+('Zanokuhle', 'Buthelezi', 9, '2011-11-14', 10, 'Female'),
+
+-- Assigned to Sarah Pillay (ParentId 11)
+('Enzokuhle', 'Mbewe', 10, '2010-06-30', 11, 'Male'),
+('Iminathi', 'Tshabalala', 10, '2010-02-18', 11, 'Female'),
+('Bandile', 'Mabaso', 10, '2010-08-09', 11, 'Male'),
+('Minenhle', 'Zwane', 10, '2010-12-25', 11, 'Female');
+
+
+
+INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
+VALUES 
+-- Mix with Existing Parent IDs (7 - 11)
+('Kungawo', 'Ndlovu', 8, '2012-03-15', 7, 'Male'),
+('Siyabonga', 'Mokoena', 8, '2012-07-22', 8, 'Male'),
+('Amahle', 'Dlamini', 8, '2012-11-05', 9, 'Female'),
+('Thandolwethu', 'Nkosi', 8, '2012-01-30', 10, 'Female'),
+('Bokamoso', 'Molefe', 8, '2012-05-14', 11, 'Male'),
+
+-- Assign to New Parent IDs (12 - 13)
+('Lethabo', 'Zuma', 8, '2012-09-02', 12, 'Male'),
+('Onalerona', 'Zuma', 8, '2012-02-18', 12, 'Female'),
+('Nkazimulo', 'Naidoo', 8, '2012-06-25', 13, 'Male'),
+('Melokuhle', 'Naidoo', 8, '2012-10-10', 13, 'Female'),
+('Zanokuhle', 'Naidoo', 8, '2012-04-12', 13, 'Female');
+
 
 -- Update existing students with Gender and StudentNumber
 UPDATE Students 
@@ -238,7 +334,7 @@ WHERE s.StudentId IN (2, 3, 4, 5, 6);
 INSERT INTO Parents (Name, Contact, CellPhone, UserId)
 SELECT 'Parent Name', Email, NULL, UserId
 FROM AppUsers 
-WHERE Email = 'notprobmx@gmail.com' AND Role = 'Parent';
+WHERE Email = 'notprobmx@gmail.com' AND Role = 'Parent';;
 
 Select * from Parents;
 
@@ -575,3 +671,44 @@ FROM sys.default_constraints
 WHERE parent_object_id = OBJECT_ID('dbo.TripStudents')
   AND col_name(parent_object_id, parent_column_id) = 'TripScheduleId';
 EXEC sp_executesql @defaultSql;
+
+Select * from TripStudents;
+
+SELECT * FROM AppUsers WHERE Role = 'Driver';
+SELECT d.Id, d.FullName, d.Email AS DriverEmail, d.UserId, u.UserId AS AppUserId, u.Email AS AppUserEmail, u.PasswordHash
+FROM Drivers d
+LEFT JOIN AppUsers u ON d.UserId = u.UserId;
+
+UPDATE AppUsers
+SET PasswordHash = 'OI/CLGhlBc6ItZ4qmx3u+T3JuFVYBXjqcEqjg9Y+4f0='
+WHERE Role = 'Driver';
+
+SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'DriverAvailabilities'
+
+
+--Manallu add avaliablites table 
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DriverAvailabilities')
+BEGIN
+    CREATE TABLE dbo.DriverAvailabilities (
+        Id INT IDENTITY(1,1) NOT NULL,
+        DriverId INT NOT NULL,
+        StartDate DATETIME NOT NULL,
+        EndDate DATETIME NOT NULL,
+        Reason NVARCHAR(500) NULL,
+        DateCreated DATETIME NOT NULL,
+        CONSTRAINT PK_DriverAvailabilities PRIMARY KEY (Id)
+    )
+END
+
+IF NOT EXISTS (SELECT * FROM sys.foreBign_keys WHERE name = 'FK_DriverAvailabilities_Drivers')
+BEGIN
+    ALTER TABLE dbo.DriverAvailabilities ADD CONSTRAINT FK_DriverAvailabilities_Drivers FOREIGN KEY (DriverId) REFERENCES dbo.Drivers(Id)
+END
+
+
+
+
+---
+Select * from DriverAvailabilities;
+INSERT INTO DriverAvailabilities (DriverId, StartDate, EndDate, Reason, DateCreated)
+VALUES (1, '2025-01-01', '2025-01-05', 'Test', GETDATE());

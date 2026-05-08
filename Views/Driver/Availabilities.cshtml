@@ -1,0 +1,42 @@
+﻿@model List<Michaelhouse.Models.DriverAvailability>
+@{
+    ViewBag.Title = "My Unavailability";
+}
+<h2>My Unavailability</h2>
+<p><a href="@Url.Action("AddAvailability")" class="btn btn-primary">Add Period</a></p>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No unavailability periods set.</div>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Reason</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model)
+            {
+                <tr>
+                    <td>@(a.StartDate?.ToString("dd MMM yyyy"))</td>
+                    <td>@(a.EndDate.ToString("dd MMM yyyy") )</td>
+                    <td>@a.Reason</td>
+                    <td>
+                        <a href="@Url.Action("EditAvailability", new { id = a.Id })" class="btn btn-sm btn-warning">Edit</a>
+                        @using (Html.BeginForm("DeleteAvailability", "Driver", FormMethod.Post, new { style = "display:inline;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@a.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this period?')">Delete</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

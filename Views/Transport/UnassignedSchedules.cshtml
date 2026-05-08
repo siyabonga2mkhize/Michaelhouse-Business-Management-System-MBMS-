@@ -1,53 +1,140 @@
 ﻿@model List<Michaelhouse.Models.TripSchedule>
 @{
-    ViewBag.Title = "Unassigned Trip Schedules";
+    ViewBag.Title = "Fleet Assignment";
 }
 
-<h2>Unassigned Trip Schedules</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-success">All trips have been assigned a driver and vehicle.</div>
-}
-else
-{
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Trip Title</th>
-                <th>Destination</th>
-                <th>Scheduled Date</th>
-                <th>Students Count</th>
-                <th>Teacher</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var schedule in Model)
-            {
-                var request = schedule.TripRequest;
-                var studentCount = schedule.TripStudents?.Count ?? 0;
-                <tr>
-                    <td>
-                        @request.Title
-                </td>
-                <td>
-                    @request.Destination
-            </td>
-            <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")
-        </td>
-        <td>
-            @studentCount
-    </td>
-    <td>@(request.Teacher?.FirstName + " " + request.Teacher?.LastName)
-    </td>
-    <td>
-        <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = schedule.Id })" class="btn btn-sm btn-primary">
-            Assign Driver & Vehicle
-        </a>
-    </td>
-</tr>
-}
-        </tbody>
-    </table>
-}
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Fleet Assignment</h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Transport")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Fleet Command
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mb-6">
+
+        @* Archival Dot Grid Header (Action Required Styling) *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-1"><i class="bi bi-exclamation-triangle me-2"></i> Awaiting Logistics Allocation</h5>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0">Immediate Action Required</p>
+            </div>
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Unassigned Schedules: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Excursion File</th>
+                        <th>Target Date</th>
+                        <th>Destination Routing</th>
+                        <th class="text-center">Manifest Size</th>
+                        <th class="pe-8 text-end">Administrative Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="py-20 text-center">
+                                <i class="bi bi-check2-circle text-green-500/50 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Fleet Fully Allocated</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">All active trip schedules have been successfully assigned logistics units.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var schedule in Model)
+                        {
+                            var request = schedule.TripRequest;
+                            var studentCount = schedule.TripStudents?.Count ?? 0;
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 text-sm group-hover:text-[#C21E2E] transition-colors">@(request?.Title ?? "Unknown Requisition")</div>
+                                    <div class="text-[10px] font-serif italic text-gray-500 mt-1">Req: @(request?.Teacher?.FirstName) @(request?.Teacher?.LastName)</div>
+                                </td>
+                                <td>
+                                    <span class="font-mono text-[11px] font-bold text-gray-800 bg-gray-50 px-2 py-1 border border-gray-100">
+                                        @schedule.ScheduledDate.ToString("dd MMM yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(request?.Destination))
+                                    {
+                                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">@request.Destination</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unspecified</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="font-mono text-sm font-bold text-gray-900">@studentCount</span>
+                                    <span class="text-[9px] text-gray-400 uppercase ml-1">Pax</span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = schedule.Id })" class="inline-block bg-black text-white px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                        <i class="bi bi-diagram-2 me-1"></i> Assign Fleet
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

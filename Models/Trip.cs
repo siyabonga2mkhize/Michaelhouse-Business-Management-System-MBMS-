@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models
 {
@@ -43,6 +44,7 @@ namespace Michaelhouse.Models
         public DateTime? ApprovedAt { get; set; }
         public double? DestinationLat { get; set; }
         public double? DestinationLng { get; set; }
+        public int? RebookedFromId { get; set; }
 
         // Navigation properties
         public virtual Teacher Teacher { get; set; }
@@ -66,6 +68,36 @@ namespace Michaelhouse.Models
         public virtual Driver Driver { get; set; }
         public virtual Vehicle Vehicle { get; set; }
         public virtual ICollection<TripStudent> TripStudents { get; set; }
+        public virtual ICollection<TripVehicleAssignment> VehicleAssignments { get; set; }
+    }
+    public class TripVehicleAssignment
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public int TripScheduleId { get; set; }
+
+        [Required]
+        public int VehicleId { get; set; }
+
+        [Required]
+        public int DriverId { get; set; }
+
+        [Required]
+        public int AllocatedSeats { get; set; }   // how many students this vehicle+driver carries
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation properties
+        [ForeignKey("TripScheduleId")]
+        public virtual TripSchedule TripSchedule { get; set; }
+
+        [ForeignKey("VehicleId")]
+        public virtual Vehicle Vehicle { get; set; }
+
+        [ForeignKey("DriverId")]
+        public virtual Driver Driver { get; set; }
     }
 
     public class TripStudent
@@ -182,6 +214,18 @@ namespace Michaelhouse.Models
         public List<Notification> Notifications { get; set; }
     }
 
+    public class ManifestStudentViewModel
+    {
+        public int StudentId { get; set; }
+        public string StudentName { get; set; }
+        public string ParentName { get; set; }
+        public string EmergencyContactName { get; set; }
+        public string EmergencyContactPhone { get; set; }
+        public bool IsPresentBefore { get; set; }
+        public bool IsPresentAfter { get; set; }
+        public bool? AlreadyPresentBefore { get; set; }  // from database
+        public bool? AlreadyPresentAfter { get; set; }
+    }
 
 
 

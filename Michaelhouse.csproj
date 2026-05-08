@@ -202,14 +202,12 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
-    <Compile Include="Controllers\DriverDashboardController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
-    <Compile Include="Controllers\DriverAvailabilitiesController.cs" />
     <Compile Include="Controllers\TransportController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -217,6 +215,18 @@
     <Compile Include="Migrations\202605071006223_initialcreate.cs" />
     <Compile Include="Migrations\202605071006223_initialcreate.Designer.cs">
       <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605071209179_initialcreate1.cs" />
+    <Compile Include="Migrations\202605071209179_initialcreate1.Designer.cs">
+      <DependentUpon>202605071209179_initialcreate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605071731059_AddTripVehicleAssignments.cs" />
+    <Compile Include="Migrations\202605071731059_AddTripVehicleAssignments.Designer.cs">
+      <DependentUpon>202605071731059_AddTripVehicleAssignments.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.cs" />
+    <Compile Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.Designer.cs">
+      <DependentUpon>202605080151153_AddDriverAvailabilitiesTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -227,8 +237,6 @@
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
     <Compile Include="Models\Driver.cs" />
-    <Compile Include="Models\DriverApplication.cs" />
-    <Compile Include="Models\DriverAvailability.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
     <Compile Include="Models\Event.cs" />
@@ -462,11 +470,6 @@
     <Content Include="Views\DriverApplications\Details.cshtml" />
     <Content Include="Views\DriverApplications\Edit.cshtml" />
     <Content Include="Views\DriverApplications\Index.cshtml" />
-    <Content Include="Views\DriverAvailabilities\Create.cshtml" />
-    <Content Include="Views\DriverAvailabilities\Delete.cshtml" />
-    <Content Include="Views\DriverAvailabilities\Details.cshtml" />
-    <Content Include="Views\DriverAvailabilities\Edit.cshtml" />
-    <Content Include="Views\DriverAvailabilities\Index.cshtml" />
     <Content Include="Views\Vehicle\Create.cshtml" />
     <Content Include="Views\Vehicle\Delete.cshtml" />
     <Content Include="Views\Vehicle\Details.cshtml" />
@@ -478,7 +481,6 @@
     <Content Include="Views\VehicleIssues\Edit.cshtml" />
     <Content Include="Views\VehicleIssues\Index.cshtml" />
     <Content Include="Views\DriverAvailability.cshtml" />
-    <Content Include="Views\DriverDashboard\Index.cshtml" />
     <Content Include="Views\DriverApplications\PublicDetails.cshtml" />
     <Content Include="Views\DriverApplications\MyApplications.cshtml" />
     <Content Include="Views\Transport\Dashboard.cshtml" />
@@ -502,6 +504,10 @@
     <Content Include="Views\Shared\_NotificationsList.cshtml" />
     <Content Include="Views\Shared\_NotificationBadge.cshtml" />
     <Content Include="Views\Notification\Index.cshtml" />
+    <Content Include="Views\Driver\AddAvailability.cshtml" />
+    <Content Include="Views\Driver\Availabilities.cshtml" />
+    <Content Include="Views\Driver\EditAvailability.cshtml" />
+    <Content Include="Views\Driver\MyTrips.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -537,6 +543,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202605071006223_initialcreate.resx">
       <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605071209179_initialcreate1.resx">
+      <DependentUpon>202605071209179_initialcreate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605071731059_AddTripVehicleAssignments.resx">
+      <DependentUpon>202605071731059_AddTripVehicleAssignments.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.resx">
+      <DependentUpon>202605080151153_AddDriverAvailabilitiesTable.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -1,4 +1,7 @@
 ﻿@model List<Michaelhouse.Models.Student>
+@{
+    var scheduledIds = ViewBag.AlreadyScheduledStudentIds as List<int> ?? new List<int>();
+}
 
 @if (Model != null && Model.Any())
 {
@@ -7,9 +10,10 @@
         <div class="checkbox-list" style="max-height: 300px; overflow-y: auto;">
             @foreach (var student in Model)
             {
+                var isChecked = scheduledIds.Contains(student.StudentId);
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="selectedStudentIds" value="@student.StudentId" />
+                        <input type="checkbox" name="selectedStudentIds" value="@student.StudentId" @(isChecked ? "checked" : "") />
                         @student.FirstName @student.LastName (Gr @student.GradeLevel)
                     </label>
                 </div>
