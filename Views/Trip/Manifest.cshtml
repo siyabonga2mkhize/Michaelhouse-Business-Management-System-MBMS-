@@ -1,8 +1,206 @@
-﻿@model List<Michaelhouse.Models.TripStudent>
-
+﻿@model List<Michaelhouse.Models.ManifestStudentViewModel>
 @{
-    ViewBag.Title = "Manifest";
+    ViewBag.Title = "Excursion Manifest";
+    var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
 }
 
-<h2>Manifest</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Excursion Manifest</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Ref: SCH-@(schedule?.Id) • @(schedule?.TripRequest?.Title)</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("UpcomingTrips", "Trip")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Return to Schedules
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    @using (Html.BeginForm("MarkManifest", "Trip", FormMethod.Post, new { @class = "flex flex-col flex-grow min-h-0" }))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="scheduleId" value="@schedule?.Id" />
+
+        <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mb-6">
+
+            @* Archival Dot Grid Header & Bulk Controls *@
+            <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                <div class="relative z-10">
+                    <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Target Date: @(schedule?.ScheduledDate.ToString("dd MMMM yyyy"))</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0">Passenger Tracking Roster</p>
+                </div>
+
+                <div class="relative z-10 flex gap-4">
+                    <div class="flex gap-1 border-r border-gray-200 pr-4">
+                        <button type="button" id="markAllBefore" class="bg-gray-100 text-gray-700 px-3 py-1 text-[9px] font-bold uppercase tracking-[1px] hover:bg-gray-200 transition-all">
+                            <i class="bi bi-check-all me-1"></i> Pre-Trip All
+                        </button>
+                        <button type="button" id="clearAllBefore" class="bg-white border border-gray-200 text-gray-500 px-3 py-1 text-[9px] font-bold uppercase tracking-[1px] hover:bg-gray-50 transition-all">
+                            <i class="bi bi-eraser me-1"></i> Clear
+                        </button>
+                    </div>
+                    <div class="flex gap-1">
+                        <button type="button" id="markAllAfter" class="bg-green-50 text-green-700 border border-green-200 px-3 py-1 text-[9px] font-bold uppercase tracking-[1px] hover:bg-green-100 transition-all">
+                            <i class="bi bi-check-all me-1"></i> Post-Trip All
+                        </button>
+                        <button type="button" id="clearAllAfter" class="bg-white border border-gray-200 text-gray-500 px-3 py-1 text-[9px] font-bold uppercase tracking-[1px] hover:bg-gray-50 transition-all">
+                            <i class="bi bi-eraser me-1"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @* Table Container (Scrolls Internally) *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="sticky top-0 z-10 bg-white">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                            <th class="ps-8 py-5">Student Identity</th>
+                            <th>Parent / Guardian</th>
+                            <th>Emergency Liaison</th>
+                            <th class="text-center bg-gray-50/80">Pre-Departure Verify</th>
+                            <th class="text-center bg-green-50/30">Post-Return Verify</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="py-20 text-center">
+                                    <i class="bi bi-person-x text-gray-100 text-6xl d-block mb-4"></i>
+                                    <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Manifest Empty</h4>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < Model.Count; i++)
+                            {
+                                var s = Model[i];
+                                bool afterDisabled = s.AlreadyPresentBefore != true;
+
+                                <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-4">
+                                        <div class="fw-bold text-gray-900 text-sm">@s.StudentName</div>
+                                        <input type="hidden" name="students[@i].StudentId" value="@s.StudentId" />
+                                    </td>
+                                    <td>
+                                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">@s.ParentName</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">@s.EmergencyContactName</div>
+                                        @if (!string.IsNullOrEmpty(s.EmergencyContactPhone))
+                                        {
+                                            <div class="text-[10px] font-mono text-blue-600 mt-1">
+                                                <i class="bi bi-telephone-fill me-1 text-gray-300"></i><a href="tel:@s.EmergencyContactPhone" class="hover:underline">@s.EmergencyContactPhone</a>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-center bg-gray-50/30">
+                                        <div class="d-flex justify-content-center">
+                                            <input type="checkbox" name="students[@i].IsPresentBefore" value="true" class="cb-before w-5 h-5 accent-[#C21E2E] cursor-pointer" @(s.AlreadyPresentBefore == true ? "checked" : "") />
+                                        </div>
+                                    </td>
+                                    <td class="text-center bg-green-50/10 after-cell">
+                                        <div class="d-flex justify-content-center">
+                                            <input type="checkbox" name="students[@i].IsPresentAfter" value="true" class="cb-after w-5 h-5 accent-[#10b981] cursor-pointer" @(s.AlreadyPresentAfter == true ? "checked" : "") @(afterDisabled ? "disabled" : "") />
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Institutional Footer Actions *@
+            <div class="p-6 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Official Attendance Registry
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" name="markType" value="before" class="bg-gray-100 text-gray-900 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-xl">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Commit Pre-Departure
+                    </button>
+                    <button type="submit" name="markType" value="after" class="bg-[#10b981] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-xl">
+                        <i class="bi bi-box-arrow-in-down-right me-2"></i> Commit Post-Return
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Checkbox disabled state styling */
+    input[type=checkbox]:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Mark all "Before" checkboxes
+            $('#markAllBefore').click(function () {
+                $('.cb-before').prop('checked', true);
+            });
+            $('#clearAllBefore').click(function () {
+                $('.cb-before').prop('checked', false);
+            });
+
+            // Mark all "After" checkboxes (only those not disabled)
+            $('#markAllAfter').click(function () {
+                $('.cb-after:not(:disabled)').prop('checked', true);
+            });
+            $('#clearAllAfter').click(function () {
+                $('.cb-after:not(:disabled)').prop('checked', false);
+            });
+        });
+    </script>
+}

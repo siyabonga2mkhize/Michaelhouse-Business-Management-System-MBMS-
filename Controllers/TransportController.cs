@@ -1,6 +1,7 @@
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
+using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
@@ -104,13 +105,32 @@ namespace Michaelhouse.Controllers
         public ActionResult AssignDriverVehicle(int scheduleId)
         {
             var schedule = db.TripSchedules
-                .Include(s => s.TripRequest)   // Required for navigation property
+                .Include("TripRequest")
+                .Include("VehicleAssignments.Driver")
+                .Include("VehicleAssignments.Vehicle")
                 .FirstOrDefault(s => s.Id == scheduleId);
-            if (schedule == null)
-                return HttpNotFound();
+            if (schedule == null) return HttpNotFound();
 
-            ViewBag.Drivers = db.Drivers.Where(d => d.IsActive).OrderBy(d => d.FullName).ToList();
-            ViewBag.Vehicles = db.Vehicles.Where(v => v.IsActive).OrderBy(v => v.VehicleNumber).ToList();
+            int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
+            int totalAllocated = schedule.VehicleAssignments?.Sum(a => a.AllocatedSeats) ?? 0;
+
+            // Get IDs of drivers and vehicles already assigned to this schedule
+            var assignedDriverIds = schedule.VehicleAssignments?.Select(a => a.DriverId).ToArray() ?? new int[0];
+            var assignedVehicleIds = schedule.VehicleAssignments?.Select(a => a.VehicleId).ToArray() ?? new int[0];
+
+            ViewBag.Drivers = db.Drivers
+                .Where(d => d.IsActive && !assignedDriverIds.Contains(d.Id))
+                .OrderBy(d => d.FullName)
+                .ToList();
+
+            ViewBag.Vehicles = db.Vehicles
+                .Where(v => v.IsActive && !assignedVehicleIds.Contains(v.Id))
+                .OrderBy(v => v.VehicleNumber)
+                .ToList();
+
+            ViewBag.StudentCount = studentCount;
+            ViewBag.TotalAllocated = totalAllocated;
+
             return View(schedule);
         }
 
@@ -122,12 +142,22 @@ namespace Michaelhouse.Controllers
             var schedule = db.TripSchedules.Find(scheduleId);
             if (schedule == null) return HttpNotFound();
 
+            // Count students already scheduled
+            int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
+            var vehicle = db.Vehicles.Find(vehicleId);
+            if (vehicle == null) return HttpNotFound();
+
+            if (vehicle.Capacity < studentCount)
+            {
+                TempData["Error"] = $"Vehicle capacity ({vehicle.Capacity}) is insufficient for {studentCount} students. Please add another vehicle or choose a larger vehicle.";
+                return RedirectToAction("AssignDriverVehicle", new { scheduleId });
+            }
+
             schedule.DriverId = driverId;
             schedule.VehicleId = vehicleId;
-            schedule.Status = "Confirmed";  // Optional: change status once assigned
+            schedule.Status = "Confirmed";
             db.SaveChanges();
 
-            // Notify teacher and driver
             var tripReq = db.TripRequests.Find(schedule.TripRequestId);
             NotificationHelper.NotifyTeacher(db, schedule.TeacherId, $"Trip '{tripReq.Title}' has been assigned a driver and vehicle.");
             var driver = db.Drivers.Find(driverId);
@@ -150,6 +180,62 @@ namespace Michaelhouse.Controllers
             NotificationHelper.NotifyTeacher(db, schedule.TeacherId, $"Driver & vehicle assigned for '{req.Title}'.");
             NotificationHelper.NotifyDriver(db, driverId, $"You are assigned to trip '{req.Title}' on {schedule.ScheduledDate:d}.");
             return RedirectToAction("UnassignedSchedules");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddVehicleAssignment(int scheduleId, int driverId, int vehicleId, int allocatedSeats)
+        {
+            var schedule = db.TripSchedules.Find(scheduleId);
+            if (schedule == null) return HttpNotFound();
+
+            var vehicle = db.Vehicles.Find(vehicleId);
+            if (vehicle == null) return HttpNotFound();
+
+            if (allocatedSeats > vehicle.Capacity)
+            {
+                TempData["Error"] = $"Allocated seats ({allocatedSeats}) cannot exceed vehicle capacity ({vehicle.Capacity}).";
+                return RedirectToAction("AssignDriverVehicle", new { scheduleId });
+            }
+
+            int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
+            int currentTotal = db.TripVehicleAssignments
+                .Where(a => a.TripScheduleId == scheduleId)
+                .Sum(a => (int?)a.AllocatedSeats) ?? 0;
+            int newTotal = currentTotal + allocatedSeats;
+
+            if (newTotal > studentCount)
+            {
+                TempData["Error"] = $"Total allocated seats ({newTotal}) would exceed number of students ({studentCount}).";
+                return RedirectToAction("AssignDriverVehicle", new { scheduleId });
+            }
+
+            var assignment = new TripVehicleAssignment
+            {
+                TripScheduleId = scheduleId,
+                DriverId = driverId,
+                VehicleId = vehicleId,
+                AllocatedSeats = allocatedSeats,
+                CreatedAt = DateTime.Now
+            };
+            db.TripVehicleAssignments.Add(assignment);
+            db.SaveChanges();
+
+            TempData["Success"] = "Vehicle/driver assignment added.";
+            return RedirectToAction("AssignDriverVehicle", new { scheduleId });
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RemoveAssignment(int assignmentId)
+        {
+            var assignment = db.TripVehicleAssignments.Find(assignmentId);
+            if (assignment == null) return HttpNotFound();
+
+            int scheduleId = assignment.TripScheduleId;
+            db.TripVehicleAssignments.Remove(assignment);
+            db.SaveChanges();
+
+            TempData["Success"] = "Assignment removed.";
+            return RedirectToAction("AssignDriverVehicle", new { scheduleId });
         }
 
         // All Trips (filterable)
@@ -208,6 +294,35 @@ namespace Michaelhouse.Controllers
             var drivers = db.Drivers.Where(d => d.IsActive).ToList();
             return View(drivers);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ConfirmTripAssignment(int scheduleId)
+        {
+            var schedule = db.TripSchedules.Find(scheduleId);
+            if (schedule == null) return HttpNotFound();
+
+            int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
+            int totalAllocated = db.TripVehicleAssignments
+                .Where(a => a.TripScheduleId == scheduleId)
+                .Sum(a => (int?)a.AllocatedSeats) ?? 0;
+
+            if (totalAllocated < studentCount)
+            {
+                TempData["Error"] = "Cannot confirm trip: insufficient seats allocated.";
+                return RedirectToAction("AssignDriverVehicle", new { scheduleId });
+            }
+
+            schedule.Status = "Confirmed";
+            db.SaveChanges();
+
+            // Notify the teacher
+            var teacherId = schedule.TeacherId;
+            var tripReq = db.TripRequests.Find(schedule.TripRequestId);
+            NotificationHelper.NotifyTeacher(db, teacherId, $"Trip '{tripReq.Title}' is confirmed and ready for student manifest.");
+
+            TempData["Success"] = "Trip confirmed. The teacher can now mark the manifest.";
+            return RedirectToAction("UnassignedSchedules");
+        }
 
 
         protected override void Dispose(bool disposing)
@@ -217,3 +332,4 @@ namespace Michaelhouse.Controllers
         }
     }
 }
+

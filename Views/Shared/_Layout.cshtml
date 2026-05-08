@@ -578,7 +578,7 @@
 
                                 <i class="bi bi-boxes"></i>
 
-                                <span>Inventory Ledger</span>
+                                <span>Inventory </span>
 
                             </div>
 
@@ -601,7 +601,7 @@
 
                                 <i class="bi bi-truck-flatbed"></i>
 
-                                <span>Vendor Registry</span>
+                                <span>Supplier Registry</span>
 
                             </div>
 
@@ -669,10 +669,10 @@
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -762,20 +762,11 @@
                            href="@Url.Action("Manifest", "Trip")">
                             <i class="bi bi-clipboard-check"></i> <span class="link-text">Student Manifest</span>
                         </a>
-
-
-
-
-
-                        @*<div class="sidebar-label text-truncate">Settings</div>
-
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-
-                               href="@Url.Action("Profile", "Account")">
-
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-
-                            </a>*@
+                        <div class="sidebar-label text-truncate">Settings</div>
+<a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+   href="@Url.Action("Profile", "Account")">
+    <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+</a>
 
                     }
                     else if (userRole == "TransportManager")
@@ -797,7 +788,7 @@
                            href="@Url.Action("AllTrips", "Transport")">
                             <i class="bi bi-calendar-check"></i> <span class="link-text">All Trips</span>
                         </a>
-                        <a class="nav-link" href="@Url.Action("Index", "Driver")">
+                        <a class="nav-link" href="@Url.Action("Index", "Transport")">
                             <i class="bi bi-person-badge"></i> Manage Drivers
                         </a>
 
@@ -824,6 +815,19 @@
                             <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
                         </a>
                     }
+                    else if (userRole == "Driver")
+                    {
+                        <div class="sidebar-label">Driver Portal</div>
+                        <a class="nav-link @(currentController == "Driver" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Driver")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Driver" && currentAction == "MyTrips" ? "active" : "")"
+                           href="@Url.Action("MyTrips", "Driver")">
+                            <i class="bi bi-calendar-check"></i> <span class="link-text">My Assigned Trips</span>
+                        </a>
+                    }
+
                 </nav>
 
             </div>

@@ -1,70 +1,271 @@
 ﻿@model List<Michaelhouse.Models.TripRequest>
 @{
-    ViewBag.Title = "Pending Trip Requests";
+    ViewBag.Title = "Pending Authorizations";
 }
 
-<h2>Pending Trip Requests</h2>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<table class="table table-bordered">
-    <thead>
-        <tr><th>Teacher</th><th>Title</th><th>Departure</th><th>Return</th><th>Destination</th><th>Max Students</th><th>Action</th></tr>
-    </thead>
-    <tbody>
-        @foreach (var req in Model)
-        {
-            <tr>
-                <td>@(req.Teacher?.FirstName + " " + req.Teacher?.LastName)</td>
-                <td>@req.Title</td>
-                <td>@req.DepartureTime.ToString("g")</td>
-                <td>@req.ReturnTime.ToString("g")</td>
-                <td>@req.Destination</td>
-                <td>@req.MaxStudents</td>
-                <td>
-                    <form method="post" action="@Url.Action("ApproveRequest", "Transport")" style="display:inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@req.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                    </form>
-                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#rejectModal" data-id="@req.Id" data-title="@req.Title">Reject</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-<!-- Rejection Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Reject Trip Request</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
             </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Pending Authorizations</h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Transport")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Fleet Command
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mb-6">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Requisition Ledger</h5>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Awaiting Logistics Approval</p>
+            </div>
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Pending Records: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Excursion File</th>
+                        <th>Target Window</th>
+                        <th>Routing Coordinates</th>
+                        <th class="text-center">Manifest Size</th>
+                        <th class="pe-8 text-end">Administrative Authorization</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="py-20 text-center">
+                                <i class="bi bi-check-circle text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">No Pending Requisitions</h4>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var req in Model)
+                        {
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 text-sm group-hover:text-[#C21E2E] transition-colors">@req.Title</div>
+                                    <div class="text-[10px] font-serif italic text-gray-500 mt-1">Req: @(req.Teacher?.FirstName) @(req.Teacher?.LastName)</div>
+                                </td>
+                                <td>
+                                    <div class="text-[11px] font-mono text-gray-800"><span class="text-[9px] text-gray-400 mr-1">DEP:</span> @req.DepartureTime.ToString("dd MMM yyyy HH:mm")</div>
+                                    <div class="text-[11px] font-mono text-gray-500"><span class="text-[9px] text-gray-400 mr-1">RET:</span> @req.ReturnTime.ToString("dd MMM yyyy HH:mm")</div>
+                                </td>
+                                <td>
+                                    @if (req.DestinationLat.HasValue && req.DestinationLng.HasValue)
+                                    {
+                                        <a href="#" class="view-map-link inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                                           data-lat="@req.DestinationLat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                           data-lng="@req.DestinationLng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                           data-address="@req.Destination">
+                                            <i class="bi bi-geo-alt-fill"></i> View Route
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">@(req.Destination ?? "Unspecified")</span>
+                                    }
+                                </td>
+                                <td class="text-center font-mono text-sm text-gray-900">
+                                    @req.MaxStudents <span class="text-[9px] text-gray-400 uppercase">Pax</span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <div class="flex justify-end gap-2">
+                                        <form method="post" action="@Url.Action("ApproveRequest", "Transport")" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@req.Id" />
+                                            <button type="submit" class="inline-block bg-black text-white px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-sm">
+                                                <i class="bi bi-check2-circle me-1"></i> Authorize
+                                            </button>
+                                        </form>
+                                        <button type="button" class="inline-block bg-white border border-gray-300 text-gray-500 px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-red-500 hover:text-red-600 transition-all shadow-sm"
+                                                data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                                data-id="@req.Id" data-title="@req.Title">
+                                            <i class="bi bi-x-octagon me-1"></i> Void
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* --- MAP MODAL --- *@
+@Html.Partial("_TripMapModal")
+
+@* --- REJECTION MODAL (Institutional Refinement) --- *@
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Void Requisition</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
             <form method="post" action="@Url.Action("ApproveRequest", "Transport")">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" id="rejectId" />
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Reason for rejection</label>
-                        <textarea name="rejectionReason" class="form-control" rows="3" required></textarea>
+                <div class="modal-body p-8 bg-white">
+                    <p class="text-sm text-gray-500 mb-6 font-serif italic">Please specify the logistical constraint preventing authorization.</p>
+
+                    <div class="mb-4">
+                        <label for="rejectionReasonSelect" class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 d-block mb-2">Rejection Classification</label>
+                        <select class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic" id="rejectionReasonSelect" required>
+                            <option value="">-- Select classification --</option>
+                            <option value="No available driver on that date">No available driver on that date</option>
+                            <option value="Vehicle maintenance conflict">Vehicle maintenance conflict</option>
+                            <option value="Insufficient budget">Insufficient budget</option>
+                            <option value="Destination unsafe">Destination unsafe</option>
+                            <option value="Teacher not qualified for trip">Teacher not qualified for trip</option>
+                            <option value="Other (specify below)">Other (specify below)</option>
+                        </select>
                     </div>
+
+                    <div class="mb-2" id="otherReasonDiv" style="display:none;">
+                        <label for="rejectionReasonOther" class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 d-block mb-2">Specify Reasoning</label>
+                        <textarea class="w-full bg-gray-50 border-0 p-3 outline-none text-sm font-serif italic focus:ring-1 focus:ring-[#C21E2E]" id="rejectionReasonOther" rows="2"></textarea>
+                    </div>
+                    <input type="hidden" id="finalRejectionReason" name="rejectionReason" />
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject</button>
+
+                <div class="modal-footer border-t border-gray-100 p-6 bg-gray-50/50">
+                    <button type="button" class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 px-4 hover:text-gray-900 transition-colors" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] shadow-xl hover:bg-black transition-all">Submit Void</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
 @section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // ========== MAP MODAL HANDLING ==========
+        let currentMap = null;
+
+        $('.view-map-link').click(function (e) {
+            e.preventDefault();
+            var lat = parseFloat($(this).data('lat'));
+            var lng = parseFloat($(this).data('lng'));
+            var address = $(this).data('address');
+            $('#modalAddress').text(address);
+            $('#tripMapModal').modal('show');
+
+            $('#tripMapModal').on('shown.bs.modal', function () {
+                if (currentMap) currentMap.remove();
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12); // fallback
+                }
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                }).addTo(currentMap);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
+            });
+
+            $('#tripMapModal').on('hidden.bs.modal', function () {
+                if (currentMap) currentMap.remove();
+                currentMap = null;
+            });
+        });
+
+        // ========== REJECTION MODAL HANDLING ==========
+        $('#rejectionReasonSelect').change(function () {
+            if ($(this).val() === 'Other (specify below)') {
+                $('#otherReasonDiv').slideDown(200);
+                $('#rejectionReasonOther').prop('required', true);
+                $('#finalRejectionReason').val('');
+            } else {
+                $('#otherReasonDiv').slideUp(200);
+                $('#rejectionReasonOther').prop('required', false);
+                $('#finalRejectionReason').val($(this).val());
+            }
+        });
+
+        $('form').submit(function () {
+            var selected = $('#rejectionReasonSelect').val();
+            if (selected === 'Other (specify below)') {
+                $('#finalRejectionReason').val($('#rejectionReasonOther').val());
+            } else {
+                $('#finalRejectionReason').val(selected);
+            }
+        });
+
         $('#rejectModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var id = button.data('id');
-            var modal = $(this);
-            modal.find('#rejectId').val(id);
+            $(this).find('#rejectId').val(id);
+            $('#rejectionReasonSelect').val('').trigger('change');
+            $('#rejectionReasonOther').val('');
+            $('#finalRejectionReason').val('');
+            $('#otherReasonDiv').hide();
         });
     </script>
 }

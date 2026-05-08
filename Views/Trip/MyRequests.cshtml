@@ -1,111 +1,206 @@
 ﻿@model List<Michaelhouse.Models.TripRequest>
 @{
-    ViewBag.Title = "My Trip Requests";
+    ViewBag.Title = "Transport Requisitions";
 }
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<h2>My Trip Requests</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Departure</th>
-            <th>Return</th>
-            <th>Destination</th>
-            <th>Max Students</th>
-            <th>Status</th>
-            <th>Rejection Reason</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var req in Model)
-        {
-            <tr>
-                <td>
-                    @req.Title
-            </td>
-            <td>
-                @req.DepartureTime.ToString("g")
-        </td>
-        <td>@req.ReturnTime.ToString("g")
-    </td>
-    <td>
-        @if (!string.IsNullOrEmpty(req.Destination))
-        {
-            <a href="#" class="view-map-link"
-               data-lat="@(req.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
-               data-lng="@(req.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
-               data-address="@req.Destination">
-                📍 View Map
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Trip Requisitions</h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("BookTrip", "Trip")" class="inline-block bg-gray-900 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-xl active:scale-95">
+                <i class="bi bi-plus-lg me-2"></i> File New Request
             </a>
-        }
-        else
-        {
-            <span>No destination</span>
-        }
-    </td>
-    <td>
-        @req.MaxStudents
-</td>
-<td>
-    @if (req.Status == "Pending")
-    {<span class="badge bg-warning text-dark">Pending</span> }
-    else if (req.Status == "Approved")
-    { <span class="badge bg-success">Approved</span> }
-    else if (req.Status == "Rejected")
-    { <span class="badge bg-danger">Rejected</span> }
-    else
-    { <span>@req.Status</span>}
-</td>
-<td>@req.RejectionReason
-</td>
-<td>
-    @if (req.Status == "Approved")
-    {
-        <a href="@Url.Action("ScheduleTrip", "Trip", new { tripRequestId = req.Id })" class="btn btn-sm btn-primary">Schedule Students</a>
-    }
-</td>
-</tr>
-}
-    </tbody>
-</table>
+        </div>
+    </div>
 
-<a href="@Url.Action("BookTrip", "Trip")" class="btn btn-primary">New Trip Request</a>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mb-4">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Active Requisition Ledger</h5>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Formal Excursion Requests</p>
+            </div>
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Records: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="tripTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Excursion Title</th>
+                        <th>Schedule Target</th>
+                        <th>Destination Routing</th>
+                        <th class="text-center">Manifest Limit</th>
+                        <th class="text-center">Status</th>
+                        <th class="pe-8 text-end">Administrative Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="py-20 text-center">
+                                <i class="bi bi-bus-front text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">No Requisitions Found</h4>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var req in Model)
+                        {
+                            string statusColor = req.Status == "Approved" ? "#10b981"
+                                               : req.Status == "Rejected" ? "#ef4444"
+                                               : "#f59e0b"; // Pending
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">@req.Title</div>
+                                    @if (req.Status == "Rejected" && !string.IsNullOrEmpty(req.RejectionReason))
+                                    {
+                                        <div class="text-[9px] text-red-500 font-bold tracking-tighter uppercase mt-1">Reason: @req.RejectionReason</div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="text-[11px] font-mono text-gray-800"><span class="text-[9px] text-gray-400 mr-1">DEP:</span> @req.DepartureTime.ToString("dd MMM yyyy HH:mm")</div>
+                                    <div class="text-[11px] font-mono text-gray-500"><span class="text-[9px] text-gray-400 mr-1">RET:</span> @req.ReturnTime.ToString("dd MMM yyyy HH:mm")</div>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(req.Destination))
+                                    {
+                                        <a href="#" class="view-map-link inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                                           data-lat="@(req.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                           data-lng="@(req.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                           data-address="@req.Destination">
+                                            <i class="bi bi-geo-alt-fill"></i> View Route
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unspecified</span>
+                                    }
+                                </td>
+                                <td class="text-center font-mono text-sm text-gray-900">
+                                    @req.MaxStudents <span class="text-[9px] text-gray-400 uppercase">Pax</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                          style="color: @statusColor; border-color: @statusColor;">
+                                        @req.Status
+                                    </span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    @if (req.Status == "Approved")
+                                    {
+                                        <a href="@Url.Action("ScheduleTrip", "Trip", new { tripRequestId = req.Id })" class="inline-block bg-green-50 text-green-700 border border-green-200 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:text-white transition-all shadow-sm">
+                                            Schedule Manifest
+                                        </a>
+                                    }
+                                    else if (req.Status == "Rejected")
+                                    {
+                                        <a href="@Url.Action("RebookTrip", "Trip", new { requestId = req.Id })" class="inline-block bg-white border border-amber-300 text-amber-600 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-amber-50 transition-all shadow-sm">
+                                            Re-Submit
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Awaiting Auth</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 @Html.Partial("_TripMapModal")
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
         let currentMap = null;
-        $('.view-map-link').click(function(e) {
+        $('.view-map-link').click(function (e) {
             e.preventDefault();
             var lat = parseFloat($(this).data('lat'));
             var lng = parseFloat($(this).data('lng'));
             var address = $(this).data('address');
+
             $('#modalAddress').text(address);
             $('#tripMapModal').modal('show');
-            $('#tripMapModal').on('shown.bs.modal', function() {
+
+            $('#tripMapModal').on('shown.bs.modal', function () {
                 if (currentMap) currentMap.remove();
-                // If coordinates are provided, use them; otherwise geocode the address (optional)
                 if (!isNaN(lat) && !isNaN(lng)) {
                     currentMap = L.map('mapModal').setView([lat, lng], 14);
                 } else {
-                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12); // fallback
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12);
                 }
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
                 }).addTo(currentMap);
+
                 if (!isNaN(lat) && !isNaN(lng)) {
                     L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
                 } else {
                     L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
                 }
             });
-            $('#tripMapModal').on('hidden.bs.modal', function() {
+
+            $('#tripMapModal').on('hidden.bs.modal', function () {
                 if (currentMap) currentMap.remove();
                 currentMap = null;
             });

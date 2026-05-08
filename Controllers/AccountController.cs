@@ -75,6 +75,11 @@ namespace Michaelhouse.Controllers
                     if (teacher != null)
                         Session["TeacherId"] = teacher.TeacherId;
                 }
+                else if (user.Role == "InventoryManager")
+                {
+                    // Send them straight to the new dashboard!
+                    return RedirectToAction("Index", "Inventory");
+                }
 
                 return RedirectByRole(user.Role);
             }
@@ -244,7 +249,7 @@ namespace Michaelhouse.Controllers
                 case "TransportManager":
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
-                    return RedirectToAction("Index", "DriverDashboard");
+                    return RedirectToAction("Index", "Driver");
                 default:
                     return RedirectToAction("Index", "Home");
                 case "Transport Manager":
@@ -264,6 +269,7 @@ namespace Michaelhouse.Controllers
         }
 
         //Get Password 
+        //https://localhost:port/YourControllerName/GetHash?pwd=YourPassword123
         public ActionResult GetHash(string pwd)
         {
             return Content(HashPassword(pwd));
