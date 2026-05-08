@@ -1,65 +1,105 @@
-﻿@model List<Michaelhouse.Models.Driver>
-@{
-    ViewBag.Title = "Manage Drivers";
+﻿@{
+    ViewBag.Title = "Driver Dashboard";
 }
 
-<h2>Drivers</h2>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Welcome, @ViewBag.DriverName</h2>
+            <p class="lead">Here's what's happening with your trips.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <img src="~/Content/logo.svg.png" alt="Michaelhouse" style="height: 60px;" />
+        </div>
+    </div>
 
-<p>
-    <a href="@Url.Action("Create", "Driver")" class="btn btn-primary">+ Add New Driver</a>
-</p>
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-check"></i> My Assigned Trips
+                    </h5>
+                    <p class="card-text">View and mark attendance for trips assigned to you.</p>
+                    <a href="@Url.Action("MyTrips", "Driver")" class="btn btn-primary">View Trips</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-x"></i> Unavailability
+                    </h5>
+                    <p class="card-text">Manage dates when you are not available for trips.</p>
+                    <a href="@Url.Action("Availabilities", "Driver")" class="btn btn-secondary">Manage Availability</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@* @model List<Michaelhouse.Models.Driver>
+    @{
+        ViewBag.Title = "Manage Drivers";
+    }
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No drivers found. Add one above.</div>
-}
-else
-{
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Licence Number</th>
-                <th>PDP</th>
-                <th>Active</th>
-                <th>Image</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var d in Model)
-            {
+    <h2>Drivers</h2>
+
+    <p>
+        <a href="@Url.Action("Create", "Driver")" class="btn btn-primary">+ Add New Driver</a>
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No drivers found. Add one above.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead>
                 <tr>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Licence Number</th>
+                    <th>PDP</th>
+                    <th>Active</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td>
+                            @d.FullName
+                    </td>
                     <td>
-                        @d.FullName
+                        @d.Email
                 </td>
-                <td>
-                    @d.Email
+                <td>@d.PhoneNumber
             </td>
-            <td>@d.PhoneNumber
+            <td>
+                @d.LicenceNumber
+        </td>
+        <td>@(d.HasPDP ? "Yes" : "No")
         </td>
         <td>
-            @d.LicenceNumber
-    </td>
-    <td>@(d.HasPDP ? "Yes" : "No")
-    </td>
-    <td>
-        @(d.IsActive ? "Active" : "Inactive")
-    </td>
-    <td>
-        @if (!string.IsNullOrEmpty(d.ImageUrl))
-        {
-            <img src="@d.ImageUrl" alt="Driver" style="width: 300px; height: 220px; object-fit: cover;" />
-        }
-    </td>
-    <td>
-        <a href="@Url.Action("Edit", "Driver", new { id = d.Id })" class="btn btn-sm btn-warning">Edit</a>
-        <a href="@Url.Action("Delete", "Driver", new { id = d.Id })" class="btn btn-sm btn-danger">Delete</a>
-    </td>
-</tr>
-}
-        </tbody>
-    </table>
-}
+            @(d.IsActive ? "Active" : "Inactive")
+        </td>
+        <td>
+            @if (!string.IsNullOrEmpty(d.ImageUrl))
+            {
+                <img src="@d.ImageUrl" alt="Driver" style="width: 300px; height: 220px; object-fit: cover;" />
+            }
+        </td>
+        <td>
+            <a href="@Url.Action("Edit", "Driver", new { id = d.Id })" class="btn btn-sm btn-warning">Edit</a>
+            <a href="@Url.Action("Delete", "Driver", new { id = d.Id })" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+    </tr>
+    }
+            </tbody>
+        </table>
+    }*@

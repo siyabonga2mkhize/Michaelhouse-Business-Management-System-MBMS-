@@ -1,157 +1,219 @@
 ﻿@model List<Michaelhouse.Models.TripSchedule>
 @{
-    ViewBag.Title = "All Trips";
+    ViewBag.Title = "Global Logistics Ledger";
 }
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<h2>All Trips</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No trips found.</div>
-}
-else
-{
-    <style>
-        .view-driver-details, .view-vehicle-details {
-            color: #0d6efd;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-            .view-driver-details:hover, .view-vehicle-details:hover {
-                color: #0a58ca;
-                text-decoration: underline;
-            }
-    </style>
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Destination</th>
-                <th>Scheduled Date</th>
-                <th>Teacher</th>
-                <th>Driver</th>
-                <th>Vehicle</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var schedule in Model)
-            {
-                var request = schedule.TripRequest;
-                <tr>
-                    <td>@request.Title</td>
-                    <td>
-                        @if (request.DestinationLat.HasValue && request.DestinationLng.HasValue)
-                        {
-                            <a href="#" class="view-map-link"
-                               data-lat="@request.DestinationLat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                               data-lng="@request.DestinationLng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
-                               data-address="@request.Destination">
-                                📍 View Map
-                            </a>
-                        }
-                        else
-                        {
-                            @request.Destination
-                        }
-                    </td>
-                    <td>@schedule.ScheduledDate.ToString("dd MMM yyyy")</td>
-                    <td>@(request.Teacher?.FirstName + " " + request.Teacher?.LastName)</td>
-                    <td>
-                        @if (schedule.Driver != null)
-                        {
-                            <a href="#" class="view-driver-details clickable-link" data-driverid="@schedule.DriverId">
-                                @schedule.Driver.FullName
-                            </a>
-                        }
-                        else
-                        {
-                            <span>Not assigned</span>
-                        }
-                    </td>
-                    <td>
-                        @if (schedule.Vehicle != null)
-                        {
-                            <a href="#" class="view-vehicle-details clickable-link" data-vehicleid="@schedule.VehicleId">
-                                @schedule.Vehicle.VehicleNumber
-                            </a>
-                        }
-                        else
-                        {
-                            <span>Not assigned</span>
-                        }
-                    </td>
-                    <td>
-                        @if (schedule.Status == "Draft")
-                        {<span class="badge bg-warning text-dark">Awaiting Assignment</span> }
-                        else if (schedule.Status == "Confirmed")
-                        { <span class="badge bg-success">Confirmed</span> }
-                        else if (schedule.Status == "Cancelled")
-                        { <span class="badge bg-danger">Cancelled</span> }
-                        else
-                        { <span>@schedule.Status</span>}
-                    </td>
-                    <td>
-                        <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = schedule.Id })" class="btn btn-sm btn-primary">Assign</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-<!-- Map Modal -->
-<div class="modal fade" id="tripMapModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Trip Destination</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
             </div>
-            <div class="modal-body">
-                <div id="mapModal" style="height: 400px;"></div>
-                <p id="modalAddress" class="mt-2"></p>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Global Logistics Ledger</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Master Record of All Excursion Schedules</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Transport")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Fleet Command
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mx-8 mb-8">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Master Excursion Registry</h5>
             </div>
+
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Total Records: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="allTripsTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Excursion File</th>
+                        <th>Routing Coordinates</th>
+                        <th>Target Date</th>
+                        <th>Logistics Personnel</th>
+                        <th>Transport Unit</th>
+                        <th class="text-center">Status</th>
+                        <th class="pe-8 text-end">Administrative</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="py-20 text-center">
+                                <i class="bi bi-inbox text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Registry Empty</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">No historical or active excursion records exist in the database.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var schedule in Model)
+                        {
+                            var request = schedule.TripRequest;
+                            string statusColor = schedule.Status == "Confirmed" ? "#10b981"
+                                               : schedule.Status == "Cancelled" ? "#ef4444"
+                                               : "#f59e0b"; // Draft
+
+                            string statusText = schedule.Status == "Draft" ? "AWAITING ASSIGNMENT" : schedule.Status.ToUpper();
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 text-sm group-hover:text-[#C21E2E] transition-colors">@(request?.Title ?? "Unknown Requisition")</div>
+                                    <div class="text-[10px] font-serif italic text-gray-500 mt-1">Req: @(request?.Teacher?.FirstName) @(request?.Teacher?.LastName)</div>
+                                </td>
+                                <td>
+                                    @if (request != null && request.DestinationLat.HasValue && request.DestinationLng.HasValue)
+                                    {
+                                        <a href="#" class="view-map-link inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                                           data-lat="@request.DestinationLat.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                           data-lng="@request.DestinationLng.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                           data-address="@request.Destination">
+                                            <i class="bi bi-geo-alt-fill"></i> View Route
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">@(request?.Destination ?? "Unspecified")</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="font-mono text-[11px] font-bold text-gray-800 bg-gray-50 px-2 py-1 border border-gray-100">
+                                        @schedule.ScheduledDate.ToString("dd MMM yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (schedule.Driver != null)
+                                    {
+                                        <a href="#" class="view-driver-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase tracking-tight" data-driverid="@schedule.DriverId">
+                                            @schedule.Driver.FullName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unassigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (schedule.Vehicle != null)
+                                    {
+                                        <a href="#" class="view-vehicle-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase tracking-tight" data-vehicleid="@schedule.VehicleId">
+                                            @schedule.Vehicle.VehicleNumber
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unassigned</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                          style="color: @statusColor; border-color: @statusColor;">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <a href="@Url.Action("AssignDriverVehicle", "Transport", new { scheduleId = schedule.Id })" class="inline-block bg-black text-white px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                        <i class="bi bi-gear-fill me-1"></i> Manage
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Driver Details Modal -->
+@* --- MODALS --- *@
+@Html.Partial("_TripMapModal")
+
 <div class="modal fade" id="driverDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Driver Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Personnel File</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="driverDetailsContent">
-                Loading...
+            <div class="modal-body p-6 bg-white" id="driverDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Vehicle Details Modal -->
 <div class="modal fade" id="vehicleDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Vehicle Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Transport Unit Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="vehicleDetailsContent">
-                Loading...
+            <div class="modal-body p-6 bg-white" id="vehicleDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let currentMap = null;
 
@@ -160,15 +222,26 @@ else
             var lat = parseFloat($(this).data('lat'));
             var lng = parseFloat($(this).data('lng'));
             var address = $(this).data('address');
+
             $('#modalAddress').text(address);
             $('#tripMapModal').modal('show');
+
             $('#tripMapModal').on('shown.bs.modal', function() {
                 if (currentMap) currentMap.remove();
-                currentMap = L.map('mapModal').setView([lat, lng], 14);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12); // fallback
+                }
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
                 }).addTo(currentMap);
-                L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
             });
             $('#tripMapModal').on('hidden.bs.modal', function() {
                 if (currentMap) currentMap.remove();
@@ -179,7 +252,7 @@ else
         $('.view-driver-details').click(function(e) {
             e.preventDefault();
             var driverId = $(this).data('driverid');
-            $('#driverDetailsContent').html('Loading...');
+            $('#driverDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
             $('#driverDetailsModal').modal('show');
             $.get('@Url.Action("DriverDetails", "Transport")?id=' + driverId, function(data) {
                 $('#driverDetailsContent').html(data);
@@ -189,7 +262,7 @@ else
         $('.view-vehicle-details').click(function(e) {
             e.preventDefault();
             var vehicleId = $(this).data('vehicleid');
-            $('#vehicleDetailsContent').html('Loading...');
+            $('#vehicleDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
             $('#vehicleDetailsModal').modal('show');
             $.get('@Url.Action("VehicleDetails", "Transport")?id=' + vehicleId, function(data) {
                 $('#vehicleDetailsContent').html(data);

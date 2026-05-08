@@ -68,6 +68,7 @@ namespace Michaelhouse.Models
         public DbSet<TripRequest> TripRequests { get; set; }
         public DbSet<TripSchedule> TripSchedules { get; set; }
         public DbSet<TripStudent> TripStudents { get; set; }
+        public DbSet<TripVehicleAssignment> TripVehicleAssignments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -324,6 +325,24 @@ namespace Michaelhouse.Models
                 .HasRequired(n => n.User)
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TripVehicleAssignment>()
+    .HasRequired(tva => tva.TripSchedule)
+    .WithMany(ts => ts.VehicleAssignments)
+    .HasForeignKey(tva => tva.TripScheduleId)
+    .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<TripVehicleAssignment>()
+                .HasRequired(tva => tva.Driver)
+                .WithMany()
+                .HasForeignKey(tva => tva.DriverId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TripVehicleAssignment>()
+                .HasRequired(tva => tva.Vehicle)
+                .WithMany()
+                .HasForeignKey(tva => tva.VehicleId)
                 .WillCascadeOnDelete(false);
 
             // Optionally set string lengths for status fields

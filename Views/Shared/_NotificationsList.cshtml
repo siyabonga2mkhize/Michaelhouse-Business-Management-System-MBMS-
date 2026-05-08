@@ -2,28 +2,116 @@
 
 @if (Model.Any())
 {
-    foreach (var n in Model)
-    {
-        <a href="#" class="dropdown-item notification-item" data-id="@n.Id">
-            <div class="small text-muted">@n.CreatedAt.ToString("dd MMM, HH:mm")</div>
-            <div>@n.Message</div>
-            <hr class="dropdown-divider" />
-        </a>
-    }
+    @* Institutional Dropdown Header *@
+    <div class="px-4 py-3 bg-[#1a1a1a] text-white border-b border-gray-800 flex justify-between items-center sticky top-0 z-10">
+        <h6 class="text-[9px] uppercase tracking-[3px] font-bold mb-0"><i class="bi bi-bell me-2 text-gray-400"></i> Active Alerts</h6>
+        <span class="text-[9px] font-mono font-bold bg-[#C21E2E] px-2 py-0.5" id="internalBadgeCount">@Model.Count</span>
+    </div>
+
+    @* Scrollable Alert Ledger *@
+    <div class="max-h-80 overflow-y-auto custom-scrollbar bg-white" id="alertLedgerContainer">
+        @foreach (var n in Model)
+        {
+            <a href="#" class="block px-4 py-4 border-b border-gray-50 hover:bg-gray-50 transition-all group notification-item relative" data-id="@n.Id">
+                <div class="flex gap-3">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-[#C21E2E] group-hover:scale-150 transition-transform"></div>
+                    </div>
+                    <div class="w-full">
+                        <div class="text-[9px] font-mono text-gray-400 uppercase tracking-widest mb-1 group-hover:text-[#C21E2E] transition-colors">
+                            @n.CreatedAt.ToString("dd MMM yyyy • HH:mm")
+                        </div>
+                        <div class="text-xs font-serif text-gray-800 leading-snug pe-4">
+                            @n.Message
+                        </div>
+
+                        @* Hover Action Indicator *@
+                        <div class="text-[8px] font-bold uppercase tracking-[2px] text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between">
+                            <span><i class="bi bi-check2-all me-1"></i> Acknowledge</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
 }
 else
 {
-    <div class="dropdown-item text-muted text-center">No new notifications</div>
+    @* Institutional Empty State *@
+    <div class="px-4 py-8 text-center bg-white">
+        <i class="bi bi-bell-slash text-gray-200 text-4xl d-block mb-3"></i>
+        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-0">No Active Alerts</h6>
+    </div>
 }
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling for the dropdown */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 <script>
     $(function() {
         $('.notification-item').click(function(e) {
             e.preventDefault();
-            var id = $(this).data('id');
+
+            // FIX: Capture the specific item clicked before entering the AJAX callback scope
+            var $item = $(this);
+            var id = $item.data('id');
+
+            // Visual feedback that the click registered immediately
+            $item.css('opacity', '0.4');
+
             $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function() {
-                $(this).remove();
-                updateBadge();
+
+                // Smoothly slide up the notification instead of a harsh pop
+                $item.slideUp(250, function() {
+                    $(this).remove();
+
+                    // Call your external updateBadge function if it exists
+                    if (typeof updateBadge === "function") {
+                        updateBadge();
+                    }
+
+                    // Update internal partial view counter
+                    var $internalBadge = $('#internalBadgeCount');
+                    var currentCount = parseInt($internalBadge.text()) || 0;
+                    if (currentCount > 1) {
+                        $internalBadge.text(currentCount - 1);
+                    }
+
+                    // If the list is now empty, render the empty state
+                    if ($('.notification-item').length === 0) {
+                        $('#alertLedgerContainer').html(`
+                            <div class="px-4 py-8 text-center bg-white">
+                                <i class="bi bi-check2-circle text-green-500/50 text-4xl d-block mb-3"></i>
+                                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-0">Ledger Cleared</h6>
+                            </div>
+                        `);
+                        $internalBadge.hide();
+                    }
+                });
+            }).fail(function() {
+                // If the server fails, restore visibility
+                $item.css('opacity', '1');
             });
         });
     });

@@ -44,14 +44,17 @@ namespace Michaelhouse.Services
 
         public static void NotifyParents(DBContextClass db, List<int> studentIds, string message)
         {
-            var parentIds = db.Students.Where(s => studentIds.Contains(s.StudentId))
-                                       .Select(s => s.ParentId)
-                                       .Distinct()
-                                       .ToList();
-            var parents = db.Parents.Where(p => parentIds.Contains(p.ParentId)).ToList();
-            foreach (var parent in parents)
-                if (parent.UserId != null)
-                    Send(db, parent.UserId.Value, message, "Trip", 0);
+            var parentIds = db.Students
+                .Where(s => studentIds.Contains(s.StudentId))
+                .Select(s => s.ParentId)
+                .Distinct()
+                .ToList();
+            var users = db.Parents
+                .Where(p => parentIds.Contains(p.ParentId) && p.UserId != null)
+                .Select(p => p.UserId.Value)
+                .ToList();
+            foreach (var uid in users)
+                Send(db, uid, message, "Trip", 0);
         }
     }
 }

@@ -244,7 +244,7 @@ namespace Michaelhouse.Controllers
                 case "TransportManager":
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
-                    return RedirectToAction("Index", "DriverDashboard");
+                    return RedirectToAction("Index", "Driver");
                 default:
                     return RedirectToAction("Index", "Home");
                 case "Transport Manager":
@@ -264,6 +264,7 @@ namespace Michaelhouse.Controllers
         }
 
         //Get Password 
+        //https://localhost:port/YourControllerName/GetHash?pwd=YourPassword123
         public ActionResult GetHash(string pwd)
         {
             return Content(HashPassword(pwd));

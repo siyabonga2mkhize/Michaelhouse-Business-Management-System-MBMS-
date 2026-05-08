@@ -1,81 +1,154 @@
 @{
-    ViewBag.Title = "Mark Register";
+    ViewBag.Title = "Academic Registry";
     var subjects = ViewBag.Subjects as List<Michaelhouse.Models.Subject>;
     var groupedSubjects = subjects?.GroupBy(s => s.GradeLevel).OrderBy(g => g.Key);
 }
 
-<div class="container mx-auto px-4 py-6">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900" style="font-family:'Playfair Display',serif;">Mark Register</h1>
-        <p class="text-gray-500 text-sm mt-1">Select a subject to mark student attendance</p>
-    </div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Subjects</p>
-            <p class="text-2xl font-bold">@ViewBag.TotalSubjects</p>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Academic Registry</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Mark Register</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Select an academic cluster to record formal attendance.</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Marked Today</p>
-            <p class="text-2xl font-bold text-green-600">@ViewBag.MarkedToday</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Pending</p>
-            <p class="text-2xl font-bold text-yellow-600">@ViewBag.Pending</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Grade Levels</p>
-            <p class="text-2xl font-bold">@(groupedSubjects?.Count() ?? 0)</p>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Teacher")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Faculty Portal
+            </a>
         </div>
     </div>
 
-    <!-- Subjects List -->
-    @if (subjects != null && subjects.Any())
-    {
-        <div class="space-y-6">
-            @foreach (var gradeGroup in groupedSubjects)
-            {
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-800 mb-3 border-b pb-1">Grade @gradeGroup.Key</h2>
-                    <div class="bg-white shadow overflow-hidden rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach (var subject in gradeGroup)
-                                {
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">@subject.Name</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">@subject.Code</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                            <a href="@Url.Action("MarkRegister", "Attendances", new { subjectId = subject.SubjectId })"
-                                               class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                                Mark Now
-                                                <svg class="ml-1 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                                </svg>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+    @* --- SCROLLABLE DASHBOARD CONTENT --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+
+        @* --- HERO STATS --- *@
+        <div class="row g-4 mb-10">
+            <div class="col-md">
+                <div class="bg-white border-t-4 border-gray-800 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-journal-text absolute -right-2 -bottom-2 text-black/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-2 relative z-10">Total Assigned Clusters</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-0 relative z-10">@ViewBag.TotalSubjects</h3>
                 </div>
-            }
+            </div>
+            <div class="col-md">
+                <div class="bg-white border-t-4 border-[#10b981] p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-check-all absolute -right-2 -bottom-2 text-green-600/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-green-600 mb-2 relative z-10">Registers Committed</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-0 relative z-10">@ViewBag.MarkedToday</h3>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="bg-[#1a1a1a] border-t-4 border-[#C21E2E] p-6 shadow-xl relative overflow-hidden group h-full">
+                    <i class="bi bi-exclamation-triangle absolute -right-2 -bottom-2 text-[#C21E2E]/10 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Pending Registers</p>
+                    <h3 class="text-4xl font-mono font-bold text-white mb-0 relative z-10">@ViewBag.Pending</h3>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="bg-white border-t-4 border-blue-600 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-layers absolute -right-2 -bottom-2 text-blue-600/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-blue-600 mb-2 relative z-10">Distinct Grade Levels</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-0 relative z-10">@(groupedSubjects?.Count() ?? 0)</h3>
+                </div>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="text-center py-12 bg-white rounded-lg shadow">
-            <p class="text-gray-500">No subjects assigned to you yet.</p>
-        </div>
-    }
+
+        @* --- SUBJECTS LIST --- *@
+        @if (subjects != null && subjects.Any())
+        {
+            <div class="row g-6">
+                @foreach (var gradeGroup in groupedSubjects)
+                {
+                    <div class="col-xl-6">
+                        <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative h-full flex flex-col">
+
+                            @* Archival Dot Grid Header *@
+                            <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden flex-shrink-0">
+                                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">Grade @gradeGroup.Key Cohort</h5>
+                            </div>
+
+                            <div class="table-responsive flex-grow">
+                                <table class="table table-hover mb-0 align-middle w-full">
+                                    <thead class="bg-white">
+                                        <tr class="text-[8px] uppercase tracking-[3px] font-bold text-gray-400 border-b">
+                                            <th class="ps-6 py-4">Academic Subject</th>
+                                            <th>Cluster Code</th>
+                                            <th class="pe-6 text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-50">
+                                        @foreach (var subject in gradeGroup)
+                                        {
+                                            <tr class="group hover:bg-gray-50/50 transition-all last:border-0">
+                                                <td class="ps-6 py-4">
+                                                    <div class="fw-bold text-gray-900 text-sm group-hover:text-[#C21E2E] transition-colors font-serif">@subject.Name</div>
+                                                </td>
+                                                <td>
+                                                    <span class="font-mono text-xs font-bold text-gray-500 uppercase tracking-widest bg-gray-50 px-2 py-1 border border-gray-100">@subject.Code</span>
+                                                </td>
+                                                <td class="pe-6 text-end">
+                                                    <a href="@Url.Action("MarkRegister", "Attendances", new { subjectId = subject.SubjectId })"
+                                                       class="inline-block bg-black text-white px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                                        <i class="bi bi-clipboard-check me-1"></i> Mark Now
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-20 bg-white border border-gray-100 shadow-sm mt-4">
+                <i class="bi bi-journal-x text-gray-200 text-6xl d-block mb-4"></i>
+                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Registry Empty</h4>
+                <p class="text-[11px] font-mono text-gray-400 mt-2">No academic clusters currently assigned to your faculty profile.</p>
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
