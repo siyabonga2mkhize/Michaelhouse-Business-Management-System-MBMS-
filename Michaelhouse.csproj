@@ -212,26 +212,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605072300463_InitialCreate.cs" />
-    <Compile Include="Migrations\202605072300463_InitialCreate.Designer.cs">
-      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605071604471_InitialCreate.cs" />
-    <Compile Include="Migrations\202605071604471_InitialCreate.Designer.cs">
-      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605071209179_initialcreate1.cs" />
-    <Compile Include="Migrations\202605071209179_initialcreate1.Designer.cs">
-      <DependentUpon>202605071209179_initialcreate1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605071731059_AddTripVehicleAssignments.cs" />
-    <Compile Include="Migrations\202605071731059_AddTripVehicleAssignments.Designer.cs">
-      <DependentUpon>202605071731059_AddTripVehicleAssignments.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.cs" />
-    <Compile Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.Designer.cs">
-      <DependentUpon>202605080151153_AddDriverAvailabilitiesTable.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -542,23 +522,6 @@
     <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605072300463_InitialCreate.resx">
-      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">
-      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605071209179_initialcreate1.resx">
-      <DependentUpon>202605071209179_initialcreate1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605071731059_AddTripVehicleAssignments.resx">
-      <DependentUpon>202605071731059_AddTripVehicleAssignments.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605080151153_AddDriverAvailabilitiesTable.resx">
-      <DependentUpon>202605080151153_AddDriverAvailabilitiesTable.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
