@@ -129,6 +129,7 @@
     <Reference Include="System.Memory.Data, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.Data.10.0.3\lib\net462\System.Memory.Data.dll</HintPath>
     </Reference>
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
@@ -138,11 +139,9 @@
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
@@ -188,10 +187,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Net.Http">
-    </Reference>
-    <Reference Include="System.Net.Http.WebRequest">
-    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
@@ -205,6 +202,9 @@
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
+    <Compile Include="Controllers\InventoryController.cs" />
+    <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
@@ -212,9 +212,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605071006223_initialcreate.cs" />
-    <Compile Include="Migrations\202605071006223_initialcreate.Designer.cs">
-      <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605072300463_InitialCreate.cs" />
+    <Compile Include="Migrations\202605072300463_InitialCreate.Designer.cs">
+      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605071604471_InitialCreate.cs" />
+    <Compile Include="Migrations\202605071604471_InitialCreate.Designer.cs">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\202605071209179_initialcreate1.cs" />
     <Compile Include="Migrations\202605071209179_initialcreate1.Designer.cs">
@@ -253,7 +257,6 @@
     <Compile Include="Controllers\ApplicationsController.cs" />
     <Compile Include="Controllers\CartController.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MarksController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
@@ -265,14 +268,9 @@
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Controllers\TimetableController.cs" />
     <Compile Include="Filters\AuthorizeFilters.cs" />
-    <Compile Include="Global.asax.cs">
-      <DependentUpon>Global.asax</DependentUpon>
-    </Compile>
-    <!-- Migrations -->
     <Compile Include="Models\AcademicStream.cs" />
     <Compile Include="Models\AdminReview.cs" />
     <Compile Include="Models\AiReviewService.cs" />
-    <Compile Include="Models\Application.cs" />
     <Compile Include="Models\ApplicationService.cs" />
     <Compile Include="Models\ApplicationStatus.cs" />
     <Compile Include="Models\AppUser.cs" />
@@ -282,7 +280,6 @@
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
-    <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
     <Compile Include="Models\Notification.cs" />
@@ -365,7 +362,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="SQLQuery.sql" />
-    <Content Include="Web.config" />
+    <WebConfigFile Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -453,18 +450,6 @@
     <Content Include="Views\SchoolClasses\ClassList.cshtml" />
     <Content Include="Views\SchoolClasses\Create.cshtml" />
     <Content Include="Views\SchoolClasses\Edit.cshtml" />
-    <Content Include="Views\SchoolClasses\Index.cshtml" />
-    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
-    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
-    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\2.cshtml" />
-    <Content Include="Views\Students\MyAttendance.cshtml" />
-    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
-    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Attendances\ViewRegister.cshtml" />
-    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
     <Content Include="Views\DriverApplications\Create.cshtml" />
     <Content Include="Views\DriverApplications\Delete.cshtml" />
     <Content Include="Views\DriverApplications\Details.cshtml" />
@@ -508,6 +493,34 @@
     <Content Include="Views\Driver\Availabilities.cshtml" />
     <Content Include="Views\Driver\EditAvailability.cshtml" />
     <Content Include="Views\Driver\MyTrips.cshtml" />
+    <Content Include="Views\Order\Checkout.cshtml" />
+    <Content Include="Views\Order\Success.cshtml" />
+    <Content Include="Views\Store\Index.cshtml" />
+    <Content Include="Views\Cart\Index.cshtml" />
+    <Content Include="Views\Order\TrackOrder.cshtml" />
+    <Content Include="Views\Order\OrderDetails.cshtml" />
+    <Content Include="Views\SchoolClasses\Index.cshtml" />
+    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
+    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
+    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\2.cshtml" />
+    <Content Include="Views\Students\MyAttendance.cshtml" />
+    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
+    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
+    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Attendances\ViewRegister.cshtml" />
+    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
+    <Content Include="Views\Inventory\Index.cshtml" />
+    <Content Include="Views\Inventory\StockHistory.cshtml" />
+    <Content Include="Views\Supplier\Index.cshtml" />
+    <Content Include="Views\Supplier\Create.cshtml" />
+    <Content Include="Views\Supplier\Details.cshtml" />
+    <Content Include="Views\PurchaseOrder\Index.cshtml" />
+    <Content Include="Views\PurchaseOrder\Create.cshtml" />
+    <Content Include="Views\PurchaseOrder\Details.cshtml" />
+    <Content Include="Views\Enrollments\Create.cshtml" />
+    <Content Include="Views\Enrollments\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -529,20 +542,13 @@
     <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
-    <Content Include="Content\bootstrap-grid.css.map" />
-    <None Include="packages.config" />
-    <Content Include="Scripts\bootstrap.min.js.map" />
-    <Content Include="Scripts\bootstrap.js.map" />
-    <Content Include="Scripts\bootstrap.esm.min.js.map" />
-    <Content Include="Scripts\bootstrap.esm.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.min.js.map" />
-    <Content Include="Scripts\bootstrap.bundle.js.map" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
-    <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605071006223_initialcreate.resx">
-      <DependentUpon>202605071006223_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605072300463_InitialCreate.resx">
+      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">
+      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202605071209179_initialcreate1.resx">
       <DependentUpon>202605071209179_initialcreate1.cs</DependentUpon>
@@ -582,12 +588,6 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target> -->
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

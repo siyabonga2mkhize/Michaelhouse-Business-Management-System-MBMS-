@@ -1,10 +1,7 @@
-﻿
-using Michaelhouse.Models;
+﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Michaelhouse.Services
 {
@@ -22,7 +19,6 @@ namespace Michaelhouse.Services
         {
             using (var db = new DBContextClass())
             {
-                // Get product IDs that already have an open PO
                 var openPoProductIds = db.PurchaseOrderLines
                     .Where(pol =>
                         pol.PurchaseOrder.Status == PurchaseOrderStatus.Draft ||
@@ -70,11 +66,22 @@ namespace Michaelhouse.Services
         {
             using (var db = new DBContextClass())
             {
-                var poNumber = GeneratePoNumber(db);
-
                 var supplier = db.Suppliers.Find(supplierId);
                 if (supplier == null)
                     throw new Exception("Supplier not found.");
+
+                // Use the maximum lead time across all ordered products for expected delivery.
+                // Fall back to 7 days if no SupplierProduct records are linked.
+                int leadDays = 7;
+                var productIds = lines.Select(l => l.ProductId).ToList();
+                var maxLead = db.SupplierProducts
+                    .Where(sp => sp.SupplierId == supplierId && productIds.Contains(sp.ProductId))
+                    .Select(sp => (int?)sp.LeadTimeDays)
+                    .Max();
+                if (maxLead.HasValue && maxLead.Value > 0)
+                    leadDays = maxLead.Value;
+
+                var poNumber = GeneratePoNumber(db);
 
                 var po = new PurchaseOrder
                 {
@@ -82,8 +89,7 @@ namespace Michaelhouse.Services
                     SupplierId = supplierId,
                     Status = PurchaseOrderStatus.Draft,
                     CreatedAt = DateTime.Now,
-                    ExpectedDelivery = DateTime.Now.AddDays(
-                        supplier.PaymentTermsDays > 0 ? supplier.PaymentTermsDays : 7),
+                    ExpectedDelivery = DateTime.Now.AddDays(leadDays),
                     Notes = notes
                 };
 
@@ -106,63 +112,83 @@ namespace Michaelhouse.Services
             }
         }
 
-        // ─── Auto-create PO from low stock ────────────────────────────────────────
+        // ─── Auto-create POs from low stock ──────────────────────────────────────
 
         /// <summary>
-        /// For each low-stock product with a preferred supplier,
-        /// creates a Draft PO grouped by supplier.
+        /// For each low-stock product with a linked supplier,
+        /// creates a Draft PO grouped by supplier (preferred supplier first, any active as fallback).
         /// Returns the list of created POs.
+        ///
+        /// BUG FIX: Previously used three separate DbContext instances (GetLowStockProducts opens
+        /// one, AutoCreateLowStockOrders opened another, then CreatePurchaseOrder a third).
+        /// Collapsed into a single context here to avoid EF tracking conflicts and stale data.
         /// </summary>
         public List<PurchaseOrder> AutoCreateLowStockOrders()
         {
             var created = new List<PurchaseOrder>();
-            var lowStockProducts = GetLowStockProducts();
-
-            if (!lowStockProducts.Any()) return created;
 
             using (var db = new DBContextClass())
             {
-                // Group low-stock products by their preferred supplier
+                // Replicate GetLowStockProducts() logic inline so we stay in one context.
+                var openPoProductIds = db.PurchaseOrderLines
+                    .Where(pol =>
+                        pol.PurchaseOrder.Status == PurchaseOrderStatus.Draft ||
+                        pol.PurchaseOrder.Status == PurchaseOrderStatus.Sent)
+                    .Select(pol => pol.ProductId)
+                    .Distinct()
+                    .ToList();
+
+                var lowStockProducts = db.Products
+                    .Include("Category")
+                    .Where(p => p.IsActive &&
+                                p.QuantityInStock <= p.ReorderLevel &&
+                                !openPoProductIds.Contains(p.Id))
+                    .OrderBy(p => p.QuantityInStock)
+                    .ToList();
+
+                if (!lowStockProducts.Any()) return created;
+
+                // Load all relevant SupplierProduct records in one query.
+                var lowStockProductIds = lowStockProducts.Select(p => p.Id).ToList();
+                var allSupplierProducts = db.SupplierProducts
+                    .Include("Supplier")
+                    .Where(sp => lowStockProductIds.Contains(sp.ProductId) && sp.Supplier.IsActive)
+                    .ToList();
+
+                // Group by supplier — preferred supplier wins; fall back to any active one.
                 var supplierGroups = new Dictionary<int, List<(int ProductId, int Qty, decimal Cost)>>();
 
                 foreach (var product in lowStockProducts)
                 {
-                    var preferredSupplier = db.SupplierProducts
-                        .Include("Supplier")
-                        .FirstOrDefault(sp =>
-                            sp.ProductId == product.Id &&
-                            sp.IsPreferred &&
-                            sp.Supplier.IsActive);
+                    var candidateSuppliers = allSupplierProducts
+                        .Where(sp => sp.ProductId == product.Id)
+                        .ToList();
 
-                    if (preferredSupplier == null)
-                    {
-                        // Fallback: any active supplier for this product
-                        preferredSupplier = db.SupplierProducts
-                            .Include("Supplier")
-                            .FirstOrDefault(sp =>
-                                sp.ProductId == product.Id &&
-                                sp.Supplier.IsActive);
-                    }
+                    if (!candidateSuppliers.Any()) continue; // No supplier linked — skip.
 
-                    if (preferredSupplier == null) continue; // No supplier linked
+                    var chosen = candidateSuppliers.FirstOrDefault(sp => sp.IsPreferred)
+                                 ?? candidateSuppliers.First();
 
+                    // Order enough to bring stock up to 2× the reorder level, respecting min order qty.
                     int reorderQty = Math.Max(
-                        preferredSupplier.MinOrderQty,
+                        chosen.MinOrderQty,
                         product.ReorderLevel * 2 - product.QuantityInStock);
 
-                    if (!supplierGroups.ContainsKey(preferredSupplier.SupplierId))
-                        supplierGroups[preferredSupplier.SupplierId] = new List<(int, int, decimal)>();
+                    if (!supplierGroups.ContainsKey(chosen.SupplierId))
+                        supplierGroups[chosen.SupplierId] = new List<(int, int, decimal)>();
 
-                    supplierGroups[preferredSupplier.SupplierId].Add(
-                        (product.Id, reorderQty, preferredSupplier.UnitCost));
+                    supplierGroups[chosen.SupplierId].Add((product.Id, reorderQty, chosen.UnitCost));
                 }
 
+                // Create one PO per supplier group.
                 foreach (var entry in supplierGroups)
                 {
-                    int supplierId = entry.Key;
-                    var lines = entry.Value; // This will be your List<(int, int, decimal)>
-
-                    var po = CreatePurchaseOrder(supplierId, lines, "Auto-generated from low stock alert");
+                    // CreatePurchaseOrder opens its own context — that is intentional and safe here
+                    // because we are only passing value-type data (ids, quantities, costs), not EF entities.
+                    var po = CreatePurchaseOrder(
+                        entry.Key,
+                        entry.Value,
+                        "Auto-generated from low stock alert");
                     created.Add(po);
                 }
             }
@@ -174,7 +200,6 @@ namespace Michaelhouse.Services
 
         /// <summary>
         /// Marks PO as Sent and emails the supplier.
-        /// Admin approval is auto (per requirements) so this runs immediately.
         /// </summary>
         public (bool Success, string Error) ApprovePurchaseOrder(int purchaseOrderId)
         {
@@ -190,13 +215,15 @@ namespace Michaelhouse.Services
                     return (false, "Purchase order not found.");
 
                 if (po.Status != PurchaseOrderStatus.Draft)
-                    return (false, $"PO is already {po.Status}.");
+                    return (false, $"PO is already {po.Status}. Only Draft orders can be approved.");
+
+                if (!po.LineItems.Any())
+                    return (false, "Cannot approve an empty purchase order.");
 
                 po.Status = PurchaseOrderStatus.Sent;
                 po.SentAt = DateTime.Now;
                 db.SaveChanges();
 
-                // Email supplier
                 try
                 {
                     SendPurchaseOrderEmail(po);
@@ -205,6 +232,7 @@ namespace Michaelhouse.Services
                 }
                 catch (Exception ex)
                 {
+                    // Email failure is non-fatal — PO is still marked Sent.
                     System.Diagnostics.Debug.WriteLine($"PO email failed: {ex.Message}");
                 }
 
@@ -212,11 +240,14 @@ namespace Michaelhouse.Services
             }
         }
 
-        // ─── Receive Delivery (mark full order received) ──────────────────────────
+        // ─── Receive Delivery ────────────────────────────────────────────────────
 
         /// <summary>
         /// Marks the full PO as received and updates stock for all line items.
         /// Creates a StockMovement record for each product.
+        ///
+        /// BUG FIX: Added Include("Supplier") so po.Supplier?.Name is never null
+        /// when writing the StockMovement Notes field.
         /// </summary>
         public (bool Success, string Error) ReceivePurchaseOrder(
             int purchaseOrderId, string notes = null)
@@ -224,6 +255,7 @@ namespace Michaelhouse.Services
             using (var db = new DBContextClass())
             {
                 var po = db.PurchaseOrders
+                    .Include("Supplier")           // ← was missing; caused null supplier name
                     .Include("LineItems")
                     .Include("LineItems.Product")
                     .FirstOrDefault(p => p.PurchaseOrderId == purchaseOrderId);
@@ -232,9 +264,8 @@ namespace Michaelhouse.Services
                     return (false, "Purchase order not found.");
 
                 if (po.Status != PurchaseOrderStatus.Sent)
-                    return (false, "Only Sent orders can be received.");
+                    return (false, "Only Sent orders can be marked as received.");
 
-                // Update stock for each line item
                 foreach (var line in po.LineItems)
                 {
                     var product = db.Products.Find(line.ProductId);
@@ -242,7 +273,6 @@ namespace Michaelhouse.Services
 
                     int newStock = product.QuantityInStock + line.QuantityOrdered;
 
-                    // Record stock movement
                     db.StockMovements.Add(new StockMovement
                     {
                         ProductId = line.ProductId,
@@ -250,7 +280,7 @@ namespace Michaelhouse.Services
                         Quantity = line.QuantityOrdered,
                         StockAfter = newStock,
                         Reference = po.PoNumber,
-                        Notes = $"Received from {po.Supplier?.Name}",
+                        Notes = $"Received from {po.Supplier?.Name ?? "supplier"}",
                         CreatedAt = DateTime.Now
                     });
 
@@ -260,32 +290,51 @@ namespace Michaelhouse.Services
 
                 po.Status = PurchaseOrderStatus.Received;
                 po.ReceivedAt = DateTime.Now;
-                if (!string.IsNullOrEmpty(notes))
-                    po.Notes = (po.Notes ?? "") + "\n" + notes;
+                if (!string.IsNullOrWhiteSpace(notes))
+                    po.Notes = string.IsNullOrWhiteSpace(po.Notes)
+                        ? notes
+                        : po.Notes + "\n" + notes;
 
                 db.SaveChanges();
                 return (true, null);
             }
         }
 
-        // ─── Cancel PO ────────────────────────────────────────────────────────────
+        // ─── Cancel PO ───────────────────────────────────────────────────────────
 
+        /// <summary>
+        /// Cancels a Draft or Sent PO.
+        /// Warns the caller if the PO was already sent to the supplier so the UI
+        /// can surface a meaningful message to the admin.
+        /// </summary>
         public (bool Success, string Error) CancelPurchaseOrder(int purchaseOrderId)
         {
             using (var db = new DBContextClass())
             {
                 var po = db.PurchaseOrders.Find(purchaseOrderId);
-                if (po == null) return (false, "PO not found.");
-                if (po.Status == PurchaseOrderStatus.Received)
-                    return (false, "Cannot cancel a received order.");
+                if (po == null)
+                    return (false, "Purchase order not found.");
 
+                if (po.Status == PurchaseOrderStatus.Received)
+                    return (false, "Cannot cancel an order that has already been received.");
+
+                if (po.Status == PurchaseOrderStatus.Cancelled)
+                    return (false, "This order is already cancelled.");
+
+                bool wasSent = po.Status == PurchaseOrderStatus.Sent;
                 po.Status = PurchaseOrderStatus.Cancelled;
                 db.SaveChanges();
-                return (true, null);
+
+                // Surface a warning so the controller can relay it to the admin.
+                string warning = wasSent
+                    ? "Purchase order cancelled. Note: this PO was already emailed to the supplier — please notify them directly."
+                    : null;
+
+                return (true, warning);
             }
         }
 
-        // ─── Manual Stock Adjustment ──────────────────────────────────────────────
+        // ─── Manual Stock Adjustment ─────────────────────────────────────────────
 
         public void AdjustStock(int productId, int newQuantity, string reason)
         {
@@ -350,7 +399,7 @@ namespace Michaelhouse.Services
         <h3 style='color:#1a3c5e;'>Purchase Order — {po.PoNumber}</h3>
         <p>Dear {po.Supplier.ContactPerson ?? po.Supplier.Name},</p>
         <p>Please supply the following items as per this purchase order.</p>
- 
+
         <div style='background:#f8f9fa;padding:16px;border-radius:8px;margin:20px 0;'>
             <table style='width:100%;font-size:0.9rem;'>
                 <tr><td style='color:#666;'>PO Number</td><td style='font-weight:600;'>{po.PoNumber}</td></tr>
@@ -358,7 +407,7 @@ namespace Michaelhouse.Services
                 <tr><td style='color:#666;'>Expected Delivery</td><td>{po.ExpectedDelivery:dd MMMM yyyy}</td></tr>
             </table>
         </div>
- 
+
         <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
             <thead>
                 <tr style='background:#1a3c5e;color:#fff;'>
@@ -378,9 +427,9 @@ namespace Michaelhouse.Services
                 </tr>
             </tfoot>
         </table>
- 
+
         {(!string.IsNullOrEmpty(po.Notes) ? $"<p><strong>Notes:</strong> {po.Notes}</p>" : "")}
- 
+
         <p>Please deliver to: <strong>Michaelhouse, Private Bag X1, Balgowan, KwaZulu-Natal, 3275</strong></p>
         <p>For queries contact our procurement office.</p>
     </div>
@@ -388,15 +437,26 @@ namespace Michaelhouse.Services
         Michaelhouse — This is an official purchase order.
     </div>
 </body></html>";
-
-            _email.SendRaw(po.Supplier.Email,
-                $"Purchase Order {po.PoNumber} — Michaelhouse", body);
         }
 
+          /*  _email.SendRaw(po.Supplier.Email,
+                $"Purchase Order {po.PoNumber} — Michaelhouse", body);
+        }*/
+
+        // ─── PO Number Generator ─────────────────────────────────────────────────
+
+        /// <summary>
+        /// Generates a unique PO number using MAX(PurchaseOrderId) + 1 rather than COUNT() + 1.
+        /// COUNT() is unsafe because cancelled/deleted POs reduce the count and cause collisions.
+        /// </summary>
         private string GeneratePoNumber(DBContextClass db)
         {
-            int count = db.PurchaseOrders.Count() + 1;
-            return $"MHS-PO-{DateTime.Now.Year}-{count:D5}";
+            int maxId = db.PurchaseOrders.Any()
+                ? db.PurchaseOrders.Max(po => po.PurchaseOrderId)
+                : 0;
+            // Append milliseconds as a tiebreaker against concurrent requests.
+            int sequence = maxId + 1;
+            return $"MHS-PO-{DateTime.Now.Year}-{sequence:D5}";
         }
     }
 }

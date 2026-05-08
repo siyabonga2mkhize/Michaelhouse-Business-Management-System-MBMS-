@@ -6,7 +6,7 @@ using Michaelhouse.Services;
 
 namespace Michaelhouse.Controllers
 {
-    [AdminOnly]
+    [InventoryManagerOnly]
     public class InventoryController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();

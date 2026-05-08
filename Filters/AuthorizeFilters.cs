@@ -131,6 +131,30 @@ namespace Michaelhouse.Filters
             }
         }
     }
+    /// <summary>
+    /// Allows only Inventory Managers and Admins. Redirects to login if not authenticated,
+    /// or returns 403 if wrong role.
+    /// </summary>
+    public class InventoryManagerOnlyAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var session = filterContext.HttpContext.Session;
 
+            if (session["UserId"] == null)
+            {
+                filterContext.Result = new RedirectResult("~/Account/Login");
+                return;
+            }
+
+            var role = session["UserRole"]?.ToString();
+
+            // Allow access if the user is an InventoryManager OR an Admin
+            if (role != "InventoryManager" && role != "Admin")
+            {
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
+        }
+    }
 
 }

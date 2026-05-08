@@ -1,162 +1,185 @@
 ﻿@using Michaelhouse.Models
 @model Order
 @{
-    ViewBag.Title = "Order Confirmed";
+    ViewBag.Title = "Transaction Finalized";
 }
 
-<div class="page-header text-center">
-    <div class="mb-4">
-        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-    </div>
-    <h3 class="mb-2 text-success">Order Placed Successfully!</h3>
-    <p class="text-muted">Thank you for shopping with Michaelhouse School Store</p>
-</div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <div class="text-center">
-                    <i class="bi bi-gift fs-3"></i>
-                    <h5 class="mb-1 mt-2">Order Confirmed</h5>
-                    <div class="badge bg-light text-dark mt-2">
-                        <i class="bi bi-upc-scan me-1"></i> Order #: @Model.OrderNumber
-                    </div>
+    @* --- INSTITUTIONAL SUCCESS HEADER --- *@
+    <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#10b981]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">School Store Transaction</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Order Confirmed</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Ref: @Model.OrderNumber • Balgowan Registry</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.print();" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-printer me-2"></i> Print Receipt
+            </button>
+            <a href="@Url.Action("Index", "Store")" class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-shop me-2"></i> Return to Store
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE TRANSACTION CONTENT --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+
+        @* Hero Summary Cards *@
+        <div class="row g-4 mb-12 flex-shrink-0">
+            <div class="col-md-3">
+                <div class="bg-[#1a1a1a] text-white p-6 shadow-xl relative overflow-hidden group h-full">
+                    <i class="bi bi-calendar-check absolute -right-2 -bottom-2 text-white/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-2 relative z-10">Transaction Date</p>
+                    <h3 class="text-xl font-mono font-bold relative z-10">@Model.OrderDate.ToLocalTime().ToString("dd MMM yyyy")</h3>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="border rounded p-3">
-                            <div class="text-muted small mb-1">Order Date</div>
-                            <div class="fw-semibold">@Model.OrderDate.ToLocalTime().ToString("dd MMMM yyyy, HH:mm")</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="border rounded p-3">
-                            <div class="text-muted small mb-1">Status</div>
-                            <div>
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-hourglass-split me-1"></i> @Model.Status
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="border rounded p-3">
-                            <div class="text-muted small mb-1">Customer Name</div>
-                            <div class="fw-semibold">
-                                <i class="bi bi-person me-1"></i> @Model.CustomerName
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="border rounded p-3">
-                            <div class="text-muted small mb-1">Email Address</div>
-                            <div class="fw-semibold">
-                                <i class="bi bi-envelope me-1"></i> @Model.CustomerEmail
-                            </div>
-                        </div>
-                    </div>
+            <div class="col-md-3">
+                <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-person-badge absolute -right-2 -bottom-2 text-black/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Account Identity</p>
+                    <h3 class="text-xl font-serif font-bold text-gray-900 relative z-10">@Model.CustomerName</h3>
                 </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-shield-check absolute -right-2 -bottom-2 text-green-600/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Status</p>
+                    <h3 class="text-xl font-serif font-bold text-green-600 relative z-10">@Model.Status.ToString().ToUpper()</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-white border-2 border-[#C21E2E] p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-cash-stack absolute -right-2 -bottom-2 text-[#C21E2E]/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-[#C21E2E] mb-2 relative z-10">Total Fiscal Value</p>
+                    <h3 class="text-xl font-mono font-bold text-gray-900 relative z-10">ZAR @Model.TotalAmount.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
 
-                <h6 class="fw-bold mb-3">
-                    <i class="bi bi-box-seam me-2 text-primary"></i>Items Ordered
-                </h6>
-                <div class="table-responsive mb-4">
-                    <table class="table table-sm">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Product</th>
-                                <th class="text-center">Quantity</th>
-                                <th class="text-end">Unit Price</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.OrderItems)
-                            {
-                                <tr>
-                                    <td class="fw-semibold">@item.Product.Name</td>
-                                    <td class="text-center">@item.Quantity</td>
-                                    <td class="text-end">R @item.UnitPrice.ToString("N2")</td>
-                                    <td class="text-end fw-semibold">R @item.Subtotal.ToString("N2")</td>
+        <div class="row g-5">
+            @* --- LEFT: TRANSACTION LEDGER --- *@
+            <div class="col-lg-8">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+                    @* Archival Dot Grid Header *@
+                    <div class="p-8 border-b border-gray-100 bg-white relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 relative z-10 mb-0">Authorized Item Manifest</h5>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead>
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/30">
+                                    <th class="ps-8 py-4">Article Description</th>
+                                    <th class="text-center">Units</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="pe-8 text-end">Fiscal Subtotal</th>
                                 </tr>
-                            }
-                        </tbody>
-                        <tfoot class="table-group-divider">
-                            <tr>
-                                <th colspan="3" class="text-end">Total</th>
-                                <th class="text-end text-primary fs-5">R @Model.TotalAmount.ToString("N2")</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
-                @if (!string.IsNullOrEmpty(Model.Notes))
-                {
-                    <div class="alert alert-light border">
-                        <div class="text-muted small mb-1">Order Notes</div>
-                        <p class="mb-0">@Model.Notes</p>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all">
+                                        <td class="ps-8 py-5">
+                                            <div class="fw-bold text-gray-900">@item.Product.Name</div>
+                                            <div class="text-[9px] text-gray-400 font-mono tracking-tighter uppercase">ITEM-REF-@item.ProductId</div>
+                                        </td>
+                                        <td class="text-center font-mono text-sm">@item.Quantity</td>
+                                        <td class="text-end font-mono text-xs text-gray-500">@item.UnitPrice.ToString("N2")</td>
+                                        <td class="pe-8 text-end font-mono font-bold text-gray-900">@item.Subtotal.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-gray-50/50">
+                                <tr>
+                                    <td colspan="3" class="ps-8 py-4 text-[9px] uppercase tracking-[3px] font-bold text-gray-400 text-end">Net Total Amount</td>
+                                    <td class="pe-8 py-4 text-end text-xl font-mono font-bold text-[#C21E2E]">R @Model.TotalAmount.ToString("N2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
-                }
-
-                <div class="d-flex gap-3 justify-content-center mt-4">
-                    <a href="@Url.Action("Index", "Store")" class="btn btn-primary">
-                        <i class="bi bi-shop me-2"></i>Continue Shopping
-                    </a>
-                    <button onclick="window.print();" class="btn btn-outline-secondary">
-                        <i class="bi bi-printer me-1"></i> Print Receipt
-                    </button>
-                </div>
-
-                <div class="text-center mt-4 pt-3 border-top">
-                    <small class="text-muted">
-                        <i class="bi bi-envelope-check me-1"></i>
-                        A confirmation email has been sent to your email address
-                    </small>
                 </div>
             </div>
-        </div>
 
-        <div class="row mt-4 g-3">
-            <div class="col-md-4">
-                <div class="card text-center py-3">
-                    <i class="bi bi-envelope fs-2 text-primary"></i>
-                    <div class="fw-semibold mt-2">Check Your Email</div>
-                    <small class="text-muted">Order confirmation sent</small>
+            @* --- RIGHT: LOGISTICS & NOTIFICATIONS --- *@
+            <div class="col-lg-4">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Delivery Registry</h5>
+                    </div>
+                    <div class="p-8 space-y-6">
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <div>
+                                <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Internal Notes</p>
+                                <div class="p-4 bg-amber-50/50 border-l-2 border-amber-200 text-xs font-serif italic text-gray-600 leading-relaxed">
+                                    "@Model.Notes"
+                                </div>
+                            </div>
+                        }
+                        <div class="flex items-start gap-4">
+                            <i class="bi bi-envelope-check text-green-500 fs-4"></i>
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-800 uppercase tracking-tight">Notification Dispatched</p>
+                                <p class="text-[9px] text-gray-400 leading-tight">A formal archival receipt has been transmitted to <span class="font-mono text-gray-600">@Model.CustomerEmail</span></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center py-3">
-                    <i class="bi bi-truck fs-2 text-primary"></i>
-                    <div class="fw-semibold mt-2">Track Order</div>
-                    <small class="text-muted">Updates via email</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center py-3">
-                    <i class="bi bi-headset fs-2 text-primary"></i>
-                    <div class="fw-semibold mt-2">Need Help?</div>
-                    <small class="text-muted">Contact our support team</small>
+
+                @* Action Tiles *@
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-gray-50 p-6 border border-gray-100 group hover:bg-[#1a1a1a] transition-all cursor-pointer">
+                        <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 group-hover:text-gray-500 mb-1">Support Services</p>
+                        <h4 class="text-sm font-bold text-gray-700 group-hover:text-white transition-colors">Initiate Inquiry</h4>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
-        // Add success page JavaScript here
-        console.log('Order placed successfully!');
-
-        // Optional: Add confetti effect
-        if (typeof confetti === 'function') {
+        document.addEventListener("DOMContentLoaded", function () {
             confetti({
-                particleCount: 100,
+                particleCount: 150,
                 spread: 70,
-                origin: { y: 0.6 }
+                origin: { y: 0.6 },
+                colors: ['#C21E2E', '#1a1a1a', '#ffffff']
             });
-        }
+        });
     </script>
 }

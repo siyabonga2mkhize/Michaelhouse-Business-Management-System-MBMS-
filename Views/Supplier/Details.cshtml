@@ -1,0 +1,212 @@
+﻿@model Michaelhouse.Models.Supplier
+@{
+    ViewBag.Title = "Supplier Details";
+    var unlinkedProducts = ViewBag.UnlinkedProducts as List<Michaelhouse.Models.Product>;
+    string statusColor = Model.IsActive ? "#10b981" : "#ef4444";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Supplier Details</h5>
+            </div>
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">@Model.Name</h2>
+                <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest border mt-2"
+                      style="color: @statusColor; border-color: @statusColor;">
+                    @(Model.IsActive ? "AUTHORIZED" : "ARCHIVED")
+                </span>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Edit", new { id = Model.SupplierId })" class="inline-block bg-white border border-amber-200 text-amber-700 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-amber-50 transition-all shadow-sm">
+                <i class="bi bi-pencil-square me-2"></i> Modify Supplier
+            </a>
+            <a href="@Url.Action("Index")" class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Return to List
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE CONTENT AREA --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+        <div class="row g-5">
+
+            @* --- LEFT: VENDOR METADATA --- *@
+            <div class="col-lg-4">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">01. Liaison Information</h5>
+                    </div>
+                    <div class="p-8 space-y-5">
+                        <div>
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Designated Representative</p>
+                            <p class="text-sm font-serif italic text-gray-800">@(Model.ContactPerson ?? "Pending Assignment")</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Official Email</p>
+                            <p class="text-[12px] font-mono text-blue-600 lowercase">@Model.Email</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Supplier Phone</p>
+                            <p class="text-sm font-mono text-gray-700">@(Model.Phone ?? "—")</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Payment Terms</p>
+                            <p class="text-sm font-bold text-gray-900 uppercase tracking-tighter">Net @Model.PaymentTermsDays Days Cycle</p>
+                        </div>
+                        <div class="pt-4 border-t border-gray-50">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Distribution Hub</p>
+                            <p class="text-xs text-gray-500 font-serif leading-relaxed">@(Model.Address ?? "No verified address on record.")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: PRODUCT LINKING & LEDGER --- *@
+            <div class="col-lg-8">
+
+                @* PART 1: Link Item Form *@
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-10">
+                    <div class="p-6 border-b border-gray-100 bg-white relative overflow-hidden">
+                        @* Dot Grid Background *@
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 relative z-10 mb-0">02. Authorization of Inventory Links</h5>
+                    </div>
+                    <div class="p-8">
+                        @if (unlinkedProducts != null && unlinkedProducts.Any())
+                        {
+                            using (Html.BeginForm("LinkProduct", "Supplier", FormMethod.Post, new { @class = "row g-4 align-items-end" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="supplierId" value="@Model.SupplierId" />
+
+                                <div class="col-md-6">
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 d-block">Select Product</label>
+                                    <select name="productId" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] bg-transparent text-sm font-serif italic" required>
+                                        <option value="">-- Archive Selection --</option>
+                                        @foreach (var p in unlinkedProducts)
+                                        {
+                                            @* FIXED: Proxy check inside select list *@
+                                            <option value="@p.Id">@p.Name (@(p.Category != null ? p.Category.Name.ToString() : "General"))</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 d-block">Unit Cost (ZAR)</label>
+                                    <input type="number" step="0.01" name="unitCost" class="w-full border-b-2 border-gray-100 py-2 outline-none font-mono text-sm" required placeholder="0.00" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 d-block">Min. Order</label>
+                                    <input type="number" name="minOrderQty" class="w-full border-b-2 border-gray-100 py-2 outline-none font-mono text-sm" value="1" required />
+                                </div>
+                                <div class="col-12 flex justify-between items-center pt-4">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="isPreferred" value="true" class="w-4 h-4 accent-[#C21E2E]">
+                                        <span class="text-[9px] uppercase font-bold text-gray-400 group-hover:text-gray-900 transition-colors"> Preferred Supplier</span>
+                                    </label>
+                                    <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] shadow-xl hover:bg-black transition-all">
+                                        <i class="bi bi-shield-plus me-2"></i>Link ITEM
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="flex items-center gap-3 text-green-600 bg-green-50 p-4 border-l-4 border-green-500">
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Full Catalog Synchronized</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* PART 2: Linked Products Ledger *@
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Authorized Catalog Ledger</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead>
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                                    <th class="ps-8 py-4">Product Name</th>
+                                    <th>Fiscal Sku</th>
+                                    <th class="text-end">Unit Cost</th>
+                                    <th class="text-center">Lead Time</th>
+                                    <th class="pe-8 text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @if (Model.SupplierProducts != null && Model.SupplierProducts.Any())
+                                {
+                                    foreach (var sp in Model.SupplierProducts)
+                                    {
+                                        <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all">
+                                            <td class="ps-8 py-5">
+                                                <div class="fw-bold text-gray-900">@sp.Product.Name</div>
+                                                @* FIXED: Proxy Error Fix for Category name *@
+                                                <div class="text-[9px] text-gray-400 italic font-serif">@(sp.Product.Category != null ? sp.Product.Category.Name.ToString() : "Archive General")</div>
+                                            </td>
+                                            <td class="font-mono text-[10px]">@(sp.SupplierSku ?? "N/A")</td>
+                                            <td class="text-end font-mono font-bold text-gray-900">ZAR @sp.UnitCost.ToString("N2")</td>
+                                            <td class="text-center">
+                                                <span class="text-[10px] font-bold text-gray-400 font-mono">@sp.LeadTimeDays DAYS</span>
+                                            </td>
+                                            <td class="pe-8 text-end">
+                                                @using (Html.BeginForm("UnlinkProduct", "Supplier", FormMethod.Post, new { @class = "m-0" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="supplierProductId" value="@sp.SupplierProductId" />
+                                                    <input type="hidden" name="supplierId" value="@Model.SupplierId" />
+                                                    <button type="submit" class="text-[9px] font-bold uppercase tracking-[2px] text-red-400 hover:text-red-700 border-0 bg-transparent" onclick="return confirm('Sever logistical link with this asset?');">
+                                                        <i class="bi bi-link-45deg"></i> SEVER LINK
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="py-20 text-center">
+                                            <i class="bi bi-inbox text-gray-100 text-6xl d-block mb-4"></i>
+                                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-300">No Logical Connections Mapped</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+</style>

@@ -247,6 +247,8 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Index", "Driver");
                 default:
                     return RedirectToAction("Index", "Home");
+                case "Transport Manager":
+                    return RedirectToAction("Dashboard", "Transport");
             }
         }
 

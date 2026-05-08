@@ -5,7 +5,7 @@ using Michaelhouse.Models;
 
 namespace Michaelhouse.Controllers
 {
-    [AdminOnly]
+    [InventoryManagerOnly]
     public class SupplierController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();

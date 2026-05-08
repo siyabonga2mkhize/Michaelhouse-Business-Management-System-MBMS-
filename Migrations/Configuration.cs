@@ -9,7 +9,7 @@ namespace Michaelhouse.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = false;
+            AutomaticMigrationsEnabled = true;
         }
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)
@@ -24,6 +24,19 @@ namespace Michaelhouse.Migrations
                     PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
                 });
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Role == "InventoryManager"))
+            {
+                context.Users.Add(new Michaelhouse.Models.AppUser
+                {
+                    Name = "System Inventory Manager",
+                    Email = "inventory@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Stock@123"),
+                    Role = "InventoryManager"
+                });
+
                 context.SaveChanges();
             }
 
