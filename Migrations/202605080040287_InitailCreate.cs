@@ -3,7 +3,7 @@
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class InitialCreate : DbMigration
+    public partial class InitailCreate : DbMigration
     {
         public override void Up()
         {
@@ -484,7 +484,6 @@
                         DateCreated = c.DateTime(),
                         PasswordHash = c.String(),
                         UserId = c.Int(),
-                        ImageUrl = c.String(),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.AppUsers", t => t.UserId)
@@ -531,22 +530,6 @@
                 .PrimaryKey(t => t.PaymentId)
                 .ForeignKey("dbo.Invoices", t => t.InvoiceId)
                 .Index(t => t.InvoiceId);
-            
-            CreateTable(
-                "dbo.Notifications",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        UserId = c.Int(nullable: false),
-                        Message = c.String(),
-                        IsRead = c.Boolean(nullable: false),
-                        CreatedAt = c.DateTime(nullable: false),
-                        RelatedEntityType = c.String(),
-                        RelatedEntityId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AppUsers", t => t.UserId)
-                .Index(t => t.UserId);
             
             CreateTable(
                 "dbo.PurchaseOrderLines",
@@ -659,86 +642,15 @@
                 .Index(t => t.SubjectId);
             
             CreateTable(
-                "dbo.TripRequests",
+                "dbo.Trips",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        TeacherId = c.Int(nullable: false),
-                        Title = c.String(nullable: false, maxLength: 200),
-                        Description = c.String(),
-                        DepartureTime = c.DateTime(nullable: false),
-                        ReturnTime = c.DateTime(nullable: false),
-                        Destination = c.String(),
-                        MaxStudents = c.Int(nullable: false),
-                        Status = c.String(maxLength: 20),
-                        RejectionReason = c.String(maxLength: 500),
-                        RequestedAt = c.DateTime(nullable: false),
-                        ApprovedByAdminId = c.Int(),
-                        ApprovedAt = c.DateTime(),
-                        DestinationLat = c.Double(),
-                        DestinationLng = c.Double(),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.AppUsers", t => t.ApprovedByAdminId)
-                .ForeignKey("dbo.Teachers", t => t.TeacherId)
-                .Index(t => t.TeacherId)
-                .Index(t => t.ApprovedByAdminId);
-            
-            CreateTable(
-                "dbo.TripSchedules",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        TripRequestId = c.Int(nullable: false),
-                        TeacherId = c.Int(nullable: false),
-                        ScheduledDate = c.DateTime(nullable: false),
-                        Status = c.String(maxLength: 20),
+                        Destination = c.String(nullable: false),
+                        TripDate = c.DateTime(nullable: false),
                         DriverId = c.Int(),
                         VehicleId = c.Int(),
-                        Notes = c.String(maxLength: 500),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Drivers", t => t.DriverId)
-                .ForeignKey("dbo.Teachers", t => t.TeacherId)
-                .ForeignKey("dbo.TripRequests", t => t.TripRequestId)
-                .ForeignKey("dbo.Vehicles", t => t.VehicleId)
-                .Index(t => t.TripRequestId)
-                .Index(t => t.TeacherId)
-                .Index(t => t.DriverId)
-                .Index(t => t.VehicleId);
-            
-            CreateTable(
-                "dbo.TripStudents",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        TripScheduleId = c.Int(nullable: false),
-                        StudentId = c.Int(nullable: false),
-                        IsPresentBefore = c.Boolean(),
-                        IsPresentAfter = c.Boolean(),
-                        MarkedBeforeBy = c.String(),
-                        MarkedAfterBy = c.String(),
-                        MarkedBeforeAt = c.DateTime(),
-                        MarkedAfterAt = c.DateTime(),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Students", t => t.StudentId)
-                .ForeignKey("dbo.TripSchedules", t => t.TripScheduleId)
-                .Index(t => t.TripScheduleId)
-                .Index(t => t.StudentId);
-            
-            CreateTable(
-                "dbo.Vehicles",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        VehicleNumber = c.String(nullable: false),
-                        Model = c.String(nullable: false),
-                        Type = c.String(nullable: false),
-                        Capacity = c.Int(nullable: false),
-                        IsActive = c.Boolean(nullable: false),
-                        DateAdded = c.DateTime(nullable: false),
-                        ImageUrl = c.String(),
+                        Status = c.String(),
                     })
                 .PrimaryKey(t => t.Id);
             
@@ -752,6 +664,20 @@
                         Description = c.String(),
                         DateReported = c.DateTime(nullable: false),
                         Status = c.String(),
+                    })
+                .PrimaryKey(t => t.Id);
+            
+            CreateTable(
+                "dbo.Vehicles",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        VehicleNumber = c.String(nullable: false),
+                        Model = c.String(nullable: false),
+                        Type = c.String(nullable: false),
+                        Capacity = c.Int(nullable: false),
+                        IsActive = c.Boolean(nullable: false),
+                        DateAdded = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Id);
             
@@ -777,14 +703,6 @@
         public override void Down()
         {
             DropForeignKey("dbo.YearResults", "StudentId", "dbo.Students");
-            DropForeignKey("dbo.TripSchedules", "VehicleId", "dbo.Vehicles");
-            DropForeignKey("dbo.TripStudents", "TripScheduleId", "dbo.TripSchedules");
-            DropForeignKey("dbo.TripStudents", "StudentId", "dbo.Students");
-            DropForeignKey("dbo.TripSchedules", "TripRequestId", "dbo.TripRequests");
-            DropForeignKey("dbo.TripSchedules", "TeacherId", "dbo.Teachers");
-            DropForeignKey("dbo.TripSchedules", "DriverId", "dbo.Drivers");
-            DropForeignKey("dbo.TripRequests", "TeacherId", "dbo.Teachers");
-            DropForeignKey("dbo.TripRequests", "ApprovedByAdminId", "dbo.AppUsers");
             DropForeignKey("dbo.TermResults", "SubjectId", "dbo.Subjects");
             DropForeignKey("dbo.TermResults", "StudentId", "dbo.Students");
             DropForeignKey("dbo.StockMovements", "ProductId", "dbo.Products");
@@ -793,7 +711,6 @@
             DropForeignKey("dbo.SupplierProducts", "SupplierId", "dbo.Suppliers");
             DropForeignKey("dbo.SupplierProducts", "ProductId", "dbo.Products");
             DropForeignKey("dbo.PurchaseOrderLines", "ProductId", "dbo.Products");
-            DropForeignKey("dbo.Notifications", "UserId", "dbo.AppUsers");
             DropForeignKey("dbo.Invoices", "StudentId", "dbo.Students");
             DropForeignKey("dbo.Invoices", "RegistrationId", "dbo.Registrations");
             DropForeignKey("dbo.Payments", "InvoiceId", "dbo.Invoices");
@@ -838,14 +755,6 @@
             DropForeignKey("dbo.Parents", "UserId", "dbo.AppUsers");
             DropForeignKey("dbo.Documents", "AppId", "dbo.Applications");
             DropIndex("dbo.YearResults", new[] { "StudentId" });
-            DropIndex("dbo.TripStudents", new[] { "StudentId" });
-            DropIndex("dbo.TripStudents", new[] { "TripScheduleId" });
-            DropIndex("dbo.TripSchedules", new[] { "VehicleId" });
-            DropIndex("dbo.TripSchedules", new[] { "DriverId" });
-            DropIndex("dbo.TripSchedules", new[] { "TeacherId" });
-            DropIndex("dbo.TripSchedules", new[] { "TripRequestId" });
-            DropIndex("dbo.TripRequests", new[] { "ApprovedByAdminId" });
-            DropIndex("dbo.TripRequests", new[] { "TeacherId" });
             DropIndex("dbo.TermResults", new[] { "SubjectId" });
             DropIndex("dbo.TermResults", new[] { "StudentId" });
             DropIndex("dbo.StockMovements", new[] { "ProductId" });
@@ -854,7 +763,6 @@
             DropIndex("dbo.PurchaseOrders", new[] { "SupplierId" });
             DropIndex("dbo.PurchaseOrderLines", new[] { "ProductId" });
             DropIndex("dbo.PurchaseOrderLines", new[] { "PurchaseOrderId" });
-            DropIndex("dbo.Notifications", new[] { "UserId" });
             DropIndex("dbo.Payments", new[] { "InvoiceId" });
             DropIndex("dbo.Invoices", new[] { "ParentId" });
             DropIndex("dbo.Invoices", new[] { "StudentId" });
@@ -899,18 +807,15 @@
             DropIndex("dbo.AdminReviews", new[] { "DriverAppId" });
             DropIndex("dbo.AdminReviews", new[] { "AppId" });
             DropTable("dbo.YearResults");
-            DropTable("dbo.VehicleIssues");
             DropTable("dbo.Vehicles");
-            DropTable("dbo.TripStudents");
-            DropTable("dbo.TripSchedules");
-            DropTable("dbo.TripRequests");
+            DropTable("dbo.VehicleIssues");
+            DropTable("dbo.Trips");
             DropTable("dbo.TermResults");
             DropTable("dbo.StockMovements");
             DropTable("dbo.SupplierProducts");
             DropTable("dbo.Suppliers");
             DropTable("dbo.PurchaseOrders");
             DropTable("dbo.PurchaseOrderLines");
-            DropTable("dbo.Notifications");
             DropTable("dbo.Payments");
             DropTable("dbo.Invoices");
             DropTable("dbo.Drivers");

@@ -217,13 +217,11 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605072300463_InitialCreate.cs" />
-    <Compile Include="Migrations\202605072300463_InitialCreate.Designer.cs">
-      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
-    <Compile Include="Migrations\202605071604471_InitialCreate.cs" />
-    <Compile Include="Migrations\202605071604471_InitialCreate.Designer.cs">
-      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605080113130_initialcreate.cs" />
+    <Compile Include="Migrations\202605080113130_initialcreate.Designer.cs">
+      <DependentUpon>202605080113130_initialcreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -251,7 +249,6 @@
     <Compile Include="Controllers\ApplicationsController.cs" />
     <Compile Include="Controllers\CartController.cs" />
     <Compile Include="Controllers\DocumentsController.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MarksController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\ParentsController.cs" />
@@ -551,10 +548,8 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605072300463_InitialCreate.resx">
-      <DependentUpon>202605072300463_InitialCreate.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\202605071604471_InitialCreate.resx">
-      <DependentUpon>202605071604471_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605080113130_initialcreate.resx">
+      <DependentUpon>202605080113130_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
