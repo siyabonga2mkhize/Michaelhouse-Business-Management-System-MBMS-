@@ -180,17 +180,24 @@ namespace Michaelhouse.Controllers
             }
             return RedirectToAction("Availabilities");
         }
-        
+
 
         // Trip Manifest — view students for a specific assigned trip
-        public ActionResult TripManifest(int scheduleId)
+        public ActionResult TripManifest(int? scheduleId)
         {
+            if (scheduleId == null)
+            {
+                TempData["Error"] = "No trip specified.";
+                return RedirectToAction("MyTrips");
+            }
+
             int driverId = (int)Session["DriverId"];
 
             var schedule = db.TripSchedules
                 .Include("TripRequest")
                 .Include("TripStudents.Student.Parent")
-                .FirstOrDefault(s => s.Id == scheduleId && s.DriverId == driverId);
+                .FirstOrDefault(s => s.Id == scheduleId.Value && s.DriverId == driverId);
+            // ... rest stays the same
 
             if (schedule == null)
             {
@@ -235,6 +242,14 @@ namespace Michaelhouse.Controllers
             if (schedule == null)
             {
                 TempData["Error"] = "Trip not found or access denied.";
+                return RedirectToAction("MyTrips");
+            }
+
+            // Only allow marking attendance on the scheduled date
+            if (System.Data.Entity.DbFunctions.TruncateTime(schedule.ScheduledDate) !=
+                System.Data.Entity.DbFunctions.TruncateTime(DateTime.Today))
+            {
+                TempData["Error"] = "Attendance can only be marked on the scheduled trip date.";
                 return RedirectToAction("MyTrips");
             }
 

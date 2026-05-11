@@ -4,9 +4,32 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="page-header">
-    <h2><i class="fa fa-road"></i> My Assigned Trips</h2>
-    <p class="text-muted">All active trips assigned to you. Use the manifest to mark attendance.</p>
+<div class="driver-dashboard-header" style="margin-bottom:18px;">
+    <h2 class="mb-1"><i class="fa fa-road text-danger"></i> My Assigned Trips</h2>
+    <p class="text-muted small">Overview and manifests for your scheduled trips.</p>
+
+    <div class="dashboard-cards" style="display:flex; gap:12px; margin-top:12px;">
+        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
+            <div style="font-size:12px; color:#777;">Assigned Trips</div>
+            <div style="font-size:22px; font-weight:700; color:#c21e2e;">@ViewBag.ActiveTripsCount</div>
+            <div style="font-size:12px; color:#999;">Trips not yet completed</div>
+        </div>
+        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
+            <div style="font-size:12px; color:#777;">Completed Trips</div>
+            <div style="font-size:22px; font-weight:700; color:#2d862d;">@ViewBag.CompletedTripsCount</div>
+            <div style="font-size:12px; color:#999;">Trips marked completed</div>
+        </div>
+        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
+            <div style="font-size:12px; color:#777;">Total Trips</div>
+            <div style="font-size:22px; font-weight:700; color:#333;">@ViewBag.TotalTripsCount</div>
+            <div style="font-size:12px; color:#999;">All assigned trips</div>
+        </div>
+        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
+            <div style="font-size:12px; color:#777;">Today</div>
+            <div style="font-size:22px; font-weight:700; color:#0a58ca;">@ViewBag.TodayTripsCount</div>
+            <div style="font-size:12px; color:#999;">Trips scheduled for today</div>
+        </div>
+    </div>
 </div>
 
 @if (TempData["Success"] != null)
@@ -50,7 +73,7 @@ else
                         <div class="clearfix">
                             <h4 class="panel-title pull-left" style="margin:0; font-weight:600;">
                                 <i class="fa fa-map-marker"></i>
-                                @trip.TripRequest?.Title
+                                @(trip.TripRequest != null ? trip.TripRequest.Title : "—")
                             </h4>
                             <span class="label label-@statusClass pull-right" style="font-size:12px; padding:5px 10px;">
                                 @trip.Status
@@ -74,12 +97,12 @@ else
                             <tr>
                                 <td><i class="fa fa-clock-o text-muted"></i></td>
                                 <td><strong>Departure</strong></td>
-                                <td>@trip.TripRequest?.DepartureTime.ToString("HH:mm")</td>
+                                <td>@(trip.TripRequest != null ? trip.TripRequest.DepartureTime.ToString("HH:mm") : "—")</td>
                             </tr>
                             <tr>
                                 <td><i class="fa fa-clock-o text-muted"></i></td>
                                 <td><strong>Return</strong></td>
-                                <td>@trip.TripRequest?.ReturnTime.ToString("HH:mm")</td>
+                                <td>@(trip.TripRequest != null ? trip.TripRequest.ReturnTime.ToString("HH:mm") : "—")</td>
                             </tr>
                             <tr>
                                 <td><i class="fa fa-map-pin text-muted"></i></td>
@@ -108,8 +131,61 @@ else
 
                     <div class="panel-footer">
                         <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })"
-                           class="btn btn-primary btn-block">
+                           class="btn btn-primary btn-block @(isToday ? "" : "disabled")"
+                           @(isToday ? "" : "onclick=\"return false;\"")>
                             <i class="fa fa-list-ul"></i> View Manifest &amp; Mark Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row" style="display:flex; gap:18px; flex-wrap:wrap;">
+        @foreach (var trip in Model)
+        {
+            var tripDate = trip.ScheduledDate;
+            var isToday = tripDate.Date == DateTime.Today;
+            var studentCount = trip.TripStudents?.Count ?? 0;
+
+            string statusClass = trip.Status == "Confirmed" ? "success"
+                               : trip.Status == "InProgress" ? "warning"
+                               : trip.Status == "Draft" ? "default"
+                               : "info";
+
+            <div style="width:320px;">
+                <div class="trip-card" style="background:#fff; border-radius:10px; padding:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:14px; font-weight:700;">@(trip.TripRequest?.Title ?? "—")</div>
+                            <div style="font-size:12px; color:#777; margin-top:6px;">@(trip.TripRequest?.Description ?? "")</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="badge badge-pill" style="background:@(isToday ? "#c21e2e" : "#eee"); color:@(isToday ? "#fff" : "#333"); font-weight:700; padding:6px 8px;">@trip.Status</span>
+                            @if (isToday) { <div style="font-size:11px; color:#c21e2e; margin-top:6px;">TODAY</div> }
+                        </div>
+                    </div>
+
+                    <hr style="margin:12px 0; border-color:#f0f0f0;" />
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; color:#444;">
+                        <div><strong>Date</strong><div style="color:#777;">@tripDate.ToString("dddd, dd MMM yyyy")</div></div>
+                        <div><strong>Vehicle</strong><div style="color:#777;">@(trip.Vehicle?.VehicleNumber ?? "Not assigned")</div></div>
+
+                        <div><strong>Departure</strong><div style="color:#777;">@(trip.TripRequest != null ? trip.TripRequest.DepartureTime.ToString("HH:mm") : "—")</div></div>
+                        <div><strong>Return</strong><div style="color:#777;">@(trip.TripRequest != null ? trip.TripRequest.ReturnTime.ToString("HH:mm") : "—")</div></div>
+
+                        <div style="grid-column:1 / -1;"><strong>Destination</strong><div style="color:#777;">@(trip.TripRequest?.Destination ?? "N/A")</div></div>
+
+                        <div><strong>Students</strong><div style="color:#777;">@studentCount</div></div>
+                        <div><strong>Seats</strong><div style="color:#777;">@((trip.Vehicle != null) ? trip.Vehicle.Capacity.ToString() : "—")</div></div>
+                    </div>
+
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })" class="btn btn-sm btn-primary" style="flex:1;" @(isToday ? "" : "onclick=\"return false;\"")>
+                            <i class="fa fa-list-ul"></i> View Manifest
+                        </a>
+                        <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })" class="btn btn-sm btn-outline-primary" style="flex:1;" @(isToday ? "" : "onclick=\"return false;\"")>
+                            Mark Attendance
                         </a>
                     </div>
                 </div>
