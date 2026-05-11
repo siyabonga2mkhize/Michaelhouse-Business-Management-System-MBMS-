@@ -40,6 +40,33 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
+            // 3. Transport Manager (NEW FIX ADDED)
+            if (!context.Users.Any(u => u.Role == "Transport Manager"))
+            {
+                context.Users.Add(new AppUser
+                {
+                    Name = "System Transport Manager",
+                    Email = "transport@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Transport@123"),
+                    Role = "TransportManager"
+                });
+
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Role == "Teacher"))
+            {
+                context.Users.Add(new AppUser
+                {
+                    Name = "System Teacher",
+                    Email = "teacher@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Teacher@123"),
+                    Role = "Teacher"
+                });
+
+                context.SaveChanges();
+            }
+
             // 2. Seed Categories (only if empty)
             if (!context.Categories.Any())
             {
