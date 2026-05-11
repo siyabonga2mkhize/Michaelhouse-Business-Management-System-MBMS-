@@ -24,6 +24,7 @@
 
 @using (Html.BeginForm("CreateTripRequest", "Trip", FormMethod.Post, new { @class = "w-full" }))
 {
+    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
     @Html.AntiForgeryToken()
     if (ViewBag.RebookId != null)
     {
@@ -188,6 +189,7 @@
 </style>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let map, marker;
         let searchTimeout;

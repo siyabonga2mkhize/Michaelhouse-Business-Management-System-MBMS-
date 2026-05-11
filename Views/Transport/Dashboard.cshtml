@@ -101,7 +101,7 @@
                                             @req.DepartureTime.ToString("dd MMM yyyy")
                                         </td>
                                         <td class="pe-6 text-end">
-                                            <a href="@Url.Action("ApproveRequest", "Transport", new { id = req.Id })" class="inline-block bg-white border border-gray-200 px-4 py-2 text-[8px] font-bold uppercase tracking-[2px] text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                                            <a href="@Url.Action("PendingRequests", "Transport", new { id = req.Id })" class="inline-block bg-white border border-gray-200 px-4 py-2 text-[8px] font-bold uppercase tracking-[2px] text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
                                                 Review
                                             </a>
                                         </td>
