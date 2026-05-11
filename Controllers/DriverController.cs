@@ -1,6 +1,8 @@
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
@@ -177,6 +179,142 @@ namespace Michaelhouse.Controllers
                 TempData["Success"] = "Availability deleted.";
             }
             return RedirectToAction("Availabilities");
+        }
+
+
+        // Trip Manifest — view students for a specific assigned trip
+        public ActionResult TripManifest(int? scheduleId)
+        {
+            if (scheduleId == null)
+            {
+                TempData["Error"] = "No trip specified.";
+                return RedirectToAction("MyTrips");
+            }
+
+            int driverId = (int)Session["DriverId"];
+
+            var schedule = db.TripSchedules
+                .Include("TripRequest")
+                .Include("TripStudents.Student.Parent")
+                .FirstOrDefault(s => s.Id == scheduleId.Value && s.DriverId == driverId);
+            // ... rest stays the same
+
+            if (schedule == null)
+            {
+                TempData["Error"] = "Trip not found or you are not assigned to this trip.";
+                return RedirectToAction("MyTrips");
+            }
+
+            var students = schedule.TripStudents.Select(ts => new ManifestStudentViewModel
+            {
+                StudentId = ts.StudentId,
+                StudentName = ts.Student.FirstName + " " + ts.Student.LastName,
+                ParentName = ts.Student.Parent?.Name ?? "N/A",
+                EmergencyContactName = ts.Student.Parent?.EmergencyContactName ?? "Not provided",
+                EmergencyContactPhone = ts.Student.Parent?.EmergencyContactPhone ?? "",
+                AlreadyPresentBefore = ts.IsPresentBefore,
+                AlreadyPresentAfter = ts.IsPresentAfter,
+                IsPresentBefore = ts.IsPresentBefore ?? false,
+                IsPresentAfter = ts.IsPresentAfter ?? false
+            }).ToList();
+
+            ViewBag.Schedule = schedule;
+            return View(students);
+        }
+
+        // Mark students present/absent — before departure or after return
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult MarkManifest(int? scheduleId, List<ManifestStudentViewModel> students, string markType)
+        {
+            if (scheduleId == null)
+            {
+                TempData["Error"] = "Schedule ID missing.";
+                return RedirectToAction("MyTrips");
+            }
+
+            int driverId = (int)Session["DriverId"];
+
+            var schedule = db.TripSchedules
+                .Include(s => s.TripRequest)
+                .FirstOrDefault(s => s.Id == scheduleId.Value && s.DriverId == driverId);
+
+            if (schedule == null)
+            {
+                TempData["Error"] = "Trip not found or access denied.";
+                return RedirectToAction("MyTrips");
+            }
+
+            // Only allow marking attendance on the scheduled date
+            if (System.Data.Entity.DbFunctions.TruncateTime(schedule.ScheduledDate) !=
+                System.Data.Entity.DbFunctions.TruncateTime(DateTime.Today))
+            {
+                TempData["Error"] = "Attendance can only be marked on the scheduled trip date.";
+                return RedirectToAction("MyTrips");
+            }
+
+            int userId = (int)Session["UserId"];
+
+            foreach (var vm in students)
+            {
+                var ts = db.TripStudents
+                    .FirstOrDefault(t => t.TripScheduleId == scheduleId.Value && t.StudentId == vm.StudentId);
+                if (ts == null) continue;
+
+                if (markType == "before")
+                {
+                    ts.IsPresentBefore = vm.IsPresentBefore;
+                    if (vm.IsPresentBefore)
+                    {
+                        ts.MarkedBeforeBy = userId.ToString();
+                        ts.MarkedBeforeAt = DateTime.Now;
+                    }
+                }
+                else if (markType == "after")
+                {
+                    ts.IsPresentAfter = vm.IsPresentAfter;
+                    if (vm.IsPresentAfter)
+                    {
+                        ts.MarkedAfterBy = userId.ToString();
+                        ts.MarkedAfterAt = DateTime.Now;
+                    }
+                }
+            }
+            db.SaveChanges();
+
+            if (markType == "before")
+            {
+                var presentIds = students.Where(s => s.IsPresentBefore).Select(s => s.StudentId).ToList();
+                if (presentIds.Any())
+                    NotificationHelper.NotifyParents(db, presentIds,
+                        $"Your child has been marked PRESENT for departure of trip '{schedule.TripRequest.Title}'.");
+
+                NotificationHelper.NotifyTeacher(db, schedule.TeacherId,
+                    $"Driver has saved pre-trip attendance for '{schedule.TripRequest.Title}'.");
+
+                TempData["Success"] = "Pre-trip attendance saved.";
+            }
+            else if (markType == "after")
+            {
+                var presentIds = students.Where(s => s.IsPresentAfter).Select(s => s.StudentId).ToList();
+                if (presentIds.Any())
+                    NotificationHelper.NotifyParents(db, presentIds,
+                        $"Your child has returned safely from trip '{schedule.TripRequest.Title}'.");
+
+                NotificationHelper.NotifyTeacher(db, schedule.TeacherId,
+                    $"Driver has saved post-trip attendance. Trip '{schedule.TripRequest.Title}' completed.");
+
+                schedule.Status = "Completed";
+                db.SaveChanges();
+
+                TempData["Success"] = "Post-trip attendance saved. Trip marked as Completed.";
+            }
+            else
+            {
+                TempData["Error"] = "Invalid mark type.";
+            }
+
+            return RedirectToAction("MyTrips");
         }
 
         protected override void Dispose(bool disposing)
