@@ -1,42 +1,143 @@
 ﻿@model List<Michaelhouse.Models.DriverAvailability>
 @{
-    ViewBag.Title = "My Unavailability";
+    ViewBag.Title = "Declared Unavailability";
 }
-<h2>My Unavailability</h2>
-<p><a href="@Url.Action("AddAvailability")" class="btn btn-primary">Add Period</a></p>
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No unavailability periods set.</div>
-}
-else
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Reason</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var a in Model)
-            {
-                <tr>
-                    <td>@(a.StartDate?.ToString("dd MMM yyyy"))</td>
-                    <td>@(a.EndDate.ToString("dd MMM yyyy") )</td>
-                    <td>@a.Reason</td>
-                    <td>
-                        <a href="@Url.Action("EditAvailability", new { id = a.Id })" class="btn btn-sm btn-warning">Edit</a>
-                        @using (Html.BeginForm("DeleteAvailability", "Driver", FormMethod.Post, new { style = "display:inline;" }))
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Personnel Portal</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Declared Unavailability</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Absence & Off-Duty Registry</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Driver")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Portal Home
+            </a>
+            <a href="@Url.Action("AddAvailability")" class="inline-block bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black transition-all shadow-xl">
+                <i class="bi bi-calendar-plus me-2"></i> Declare Absence
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mx-8 mb-8">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Official Absence Ledger</h5>
+            </div>
+
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Active Records: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="unavailabilityTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Absence Duration Window</th>
+                        <th>Registered Justification</th>
+                        <th class="pe-8 text-end">Administrative Control</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="py-20 text-center">
+                                <i class="bi bi-calendar2-check text-green-500/50 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Schedule Clear</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">No absence periods currently declared. You are marked as fully operational.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var a in Model)
                         {
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@a.Id" />
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this period?')">Delete</button>
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-mono text-[11px] font-bold text-gray-800 bg-gray-50 px-3 py-2 border border-gray-100 shadow-sm">
+                                            @(a.StartDate?.ToString("dd MMM yyyy") ?? "N/A")
+                                        </span>
+                                        <i class="bi bi-arrow-right text-gray-300"></i>
+                                        <span class="font-mono text-[11px] font-bold text-gray-800 bg-gray-50 px-3 py-2 border border-gray-100 shadow-sm">
+                                            @a.EndDate.ToString("dd MMM yyyy")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="font-serif italic text-gray-700 text-sm group-hover:text-[#C21E2E] transition-colors">
+                                        "@a.Reason"
+                                    </div>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="@Url.Action("EditAvailability", new { id = a.Id })" class="inline-block bg-black text-white px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                            <i class="bi bi-pencil-square me-1"></i> Modify
+                                        </a>
+                                        @using (Html.BeginForm("DeleteAvailability", "Driver", FormMethod.Post, new { @class = "m-0" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@a.Id" />
+                                            <button type="submit" class="text-[9px] font-bold uppercase tracking-[2px] text-red-400 hover:text-red-700 border-0 bg-transparent px-4 py-2 transition-colors" onclick="return confirm('Revoke this absence declaration and return to active duty?');">
+                                                <i class="bi bi-x-circle me-1"></i> Revoke
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
