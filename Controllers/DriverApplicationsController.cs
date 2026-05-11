@@ -369,11 +369,33 @@ Michaelhouse Transport Team
 
         // Public details view for unauthenticated applicants
         [AllowAnonymous]
-        public ActionResult PublicDetails(int id)
+        public ActionResult PublicDetails(int id, string token = null)
         {
-            var application = db.DriverApplications.Include(d => d.Documents).FirstOrDefault(d => d.Id == id);
+            var application = db.DriverApplications
+                .Include(d => d.Documents)
+                .FirstOrDefault(d => d.Id == id);
+
             if (application == null) return HttpNotFound();
-            ViewBag.IsPublicViewer = true;
+
+            bool tokenValid = false;
+            if (!string.IsNullOrEmpty(token)
+                && application.PublicTokenExpiry != null
+                && application.PublicTokenExpiry > DateTime.UtcNow)
+            {
+                tokenValid = ComputeSha256Hash(token) == application.PublicTokenHash;
+            }
+
+            var uid = GetCurrentAppUserId();
+            bool isOwner = uid != null && application.UserId == uid;
+
+            if (!User.IsInRole("Admin") && !isOwner && !tokenValid)
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+
+            ViewBag.IsPublicViewer = !User.IsInRole("Admin") && !isOwner;
+
+            if (!string.IsNullOrEmpty(token) && tokenValid)
+                ViewBag.PublicToken = token;
+
             return View("Details", application);
         }
 

@@ -167,6 +167,14 @@
                                 @Html.TextBoxFor(m => m.IDNumber, new { @class = "w-full p-3 border border-gray-100 rounded-none form-input-focus text-sm bg-gray-50/30", placeholder = "13-Digit Number" })
                             </div>
 
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.PhoneNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control", placeholder = "e.g. 0821234567" } })
+                                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Email Address</label>
                                 @Html.TextBoxFor(m => m.Email, new { @class = "w-full p-3 border border-gray-100 rounded-none form-input-focus text-sm bg-gray-50/30", placeholder = "you@example.com" })

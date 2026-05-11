@@ -23,7 +23,13 @@ namespace Michaelhouse.Controllers
         public ActionResult Dashboard()
         {
             var role = Session["UserRole"]?.ToString();
-            if (role != "TransportManager" && role != "Admin")
+
+            // FIX: handle BOTH naming styles safely
+            bool isTransportManager =
+                role == "TransportManager" ||
+                role == "Transport Manager";
+
+            if (!isTransportManager && role != "Admin")
                 return new HttpUnauthorizedResult();
 
             // Stats
@@ -33,14 +39,12 @@ namespace Michaelhouse.Controllers
             ViewBag.TotalVehicles = db.Vehicles.Count(v => v.IsActive);
             ViewBag.UpcomingTripsCount = db.TripSchedules.Count(s => s.ScheduledDate >= System.DateTime.Today && s.Status != "Completed");
 
-            // Recent trip requests (last 5)
             var recentRequests = db.TripRequests
                 .Include(r => r.Teacher)
                 .OrderByDescending(r => r.RequestedAt)
                 .Take(5)
                 .ToList();
 
-            // Upcoming schedules (next 5)
             var upcomingSchedules = db.TripSchedules
                 .Include(s => s.TripRequest)
                 .Include(s => s.Teacher)
