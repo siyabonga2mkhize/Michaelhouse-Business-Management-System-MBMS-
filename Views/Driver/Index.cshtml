@@ -1,105 +1,97 @@
 ﻿@{
-    ViewBag.Title = "Driver Dashboard";
+    ViewBag.Title = "Personnel Portal";
 }
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>Welcome, @ViewBag.DriverName</h2>
-            <p class="lead">Here's what's happening with your trips.</p>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Personnel Portal</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Authorized Driver: @ViewBag.DriverName</p>
         </div>
-        <div class="col-md-4 text-end">
-            <img src="~/Content/logo.svg.png" alt="Michaelhouse" style="height: 60px;" />
+        <div class="flex-shrink-0">
+            <img src="~/Content/logo.svg.png" alt="Michaelhouse Logo" class="h-16 w-auto opacity-80" />
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-calendar-check"></i> My Assigned Trips
-                    </h5>
-                    <p class="card-text">View and mark attendance for trips assigned to you.</p>
-                    <a href="@Url.Action("MyTrips", "Driver")" class="btn btn-primary">View Trips</a>
-                </div>
-            </div>
+    @* --- SCROLLABLE MODULE GRID --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+
+        @* Archival Section Header *@
+        <div class="p-6 border-b border-gray-100 bg-white relative overflow-hidden mb-6 flex-shrink-0 shadow-sm">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 relative z-10 mb-0">Active Operational Modules</h5>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-calendar-x"></i> Unavailability
-                    </h5>
-                    <p class="card-text">Manage dates when you are not available for trips.</p>
-                    <a href="@Url.Action("Availabilities", "Driver")" class="btn btn-secondary">Manage Availability</a>
-                </div>
+
+        <div class="row g-6">
+
+            @* 01. Assigned Trips *@
+            <div class="col-md-6">
+                <a href="@Url.Action("MyTrips", "Driver")" class="block text-decoration-none group h-full">
+                    <div class="bg-white border border-gray-100 p-10 shadow-sm relative overflow-hidden h-full transition-all group-hover:border-[#C21E2E] group-hover:shadow-md">
+                        <i class="bi bi-calendar-check absolute -right-4 -bottom-4 text-black/5 text-9xl rotate-12 transition-transform group-hover:scale-110 duration-500"></i>
+                        <h5 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 relative z-10 group-hover:text-[#C21E2E] transition-colors">Manifest Authorization</h5>
+                        <h3 class="text-3xl font-serif font-bold text-gray-900 mb-3 relative z-10">Assigned Excursions</h3>
+                        <p class="text-sm font-serif italic text-gray-500 relative z-10 mb-0">Access scheduled routes and verify student attendance manifests for upcoming logistical deployments.</p>
+
+                        <div class="mt-8 relative z-10">
+                            <span class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] group-hover:bg-[#C21E2E] transition-colors shadow-sm">
+                                Access Registry <i class="bi bi-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
             </div>
+
+            @* 02. Unavailability *@
+            <div class="col-md-6">
+                <a href="@Url.Action("Availabilities", "Driver")" class="block text-decoration-none group h-full">
+                    <div class="bg-[#1a1a1a] border border-gray-800 p-10 shadow-sm relative overflow-hidden h-full transition-all group-hover:border-gray-500">
+                        <i class="bi bi-calendar-x absolute -right-4 -bottom-4 text-white/5 text-9xl rotate-12 transition-transform group-hover:scale-110 duration-500"></i>
+                        <h5 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-4 relative z-10 group-hover:text-white transition-colors">Schedule Management</h5>
+                        <h3 class="text-3xl font-serif font-bold text-white mb-3 relative z-10">Declare Unavailability</h3>
+                        <p class="text-sm font-serif italic text-gray-400 relative z-10 mb-0">Log periods of absence or off-duty scheduling to prevent logistical assignment conflicts.</p>
+
+                        <div class="mt-8 relative z-10">
+                            <span class="inline-block bg-white text-gray-900 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] group-hover:bg-gray-200 transition-colors shadow-sm">
+                                Manage Schedule <i class="bi bi-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
         </div>
     </div>
 </div>
-@* @model List<Michaelhouse.Models.Driver>
-    @{
-        ViewBag.Title = "Manage Drivers";
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
     }
 
-    <h2>Drivers</h2>
-
-    <p>
-        <a href="@Url.Action("Create", "Driver")" class="btn btn-primary">+ Add New Driver</a>
-    </p>
-
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info">No drivers found. Add one above.</div>
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
     }
-    else
-    {
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Licence Number</th>
-                    <th>PDP</th>
-                    <th>Active</th>
-                    <th>Image</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var d in Model)
-                {
-                    <tr>
-                        <td>
-                            @d.FullName
-                    </td>
-                    <td>
-                        @d.Email
-                </td>
-                <td>@d.PhoneNumber
-            </td>
-            <td>
-                @d.LicenceNumber
-        </td>
-        <td>@(d.HasPDP ? "Yes" : "No")
-        </td>
-        <td>
-            @(d.IsActive ? "Active" : "Inactive")
-        </td>
-        <td>
-            @if (!string.IsNullOrEmpty(d.ImageUrl))
-            {
-                <img src="@d.ImageUrl" alt="Driver" style="width: 300px; height: 220px; object-fit: cover;" />
-            }
-        </td>
-        <td>
-            <a href="@Url.Action("Edit", "Driver", new { id = d.Id })" class="btn btn-sm btn-warning">Edit</a>
-            <a href="@Url.Action("Delete", "Driver", new { id = d.Id })" class="btn btn-sm btn-danger">Delete</a>
-        </td>
-    </tr>
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
     }
-            </tbody>
-        </table>
-    }*@
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -526,8 +526,38 @@ BEGIN
 END
 
 
+IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Role = 'TransportManager')
+BEGIN
+    -- 2. Insert the Transport Manager
+    INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+    VALUES (
+        'Siya',                    -- Name
+        'Siya@michaelhouse.co.za',        -- Email
+        'vZ4cL5K0yRr2xW8nF3qA9bH7jM1pU6tY2eC4dG5sW7=',  -- Hash of "Transport@123"
+        'TransportManager'                     -- Role (exact spelling)
+    );
+    
+    -- Optional: get the new UserId
+    DECLARE @NewUserId INT = SCOPE_IDENTITY();
+    
+    -- 3. If you have a Drivers table and want to link this manager to a Driver record (optional), uncomment:
+    -- INSERT INTO Drivers (UserId, FullName, Email, IsActive, DateCreated, HasPDP, LicenceNumber)
+    -- VALUES (@NewUserId, 'Transport Manager', 'transport@michaelhouse.co.za', 1, GETDATE(), 1, 'MGR000');
+    
+    SELECT 'Transport Manager added. Login: transport@michaelhouse.co.za / Password: Transport@123' AS Result;
+END
+ELSE
+BEGIN
+    SELECT 'Transport Manager already exists. No action taken.' AS Result;
+END
+
+
 UPDATE AppUsers
 SET PasswordHash = 'Nt5wp81dThJvZ2gsftCIr4v5RBsK76mnokNklLWFy70='
+WHERE Email = 'transport@michaelhouse.co.za';
+
+UPDATE AppUsers 
+SET PasswordHash = (SELECT PasswordHash FROM AppUsers WHERE Email = 'admin@michaelhouse.co.za')
 WHERE Email = 'transport@michaelhouse.co.za';
 
 
@@ -719,3 +749,37 @@ VALUES (1, '2025-01-01', '2025-01-05', 'Test', GETDATE());
 SELECT TABLE_NAME
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE'
+
+
+CREATE TABLE dbo.TripRequests (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TeacherId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX),
+    DepartureTime DATETIME2 NOT NULL,
+    ReturnTime DATETIME2 NOT NULL,
+    Destination NVARCHAR(200),
+    MaxStudents INT NOT NULL,
+    Status NVARCHAR(20),
+    RejectionReason NVARCHAR(500),
+    RequestedAt DATETIME2 NOT NULL,
+    ApprovedByAdminId INT NULL,
+    ApprovedAt DATETIME2 NULL,
+    DestinationLat FLOAT NULL,
+    DestinationLng FLOAT NULL,
+    RebookedFromId INT NULL,
+);
+
+
+SELECT COUNT(*) FROM AppUsers WHERE Email = 'transport@michaelhouse.co.za';
+
+
+-- Update the hash to the correct value for "Transport@123"
+UPDATE AppUsers 
+SET PasswordHash = 'vZ4cL5K0yRr2xW8nF3qA9bH7jM1pU6tY2eC4dG5sW7='
+WHERE Email = 'transport@michaelhouse.co.za';
+
+-- Also ensure the role is exactly "TransportManager" (no spaces)
+UPDATE AppUsers 
+SET Role = 'TransportManager'
+WHERE Email = 'transport@michaelhouse.co.za';
