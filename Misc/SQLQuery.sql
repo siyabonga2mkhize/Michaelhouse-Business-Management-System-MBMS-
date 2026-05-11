@@ -783,3 +783,6 @@ WHERE Email = 'transport@michaelhouse.co.za';
 UPDATE AppUsers 
 SET Role = 'TransportManager'
 WHERE Email = 'transport@michaelhouse.co.za';
+
+
+select * from DriverApplications;
