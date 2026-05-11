@@ -55,91 +55,7 @@
 }
 else
 {
-    <div class="row">
-        @foreach (var trip in Model)
-        {
-            var tripDate = trip.ScheduledDate;
-            var isToday = tripDate.Date == DateTime.Today;
-            var studentCount = trip.TripStudents?.Count ?? 0;
 
-            string statusClass = trip.Status == "Confirmed" ? "success"
-                               : trip.Status == "InProgress" ? "warning"
-                               : trip.Status == "Draft" ? "default"
-                               : "info";
-
-            <div class="col-md-6 col-lg-4">
-                <div class="panel panel-@(isToday ? "warning" : "default") trip-card">
-                    <div class="panel-heading">
-                        <div class="clearfix">
-                            <h4 class="panel-title pull-left" style="margin:0; font-weight:600;">
-                                <i class="fa fa-map-marker"></i>
-                                @(trip.TripRequest != null ? trip.TripRequest.Title : "—")
-                            </h4>
-                            <span class="label label-@statusClass pull-right" style="font-size:12px; padding:5px 10px;">
-                                @trip.Status
-                            </span>
-                        </div>
-                        @if (isToday)
-                        {
-                            <span class="label label-danger" style="margin-top:6px; display:inline-block;">
-                                <i class="fa fa-clock-o"></i> TODAY
-                            </span>
-                        }
-                    </div>
-
-                    <div class="panel-body">
-                        <table class="table table-condensed" style="margin-bottom:0;">
-                            <tr>
-                                <td><i class="fa fa-calendar text-muted"></i></td>
-                                <td><strong>Date</strong></td>
-                                <td>@tripDate.ToString("dddd, dd MMM yyyy")</td>
-                            </tr>
-                            <tr>
-                                <td><i class="fa fa-clock-o text-muted"></i></td>
-                                <td><strong>Departure</strong></td>
-                                <td>@(trip.TripRequest != null ? trip.TripRequest.DepartureTime.ToString("HH:mm") : "—")</td>
-                            </tr>
-                            <tr>
-                                <td><i class="fa fa-clock-o text-muted"></i></td>
-                                <td><strong>Return</strong></td>
-                                <td>@(trip.TripRequest != null ? trip.TripRequest.ReturnTime.ToString("HH:mm") : "—")</td>
-                            </tr>
-                            <tr>
-                                <td><i class="fa fa-map-pin text-muted"></i></td>
-                                <td><strong>Destination</strong></td>
-                                <td>@(trip.TripRequest?.Destination ?? "N/A")</td>
-                            </tr>
-                            <tr>
-                                <td><i class="fa fa-car text-muted"></i></td>
-                                <td><strong>Vehicle</strong></td>
-                                <td>@(trip.Vehicle?.VehicleNumber ?? "Not assigned")</td>
-                            </tr>
-                            <tr>
-                                <td><i class="fa fa-users text-muted"></i></td>
-                                <td><strong>Students</strong></td>
-                                <td>@studentCount student(s)</td>
-                            </tr>
-                        </table>
-
-                        @if (!string.IsNullOrWhiteSpace(trip.TripRequest?.Description))
-                        {
-                            <p class="text-muted" style="margin-top:10px; font-size:13px;">
-                                <i class="fa fa-info-circle"></i> @trip.TripRequest.Description
-                            </p>
-                        }
-                    </div>
-
-                    <div class="panel-footer">
-                        <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })"
-                           class="btn btn-primary btn-block @(isToday ? "" : "disabled")"
-                           @(isToday ? "" : "onclick=\"return false;\"")>
-                            <i class="fa fa-list-ul"></i> View Manifest &amp; Mark Attendance
-                        </a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
     <div class="row" style="display:flex; gap:18px; flex-wrap:wrap;">
         @foreach (var trip in Model)
         {
@@ -161,7 +77,8 @@ else
                         </div>
                         <div style="text-align:right;">
                             <span class="badge badge-pill" style="background:@(isToday ? "#c21e2e" : "#eee"); color:@(isToday ? "#fff" : "#333"); font-weight:700; padding:6px 8px;">@trip.Status</span>
-                            @if (isToday) { <div style="font-size:11px; color:#c21e2e; margin-top:6px;">TODAY</div> }
+                            @if (isToday)
+                            {<div style="font-size:11px; color:#c21e2e; margin-top:6px;">TODAY</div>}
                         </div>
                     </div>
 
@@ -192,33 +109,33 @@ else
             </div>
         }
     </div>
-}
-
-<style>
-    .trip-card {
-        border-radius: 6px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        transition: box-shadow 0.2s;
     }
 
-        .trip-card:hover {
-            box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+    <style>
+        .trip-card {
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s;
         }
 
-        .trip-card .panel-heading {
-            border-radius: 6px 6px 0 0;
-            padding: 12px 16px;
-        }
+            .trip-card:hover {
+                box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+            }
 
-        .trip-card .panel-footer {
-            background: #f9f9f9;
-            border-radius: 0 0 6px 6px;
-            padding: 10px 16px;
-        }
+            .trip-card .panel-heading {
+                border-radius: 6px 6px 0 0;
+                padding: 12px 16px;
+            }
 
-    .page-header {
-        border-bottom: 2px solid #e2e2e2;
-        margin-bottom: 24px;
-    }
-</style>
+            .trip-card .panel-footer {
+                background: #f9f9f9;
+                border-radius: 0 0 6px 6px;
+                padding: 10px 16px;
+            }
+
+        .page-header {
+            border-bottom: 2px solid #e2e2e2;
+            margin-bottom: 24px;
+        }
+    </style>
