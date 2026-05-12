@@ -38,6 +38,17 @@ namespace Michaelhouse
         // GET: VehicleIssues/Create
         public ActionResult Create()
         {
+            var vehicles = db.Vehicles
+                .Where(v => v.IsActive)
+                .ToList()
+                .Select(v => new
+                {
+                    v.Id,
+                    DisplayName = v.Model + " - " + v.VehicleNumber
+                });
+
+            ViewBag.VehicleId = new SelectList(vehicles, "Id", "DisplayName");
+
             return View();
         }
 
@@ -48,6 +59,10 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
         {
+            vehicleIssue.DriverId = (int)Session["DriverId"];
+            
+            vehicleIssue.DateReported = DateTime.Now;
+            vehicleIssue.Status = "Pending";
             if (ModelState.IsValid)
             {
                 db.VehicleIssues.Add(vehicleIssue);

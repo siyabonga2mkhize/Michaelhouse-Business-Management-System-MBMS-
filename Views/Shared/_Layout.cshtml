@@ -808,14 +808,16 @@
                            href="@Url.Action("MyTrips", "Driver")">
                             <i class="bi bi-calendar-check"></i> <span class="link-text">My Assigned Trips</span>
                         </a>
-                        <a class="nav-link @(currentController == "Driver" && currentAction == "TripManifest" ? "active" : "")"
-                           href="@Url.Action("TripManifest", "Driver")">
-                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Manifest</span>
-                        </a>
+                       
                         <a class="nav-link @(currentController == "Driver" && currentAction == "Availabilities" ? "active" : "")"
                            href="@Url.Action("Availabilities", "Driver")">
                             <i class="bi bi-calendar-week"></i> <span class="link-text">My Availability</span>
                         </a>
+                        <a class="nav-link @(currentController == "VehicleIssues" && currentAction == "Create" ? "active" : "")"
+   href="@Url.Action("Create", "VehicleIssues")">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span class="link-text">Report Issue</span>
+</a>
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Settings</div>
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
