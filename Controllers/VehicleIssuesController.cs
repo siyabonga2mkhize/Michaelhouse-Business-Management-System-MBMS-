@@ -17,7 +17,12 @@ namespace Michaelhouse
         // GET: VehicleIssues
         public ActionResult Index()
         {
-            return View(db.VehicleIssues.ToList());
+            var issues = db.VehicleIssues
+                .Include("Driver")
+                .Include("Vehicle")
+                .ToList();
+
+            return View(issues);
         }
 
         // GET: VehicleIssues/Details/5
@@ -128,6 +133,22 @@ namespace Michaelhouse
             db.VehicleIssues.Remove(vehicleIssue);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UpdateStatus(int id, string status)
+        {
+            var issue = db.VehicleIssues.Find(id);
+
+            if (issue == null)
+            {
+                return HttpNotFound();
+            }
+
+            issue.Status = status;
+            db.SaveChanges();
+
+            return RedirectToAction("Details", new { id = id });
         }
 
         protected override void Dispose(bool disposing)

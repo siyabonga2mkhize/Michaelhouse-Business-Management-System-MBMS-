@@ -222,6 +222,10 @@
     <Compile Include="Migrations\202605111044260_initialcreate.Designer.cs">
       <DependentUpon>202605111044260_initialcreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202605120101190_InitialCreateFix.cs" />
+    <Compile Include="Migrations\202605120101190_InitialCreateFix.Designer.cs">
+      <DependentUpon>202605120101190_InitialCreateFix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -539,6 +543,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202605111044260_initialcreate.resx">
       <DependentUpon>202605111044260_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605120101190_InitialCreateFix.resx">
+      <DependentUpon>202605120101190_InitialCreateFix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
