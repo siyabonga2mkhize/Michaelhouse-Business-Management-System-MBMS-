@@ -124,6 +124,28 @@ namespace Michaelhouse.Controllers
                     // Send them straight to the new dashboard!
                     return RedirectToAction("Index", "Inventory");
                 }
+                else if (user.Role == "Driver")
+                {
+                    var driver = db.Drivers.FirstOrDefault(d => d.UserId == user.UserId);
+
+                    if (driver == null)
+                    {
+                        driver = new Driver
+                        {
+                            FullName = user.Name,
+                            Email = user.Email,
+                            UserId = user.UserId,
+                            IsActive = true,
+                            DateCreated = DateTime.Now
+                        };
+
+                        db.Drivers.Add(driver);
+                        db.SaveChanges();
+                    }
+
+                    // IMPORTANT: store correct key (Id, not DriverId)
+                    Session["DriverId"] = driver.Id;
+                }
 
                 return RedirectByRole(user.Role);
             }
