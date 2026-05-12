@@ -1,4 +1,5 @@
 ﻿using Michaelhouse.Controllers;
+using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
@@ -9,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using static Michaelhouse.Filters.TransportManagerOrAdminOnlyAttribute;
 
 namespace Michaelhouse
 {
@@ -25,14 +27,14 @@ namespace Michaelhouse
         }
 
         // GET: DriverApplications (Admin only)
-        [Authorize(Roles = "Admin")]
+        [AdminOrTransportManagerOnly]
         public ActionResult Index()
         {
             return View(db.DriverApplications.ToList());
         }
 
         // Applicant-only list of their own applications
-        [Authorize]
+        [RequireLogin]
         public ActionResult MyApplications()
         {
             var uid = GetCurrentAppUserId();
@@ -42,15 +44,19 @@ namespace Michaelhouse
         }
 
         // GET: Details (Admin or owning applicant)
-        [Authorize]
+        [RequireLogin]
         public ActionResult Details(int? id)
         {
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var application = db.DriverApplications.Include(d => d.Documents).FirstOrDefault(d => d.Id == id);
             if (application == null) return HttpNotFound();
 
-            var uid = GetCurrentAppUserId();
-            if (!User.IsInRole("Admin") && application.UserId != uid)
+            var currentUserId = (int)Session["UserId"];
+            var currentRole = Session["UserRole"]?.ToString();
+            bool isAdminOrTransport = (currentRole == "Admin" || currentRole == "TransportManager");
+            bool isOwner = (application.UserId == currentUserId);
+
+            if (!isAdminOrTransport && !isOwner)
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
 
             return View(application);
@@ -79,6 +85,13 @@ namespace Michaelhouse
             }
 
             if (!User.IsInRole("Admin") && driverApplication.UserId != uid && !tokenMatches)
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+            var currentUserId = (int?)Session["UserId"];
+            var currentRole = Session["UserRole"]?.ToString();
+            bool isAdmin = currentRole == "Admin";
+            bool isOwner = (driverApplication.UserId == currentUserId);
+
+            if (!isAdmin && !isOwner && !tokenMatches)
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
 
             return View(driverApplication);
@@ -215,26 +228,30 @@ Michaelhouse Transport Team
         // POST: Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize]
+        [RequireLogin]
         public ActionResult DeleteConfirmed(int id)
         {
             DriverApplication driverApplication = db.DriverApplications.Find(id);
             if (driverApplication == null) return HttpNotFound();
 
-            var uid = GetCurrentAppUserId();
-            if (!User.IsInRole("Admin") && driverApplication.UserId != uid)
+            var currentUserId = (int)Session["UserId"];
+            var currentRole = Session["UserRole"]?.ToString();
+            bool isAdmin = currentRole == "Admin";
+            bool isOwner = (driverApplication.UserId == currentUserId);
+
+            if (!isAdmin && !isOwner)
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
 
             db.DriverApplications.Remove(driverApplication);
             db.SaveChanges();
-            if (User.IsInRole("Admin")) return RedirectToAction("Index");
+            if (isAdmin) return RedirectToAction("Index");
             return RedirectToAction("MyApplications");
         }
 
         // POST: Admin Review (no automatic account creation)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [AdminOrTransportManagerOnly]
         public ActionResult Review(int id, string decision, string adminNotes)
         {
             var app = db.DriverApplications.Find(id);
@@ -246,21 +263,28 @@ Michaelhouse Transport Team
             app.Status = decision;
             app.AdminNotes = adminNotes;
             app.ReviewedDate = DateTime.Now;
-            db.SaveChanges();
 
-            // Optionally send an email notification (but no account creation)
-            if (decision == "Approve")
+            try
             {
-                // Do NOT create driver account automatically. Admin will do it manually after interview.
-                // You can send a "pre‑approval" email if needed.
+                db.SaveChanges();
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            {
+                var errorMessages = ex.EntityValidationErrors
+                    .SelectMany(x => x.ValidationErrors)
+                    .Select(x => $"Property: {x.PropertyName}, Error: {x.ErrorMessage}");
+                var fullErrorMessage = string.Join("; ", errorMessages);
+                TempData["Error"] = $"Validation failed: {fullErrorMessage}";
+                return RedirectToAction("Details", new { id = id });
             }
 
+            TempData["Success"] = $"Application {decision}.";
             return RedirectToAction("Details", new { id = id });
         }
 
         // POST: Send Interview Invitation Email (generates Jitsi meeting link)
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [AdminOrTransportManagerOnly]
         public ActionResult SendInterviewInvitation(int id)
         {
             var app = db.DriverApplications.Find(id);
@@ -299,7 +323,7 @@ Michaelhouse Transport Team
 
         // POST: Create Driver Account (after successful interview)
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [AdminOrTransportManagerOnly]
         public ActionResult CreateDriverAccount(int id)
         {
             var app = db.DriverApplications.Find(id);

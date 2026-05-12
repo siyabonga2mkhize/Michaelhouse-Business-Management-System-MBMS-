@@ -7,6 +7,9 @@
     bool isApproved = Model.Status == "Approved";
     bool isRejected = Model.Status == "Rejected";
     string token = Request.QueryString["token"];
+
+    var sessionRole = Session["UserRole"]?.ToString();
+    var isAdminOrTransport = (sessionRole == "Admin" || sessionRole == "TransportManager");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -659,7 +662,7 @@
         </div>
 
         @* ── ADMIN PANEL (only visible to logged-in admins) ── *@
-        @if (User.IsInRole("Admin"))
+        @if (isAdminOrTransport)
         {
             <div class="admin-panel">
                 <h4><i class="bi bi-shield-check me-2"></i> Admin Actions</h4>

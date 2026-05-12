@@ -558,6 +558,12 @@
 
                         </a>
 
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link @(currentController == "DriverApplications" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "DriverApplications")">
+                            <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
+                        </a>
+
                     }
                     else if (userRole == "InventoryManager")
                     {
@@ -788,6 +794,11 @@
                            href="@Url.Action("AllTrips", "Transport")">
                             <i class="bi bi-calendar-check"></i> <span class="link-text">All Trips</span>
                         </a>
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link @(currentController == "DriverApplications" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "DriverApplications")">
+                            <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
+                        </a>
                         <a class="nav-link" href="@Url.Action("Drivers", "Transport")">
                             <i class="bi bi-person-badge"></i> Manage Drivers
                         </a>
@@ -795,6 +806,8 @@
                         <a class="nav-link" href="@Url.Action("Index", "Vehicle")">
                             <i class="bi bi-truck"></i> <span class="link-text">Manage Vehicles</span>
                         </a>
+
+
 
                     }
                     else if (userRole == "Driver")
@@ -808,16 +821,16 @@
                            href="@Url.Action("MyTrips", "Driver")">
                             <i class="bi bi-calendar-check"></i> <span class="link-text">My Assigned Trips</span>
                         </a>
-                       
+
                         <a class="nav-link @(currentController == "Driver" && currentAction == "Availabilities" ? "active" : "")"
                            href="@Url.Action("Availabilities", "Driver")">
                             <i class="bi bi-calendar-week"></i> <span class="link-text">My Availability</span>
                         </a>
                         <a class="nav-link @(currentController == "VehicleIssues" && currentAction == "Create" ? "active" : "")"
-   href="@Url.Action("Create", "VehicleIssues")">
-    <i class="bi bi-exclamation-triangle"></i>
-    <span class="link-text">Report Issue</span>
-</a>
+                           href="@Url.Action("Create", "VehicleIssues")">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span class="link-text">Report Issue</span>
+                        </a>
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Settings</div>
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
