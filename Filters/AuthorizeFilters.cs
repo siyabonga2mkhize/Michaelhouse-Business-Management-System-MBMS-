@@ -156,5 +156,40 @@ namespace Michaelhouse.Filters
             }
         }
     }
+    public class TransportManagerOrAdminOnlyAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var session = filterContext.HttpContext.Session;
+            if (session["UserId"] == null)
+            {
+                filterContext.Result = new RedirectResult("~/Account/Login");
+                return;
+            }
+            var role = session["UserRole"]?.ToString();
+            if (role != "Admin" && role != "TransportManager")
+            {
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
+        }
 
+        public class AdminOrTransportManagerOnlyAttribute : ActionFilterAttribute
+        {
+            public override void OnActionExecuting(ActionExecutingContext filterContext)
+            {
+                var session = filterContext.HttpContext.Session;
+                if (session["UserId"] == null)
+                {
+                    filterContext.Result = new RedirectResult("~/Account/Login");
+                    return;
+                }
+                var role = session["UserRole"]?.ToString();
+                if (role != "Admin" && role != "TransportManager")
+                {
+                    filterContext.Result = new HttpUnauthorizedResult();
+                }
+            }
+        }
+
+    }
 }

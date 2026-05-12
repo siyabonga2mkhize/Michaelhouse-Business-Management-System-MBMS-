@@ -787,3 +787,114 @@ WHERE Email = 'transport@michaelhouse.co.za';
 
 
 select * from DriverApplications;
+
+
+
+CREATE TABLE dbo.DriverApplications (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(MAX) NOT NULL,
+    IDNumber NVARCHAR(20) NOT NULL,
+    PhoneNumber NVARCHAR(20) NOT NULL,
+    Email NVARCHAR(200) NOT NULL,
+    LicenceNumber NVARCHAR(50) NOT NULL,
+    LicenceExpiryDate DATETIME NOT NULL,
+    HasPDP BIT NOT NULL,
+    DocumentPath NVARCHAR(500),
+    Status NVARCHAR(50),
+    AdminNotes NVARCHAR(MAX),
+    DateSubmitted DATETIME,
+    ReviewedDate DATETIME,
+    UserId INT NULL,
+    PublicTokenHash NVARCHAR(200),
+    PublicTokenExpiry DATETIME
+);
+
+CREATE TABLE dbo.DriverDocuments (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    DriverApplicationId INT NOT NULL,
+    FilePath NVARCHAR(500),
+    DocumentType NVARCHAR(50),
+    OtherDocumentType NVARCHAR(200),
+    CONSTRAINT FK_DriverDocuments_DriverApplication FOREIGN KEY (DriverApplicationId) REFERENCES dbo.DriverApplications(Id)
+);
+
+
+-- ============================================
+-- TEST DATA FOR DriverApplications
+-- ============================================
+
+-- Application 1: Pending, with documents, linked to existing AppUser (e.g., UserId 1015 = Themba Nkosi)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Themba Nkosi', '9001015009087', '0711111111', 'themba.nkosi@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, 1015, NULL, NULL);
+
+-- Application 2: Approved, waiting for interview, linked to existing AppUser
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Andile Zulu', '9202027009089', '0733333333', 'andile.zulu@example.com', 'LIC1003', '2029-05-20', 1, NULL, 'Approved', 'ID and licence verified. AI score 85.', DATEADD(day, -5, GETDATE()), DATEADD(day, -2, GETDATE()), 1017, NULL, NULL);
+
+-- Application 3: Rejected, with rejection reason
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Nkosi Khumalo', '8703038009090', '0744444444', 'nkosi.khumalo@example.com', 'LIC1004', '2026-11-30', 0, NULL, 'Rejected', 'PDP not held and licence expires soon.', DATEADD(day, -10, GETDATE()), DATEADD(day, -8, GETDATE()), 1018, NULL, NULL);
+
+-- Application 4: Pending, no user linked (anonymous application with public token)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Sibusiso Dlamini', '9001015009087', '0710000000', 'sibusiso.dlamini@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, NULL, 'e0d123e5f3169a7f3d5b1c2a4f6e8d9c7b5a3e1f2d4c6b8a0e2f4c6d8a0e1f', DATEADD(day, 14, GETDATE()));
+
+-- Application 5: Approved, not yet interviewed, anonymous with public token
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Thabo Mkhize', '8805056009088', '0722222222', 'thabo.mkhize@example.com', 'LIC1002', '2027-10-15', 1, NULL, 'Approved', 'Interview scheduled for next week.', DATEADD(day, -3, GETDATE()), GETDATE(), NULL, 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3', DATEADD(day, 7, GETDATE()));
+
+-- Application 6: Rejected, anonymous, with reason
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+VALUES 
+('Bongani Ndlovu', '9801015009087', '0799999999', 'bongani.ndlovu@example.com', 'LIC2001', '2025-01-01', 0, NULL, 'Rejected', 'Failed background check.', DATEADD(day, -15, GETDATE()), DATEADD(day, -12, GETDATE()), NULL, NULL, NULL);
+
+-- ============================================
+-- TEST DATA FOR DriverDocuments
+-- ============================================
+-- For each application, create 2‑3 documents (ID, Licence, Other)
+-- Note: The FilePath must point to real or dummy files. Use dummy paths for testing.
+
+-- Documents for Application 1 (Pending, Themba Nkosi)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(1, '/Uploads/id_themba.pdf', 'ID', NULL),
+(1, '/Uploads/licence_themba.pdf', 'Licence', NULL),
+(1, '/Uploads/pdp_themba.pdf', 'Other', 'PDP Certificate');
+
+-- Documents for Application 2 (Approved, Andile Zulu)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(2, '/Uploads/id_andile.pdf', 'ID', NULL),
+(2, '/Uploads/licence_andile.pdf', 'Licence', NULL);
+
+-- Documents for Application 3 (Rejected, Nkosi Khumalo)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(3, '/Uploads/id_nkosi.pdf', 'ID', NULL),
+(3, '/Uploads/licence_nkosi.pdf', 'Licence', NULL);
+
+-- Documents for Application 4 (Pending, anonymous Sibusiso Dlamini)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(4, '/Uploads/id_sibusiso.pdf', 'ID', NULL),
+(4, '/Uploads/licence_sibusiso.pdf', 'Licence', NULL),
+(4, '/Uploads/other_sibusiso.pdf', 'Other', 'Medical Certificate');
+
+-- Documents for Application 5 (Approved, anonymous Thabo Mkhize)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(5, '/Uploads/id_thabo.pdf', 'ID', NULL),
+(5, '/Uploads/licence_thabo.pdf', 'Licence', NULL);
+
+-- Documents for Application 6 (Rejected, anonymous Bongani Ndlovu)
+INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
+VALUES 
+(6, '/Uploads/id_bongani.pdf', 'ID', NULL),
+(6, '/Uploads/licence_bongani.pdf', 'Licence', NULL);
+
+SELECT Id, FullName, LicenceExpiryDate FROM DriverApplications WHERE LicenceExpiryDate IS NULL;

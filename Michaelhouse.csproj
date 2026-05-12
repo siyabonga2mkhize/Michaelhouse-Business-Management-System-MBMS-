@@ -218,6 +218,14 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202605120841037_InitialBaseline.cs" />
+    <Compile Include="Migrations\202605120841037_InitialBaseline.Designer.cs">
+      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605120843363_AddNewTables.cs" />
+    <Compile Include="Migrations\202605120843363_AddNewTables.Designer.cs">
+      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -551,6 +559,14 @@
       <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202605120841037_InitialBaseline.resx">
+      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605120843363_AddNewTables.resx">
+      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
