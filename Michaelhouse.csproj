@@ -222,6 +222,10 @@
     <Compile Include="Migrations\202605111135347_initialcreate.Designer.cs">
       <DependentUpon>202605111135347_initialcreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202605120101190_InitialCreateFix.cs" />
+    <Compile Include="Migrations\202605120101190_InitialCreateFix.Designer.cs">
+      <DependentUpon>202605120101190_InitialCreateFix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -539,6 +543,7 @@
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
   </ItemGroup>
+
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
     <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(SSDTPath)\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>

@@ -17,5 +17,8 @@ namespace Michaelhouse.Models
         public DateTime DateReported { get; set; }
 
         public string Status { get; set; } // Open / Resolved
+        public virtual Driver Driver { get; set; }
+        public virtual Vehicle Vehicle { get; set; }
+
     }
 }

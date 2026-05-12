@@ -66,43 +66,33 @@ namespace Michaelhouse.Controllers
                     ViewBag.RebookId = rebookId.Value;  // pass to view for hidden field
                 }
             }
-            return View("BookTrip" ,model);
+            return View(model);
         }
 
         [HttpPost]
         public ActionResult CreateTripRequest(TripRequestCreateViewModel model, int? rebookId = null)
         {
-            System.Diagnostics.Debug.WriteLine("=== CreateTripRequest POST called ===");
-            System.Diagnostics.Debug.WriteLine($"Title: {model.Title}, Destination: {model.Destination}");
-            System.Diagnostics.Debug.WriteLine($"Departure: {model.DepartureTime}, Return: {model.ReturnTime}");
-            System.Diagnostics.Debug.WriteLine($"MaxStudents: {model.MaxStudents}");
             if (model.DepartureTime <= DateTime.MinValue || model.ReturnTime <= DateTime.MinValue ||
-                model.DepartureTime.Year < 2000 || model.ReturnTime.Year < 2000)
+    model.DepartureTime.Year < 2000 || model.ReturnTime.Year < 2000)
             {
                 ModelState.AddModelError("", "Please select valid departure and return times.");
-                if (rebookId.HasValue) ViewBag.RebookId = rebookId;
-                return View("BookTrip", model);
+                return View(model);
             }
-
+            // Validate that dates are not default (MinValue)
             if (model.DepartureTime <= DateTime.MinValue || model.ReturnTime <= DateTime.MinValue)
             {
                 ModelState.AddModelError("", "Please select both departure and return times.");
-                if (rebookId.HasValue) ViewBag.RebookId = rebookId;
-                return View("BookTrip", model);
+                return View(model);
             }
 
+            // Also ensure dates are not too old (optional)
             if (model.DepartureTime < DateTime.Today)
             {
                 ModelState.AddModelError("DepartureTime", "Departure time cannot be in the past.");
-                if (rebookId.HasValue) ViewBag.RebookId = rebookId;
-                return View("BookTrip", model);
+                return View(model);
             }
-
             if (ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var err in errors)
-                    System.Diagnostics.Debug.WriteLine(err.ErrorMessage);
                 var request = new TripRequest
                 {
                     TeacherId = GetCurrentTeacherId(),
@@ -120,6 +110,7 @@ namespace Michaelhouse.Controllers
                 db.TripRequests.Add(request);
                 db.SaveChanges();
 
+                // If this is a rebook, delete the original rejected request
                 if (rebookId.HasValue)
                 {
                     var old = db.TripRequests.Find(rebookId.Value);
@@ -132,11 +123,9 @@ namespace Michaelhouse.Controllers
                 TempData["Success"] = "Trip request sent to Transport Manager.";
                 return RedirectToAction("MyRequests");
             }
-
-            // If we got this far, something failed, redisplay the form
-            if (rebookId.HasValue) ViewBag.RebookId = rebookId;
-            return View("BookTrip", model);
+            return View(model);
         }
+
         public ActionResult MyRequests()
         {
             int teacherId = GetCurrentTeacherId();
