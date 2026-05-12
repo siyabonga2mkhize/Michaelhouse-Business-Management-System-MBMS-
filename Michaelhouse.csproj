@@ -218,9 +218,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605111044260_initialcreate.cs" />
-    <Compile Include="Migrations\202605111044260_initialcreate.Designer.cs">
-      <DependentUpon>202605111044260_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605111135347_initialcreate.cs" />
+    <Compile Include="Migrations\202605111135347_initialcreate.Designer.cs">
+      <DependentUpon>202605111135347_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\202605120101190_InitialCreateFix.cs" />
     <Compile Include="Migrations\202605120101190_InitialCreateFix.Designer.cs">
@@ -339,12 +339,15 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Misc\Import_all.sql" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Misc\Driver.pdf" />
+    <Content Include="Misc\ID.pdf" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
@@ -541,9 +544,6 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605111044260_initialcreate.resx">
-      <DependentUpon>202605111044260_initialcreate.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202605120101190_InitialCreateFix.resx">
       <DependentUpon>202605120101190_InitialCreateFix.cs</DependentUpon>
     </EmbeddedResource>
@@ -561,6 +561,11 @@
       <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202605111135347_initialcreate.resx">
+      <DependentUpon>202605111135347_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
