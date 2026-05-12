@@ -498,6 +498,7 @@ WHERE TABLE_NAME = 'StreamEnrolments'
   ALTER TABLE dbo.Applications ADD DriverAppId INT NULL;
 
 Select * from Applications;
+
 -- Transport 
 -- 1. Check if a Transport Manager already exists
 IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Role = 'TransportManager')

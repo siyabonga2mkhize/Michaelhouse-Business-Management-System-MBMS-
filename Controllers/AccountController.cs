@@ -17,7 +17,44 @@ namespace Michaelhouse.Controllers
         {
             if (Session["UserId"] != null)
             {
+                // Ensure role-specific session keys are populated to avoid redirect loops.
                 string role = Session["UserRole"]?.ToString();
+                if (role == "Teacher" && Session["TeacherId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            if (userId > 0)
+                            {
+                                var teacher = db.Teachers.FirstOrDefault(t => t.UserId == userId);
+                                if (teacher == null)
+                                {
+                                    // create minimal teacher record so dashboard can resolve
+                                    var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+                                    var names = (user?.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                    var first = names.Length > 0 ? names[0] : user?.Name ?? "";
+                                    var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+                                    teacher = new Teacher
+                                    {
+                                        FirstName = first,
+                                        LastName = last,
+                                        Email = user?.Email ?? "",
+                                        HireDate = DateTime.Now,
+                                        UserId = userId
+                                    };
+                                    db.Teachers.Add(teacher);
+                                    db.SaveChanges();
+                                }
+
+                                Session["TeacherId"] = teacher.TeacherId;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
                 return RedirectByRole(role);
             }
             return View();
@@ -46,7 +83,7 @@ namespace Michaelhouse.Controllers
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
 
-                // Store ParentId in session for easy access
+                // Store role-specific identifiers in session for easy access
                 if (user.Role == "Parent")
                 {
                     var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
@@ -59,26 +96,55 @@ namespace Michaelhouse.Controllers
                 }
                 else if (user.Role == "Teacher")
                 {
+                    // Ensure a Teacher record exists for this AppUser. If missing, create
+                    // a minimal Teacher entry so the TeacherDashboard can find it.
                     var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
-                    if (teacher != null) Session["TeacherId"] = teacher.TeacherId;
-                }
-                else if (user.Role == "Student")
-                {
-                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
-                    if (student != null)
-                        Session["StudentId"] = student.StudentId;
-                }
+                    if (teacher == null)
+                    {
+                        var names = (user.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        var first = names.Length > 0 ? names[0] : user.Name ?? "";
+                        var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
 
-                else if (user.Role == "Teacher")
-                {
-                    var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
-                    if (teacher != null)
-                        Session["TeacherId"] = teacher.TeacherId;
+                        teacher = new Teacher
+                        {
+                            FirstName = first,
+                            LastName = last,
+                            Email = user.Email,
+                            HireDate = DateTime.Now,
+                            UserId = user.UserId
+                        };
+                        db.Teachers.Add(teacher);
+                        db.SaveChanges();
+                    }
+
+                    Session["TeacherId"] = teacher.TeacherId;
                 }
                 else if (user.Role == "InventoryManager")
                 {
                     // Send them straight to the new dashboard!
                     return RedirectToAction("Index", "Inventory");
+                }
+                else if (user.Role == "Driver")
+                {
+                    var driver = db.Drivers.FirstOrDefault(d => d.UserId == user.UserId);
+
+                    if (driver == null)
+                    {
+                        driver = new Driver
+                        {
+                            FullName = user.Name,
+                            Email = user.Email,
+                            UserId = user.UserId,
+                            IsActive = true,
+                            DateCreated = DateTime.Now
+                        };
+
+                        db.Drivers.Add(driver);
+                        db.SaveChanges();
+                    }
+
+                    // IMPORTANT: store correct key (Id, not DriverId)
+                    Session["DriverId"] = driver.Id;
                 }
 
                 return RedirectByRole(user.Role);
@@ -273,6 +339,30 @@ namespace Michaelhouse.Controllers
         public ActionResult GetHash(string pwd)
         {
             return Content(HashPassword(pwd));
+        }
+
+        // Temporary diagnostic endpoint to inspect session keys in the browser.
+        // Visit /Account/SessionInfo while logged in to see current session values.
+        public ActionResult SessionInfo()
+        {
+            try
+            {
+                var info = new
+                {
+                    UserId = Session["UserId"],
+                    UserName = Session["UserName"],
+                    UserRole = Session["UserRole"],
+                    TeacherId = Session["TeacherId"],
+                    ParentId = Session["ParentId"],
+                    StudentId = Session["StudentId"]
+                };
+
+                return Json(info, JsonRequestBehavior.AllowGet);
+            }
+            catch (System.Exception ex)
+            {
+                return Content("Error reading session: " + ex.Message);
+            }
         }
     }
 }

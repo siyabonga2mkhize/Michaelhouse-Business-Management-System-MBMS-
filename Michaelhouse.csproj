@@ -218,14 +218,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605111819371_initialcreate.cs" />
-    <Compile Include="Migrations\202605111819371_initialcreate.Designer.cs">
-      <DependentUpon>202605111819371_initialcreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605112128591_AddDriverApplicationsTable.cs" />
-    <Compile Include="Migrations\202605112128591_AddDriverApplicationsTable.Designer.cs">
-      <DependentUpon>202605112128591_AddDriverApplicationsTable.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -364,6 +356,7 @@
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
+    <Content Include="Views\Driver\TripManifest.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -558,14 +551,6 @@
       <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605111819371_initialcreate.resx">
-      <DependentUpon>202605111819371_initialcreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605112128591_AddDriverApplicationsTable.resx">
-      <DependentUpon>202605112128591_AddDriverApplicationsTable.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

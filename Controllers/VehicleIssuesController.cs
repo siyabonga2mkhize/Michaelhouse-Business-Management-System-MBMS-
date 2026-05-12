@@ -17,7 +17,12 @@ namespace Michaelhouse
         // GET: VehicleIssues
         public ActionResult Index()
         {
-            return View(db.VehicleIssues.ToList());
+            var issues = db.VehicleIssues
+                .Include("Driver")
+                .Include("Vehicle")
+                .ToList();
+
+            return View(issues);
         }
 
         // GET: VehicleIssues/Details/5
@@ -38,6 +43,17 @@ namespace Michaelhouse
         // GET: VehicleIssues/Create
         public ActionResult Create()
         {
+            var vehicles = db.Vehicles
+                .Where(v => v.IsActive)
+                .ToList()
+                .Select(v => new
+                {
+                    v.Id,
+                    DisplayName = v.Model + " - " + v.VehicleNumber
+                });
+
+            ViewBag.VehicleId = new SelectList(vehicles, "Id", "DisplayName");
+
             return View();
         }
 
@@ -48,6 +64,10 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
         {
+            vehicleIssue.DriverId = (int)Session["DriverId"];
+            
+            vehicleIssue.DateReported = DateTime.Now;
+            vehicleIssue.Status = "Pending";
             if (ModelState.IsValid)
             {
                 db.VehicleIssues.Add(vehicleIssue);
@@ -113,6 +133,22 @@ namespace Michaelhouse
             db.VehicleIssues.Remove(vehicleIssue);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UpdateStatus(int id, string status)
+        {
+            var issue = db.VehicleIssues.Find(id);
+
+            if (issue == null)
+            {
+                return HttpNotFound();
+            }
+
+            issue.Status = status;
+            db.SaveChanges();
+
+            return RedirectToAction("Details", new { id = id });
         }
 
         protected override void Dispose(bool disposing)

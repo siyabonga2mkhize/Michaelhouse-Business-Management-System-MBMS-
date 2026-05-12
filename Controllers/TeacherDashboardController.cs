@@ -16,6 +16,24 @@ namespace Michaelhouse.Controllers
         {
             int teacherId = (int)(Session["TeacherId"] ?? 0);
             var teacher = _context.Teachers.Find(teacherId);
+
+            // If there's no TeacherId in session try to resolve it from the current
+            // logged-in AppUser. This prevents a redirect loop where Login redirects
+            // back to the dashboard but the dashboard then redirects to Login when
+            // Session["TeacherId"] is missing.
+            if (teacher == null)
+            {
+                int userId = (int)(Session["UserId"] ?? 0);
+                if (userId > 0)
+                {
+                    teacher = _context.Teachers.FirstOrDefault(t => t.UserId == userId);
+                    if (teacher != null)
+                    {
+                        Session["TeacherId"] = teacher.TeacherId;
+                    }
+                }
+            }
+
             if (teacher == null) return RedirectToAction("Login", "Account");
 
             var today = DateTime.Today;

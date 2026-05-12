@@ -4,55 +4,57 @@
     ViewBag.Title = "Details";
 }
 
-<h2>Details</h2>
+<h2>Vehicle Issue Details</h2>
 
 <div>
-    <h4>VehicleIssue</h4>
     <hr />
+
     <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.DriverId)
-        </dt>
+        <dt>Driver ID</dt>
+        <dd>@Html.DisplayFor(model => model.DriverId)</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.DriverId)
-        </dd>
+        <dt>Vehicle ID</dt>
+        <dd>@Html.DisplayFor(model => model.VehicleId)</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.VehicleId)
-        </dt>
+        <dt>Description</dt>
+        <dd>@Html.DisplayFor(model => model.Description)</dd>
 
-        <dd>
-            @Html.DisplayFor(model => model.VehicleId)
-        </dd>
+        <dt>Date Reported</dt>
+        <dd>@Html.DisplayFor(model => model.DateReported)</dd>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.DateReported)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.DateReported)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-
+        <dt>Status</dt>
+        <dd><strong>@Html.DisplayFor(model => model.Status)</strong></dd>
     </dl>
 </div>
-<p>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-    @Html.ActionLink("Back to List", "Index")
-</p>
+
+<hr />
+
+@if (Session["UserRole"] != null && Session["UserRole"].ToString() == "TransportManager")
+{
+    using (Html.BeginForm("UpdateStatus", "VehicleIssues", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            <label class="control-label">Update Status</label>
+
+            @Html.DropDownListFor(model => model.Status,
+                new SelectList(new List<string>
+                {
+                    "Pending",
+                    "In Progress",
+                    "Resolved"
+                }),
+                new { @class = "form-control", style = "max-width:300px;" })
+        </div>
+
+        <br />
+
+        <button type="submit" class="btn btn-success">
+            Update Status
+        </button>
+    }
+}
+
+@Html.ActionLink("Back to List", "Index")
