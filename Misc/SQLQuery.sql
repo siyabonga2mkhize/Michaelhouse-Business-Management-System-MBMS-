@@ -1,6 +1,7 @@
 ﻿select * from SchoolClasses
 
-select * from appusers
+SELECT * FROM appusers;
+
 
 Select * from ClassSubjects
 

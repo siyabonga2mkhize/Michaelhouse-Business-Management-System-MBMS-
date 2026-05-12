@@ -96,6 +96,13 @@ namespace Michaelhouse
            string otherDescription)
         {
             if (!ModelState.IsValid) return View(driverApplication);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var e in errors)
+                    System.Diagnostics.Debug.WriteLine("Model error: " + e.ErrorMessage);
+                return View(driverApplication);
+            }
 
             driverApplication.UserId = GetCurrentAppUserId();
 

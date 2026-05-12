@@ -1,14 +1,14 @@
-﻿@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-@model Michaelhouse.Models.Driver
+﻿@model Michaelhouse.Models.Driver
 @{
     ViewBag.Title = "Add Driver";
 }
 
-<h2>Add Driver</h2>
+<h2>Add New Driver</h2>
 
-@using (Html.BeginForm("Create", "DriverApplications", FormMethod.Post, new { enctype = "multipart/form-data" }))
+@using (Html.BeginForm("CreateDriver", "Transport", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
     @Html.AntiForgeryToken()
+
     <div class="form-group">
         @Html.LabelFor(m => m.FullName)
         @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
@@ -17,6 +17,7 @@
     <div class="form-group">
         @Html.LabelFor(m => m.Email)
         @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Email)
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.PhoneNumber)
@@ -32,16 +33,17 @@
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.LicenceExpiryDate)
-        @Html.TextBoxFor(m => m.LicenceExpiryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+        <input type="date" name="LicenceExpiryDate" class="form-control" value="@(Model.LicenceExpiryDate?.ToString("yyyy-MM-dd"))" />
     </div>
     <div class="form-group">
         @Html.LabelFor(m => m.HasPDP)
         @Html.CheckBoxFor(m => m.HasPDP)
     </div>
     <div class="form-group">
-        @Html.LabelFor(m => m.ImageUrl)
-        @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control", placeholder = "/Content/Images/Drivers/photo.jpg" })
+        @Html.Label("Driver Image")
+        <input type="file" name="imageFile" class="form-control" accept="image/*" />
+        @Html.ValidationMessageFor(m => m.ImageUrl)
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
-    <a href="@Url.Action("Index")" class="btn btn-default">Cancel</a>
+    <a href="@Url.Action("Drivers", "Transport")" class="btn btn-default">Cancel</a>
 }

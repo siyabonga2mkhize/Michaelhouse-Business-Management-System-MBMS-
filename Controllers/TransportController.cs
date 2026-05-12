@@ -4,6 +4,7 @@ using Michaelhouse.Services;
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
@@ -293,11 +294,6 @@ namespace Michaelhouse.Controllers
             return PartialView("_VehicleDetails", vehicle);
         }
 
-        public ActionResult Drivers()
-        {
-            var drivers = db.Drivers.Where(d => d.IsActive).ToList();
-            return View(drivers);
-        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ConfirmTripAssignment(int scheduleId)
@@ -328,6 +324,122 @@ namespace Michaelhouse.Controllers
             return RedirectToAction("UnassignedSchedules");
         }
 
+        // ─────────────────────────────────────────────────────────────────
+        // Driver Management (CRUD)
+        // ─────────────────────────────────────────────────────────────────
+
+        // GET: List all drivers (with pagination/search optional)
+        public ActionResult Drivers()
+        {
+            var drivers = db.Drivers.OrderBy(d => d.FullName).ToList();
+            return View(drivers);
+        }
+
+        // GET: Create a new driver
+        public ActionResult CreateDriver()
+        {
+            return View();
+        }
+
+        // POST: Create driver (create AppUser + Driver)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateDriver(Driver driver, HttpPostedFileBase imageFile, string password = "Driver@123")
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if email already exists
+                if (db.Users.Any(u => u.Email == driver.Email))
+                {
+                    ModelState.AddModelError("Email", "Email already registered.");
+                    return View(driver);
+                }
+
+                // Create AppUser
+                var user = new AppUser
+                {
+                    Name = driver.FullName,
+                    Email = driver.Email,
+                    PasswordHash = AccountController.HashPassword(password),
+                    Role = "Driver"
+                };
+                db.Users.Add(user);
+                db.SaveChanges();
+
+                // Link driver to user
+                driver.UserId = user.UserId;
+                driver.DateCreated = DateTime.Now;
+                driver.IsActive = true;
+                driver.PasswordHash = user.PasswordHash;
+
+                // Handle image upload
+                if (imageFile != null && imageFile.ContentLength > 0)
+                {
+                    string fileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(imageFile.FileName);
+                    string path = System.IO.Path.Combine(Server.MapPath("~/Content/Images/Drivers/"), fileName);
+                    imageFile.SaveAs(path);
+                    driver.ImageUrl = "/Content/Images/Drivers/" + fileName;
+                }
+
+                db.Drivers.Add(driver);
+                db.SaveChanges();
+
+                TempData["Success"] = $"Driver '{driver.FullName}' created. Login: {driver.Email} / {password}";
+                return RedirectToAction("Drivers");
+            }
+            return View(driver);
+        }
+
+        // GET: Edit driver
+        public ActionResult EditDriver(int id)
+        {
+            var driver = db.Drivers.Find(id);
+            if (driver == null) return HttpNotFound();
+            return View(driver);
+        }
+
+        // POST: Edit driver
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditDriver(Driver driver)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Entry(driver).State = EntityState.Modified;
+                db.SaveChanges();
+                TempData["Success"] = "Driver updated.";
+                return RedirectToAction("Drivers");
+            }
+            return View(driver);
+        }
+
+        // GET: Delete driver confirmation
+        public ActionResult DeleteDriver(int id)
+        {
+            var driver = db.Drivers.Find(id);
+            if (driver == null) return HttpNotFound();
+            return View(driver);
+        }
+
+        // POST: Delete driver
+        [HttpPost, ActionName("DeleteDriver")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteDriverConfirmed(int id)
+        {
+            var driver = db.Drivers.Find(id);
+            if (driver == null) return HttpNotFound();
+
+            // Optionally delete the linked AppUser as well
+            if (driver.UserId.HasValue)
+            {
+                var user = db.Users.Find(driver.UserId.Value);
+                if (user != null) db.Users.Remove(user);
+            }
+            db.Drivers.Remove(driver);
+            db.SaveChanges();
+            TempData["Success"] = "Driver removed.";
+            return RedirectToAction("Drivers");
+        }
 
         protected override void Dispose(bool disposing)
         {
