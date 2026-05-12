@@ -283,6 +283,7 @@ Michaelhouse Transport Team
         }
 
         // POST: Send Interview Invitation Email (generates Jitsi meeting link)
+        // POST: Quick send (no date stored) – maybe deprecate
         [HttpPost]
         [AdminOrTransportManagerOnly]
         public ActionResult SendInterviewInvitation(int id)
@@ -290,37 +291,32 @@ Michaelhouse Transport Team
             var app = db.DriverApplications.Find(id);
             if (app == null) return HttpNotFound();
 
-            // Generate a unique meeting room name for Jitsi
-            string roomName = $"DriverInterview-{app.Id}-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-            string meetingLink = $"https://meet.jit.si/{roomName}";
-
-            try
+            // If no interview link stored yet, generate one
+            if (string.IsNullOrEmpty(app.InterviewMeetingLink))
             {
-                var emailSvc = new EmailService();
-                var subject = "Driver Interview Invitation - Michaelhouse";
-                var body = $@"
-Dear {app.FullName},
-
-Congratulations! Your driver application has progressed to the interview stage.
-
-Please join us for an online interview at the following link (open source Jitsi Meet):
-{meetingLink}
-
-We look forward to speaking with you.
-
-Best regards,
-Michaelhouse Transport Team
-";
-                emailSvc.SendPlain(app.Email, subject, body);
-                TempData["Success"] = "Interview invitation email sent.";
+                string roomName = $"DriverInterview-{app.Id}-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+                app.InterviewMeetingLink = $"https://meet.jit.si/{roomName}";
             }
-            catch (Exception ex)
+            // If no date set, default to tomorrow at 10:00
+            if (app.InterviewDateTime == null)
             {
-                TempData["Error"] = $"Failed to send email: {ex.Message}";
+                app.InterviewDateTime = DateTime.Today.AddDays(1).AddHours(10);
             }
+
+            db.SaveChanges();
+            bool sent = SendInterviewEmailNow(app);
+            if (sent)
+            {
+                app.InterviewEmailSent = true;
+                app.InterviewEmailSentAt = DateTime.UtcNow;
+                db.SaveChanges();
+                TempData["Success"] = "Interview invitation re‑sent.";
+            }
+            else
+                TempData["Error"] = "Email sending failed.";
+
             return RedirectToAction("Details", new { id = id });
         }
-
         // POST: Create Driver Account (after successful interview)
         [HttpPost]
         [AdminOrTransportManagerOnly]
@@ -428,6 +424,79 @@ Michaelhouse Transport Team
                 ViewBag.PublicToken = token;
 
             return View("Details", application);
+        }
+
+        // POST: Schedule Interview + Store meeting link + Send email
+        [HttpPost]
+        [AdminOrTransportManagerOnly]
+        public ActionResult ScheduleAndSendInterview(int id, DateTime interviewDateTime, string customMeetingLink = null)
+        {
+            var app = db.DriverApplications.Find(id);
+            if (app == null) return HttpNotFound();
+
+            // Auto-generate Jitsi link if none provided
+            string meetingLink = customMeetingLink;
+            if (string.IsNullOrEmpty(meetingLink))
+            {
+                string roomName = $"DriverInterview-{app.Id}-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+                meetingLink = $"https://meet.jit.si/{roomName}";
+            }
+
+            // Store interview details
+            app.InterviewDateTime = interviewDateTime;
+            app.InterviewMeetingLink = meetingLink;
+            app.InterviewEmailSent = false;
+
+            db.SaveChanges();
+
+            // Send email with stored details
+            bool emailSent = SendInterviewEmailNow(app);
+            if (emailSent)
+            {
+                app.InterviewEmailSent = true;
+                app.InterviewEmailSentAt = DateTime.UtcNow;
+                db.SaveChanges();
+                TempData["Success"] = "Interview scheduled and email sent.";
+            }
+            else
+            {
+                TempData["Error"] = "Interview details saved but email failed to send.";
+            }
+
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        // Helper method to send email using stored details
+        private bool SendInterviewEmailNow(DriverApplication app)
+        {
+            try
+            {
+                //Log attempt
+                System.Diagnostics.Debug.WriteLine($"Attempting to send interview email to {app.Email}");
+
+                var emailSvc = new EmailService();
+                var subject = "Driver Interview Invitation - Michaelhouse";
+                var body = $@"
+Dear {app.FullName},
+
+Your interview has been scheduled for:
+<strong>{app.InterviewDateTime:dddd, MMMM dd, yyyy at h:mm tt}</strong>
+
+Join via this link:
+{app.InterviewMeetingLink}
+
+Please be ready 5 minutes before the scheduled time.
+
+Best regards,
+Michaelhouse Transport Team
+";
+                emailSvc.SendPlain(app.Email, subject, body);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // Helper: compute SHA256 hash for tokens

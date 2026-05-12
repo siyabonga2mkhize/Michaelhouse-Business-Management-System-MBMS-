@@ -32,6 +32,8 @@ namespace Michaelhouse.Models
 
         // NEW: image support
         public string ImageUrl { get; set; }   // relative path or full URL
+
+
     }
     public class DriverApplication
     {
@@ -70,6 +72,11 @@ namespace Michaelhouse.Models
         // Hashed public token and expiry for unauthenticated applicants to view/edit their submission
         public string PublicTokenHash { get; set; }
         public DateTime? PublicTokenExpiry { get; set; }
+
+        public DateTime? InterviewDateTime { get; set; }      // when the interview is scheduled
+        public string InterviewMeetingLink { get; set; }      // Jitsi/Google Meet URL
+        public bool InterviewEmailSent { get; set; }          // to track if email already sent
+        public DateTime? InterviewEmailSentAt { get; set; }
     }
     public class DriverAvailability
     {
