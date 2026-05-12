@@ -710,11 +710,38 @@
                 {
                     using (Html.BeginForm("SendInterviewInvitation", "DriverApplications",
                         new { id = Model.Id }, FormMethod.Post, new { @class = "mb-4 inline" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="admin-action-btn btn-interview">
-                            <i class="bi bi-camera-video"></i> Send Interview Invitation (Jitsi)
-                        </button>
+                    {<h4 class="text-white font-serif text-lg mb-4">
+                            <i class="bi bi-camera-video me-2"></i> Schedule Interview
+                        </h4>
+
+                        <form method="post" action="@Url.Action("ScheduleAndSendInterview", "DriverApplications")" class="mb-6">
+                            @Html.Hidden("id", Model.Id)
+
+                            <div class="mb-4">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 mb-2">
+                                    Interview Date & Time
+                                </label>
+                                <input type="datetime-local" name="interviewDateTime" required
+                                       class="w-full bg-gray-700 border border-gray-600 text-white rounded px-3 py-2 text-sm focus:border-[#C21E2E] outline-none" />
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 mb-2">
+                                    Meeting Link (optional – leave blank for auto Jitsi)
+                                </label>
+                                <input type="url" name="customMeetingLink"
+                                       placeholder="https://meet.jit.si/..."
+                                       class="w-full bg-gray-700 border border-gray-600 text-white rounded px-3 py-2 text-sm focus:border-[#C21E2E] outline-none" />
+                            </div>
+
+                            <div>
+                                <button type="submit" class="admin-action-btn btn-interview">
+                                    <i class="bi bi-envelope-paper"></i> Schedule & Send Invitation
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="border-gray-600 my-6" />
                     }
                 }
 

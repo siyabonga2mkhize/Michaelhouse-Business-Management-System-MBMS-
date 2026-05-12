@@ -226,6 +226,10 @@
     <Compile Include="Migrations\202605120843363_AddNewTables.Designer.cs">
       <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202605121021512_AddInterviewDetails.cs" />
+    <Compile Include="Migrations\202605121021512_AddInterviewDetails.Designer.cs">
+      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -566,6 +570,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202605120843363_AddNewTables.resx">
       <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605121021512_AddInterviewDetails.resx">
+      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

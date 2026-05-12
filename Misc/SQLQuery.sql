@@ -788,7 +788,7 @@ WHERE Email = 'transport@michaelhouse.co.za';
 
 select * from DriverApplications;
 
-
+delete from DriverApplications where id = 2;
 
 CREATE TABLE dbo.DriverApplications (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -898,3 +898,9 @@ VALUES
 (6, '/Uploads/licence_bongani.pdf', 'Licence', NULL);
 
 SELECT Id, FullName, LicenceExpiryDate FROM DriverApplications WHERE LicenceExpiryDate IS NULL;
+
+
+--
+SELECT Id, FullName, Email, InterviewDateTime, InterviewMeetingLink 
+FROM DriverApplications 
+WHERE Id = 2
