@@ -364,5 +364,53 @@ namespace Michaelhouse.Controllers
                 return Content("Error reading session: " + ex.Message);
             }
         }
+
+        // navigate to /Account/SeedTransportManager to seed 
+        public ActionResult SeedTransportManager()
+        {
+            using (var db = new DBContextClass())
+            {
+                // Check if a Transport Manager already exists
+                if (db.Users.Any(u => u.Role == "TransportManager"))
+                {
+                    TempData["Info"] = "Transport Manager account already exists.";
+                    return RedirectToAction("Login");
+                }
+
+                // Password "Transport@123" hashed (use your existing HashPassword method)
+                string hashedPassword = AccountController.HashPassword("Transport@123");
+
+                // Create the Transport Manager
+                var transportManager = new AppUser
+                {
+                    Name = "Transport Manager",
+                    Email = "transport@michaelhouse.co.za",
+                    PasswordHash = hashedPassword,
+                    Role = "TransportManager"   // exact spelling as used in your app
+                };
+
+                db.Users.Add(transportManager);
+                db.SaveChanges();
+
+                // Optional: If you have a Drivers table and want to create a linked record
+                // int newUserId = transportManager.UserId;
+                // db.Drivers.Add(new Driver
+                // {
+                //     UserId = newUserId,
+                //     FullName = "Transport Manager",
+                //     Email = "transport@michaelhouse.co.za",
+                //     IsActive = true,
+                //     DateCreated = DateTime.Now,
+                //     HasPDP = true,
+                //     LicenceNumber = "MGR000"
+                // });
+                // db.SaveChanges();
+
+                TempData["Success"] = "Transport Manager created. Email: transport@michaelhouse.co.za | Password: Transport@123";
+                return RedirectToAction("Login");
+            }
+
+            // To seed everything in one go, navigate to import_all.sql and execute the SQL script in your database.
+        }
     }
 }
