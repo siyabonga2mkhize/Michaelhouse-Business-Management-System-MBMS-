@@ -1,9 +1,10 @@
 ﻿@model Michaelhouse.Models.DriverApplication
 @{
     ViewBag.Title = "Application Details";
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Ensures navbar and sidebar appear
+
     bool isPublic = ViewBag.IsPublicViewer == true;
-    bool isPending = Model.Status == "Pending" || string.IsNullOrEmpty(Model.Status);
+    bool isPending = Model.Status == "Pending" || string.IsNullOrEmpty(Model.Status) || Model.Status == "Flagged";
     bool isApproved = Model.Status == "Approved";
     bool isRejected = Model.Status == "Rejected";
     string token = Request.QueryString["token"];
@@ -11,782 +12,304 @@
     var sessionRole = Session["UserRole"]?.ToString();
     var isAdminOrTransport = (sessionRole == "Admin" || sessionRole == "TransportManager");
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Application Details — Michaelhouse</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+@if (isAdminOrTransport)
+{
+    // AI Theme Logic
+    string themeColor = Model.AiRecommendation == "APPROVE" ? "#10b981" :
+                        Model.AiRecommendation == "REJECT" ? "#ef4444" : "#f59e0b";
+    string aiBgClass = Model.AiRecommendation == "APPROVE" ? "bg-green-50/50" :
+                       Model.AiRecommendation == "REJECT" ? "bg-red-50/50" : "bg-amber-50/50";
 
-    <style>
-        :root {
-            --mh-red: #C21E2E;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: #f9f9f9;
-        }
-
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-
-        /* ── Status pill ───────────────────────────── */
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-            border: 1px solid #FDE68A;
-        }
-
-        .status-approved {
-            background: #D1FAE5;
-            color: #065F46;
-            border: 1px solid #6EE7B7;
-        }
-
-        .status-rejected {
-            background: #FEE2E2;
-            color: #991B1B;
-            border: 1px solid #FCA5A5;
-        }
-
-        .status-unknown {
-            background: #F3F4F6;
-            color: #6B7280;
-            border: 1px solid #E5E7EB;
-        }
-
-        /* ── Info grid ─────────────────────────────── */
-        .info-row {
-            display: flex;
-            align-items: flex-start;
-            padding: 14px 0;
-            border-bottom: 1px solid #F3F4F6;
-        }
-
-            .info-row:last-child {
-                border-bottom: none;
-            }
-
-        .info-label {
-            min-width: 180px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #9CA3AF;
-            padding-top: 2px;
-        }
-
-        .info-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #111827;
-            flex: 1;
-        }
-
-        /* ── Document badge ────────────────────────── */
-        .doc-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #FFF;
-            border: 1px solid #E5E7EB;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            color: #374151;
-            transition: all 0.2s;
-        }
-
-            .doc-badge:hover {
-                border-color: var(--mh-red);
-                color: var(--mh-red);
-                background: #FFF5F5;
-            }
-
-        /* ── Progress timeline ─────────────────────── */
-        .timeline-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
-        }
-
-            .timeline-step::before {
-                content: '';
-                position: absolute;
-                top: 18px;
-                left: 50%;
-                right: -50%;
-                height: 2px;
-                background: #E5E7EB;
-                z-index: 0;
-            }
-
-            .timeline-step:last-child::before {
-                display: none;
-            }
-
-        .timeline-dot {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 700;
-            z-index: 1;
-            border: 2px solid #E5E7EB;
-            background: #fff;
-        }
-
-        .step-done .timeline-dot {
-            background: #065F46;
-            border-color: #065F46;
-            color: #fff;
-        }
-
-        .step-active .timeline-dot {
-            background: var(--mh-red);
-            border-color: var(--mh-red);
-            color: #fff;
-        }
-
-        .step-done::before {
-            background: #6EE7B7 !important;
-        }
-
-        /* ── Buttons ───────────────────────────────── */
-        .btn-red {
-            background: var(--mh-red);
-            color: #fff;
-            border: none;
-            padding: 12px 28px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-            .btn-red:hover {
-                background: #000;
-                color: #fff;
-            }
-
-        .btn-outline {
-            background: transparent;
-            color: #374151;
-            border: 1px solid #D1D5DB;
-            padding: 12px 28px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-            .btn-outline:hover {
-                border-color: #374151;
-                background: #F9FAFB;
-            }
-
-        /* ── Admin panel ───────────────────────────── */
-        .admin-panel {
-            background: #1F2937;
-            color: #F9FAFB;
-            border-radius: 12px;
-            padding: 28px;
-            margin-top: 32px;
-        }
-
-            .admin-panel h4 {
-                font-family: 'Playfair Display', serif;
-                font-size: 18px;
-                margin-bottom: 20px;
-                color: #fff;
-            }
-
-        .admin-action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 22px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-approve {
-            background: #059669;
-            color: #fff;
-        }
-
-            .btn-approve:hover {
-                background: #047857;
-            }
-
-        .btn-reject {
-            background: #DC2626;
-            color: #fff;
-        }
-
-            .btn-reject:hover {
-                background: #B91C1C;
-            }
-
-        .btn-interview {
-            background: #2563EB;
-            color: #fff;
-        }
-
-            .btn-interview:hover {
-                background: #1D4ED8;
-            }
-
-        .btn-create {
-            background: #7C3AED;
-            color: #fff;
-        }
-
-            .btn-create:hover {
-                background: #6D28D9;
-            }
-
-        textarea.admin-notes {
-            width: 100%;
-            background: #374151;
-            border: 1px solid #4B5563;
-            color: #F9FAFB;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            resize: vertical;
-            min-height: 80px;
-            outline: none;
-        }
-
-            textarea.admin-notes:focus {
-                border-color: var(--mh-red);
-            }
-
-        /* ── Notice banner ─────────────────────────── */
-        .notice-banner {
-            border-left: 4px solid;
-            padding: 14px 20px;
-            border-radius: 0 8px 8px 0;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .notice-pending {
-            background: #FFFBEB;
-            border-color: #F59E0B;
-            color: #92400E;
-        }
-
-        .notice-approved {
-            background: #ECFDF5;
-            border-color: #10B981;
-            color: #065F46;
-        }
-
-        .notice-rejected {
-            background: #FEF2F2;
-            border-color: #EF4444;
-            color: #991B1B;
-        }
-    </style>
-</head>
-<body>
-    <div class="max-w-4xl mx-auto px-4 py-10">
-
-        @* ── Top header bar ── *@
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div>
-                <p class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400 mb-2">
-                    Michaelhouse · Transport Division
-                </p>
-                <h1 class="font-serif text-3xl font-bold text-gray-900 leading-tight">
-                    Driver Application
-                </h1>
-                <p class="text-sm text-gray-500 mt-1">
-                    Reference: <span class="font-bold text-gray-800">DRV-@Model.Id</span>
-                    &nbsp;·&nbsp;
-                    Submitted: <span class="font-bold text-gray-800">@(Model.DateSubmitted?.ToString("dd MMMM yyyy") ?? "—")</span>
-                </p>
+    <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8 animate-fade-in">
+        <div>
+            <div class="flex items-center gap-3 mb-3">
+                <span class="bg-[#C21E2E] text-white text-[9px] font-bold uppercase tracking-[3px] px-3 py-1">Secure Dossier</span>
+                <span class="text-gray-300">/</span>
+                <span class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">Transport File: DRV-@Model.Id</span>
             </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">@Model.FullName</h2>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="px-4 py-2 text-[10px] uppercase tracking-widest font-bold rounded-full
+                  @(isApproved ? "bg-green-100 text-green-800 border border-green-200" :
+                    isRejected ? "bg-red-100 text-red-800 border border-red-200" :
+                    "bg-amber-100 text-amber-800 border border-amber-200")">
+                @(Model.Status ?? "Pending Review")
+            </span>
+        </div>
+    </div>
 
-            @* Status badge *@
-            <div>
-                @if (isPending)
-                {
-                    <span class="status-pill status-pending">
-                        <i class="bi bi-clock-history"></i> Pending Review
-                    </span>
-                }
-                else if (isApproved)
-                {
-                    <span class="status-pill status-approved">
-                        <i class="bi bi-check-circle-fill"></i> Approved
-                    </span>
-                }
-                else if (isRejected)
-                {
-                    <span class="status-pill status-rejected">
-                        <i class="bi bi-x-circle-fill"></i> Rejected
-                    </span>
-                }
-                else
-                {
-                    <span class="status-pill status-unknown">
-                        <i class="bi bi-question-circle"></i> @(Model.Status ?? "Unknown")
-                    </span>
-                }
+    <div class="row g-5 animate-fade-in">
+        @* ─── SIDEBAR: PROFILE & DOCUMENTS ─── *@
+        <div class="col-lg-4">
+            <div class="space-y-8 sticky top-24">
+                <div class="bg-[#FBFBFB] p-8 border border-gray-100 relative overflow-hidden shadow-sm">
+                    <i class="bi bi-person-badge absolute -right-4 -top-4 text-black/5 text-7xl"></i>
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-8">Applicant Profile</h5>
+
+                    <div class="space-y-6 relative z-10">
+                        <div class="border-b border-gray-100 pb-3">
+                            <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">National ID</label>
+                            <p class="text-sm font-bold text-gray-800">@Model.IDNumber</p>
+                        </div>
+                        <div class="border-b border-gray-100 pb-3">
+                            <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Contact Lead</label>
+                            <p class="text-sm font-bold text-gray-800">@Model.PhoneNumber</p>
+                            <p class="text-[11px] text-gray-400 tracking-tighter">
+                                <a href="mailto:@Model.Email" class="hover:text-[#C21E2E] transition-colors">@Model.Email</a>
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Licence Status</label>
+                            <p class="text-sm font-bold text-gray-800">No. @Model.LicenceNumber</p>
+                            <p class="text-[11px] @(Model.LicenceExpiryDate < DateTime.Now ? "text-red-500 font-bold" : "text-gray-400") tracking-tighter">
+                                Exp: @Model.LicenceExpiryDate.ToString("dd MMM yyyy")
+                                @(Model.HasPDP ? " | PrDP Valid" : " | No PrDP")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 ps-2">Verification Documents</h5>
+                    <div class="space-y-2">
+                        @if (Model.Documents != null && Model.Documents.Any())
+                        {
+                            foreach (var doc in Model.Documents)
+                            {
+                                <a href="@doc.FilePath" target="_blank"
+                                   class="flex items-center justify-between p-4 bg-white border border-gray-100 hover:border-[#C21E2E] hover:shadow-sm transition-all group">
+                                    <div>
+                                        <p class="text-[10px] font-bold uppercase mb-0 text-gray-700">@doc.DocumentType</p>
+                                    </div>
+                                    <i class="bi bi-file-earmark-check text-gray-200 group-hover:text-[#C21E2E] transition-colors"></i>
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
             </div>
         </div>
 
-        @* ── Status notice banner ── *@
+        @* ─── MAIN CONTENT: AI REVIEW & ADJUDICATION ─── *@
+        <div class="col-lg-8">
+            @* AI Review Analysis *@
+            <div class="mb-12 relative group">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900">Neural Review Analysis</h5>
+                </div>
+
+                <div class="relative border border-gray-100 p-10 overflow-hidden @aiBgClass transition-all duration-500 shadow-sm">
+                    <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+                         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+                    <i class="bi bi-cpu absolute -right-8 -bottom-12 text-black/5 text-[15rem] rotate-12 transition-transform group-hover:scale-110 duration-1000"></i>
+
+                    <div class="relative z-10">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 block mb-2">Automated Recommendation</span>
+                                <h4 class="text-2xl font-bold tracking-tighter uppercase" style="color: @themeColor">
+                                    <i class="bi bi-robot me-2"></i> @(string.IsNullOrEmpty(Model.AiRecommendation) ? "Processing..." : Model.AiRecommendation)
+                                </h4>
+                            </div>
+
+                            <div class="md:text-end">
+                                <span class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 block mb-2">System Confidence</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="h-1.5 w-40 bg-gray-200/50 rounded-full overflow-hidden">
+                                        <div class="h-full transition-all duration-1000 delay-300"
+                                             style="width: @(Model.AiScore ?? 0)%; background-color: @themeColor"></div>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-500">@(Model.AiScore ?? 0)%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative mb-10">
+                            <i class="bi bi-quote absolute -left-8 -top-4 text-gray-200/50 text-5xl"></i>
+                            <div class="text-lg leading-relaxed italic font-serif text-gray-700 ps-6 border-l-4"
+                                 style="border-color: @themeColor">
+                                "@(string.IsNullOrEmpty(Model.AiReviewSummary) ? "Awaiting system processing..." : Model.AiReviewSummary)"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Final Adjudication Form *@
+            @if (isPending)
+            {
+                <div class="bg-white border border-gray-100 p-10 shadow-sm border-t-4 border-t-gray-900">
+                    <h4 class="text-3xl font-serif font-bold text-gray-900 mb-10">Final Adjudication</h4>
+
+                    @using (Html.BeginForm("Review", "DriverApplications", new { id = Model.Id }, FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row g-4 mb-10">
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="decision" id="dec_approve" value="Approved" required />
+                                <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-green-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_approve">
+                                    Approve Driver
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="decision" id="dec_flag" value="Flagged" />
+                                <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-amber-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_flag">
+                                    Waitlist / Flag
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="radio" class="btn-check" name="decision" id="dec_reject" value="Rejected" />
+                                <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-red-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_reject">
+                                    Decline Applicant
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-10">
+                            <label class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-4 block ps-1">Manager Remarks</label>
+                            <textarea name="adminNotes" class="w-full p-5 bg-gray-50 border-0 focus:ring-1 focus:ring-[#C21E2E] outline-none text-md italic font-serif leading-relaxed"
+                                      rows="4" placeholder="Enter final remarks (will be shared with the applicant if rejected)...">@Model.AdminNotes</textarea>
+                        </div>
+
+                        <button type="submit" class="bg-gray-900 text-white px-16 py-4 font-bold uppercase tracking-[4px] text-[11px] hover:bg-[#C21E2E] transition-all shadow-lg">
+                            Seal & Finalize Decision
+                        </button>
+                    }
+                </div>
+            }
+
+            @* Post-Approval Actions *@
+            @if (isApproved)
+            {
+                <div class="bg-gray-50 border border-gray-200 p-10 mt-8">
+                    <h4 class="text-xl font-serif font-bold text-gray-900 mb-6">Post-Approval Workflow</h4>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        @using (Html.BeginForm("ScheduleAndSendInterview", "DriverApplications", new { id = Model.Id }, FormMethod.Get, new { @class = "flex-1" }))
+                        {
+                            <button type="submit" class="w-full py-4 bg-white border border-gray-200 text-gray-900 text-[10px] uppercase font-bold tracking-widest hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm">
+                                <i class="bi bi-calendar-event me-2"></i> Schedule Interview
+                            </button>
+                        }
+                        @using (Html.BeginForm("CreateDriverAccount", "DriverApplications", new { id = Model.Id }, FormMethod.Post, new { @class = "flex-1" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="w-full py-4 bg-gray-900 text-white border border-gray-900 text-[10px] uppercase font-bold tracking-widest hover:bg-[#C21E2E] transition-all shadow-sm"
+                                    onclick="return confirm('Provision system credentials for this driver?')">
+                                <i class="bi bi-person-plus-fill me-2"></i> Provision Account
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="max-w-4xl mx-auto px-4 py-10 animate-fade-in">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-gray-100 pb-6">
+            <div>
+                <p class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400 mb-2">Transport Division</p>
+                <h1 class="text-3xl font-serif font-bold text-gray-900 leading-tight">My Application</h1>
+            </div>
+            <div>
+                <span class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full bg-gray-100 text-gray-600">
+                    Status: @(Model.Status ?? "Pending")
+                </span>
+            </div>
+        </div>
+
         @if (isPending)
         {
-            <div class="notice-banner notice-pending mb-8">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Under Review</strong> — Your application has been received and is being reviewed by our team.
-                We will contact you at <strong>@Model.Email</strong> once a decision has been made.
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-8">
+                <p class="text-amber-800 text-sm font-bold"><i class="bi bi-info-circle me-2"></i>Under Review</p>
+                <p class="text-amber-700 text-xs mt-1">Your application is currently being reviewed. We will contact you at <strong>@Model.Email</strong> once a decision is made.</p>
             </div>
         }
         else if (isApproved)
         {
-            <div class="notice-banner notice-approved mb-8">
-                <i class="bi bi-check-circle me-2"></i>
-                <strong>Congratulations!</strong> Your application has been approved.
-                @if (!string.IsNullOrEmpty(Model.AdminNotes))
-                {
-                    <text> Note from admin: <em>@Model.AdminNotes</em></text>
-                }
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-8">
+                <p class="text-green-800 text-sm font-bold"><i class="bi bi-check-circle me-2"></i>Approved!</p>
+                <p class="text-green-700 text-xs mt-1">Congratulations! Your application is approved. We will be in touch regarding your interview.</p>
             </div>
         }
         else if (isRejected)
         {
-            <div class="notice-banner notice-rejected mb-8">
-                <i class="bi bi-x-circle me-2"></i>
-                <strong>Application Unsuccessful</strong> — Unfortunately your application was not successful.
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-8">
+                <p class="text-red-800 text-sm font-bold"><i class="bi bi-x-circle me-2"></i>Application Unsuccessful</p>
+                <p class="text-red-700 text-xs mt-1">Unfortunately, your application was not successful at this time.</p>
                 @if (!string.IsNullOrEmpty(Model.AdminNotes))
                 {
-                    <text> Reason: <em>@Model.AdminNotes</em></text>
+                    <p class="text-red-700 text-xs mt-2 italic">Note from Admin: "@Model.AdminNotes"</p>
                 }
             </div>
         }
 
-        @* ── Application progress timeline ── *@
-        <div class="bg-white border border-gray-100 shadow-sm p-8 mb-8 rounded-sm">
-            <p class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-8">
-                Application Progress
-            </p>
-            <div class="flex items-start justify-between">
-                @* Step 1 — Submitted *@
-                <div class="timeline-step step-done">
-                    <div class="timeline-dot"><i class="bi bi-check-lg"></i></div>
-                    <div class="mt-3 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Submitted</p>
-                        <p class="text-xs text-gray-600 mt-1">@(Model.DateSubmitted?.ToString("dd MMM"))</p>
-                    </div>
-                </div>
-                @* Step 2 — Under Review *@
-                <div class="timeline-step @(isPending ? "step-active" : "step-done")">
-                    <div class="timeline-dot">
-                        @if (isPending)
-                        {<i class="bi bi-hourglass-split"></i> }
-                        else
-                        { <i class="bi bi-check-lg"></i>}
-                    </div>
-                    <div class="mt-3 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Under Review</p>
-                    </div>
-                </div>
-                @* Step 3 — Decision *@
-                <div class="timeline-step @(isApproved || isRejected ? "step-done" : "")">
-                    <div class="timeline-dot">
-                        @if (isApproved)
-                        {<i class="bi bi-check-lg"></i> }
-                        else if (isRejected)
-                        { <i class="bi bi-x-lg"></i> }
-                        else
-                        { <span class="text-gray-400">3</span>}
-                    </div>
-                    <div class="mt-3 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Decision</p>
-                        @if (Model.ReviewedDate.HasValue)
-                        {
-                            <p class="text-xs text-gray-600 mt-1">@Model.ReviewedDate.Value.ToString("dd MMM")</p>
-                        }
-                    </div>
-                </div>
-                @* Step 4 — Interview (only shows if approved) *@
-                <div class="timeline-step @(isApproved ? "step-active" : "")">
-                    <div class="timeline-dot">
-                        @if (isApproved)
-                        {<i class="bi bi-camera-video"></i> }
-                        else
-                        { <span class="text-gray-400">4</span>}
-                    </div>
-                    <div class="mt-3 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Interview</p>
-                    </div>
-                </div>
-                @* Step 5 — Onboarded *@
-                <div class="timeline-step">
-                    <div class="timeline-dot">
-                        <span class="text-gray-400">5</span>
-                    </div>
-                    <div class="mt-3 text-center">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Onboarded</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @* ── Personal Information ── *@
         <div class="bg-white border border-gray-100 shadow-sm p-8 mb-6 rounded-sm">
-            <p class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-6 border-b border-gray-100 pb-3">
-                01. Personal Information
-            </p>
-            <div>
-                <div class="info-row">
-                    <span class="info-label">Full Name</span>
-                    <span class="info-value">@Model.FullName</span>
+            <h3 class="text-sm font-bold text-[#C21E2E] uppercase tracking-widest mb-6 border-b pb-2">Provided Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase font-bold">Full Name</label>
+                    <p class="font-semibold">@Model.FullName</p>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">National ID</span>
-                    <span class="info-value">@Model.IDNumber</span>
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase font-bold">Licence No.</label>
+                    <p class="font-semibold">@Model.LicenceNumber</p>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Phone Number</span>
-                    <span class="info-value">
-                        @if (!string.IsNullOrEmpty(Model.PhoneNumber))
-                        {
-                            <a href="tel:@Model.PhoneNumber" class="text-[#C21E2E] hover:underline">
-                                <i class="bi bi-telephone me-1"></i>@Model.PhoneNumber
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="text-gray-400 italic">Not provided</span>
-                        }
-                    </span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Email Address</span>
-                    <span class="info-value">
-                        <a href="mailto:@Model.Email" class="text-[#C21E2E] hover:underline">
-                            <i class="bi bi-envelope me-1"></i>@Model.Email
-                        </a>
-                    </span>
+                <div>
+                    <label class="text-[10px] text-gray-400 uppercase font-bold">Expiry Date</label>
+                    <p class="font-semibold">@Model.LicenceExpiryDate.ToString("dd MMM yyyy")</p>
                 </div>
             </div>
         </div>
 
-        @* ── Licence & Permits ── *@
-        <div class="bg-white border border-gray-100 shadow-sm p-8 mb-6 rounded-sm">
-            <p class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-6 border-b border-gray-100 pb-3">
-                02. Licence &amp; Permits
-            </p>
-            <div>
-                <div class="info-row">
-                    <span class="info-label">Licence Number</span>
-                    <span class="info-value">@Model.LicenceNumber</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Licence Expiry</span>
-                    <span class="info-value">
-                        @{
-                            bool expiringSoon = Model.LicenceExpiryDate < DateTime.Now.AddMonths(3);
-                            bool expired = Model.LicenceExpiryDate < DateTime.Now;
-                        }
-                        @if (expired)
-                        {
-                            <span class="text-red-600 font-bold">
-                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                @Model.LicenceExpiryDate.ToString("dd MMMM yyyy") — EXPIRED
-                            </span>
-                        }
-                        else if (expiringSoon)
-                        {
-                            <span class="text-yellow-600 font-bold">
-                                <i class="bi bi-clock-history me-1"></i>
-                                @Model.LicenceExpiryDate.ToString("dd MMMM yyyy") — Expiring Soon
-                            </span>
-                        }
-                        else
-                        {
-                            <span>@Model.LicenceExpiryDate.ToString("dd MMMM yyyy")</span>
-                        }
-                    </span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">PrDP (PDP)</span>
-                    <span class="info-value">
-                        @if (Model.HasPDP)
-                        {
-                            <span class="text-green-700 font-bold">
-                                <i class="bi bi-check-circle-fill me-1"></i> Yes — Holds PrDP
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-gray-400">No PrDP</span>
-                        }
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        @* ── Uploaded Documents ── *@
-        @if (Model.Documents != null && Model.Documents.Any())
-        {
-            <div class="bg-white border border-gray-100 shadow-sm p-8 mb-6 rounded-sm">
-                <p class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-6 border-b border-gray-100 pb-3">
-                    03. Submitted Documents
-                </p>
-                <div class="flex flex-wrap gap-3">
-                    @foreach (var doc in Model.Documents)
-                    {
-                        string docIcon = doc.DocumentType == "ID" ? "bi-person-vcard"
-                                       : doc.DocumentType == "Licence" ? "bi-card-checklist"
-                                       : "bi-file-earmark";
-                        string docLabel = doc.DocumentType == "Other" && !string.IsNullOrEmpty(doc.OtherDocumentType)
-                                        ? doc.OtherDocumentType
-                                        : doc.DocumentType;
-                        <a href="@doc.FilePath" target="_blank" class="doc-badge">
-                            <i class="bi @docIcon text-[#C21E2E]"></i>
-                            @docLabel
-                            <i class="bi bi-box-arrow-up-right text-gray-400 text-xs"></i>
-                        </a>
-                    }
-                </div>
-            </div>
-        }
-
-        @* ── Secure link (only for public/token viewers) ── *@
         @if (!string.IsNullOrEmpty(token))
         {
-            <div class="bg-white border border-yellow-200 shadow-sm p-8 mb-6 rounded-sm">
-                <p class="text-[10px] uppercase tracking-[4px] font-bold text-yellow-600 mb-4">
-                    <i class="bi bi-shield-lock me-2"></i> Your Secure Access Link
+            <div class="bg-gray-50 border border-gray-200 p-4 rounded text-center text-xs text-gray-500">
+                <p>
+                    Save this link to check your status later:
+                    <a href="@Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = token }, protocol: Request.Url.Scheme)" class="text-blue-600 underline">Your Unique Application Link</a>
                 </p>
-                <p class="text-sm text-gray-500 mb-4">
-                    Save or bookmark this link to return to your application.
-                    Valid until <strong>@(Model.PublicTokenExpiry?.ToString("dd MMMM yyyy") ?? "—")</strong>.
-                </p>
-                <div class="bg-gray-50 border border-gray-200 p-4 text-xs break-all rounded">
-                    @{
-                        string fullUrl = Url.Action("PublicDetails", "DriverApplications",
-                            new { id = Model.Id, token = token }, protocol: Request.Url.Scheme);
-                    }
-                    <a class="text-[#C21E2E] font-semibold hover:underline" href="@fullUrl">
-                        @fullUrl
-                    </a>
-                </div>
             </div>
         }
-
-        @* ── Action buttons for applicant ── *@
-        <div class="flex flex-wrap gap-4 mb-8">
-            @if (isPending)
-            {
-                @* Edit button — only when still Pending *@
-                if (isPublic && !string.IsNullOrEmpty(token))
-                {
-                    <a href="@Url.Action("Edit", "DriverApplications", new { id = Model.Id, token = token })"
-                       class="btn-red">
-                        <i class="bi bi-pencil-square"></i> Edit My Application
-                    </a>
-                }
-                else if (!isPublic)
-                {
-                    <a href="@Url.Action("Edit", "DriverApplications", new { id = Model.Id })"
-                       class="btn-red">
-                        <i class="bi bi-pencil-square"></i> Edit My Application
-                    </a>
-                }
-            }
-            else
-            {
-                @* Greyed out — cannot edit after decision *@
-                <span class="btn-outline cursor-not-allowed opacity-50"
-                      title="Editing is disabled once a decision has been made">
-                    <i class="bi bi-lock"></i> Editing Locked
-                </span>
-            }
-
-            <a href="@Url.Action("Create", "DriverApplications")" class="btn-outline">
-                <i class="bi bi-plus-circle"></i> New Application
-            </a>
-        </div>
-
-        @* ── ADMIN PANEL (only visible to logged-in admins) ── *@
-        @if (isAdminOrTransport)
-        {
-            <div class="admin-panel">
-                <h4><i class="bi bi-shield-check me-2"></i> Admin Actions</h4>
-
-                @if (TempData["Success"] != null)
-                {
-                    <div class="bg-green-800 text-green-100 p-3 rounded mb-4 text-sm">
-                        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
-                    </div>
-                }
-                @if (TempData["Error"] != null)
-                {
-                    <div class="bg-red-800 text-red-100 p-3 rounded mb-4 text-sm">
-                        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
-                    </div>
-                }
-
-                @* Admin review form — only if still pending *@
-                @if (isPending)
-                {
-                    using (Html.BeginForm("Review", "DriverApplications",
-                        new { id = Model.Id }, FormMethod.Post, new { @class = "mb-6" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-3 font-bold">
-                            Review Decision
-                        </p>
-                        <textarea name="adminNotes" class="admin-notes mb-4"
-                                  placeholder="Add notes (optional — will be shown to the applicant if rejected)..."></textarea>
-                        <div class="flex flex-wrap gap-3">
-                            <button type="submit" name="decision" value="Approved"
-                                    class="admin-action-btn btn-approve">
-                                <i class="bi bi-check-circle"></i> Approve Application
-                            </button>
-                            <button type="submit" name="decision" value="Rejected"
-                                    class="admin-action-btn btn-reject">
-                                <i class="bi bi-x-circle"></i> Reject Application
-                            </button>
-                        </div>
-                    }
-                }
-
-                @* Interview invitation button *@
-                @if (isApproved)
-                {
-                    using (Html.BeginForm("SendInterviewInvitation", "DriverApplications",
-                        new { id = Model.Id }, FormMethod.Post, new { @class = "mb-4 inline" }))
-                    {<h4 class="text-white font-serif text-lg mb-4">
-                            <i class="bi bi-camera-video me-2"></i> Schedule Interview
-                        </h4>
-
-                        <form method="post" action="@Url.Action("ScheduleAndSendInterview", "DriverApplications")" class="mb-6">
-                            @Html.Hidden("id", Model.Id)
-
-                            <div class="mb-4">
-                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 mb-2">
-                                    Interview Date & Time
-                                </label>
-                                <input type="datetime-local" name="interviewDateTime" required
-                                       class="w-full bg-gray-700 border border-gray-600 text-white rounded px-3 py-2 text-sm focus:border-[#C21E2E] outline-none" />
-                            </div>
-
-                            <div class="mb-5">
-                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 mb-2">
-                                    Meeting Link (optional – leave blank for auto Jitsi)
-                                </label>
-                                <input type="url" name="customMeetingLink"
-                                       placeholder="https://meet.jit.si/..."
-                                       class="w-full bg-gray-700 border border-gray-600 text-white rounded px-3 py-2 text-sm focus:border-[#C21E2E] outline-none" />
-                            </div>
-
-                            <div>
-                                <button type="submit" class="admin-action-btn btn-interview">
-                                    <i class="bi bi-envelope-paper"></i> Schedule & Send Invitation
-                                </button>
-                            </div>
-                        </form>
-
-                        <hr class="border-gray-600 my-6" />
-                    }
-                }
-
-                @* Create driver account button *@
-                @if (isApproved)
-                {
-                    <span>&nbsp;&nbsp;</span>
-                    using (Html.BeginForm("CreateDriverAccount", "DriverApplications",
-                        new { id = Model.Id }, FormMethod.Post, new { @class = "inline" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="admin-action-btn btn-create"
-                                onclick="return confirm('Create driver account and send login credentials to applicant?')">
-                            <i class="bi bi-person-plus"></i> Create Driver Account
-                        </button>
-                    }
-                }
-
-                @* Quick info for admin *@
-                <div class="mt-6 pt-6 border-t border-gray-600 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                        <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Submitted</p>
-                        <p class="text-sm font-bold">@(Model.DateSubmitted?.ToString("dd MMM yyyy") ?? "—")</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Reviewed</p>
-                        <p class="text-sm font-bold">@(Model.ReviewedDate?.ToString("dd MMM yyyy") ?? "—")</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Token Expiry</p>
-                        <p class="text-sm font-bold">@(Model.PublicTokenExpiry?.ToString("dd MMM yyyy") ?? "—")</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Linked User</p>
-                        <p class="text-sm font-bold">@(Model.UserId?.ToString() ?? "Anonymous")</p>
-                    </div>
-                </div>
-            </div>
-        }
-
-        @* ── Footer ── *@
-        <div class="mt-12 text-center text-[9px] uppercase tracking-[4px] text-gray-300">
-            &copy; @DateTime.Now.Year Michaelhouse Logistics &amp; Transport Division &mdash;
-            Balgowan, KwaZulu-Natal, South Africa.
-        </div>
     </div>
-</body>
-</html>
+}
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .btn-check {
+        position: absolute;
+        clip: rect(0,0,0,0);
+        pointer-events: none;
+    }
+
+        .btn-check:checked + label {
+            border-color: #1a1a1a !important;
+            background: #1a1a1a;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

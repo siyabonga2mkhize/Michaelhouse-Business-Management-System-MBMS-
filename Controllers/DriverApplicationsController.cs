@@ -159,7 +159,9 @@ namespace Michaelhouse
             }
             db.SaveChanges();
 
-            // Trigger AI review in background (optional)
+            // ════════════════════════════════════════════════════════════════════
+            // Trigger AI review in background
+            // ════════════════════════════════════════════════════════════════════
             try
             {
                 Task.Run(async () =>
@@ -167,31 +169,78 @@ namespace Michaelhouse
                     try
                     {
                         var ai = new AiReviewService();
-                        var result = await ai.ReviewDriverApplicationAsync(driverApplication);
-                        string decision;
-                        if (result.Recommendation == "APPROVE") decision = "Approved";
-                        else if (result.Recommendation == "REJECT") decision = "Rejected";
-                        else decision = "Waitlisted";
+
+                        // Load application WITH documents for the review
+                        DriverApplication appWithDocs;
+                        using (var db2 = new DBContextClass())
+                        {
+                            appWithDocs = db2.DriverApplications
+                                .Include(a => a.Documents)
+                                .FirstOrDefault(a => a.Id == driverApplication.Id);
+                        }
+
+                        if (appWithDocs == null) return;
+
+                        // Call the AI
+                        var result = await ai.ReviewDriverApplicationAsync(appWithDocs);
+
+                        // Map AI Recommendation to a formal decision string for AdminReviews
+                        string decision = result.Recommendation == "APPROVE" ? "Approved"
+                                        : result.Recommendation == "REJECT" ? "Rejected"
+                                        : "Waitlisted"; // Used for FLAG
 
                         using (var db2 = new DBContextClass())
                         {
+                            // 1. Save Admin Review
                             var review = new AdminReview
                             {
                                 DriverAppId = driverApplication.Id,
-                                AdminId = "system",
+                                AdminId = "ai-system",
                                 Date = DateTime.UtcNow,
                                 Decision = decision,
                                 AdminNotes = result.Summary,
                                 AgreedWithAi = false
                             };
                             db2.AdminReviews.Add(review);
+
+                            // 2. Save recommendation back to the application and update Status
+                            var appToUpdate = db2.DriverApplications.Find(driverApplication.Id);
+                            if (appToUpdate != null)
+                            {
+                                // Optional: If you added AiReviewSummary to your model, you can save it here
+                                 appToUpdate.AiReviewSummary = result.Summary;
+                                appToUpdate.AiRecommendation = result.Recommendation;
+
+                                // Automatically progress the application based on the AI's review
+                                if (result.Recommendation == "APPROVE")
+                                {
+                                    // Optional: You can also change this to "Pending" if you want 
+                                    // the admin to manually approve good applications too.
+                                    appToUpdate.Status = "Pending Interview";
+                                }
+                                else if (result.Recommendation == "REJECT")
+                                {
+                                    // AI thinks it's a reject, but we leave it to the Admin to decide.
+                                    // Setting it to "Flagged" keeps it in the Admin's queue.
+                                    appToUpdate.Status = "Flagged";
+                                }
+                                else
+                                {
+                                    appToUpdate.Status = "Flagged";
+                                }
+                            }
+
                             db2.SaveChanges();
                         }
                     }
-                    catch { /* log if needed */ }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"AI driver review failed: {ex.Message}");
+                    }
                 });
             }
             catch { /* ignore */ }
+            // ════════════════════════════════════════════════════════════════════
 
             // Send acknowledgment email (no account created)
             var currentUid = GetCurrentAppUserId();
@@ -317,6 +366,7 @@ Michaelhouse Transport Team
 
             return RedirectToAction("Details", new { id = id });
         }
+
         // POST: Create Driver Account (after successful interview)
         [HttpPost]
         [AdminOrTransportManagerOnly]

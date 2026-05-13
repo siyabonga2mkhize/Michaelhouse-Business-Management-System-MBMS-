@@ -468,6 +468,7 @@ namespace Michaelhouse.Migrations
                     };
                     context.Drivers.Add(driver);
                 }
+
                 context.SaveChanges();
             }
         }
