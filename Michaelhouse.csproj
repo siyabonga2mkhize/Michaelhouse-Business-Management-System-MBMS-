@@ -218,17 +218,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605120841037_InitialBaseline.cs" />
-    <Compile Include="Migrations\202605120841037_InitialBaseline.Designer.cs">
-      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605120843363_AddNewTables.cs" />
-    <Compile Include="Migrations\202605120843363_AddNewTables.Designer.cs">
-      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605121021512_AddInterviewDetails.cs" />
-    <Compile Include="Migrations\202605121021512_AddInterviewDetails.Designer.cs">
-      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
+    <Compile Include="Migrations\202605130857434_initialcreate.cs" />
+    <Compile Include="Migrations\202605130857434_initialcreate.Designer.cs">
+      <DependentUpon>202605130857434_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
@@ -350,8 +342,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Misc\Driver.pdf" />
-    <Content Include="Misc\ID.pdf" />
+    <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
@@ -565,14 +556,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605120841037_InitialBaseline.resx">
-      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605120843363_AddNewTables.resx">
-      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605121021512_AddInterviewDetails.resx">
-      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605130857434_initialcreate.resx">
+      <DependentUpon>202605130857434_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
