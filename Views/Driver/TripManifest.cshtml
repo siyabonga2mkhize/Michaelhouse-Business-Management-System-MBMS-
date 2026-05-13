@@ -1,0 +1,244 @@
+﻿@model List<Michaelhouse.Models.ManifestStudentViewModel>
+@{
+    ViewBag.Title = "Trip Manifest";
+    var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
+    bool canMark = schedule != null && System.DateTime.Today == schedule.ScheduledDate.Date;
+    bool preTripDone = Model.Any(s => s.AlreadyPresentBefore == true);
+    bool postTripDone = Model.Any(s => s.AlreadyPresentAfter == true);
+}
+
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Driver Portal</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Trip Manifest</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Ref: SCH-@(schedule?.Id) • @(schedule?.TripRequest?.Title)</p>
+        </div>
+
+        <div class="flex gap-3">
+            <a href="@Url.Action("MyTrips", "Driver")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> My Trips
+            </a>
+            <a href="@Url.Action("DepartureQRCode", "Driver", new { scheduleId = schedule?.Id })" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-md">
+                <i class="bi bi-qr-code me-2"></i> Departure QR
+            </a>
+            <a href="@Url.Action("ReturnQRCode", "Driver", new { scheduleId = schedule?.Id })" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-md">
+                <i class="bi bi-qr-code me-2"></i> Return QR
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    @using (Html.BeginForm("MarkManifest", "Driver", FormMethod.Post, new { @class = "flex flex-col flex-grow min-h-0 mx-8 pb-8" }))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="scheduleId" value="@schedule?.Id" />
+
+        <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0">
+
+            @* Header with Vehicle & Stats *@
+            <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                <div class="relative z-10">
+                    <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Logistics Verification Roster</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">
+                        Vehicle: <span class="text-gray-700">@(ViewBag.VehicleDisplay ?? "—")</span> &nbsp;|&nbsp;
+                        Students: @Model.Count
+                    </p>
+                </div>
+
+                <div class="relative z-10 flex items-center gap-4">
+                    @if (!canMark)
+                    {
+                        <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                            <i class="bi bi-clock me-1"></i> Attendance only on trip date
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-widest">
+                            <i class="bi bi-check-circle me-1"></i> Attendance can be marked today
+                        </span>
+                    }
+                </div>
+            </div>
+
+            @* Table Container *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="sticky top-0 z-10 bg-white">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                            <th class="ps-8 py-5">Student Identity</th>
+                            <th>Parental Liaison</th>
+                            <th>Emergency Contact</th>
+                            <th class="text-center bg-gray-50/80 w-48 border-l border-gray-100">Departure Registry</th>
+                            <th class="text-center bg-green-50/30 w-48 border-l border-gray-100">Return Registry</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="py-20 text-center">
+                                    <i class="bi bi-person-x text-gray-100 text-6xl d-block mb-4"></i>
+                                    <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Manifest Empty</h4>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < Model.Count; i++)
+                            {
+                                var s = Model[i];
+                                bool afterDisabled = s.AlreadyPresentBefore != true;
+
+                                <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-4">
+                                        <div class="fw-bold text-gray-900 text-sm font-serif">@s.StudentName</div>
+                                        <input type="hidden" name="students[@i].StudentId" value="@s.StudentId" />
+                                        <input type="hidden" name="students[@i].IsPresentAfter" value="@s.IsPresentAfter.ToString().ToLower()" />
+                                        <input type="hidden" name="students[@i].IsPresentBefore" value="@s.IsPresentBefore.ToString().ToLower()" />
+                                    </td>
+                                    <td>
+                                        <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">@s.ParentName</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">@s.EmergencyContactName</div>
+                                        @if (!string.IsNullOrEmpty(s.EmergencyContactPhone))
+                                        {
+                                            <div class="text-[10px] font-mono text-blue-600 mt-1">
+                                                <i class="bi bi-telephone-fill me-1 text-gray-300"></i>@s.EmergencyContactPhone
+                                            </div>
+                                        }
+                                    </td>
+
+                                    @* PRE-DEPARTURE CHECKBOX (READ-ONLY) *@
+                                    <td class="text-center bg-gray-50/30 border-l border-gray-50">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <input type="checkbox"
+                                                   name="students[@i].IsPresentBefore"
+                                                   value="true"
+                                                   class="cb-before w-6 h-6 accent-[#C21E2E] pointer-events-none"
+                                                   @(s.IsPresentBefore ? "checked" : "")
+                                                   @(canMark ? "" : "disabled") />
+                                            @if (s.AlreadyPresentBefore == true)
+                                            {
+                                                <span class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">Verified</span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    @* POST-RETURN CHECKBOX (READ-ONLY) *@
+                                    <td class="text-center bg-green-50/10 border-l border-gray-50">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <input type="checkbox"
+                                                   name="students[@i].IsPresentAfter"
+                                                   value="true"
+                                                   class="cb-after w-6 h-6 accent-[#10b981] pointer-events-none"
+                                                   @(s.IsPresentAfter ? "checked" : "")
+                                                   @(afterDisabled ? "disabled" : "")
+                                                   @(canMark ? "" : "disabled") />
+                                            @if (s.AlreadyPresentAfter == true)
+                                            {
+                                                <span class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">Returned</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Footer Actions *@
+            <div class="p-6 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-clipboard-check me-2 text-gray-500"></i> Driver Attendance Protocol
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" name="markType" value="before" class="bg-gray-100 text-gray-900 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-xl"
+                            @(canMark ? "" : "disabled")
+                            onclick="return confirm('Save pre-trip attendance? Checked students will be marked present for departure.')">
+                        <i class="bi bi-box-arrow-up-right me-2"></i> Commit Departure
+                    </button>
+                    <button type="submit" name="markType" value="after" class="bg-[#10b981] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-xl"
+                            @(canMark ? "" : "disabled")
+                            onclick="return confirm('Save post-trip attendance? This will mark the trip as COMPLETED and notify parents. This cannot be undone.')">
+                        <i class="bi bi-box-arrow-in-down-right me-2"></i> Commit Return & Complete
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    .pointer-events-none {
+        pointer-events: none !important;
+    }
+</style>
+<script>
+    function toggleRow(checkbox) {
+        var row = checkbox.closest('tr');
+        if (checkbox.checked) {
+            row.classList.add('row-present');
+        } else {
+            row.classList.remove('row-present');
+        }
+        updateSummary();
+    }
+
+    function updateSummary() {
+        var preChecked = document.querySelectorAll('.cb-before:checked').length;
+        var postChecked = document.querySelectorAll('.cb-after:checked').length;
+        // You can add a summary element if you like; for now just console.
+        console.log('Pre: ' + preChecked + ', Post: ' + postChecked);
+    }
+
+    function confirmMark(tab) {
+        if (tab === 'post-trip') {
+            return confirm('Save post-trip attendance? This will mark the trip as COMPLETED and notify parents. This cannot be undone.');
+        }
+        return confirm('Save pre-trip attendance? Checked students will be marked present for departure.');
+    }
+
+    // Initial summary update
+    updateSummary();
+</script>

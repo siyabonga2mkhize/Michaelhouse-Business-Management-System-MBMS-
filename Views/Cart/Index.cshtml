@@ -1,0 +1,162 @@
+﻿@model Michaelhouse.Models.CartDto
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Secure Basket";
+}
+
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="ac-header mb-8">
+        <div class="ac-header-left">
+            <div class="ac-eyebrow">Transaction Management</div>
+            <h1 class="ac-title">Your Basket</h1>
+            <p class="ac-subtitle">Review your selected provisions before finalizing the procurement.</p>
+        </div>
+        <div class="ac-header-actions">
+            <a href="@Url.Action("Index", "Store")" class="btn-ghost-premium">
+                <i class="bi bi-arrow-left me-2"></i> RETURN TO STORE
+            </a>
+        </div>
+    </div>
+
+    @if (Model.IsEmpty)
+    {
+        <div class="ac-card py-20 text-center border-dashed">
+            <i class="bi bi-bag-x text-gray-200 text-6xl d-block mb-4"></i>
+            <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Your Basket is Empty</h4>
+            <p class="text-sm text-gray-400 mb-8">No institutional items have been earmarked for purchase.</p>
+            <a href="@Url.Action("Index", "Store")" class="btn-premium-red">
+                START PROCURING
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-5">
+            @* --- LEFT: LEDGER ITEMS --- *@
+            <div class="col-lg-8">
+                <div class="ac-card">
+                    <div class="ac-card-header bg-gray-50 flex justify-between">
+                        <span class="ac-card-title">Provision Ledger (@Model.TotalItems Items)</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="ac-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Item Description</th>
+                                    <th class="text-center" style="width: 160px;">Quantity</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end pe-4">Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr class="group hover:bg-gray-50/50">
+                                        <td class="ps-4 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="h-12 w-12 bg-blueprint flex items-center justify-center border border-gray-100">
+                                                    <i class="bi bi-tag text-gray-300"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-gray-900 uppercase text-[11px] tracking-tight">@item.ProductName</div>
+                                                    <div class="text-[9px] text-[#C21E2E] font-bold tracking-widest">SKU: MH-PR-@item.ProductId</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4">
+                                            @using (Html.BeginForm("Update", "Cart", FormMethod.Post, new { @class = "flex justify-center" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <div class="cart-qty-group">
+                                                    <input type="number" name="quantity" value="@item.Quantity"
+                                                           min="0" max="@item.MaxStock" class="cart-qty-input" />
+                                                    <button type="submit" class="cart-qty-btn">
+                                                        <i class="bi bi-arrow-repeat"></i>
+                                                    </button>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="text-end py-4 font-monospace text-sm">R @item.UnitPrice.ToString("N2")</td>
+                                        <td class="text-end py-4 pe-4 font-bold text-gray-900 font-monospace">R @item.Subtotal.ToString("N2")</td>
+                                        <td class="text-center py-4">
+                                            @using (Html.BeginForm("Remove", "Cart", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button type="submit" class="text-gray-300 hover:text-[#C21E2E] transition-colors"
+                                                        onclick="return confirm('Remove this item from your dossier?')">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-6 bg-gray-50/50 flex justify-between border-t border-gray-100">
+                        @using (Html.BeginForm("Clear", "Cart", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-ghost-danger text-[9px]"
+                                    onclick="return confirm('Purge entire basket?')">
+                                <i class="bi bi-trash-fill me-2"></i> ABANDON ALL ITEMS
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: FISCAL SUMMARY --- *@
+            <div class="col-lg-4">
+                <div class="ac-card border-2 border-gray-900 shadow-xl overflow-hidden">
+                    <div class="bg-gray-900 text-white p-6">
+                        <div class="text-[9px] font-bold uppercase tracking-[4px] opacity-60 mb-1">Dossier Summary</div>
+                        <h4 class="text-serif font-bold text-xl mb-0">Fiscal Overview</h4>
+                    </div>
+
+                    <div class="p-6 bg-white space-y-4">
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-gray-500 uppercase tracking-tighter">@item.ProductName <span class="opacity-50">x @item.Quantity</span></span>
+                                <span class="font-bold font-monospace">R @item.Subtotal.ToString("N2")</span>
+                            </div>
+                        }
+
+                        <div class="border-t-2 border-gray-900 pt-4 mt-6 flex justify-between items-end">
+                            <span class="text-[10px] font-bold uppercase tracking-[3px] text-gray-900">Total Payable</span>
+                            <span class="text-2xl font-bold font-monospace text-[#C21E2E]">R @Model.TotalAmount.ToString("N2")</span>
+                        </div>
+
+                        @if (Model.TotalAmount > 500)
+                        {
+                            <div class="mt-6 p-4 bg-green-50 border-l-4 border-green-600">
+                                <div class="text-[9px] font-bold text-green-700 uppercase tracking-widest">
+                                    <i class="bi bi-truck me-2"></i> Logistics Benefit Applied
+                                </div>
+                                <div class="text-[10px] text-green-600 mt-1">This order qualifies for complimentary campus delivery.</div>
+                            </div>
+                        }
+
+                        <a href="@Url.Action("Checkout", "Order")" class="btn-premium-red w-full text-center mt-8 block no-underline py-4">
+                            PROCEED TO SECURE PAYMENT
+                        </a>
+
+                        <div class="text-center mt-4">
+                            <i class="bi bi-shield-lock text-gray-300 text-xs me-2"></i>
+                            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Encrypted Checkout System</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

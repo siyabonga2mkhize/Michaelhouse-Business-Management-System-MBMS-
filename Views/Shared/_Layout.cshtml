@@ -1,0 +1,942 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewBag.Title - Michaelhouse</title>
+
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+
+
+    @RenderSection("Styles", required: false)
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+
+    <style>
+
+        :root {
+            --mh-red: #C21E2E;
+            --mh-dark: #1a1a1a;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        html,body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto; /* Prevent body from scrolling */
+        }
+
+        body {
+            background: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            flex-direction:column;
+            overflow-x: auto;
+        }
+
+        h1, h2, h3, .navbar-brand, .sidebar-label {
+            font-family: 'Playfair Display', serif !important;
+        }
+
+
+
+        .navbar {
+            background: #ffffff !important;
+            border-bottom: 3px solid var(--mh-red);
+            padding: 0.5rem 1.5rem;
+            z-index: 1050;
+            position: sticky;
+            top: 0;
+        }
+       
+
+
+        .navbar-brand {
+            color: var(--mh-red) !important;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- DYNAMIC MAIN WRAPPER --- */
+        .app-shell {
+            display: flex;
+            flex: 1; /* Fills remaining vertical space */
+            height: calc(100vh - var(--nav-height));
+            overflow: hidden;
+        }
+
+        .nav-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+
+
+        #sidebar {
+            background: #fdfdfd;
+            min-height: calc(100vh - 70px);
+            width: var(--sidebar-width);
+            border-right: 1px solid #eee;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            overflow-y:auto;
+            white-space: nowrap;
+            flex-shrink: 0;
+            height: 100%;
+        }
+
+
+
+            #sidebar.collapsed {
+                width: var(--sidebar-collapsed-width);
+            }
+
+
+
+                #sidebar.collapsed .sidebar-label,
+                #sidebar.collapsed .link-text {
+                    display: none;
+                }
+
+
+
+        .sidebar .nav-link {
+            color: #555 !important;
+            padding: 12px 22px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin: 4px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+
+
+            .sidebar .nav-link i {
+                font-size: 1.2rem;
+                margin-right: 15px;
+                min-width: 25px;
+            }
+
+
+
+            .sidebar .nav-link:hover {
+                background: #fff5f5;
+                color: var(--mh-red) !important;
+            }
+
+
+
+            .sidebar .nav-link.active {
+                background: var(--mh-red);
+                color: #fff !important;
+                box-shadow: 0 4px 12px rgba(194, 30, 46, 0.15);
+            }
+
+
+
+        .sidebar-label {
+            color: #bbb;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 25px 25px 10px;
+            font-weight: 700;
+        }
+
+
+
+        /* Content Area */
+
+        border-color: rgba(255,255,255,0.1);
+
+        margin: 8px 16px;
+        }
+
+
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            transition: all 0.3s;
+            background: #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+
+
+        .full-width {
+            padding: 0 !important;
+        }
+
+
+
+        #sidebarCollapse {
+            background: none;
+            border: none;
+            color: var(--mh-red);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 15px;
+        }
+
+
+
+        .user-pill {
+            background: #f8f9fa;
+            border-radius: 50px;
+            padding: 5px 15px;
+            border: 1px solid #eee;
+        }
+
+
+
+        .cart-badge {
+            background: #C21E2E;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        .clickable-link {
+            color: #0d6efd;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+            .clickable-link:hover {
+                color: #0a58ca;
+            }
+    </style>
+
+</head>
+
+<body>
+
+    @{
+
+        string currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
+
+        string currentAction = (ViewContext.RouteData.Values["action"] ?? "").ToString();
+
+        string userRole = Session["UserRole"]?.ToString() ?? "";
+
+        string userName = Session["UserName"]?.ToString() ?? "";
+
+        bool isLoggedIn = Session["UserId"] != null;
+
+        // This pulls the name of the current controller (e.g., "Inventory")
+
+        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+
+
+
+        // 2. Define 'lowStockCount' for the notification badge
+
+        // We initialize it to 0 so the page doesn't crash if the value isn't sent
+
+        int lowStockCount = ViewBag.LowStockCount ?? 0;
+
+
+
+        // Determine if this is the home page (to hide login button on home)
+
+        bool isHomePage = (currentController == "Home" && currentAction == "Index");
+
+
+
+        // Get cart count
+
+        int cartCount = 0;
+
+        if (isLoggedIn)
+
+        {
+
+            try
+
+            {
+
+                var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
+
+                cartCount = cartService.GetCart().TotalItems;
+
+            }
+
+            catch { }
+
+        }
+
+    }
+
+
+
+    <nav class="navbar navbar-expand-lg">
+
+        <div class="container-fluid">
+
+            @if (isLoggedIn)
+
+            {
+
+                <button type="button" id="sidebarCollapse">
+
+                    <i class="bi bi-list"></i>
+
+                </button>
+
+            }
+
+
+
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+
+                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
+
+            <!-- Center: brand logo + text -->
+            <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
+                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
+                <span class="d-none d-sm-inline">Michaelhouse</span>
+
+            </a>
+
+            <!-- Right: notification, user pill, logout -->
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <!-- Notification bell (child action) -->
+                @Html.Action("NotificationBadge", "Notification")
+
+                <!-- User info pill (only when logged in) -->
+                @if (isLoggedIn)
+
+                {
+
+                    <div class="user-pill d-none d-md-block">
+
+                        <i class="bi bi-person-circle me-1"></i>
+
+                        <span class="fw-bold">@userName</span>
+
+                        <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
+
+                    </div>
+                }
+
+                <!-- Logout button (only when logged in) -->
+                @if (isLoggedIn)
+                {
+                    <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
+
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+
+                    </a>
+
+                }
+
+                else if (!isHomePage)
+
+                {
+
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
+
+                }
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <div class="d-flex">
+
+        @if (isLoggedIn)
+
+        {
+
+            <div id="sidebar" class="sidebar shadow-sm">
+
+                <nav class="nav flex-column mt-2">
+
+
+
+                    @if (userRole == "Parent")
+
+                    {
+
+                        <div class="sidebar-label">My Portal</div>
+
+                        <a class="nav-link @(currentController == "Parents" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Parents")">
+
+                            <i class="bi bi-house"></i> <span class="link-text">Dashboard</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Applications" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Applications")">
+
+                            <i class="bi bi-grid-1x2"></i> <span class="link-text">My Applications</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Applications" && currentAction == "Create" ? "active" : "")"
+                           href="@Url.Action("Create", "Applications")">
+
+                            <i class="bi bi-plus-circle"></i> <span class="link-text">New Application</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Applications" && currentAction == "AddStudent" ? "active" : "")"
+                           href="@Url.Action("AddStudent", "Applications")">
+
+                            <i class="bi bi-person-plus"></i> <span class="link-text">Add Student</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Payment" ? "active" : "")"
+                           href="@Url.Action("Index", "Payment")">
+
+                            <i class="bi bi-credit-card"></i> <span class="link-text">Payments</span>
+
+                        </a>
+
+                        <a class="nav-link" href="@Url.Action("ChildrenAttendance", "Parents")">
+
+                            <i class="bi bi-people"></i> Children's Attendance
+
+                        </a>
+
+
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">School Store</div>
+
+                        <a class="nav-link @(currentController == "Store" ? "active" : "")"
+                           href="@Url.Action("Index", "Store")">
+
+                            <i class="bi bi-shop"></i> <span class="link-text">Browse Products</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Cart" ? "active" : "")"
+                           href="@Url.Action("Index", "Cart")">
+
+                            <i class="bi bi-cart3"></i> <span class="link-text">My Cart</span>
+
+                            @if (cartCount > 0)
+
+                            {
+
+                                <span class="cart-badge">@cartCount</span>
+
+                            }
+
+                        </a>
+                        //Track order link for parents(Second Increment)
+                        <a class="nav-link @(currentAction == "TrackOrder" ? "active" : "")"
+                           href="@Url.Action("TrackOrder", "Order")">
+                            <i class="bi bi-search"></i> <span class="link-text">Track Order</span>
+                        </a>
+
+
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+
+                        </a>
+
+                    }
+
+                    else if (userRole == "Admin")
+
+                    {
+
+                        <div class="sidebar-label">Administration</div>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Admin")">
+
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "Applications" ? "active" : "")"
+                           href="@Url.Action("Applications", "Admin")">
+
+                            <i class="bi bi-file-earmark-text"></i> <span class="link-text">Applications</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "Registrations" ? "active" : "")"
+                           href="@Url.Action("Registrations", "Admin")">
+
+                            <i class="bi bi-mortarboard"></i> <span class="link-text">Registrations</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "StreamGroups" ? "active" : "")"
+                           href="@Url.Action("StreamGroups", "Admin")">
+
+                            <i class="bi bi-diagram-3"></i> <span class="link-text">Stream Groups</span>
+
+                        </a>
+
+
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Staff</div>
+
+                        <a class="nav-link @(currentController == "Teacher" ? "active" : "")"
+                           href="@Url.Action("Index", "Teacher")">
+
+                            <i class="bi bi-people me-2"></i><span class="link-text text-truncate">Teachers</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Timetable" ? "active" : "")"
+                           href="@Url.Action("Generate", "Timetable")">
+
+                            <i class="bi bi-calendar3"></i> <span class="link-text">Timetable</span>
+
+                        </a>
+
+
+
+                        <!-- NEW: Attendance Logs Section -->
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Attendance Logs</div>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "TeacherAttendanceHistory" ? "active" : "")"
+                           href="@Url.Action("TeacherAttendanceHistory", "Admin")">
+
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Teacher Check‑In/Out</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Admin" && currentAction == "StudentAttendanceHistory" ? "active" : "")"
+                           href="@Url.Action("StudentAttendanceHistory", "Admin")">
+
+                            <i class="bi bi-journal-bookmark-fill"></i> <span class="link-text">Student Register</span>
+
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link @(currentController == "DriverApplications" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "DriverApplications")">
+                            <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
+                        </a>
+
+                    }
+                    else if (userRole == "InventoryManager")
+                    {
+                        @* --- LOGISTICS & SUPPLY DIVISION --- *@
+
+                        <hr class="sidebar-divider" />
+
+
+
+                        <div class="sidebar-label">Logistics & Supply</div>
+
+
+
+                        <a class="nav-link @(ctrl == "Inventory" ? "active" : "")"
+                           href="@Url.Action("Index", "Inventory")">
+
+                            <div class="nav-link-content">
+
+                                <i class="bi bi-boxes"></i>
+
+                                <span>Inventory </span>
+
+                            </div>
+
+                            @if (lowStockCount > 0)
+
+                            {
+
+                                <span class="nav-badge danger animate-pulse">@lowStockCount</span>
+
+                            }
+
+                        </a>
+
+
+
+                        <a class="nav-link @(ctrl == "Supplier" ? "active" : "")"
+                           href="@Url.Action("Index", "Supplier")">
+
+                            <div class="nav-link-content">
+
+                                <i class="bi bi-truck-flatbed"></i>
+
+                                <span>Supplier Registry</span>
+
+                            </div>
+
+                        </a>
+
+
+
+                        <a class="nav-link @(ctrl == "PurchaseOrder" ? "active" : "")"
+                           href="@Url.Action("Index", "PurchaseOrder")">
+
+                            <div class="nav-link-content">
+
+                                <i class="bi bi-file-earmark-medical"></i>
+
+                                <span>Purchase Orders</span>
+
+                            </div>
+
+                        </a>
+
+
+
+                    }
+
+                    else if (userRole == "Student")
+
+                    {
+
+                        <div class="sidebar-label">My Portal</div>
+
+                        <a class="nav-link @(currentController == "Students" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Students")">
+
+                            <i class="bi bi-house"></i> <span class="link-text">Dashboard</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Students" && currentAction == "Subjects" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Students")">
+
+                            <i class="bi bi-journal-bookmark"></i> <span class="link-text">My Subjects</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Report" && currentAction == "MyProgress" ? "active" : "")"
+                           href="@Url.Action("MyProgress", "Report")">
+
+                            <i class="bi bi-graph-up"></i> <span class="link-text">My Progress</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Timetable" && currentAction == "StudentView" ? "active" : "")"
+                           href="@Url.Action("StudentView", "Timetable")">
+
+                            <i class="bi bi-calendar3"></i> <span class="link-text">My Timetable</span>
+
+                        </a>
+
+                        <a class="nav-link" href="@Url.Action("MyAttendance", "Students")">
+
+                            <i class="bi bi-calendar-check"></i> My Attendance
+
+                        </a>
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
+                        </a>
+
+
+
+                        @*<div class="sidebar-label text-truncate">Settings</div>
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
+                    }
+
+                    else if (userRole == "Teacher")
+
+                    {
+
+                        <div class="sidebar-label">My Portal</div>
+
+                        <a class="nav-link @(currentController == "Timetable" && currentAction == "MyTimetable" ? "active" : "")"
+                           href="@Url.Action("MyTimetable", "Timetable")">
+
+                            <i class="bi bi-calendar3"></i> <span class="link-text">My Timetable</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Marks" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Marks")">
+
+                            <i class="bi bi-pen"></i> <span class="link-text">Assessments</span>
+
+                        </a>
+
+
+
+                        <!-- NEW: Mark Register -->
+
+                        <a class="nav-link @(currentController == "Attendances" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Attendances")">
+
+                            <i class="bi bi-journal-check"></i> <span class="link-text">Mark Register</span>
+
+                        </a>
+
+
+
+                        <!-- NEW: Check In / Out -->
+
+                        <a class="nav-link @(currentController == "TeacherAttendance" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "TeacherAttendance")">
+
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Check In/Out</span>
+
+                        </a>
+
+
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">School Store</div>
+
+                        <a class="nav-link @(currentController == "Store" ? "active" : "")"
+                           href="@Url.Action("Index", "Store")">
+
+                            <i class="bi bi-shop"></i> <span class="link-text">Browse Products</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Cart" ? "active" : "")"
+                           href="@Url.Action("Index", "Cart")">
+
+                            <i class="bi bi-cart3"></i> <span class="link-text">My Cart</span>
+
+                            @if (cartCount > 0)
+
+                            {
+
+                                <span class="cart-badge">@cartCount</span>
+
+                            }
+
+                        </a>
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Trips</div>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "BookTrip" ? "active" : "")"
+                           href="@Url.Action("BookTrip", "Trip")">
+                            <i class="bi bi-calendar-plus"></i> <span class="link-text">Book a Trip</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "MyRequests" ? "active" : "")"
+                           href="@Url.Action("MyRequests", "Trip")">
+                            <i class="bi bi-list-ul"></i> <span class="link-text">My Trip Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "UpcomingTrips" ? "active" : "")"
+                           href="@Url.Action("UpcomingTrips", "Trip")">
+                            <i class="bi bi-calendar-week"></i> <span class="link-text">Upcoming Trips</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Trip" && currentAction == "Manifest" ? "active" : "")"
+                           href="@Url.Action("Manifest", "Trip")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Student Manifest</span>
+                        </a>
+                        <div class="sidebar-label text-truncate">Settings</div>
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                        </a>
+
+                    }
+                    else if (userRole == "TransportManager")
+                    {
+                        <div class="sidebar-label">Transport Management</div>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Transport")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "PendingRequests" ? "active" : "")"
+                           href="@Url.Action("PendingRequests", "Transport")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">Pending Requests</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "UnassignedSchedules" ? "active" : "")"
+                           href="@Url.Action("UnassignedSchedules", "Transport")">
+                            <i class="bi bi-person-plus"></i> <span class="link-text">Assign Driver/Vehicle</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Transport" && currentAction == "AllTrips" ? "active" : "")"
+                           href="@Url.Action("AllTrips", "Transport")">
+                            <i class="bi bi-calendar-check"></i> <span class="link-text">All Trips</span>
+                        </a>
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link @(currentController == "DriverApplications" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "DriverApplications")">
+                            <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
+                        </a>
+                        <a class="nav-link" href="@Url.Action("Drivers", "Transport")">
+                            <i class="bi bi-person-badge"></i> Manage Drivers
+                        </a>
+
+                        <a class="nav-link" href="@Url.Action("Index", "Vehicle")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Manage Vehicles</span>
+                        </a>
+
+
+
+                    }
+                    else if (userRole == "Driver")
+                    {
+                        <div class="sidebar-label">Driver Portal</div>
+                        <a class="nav-link @(currentController == "Driver" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Driver")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Driver" && currentAction == "MyTrips" ? "active" : "")"
+                           href="@Url.Action("MyTrips", "Driver")">
+                            <i class="bi bi-calendar-check"></i> <span class="link-text">My Assigned Trips</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Driver" && currentAction == "Availabilities" ? "active" : "")"
+                           href="@Url.Action("Availabilities", "Driver")">
+                            <i class="bi bi-calendar-week"></i> <span class="link-text">My Availability</span>
+                        </a>
+                        <a class="nav-link @(currentController == "VehicleIssues" && currentAction == "Create" ? "active" : "")"
+                           href="@Url.Action("Create", "VehicleIssues")">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span class="link-text">Report Issue</span>
+                        </a>
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+
+                </nav>
+
+            </div>
+
+        }
+
+
+
+        <div class="main-content @(isHomePage ? "full-width" : "p-4")">
+
+            @if (TempData["Success"] != null)
+
+            {
+
+                <div class="alert alert-success alert-dismissible fade show mb-4">
+
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+                </div>
+
+            }
+
+            @if (TempData["Error"] != null)
+
+            {
+
+                <div class="alert alert-danger alert-dismissible fade show mb-4">
+
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+                </div>
+
+            }
+
+
+
+
+
+            @RenderBody()
+
+        </div>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const btn = document.getElementById('sidebarCollapse');
+
+            const sidebar = document.getElementById('sidebar');
+
+            if (btn && sidebar) {
+
+                btn.addEventListener('click', function () {
+
+                    sidebar.classList.toggle('collapsed');
+
+                });
+
+            }
+        });
+        function loadNotifications() {
+    $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
+        $('#notificationList').html(data);
+        updateBadge();
+    });
+}
+
+function updateBadge() {
+    $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
+        if (count > 0) {
+            $('#notificationBadge').text(count).show();
+        } else {
+            $('#notificationBadge').hide();
+        }
+    });
+}
+
+// Load initially and every 30 seconds
+$(function() {
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
+});
+    </script>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+
+</html>

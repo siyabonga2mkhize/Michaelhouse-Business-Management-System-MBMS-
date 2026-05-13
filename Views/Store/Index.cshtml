@@ -1,0 +1,118 @@
+﻿@using Michaelhouse.Models
+@model List<Michaelhouse.Models.Product>
+@{
+    ViewBag.Title = "The Heritage Store";
+    var categories = ViewBag.Categories as List<Michaelhouse.Models.Category>;
+    var selectedCategory = ViewBag.SelectedCategory as int?;
+    var cartCount = ViewBag.CartItemCount as int? ?? 0;
+}
+
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="ac-header mb-8">
+        <div class="ac-header-left">
+            <div class="ac-eyebrow">Campus Provisions & Supplies</div>
+            <h1 class="ac-title">The Heritage Store</h1>
+            <p class="ac-subtitle">Official school uniforms, academic texts, and stationery essentials.</p>
+        </div>
+        <div class="ac-header-actions">
+            <a href="@Url.Action("Index", "Cart")" class="btn-cart-premium">
+                <i class="bi bi-bag-check me-2"></i>
+                <span>SECURE BASKET</span>
+                @if (cartCount > 0)
+                {<span class="cart-badge-red">@cartCount</span>}
+            </a>
+        </div>
+    </div>
+
+    @* --- INVENTORY INSIGHTS (Stats) --- *@
+    <div class="row g-4 mb-10">
+        <div class="col-md-3">
+            <div class="ac-stat bg-white">
+                <div class="ac-stat-val">@Model.Count(p => p.IsActive)</div>
+                <div class="ac-stat-lbl">CATALOGUE TOTAL</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white">
+                <div class="ac-stat-val text-green-600">@Model.Count(p => p.IsInStock && p.QuantityInStock > 10)</div>
+                <div class="ac-stat-lbl">AVAILABLE NOW</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border-l-4 border-l-amber-500">
+                <div class="ac-stat-val">@Model.Count(p => p.IsLowStock && p.IsInStock)</div>
+                <div class="ac-stat-lbl">LIMITED STOCK</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border-l-4 border-l-[#C21E2E]">
+                <div class="ac-stat-val text-[#C21E2E]">@Model.Count(p => !p.IsInStock)</div>
+                <div class="ac-stat-lbl">BACKORDERED</div>
+            </div>
+        </div>
+    </div>
+
+    @* --- CATEGORY REGISTRY --- *@
+    <div class="ac-card mb-10 p-4 bg-gray-50 flex items-center justify-between border-gray-200">
+        <div class="flex gap-2 flex-wrap">
+            <a href="@Url.Action("Index")"
+               class="cat-pill @(selectedCategory == null ? "active" : "")">ALL COLLECTIONS</a>
+            @foreach (var cat in categories)
+            {
+                <a href="@Url.Action("Index", new { categoryId = cat.Id })"
+                   class="cat-pill @(selectedCategory == cat.Id ? "active" : "")">@cat.Name.ToUpper()</a>
+            }
+        </div>
+    </div>
+
+    @* --- PRODUCT GRID --- *@
+    <div class="row g-4">
+        @foreach (var product in Model)
+        {
+            string stockBadgeClass = !product.IsInStock ? "bg-black" : product.IsLowStock ? "bg-amber-500" : "bg-green-600";
+            string stockText = !product.IsInStock ? "OUT OF STOCK" : product.IsLowStock ? "LOW STOCK" : "IN STOCK";
+
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="store-card group">
+                    <div class="store-card-img bg-blueprint">
+                        <i class="bi @(product.Category?.Name == "Uniforms" ? "bi-person-badge" : "bi-journal-bookmark") text-gray-300"></i>
+                        <span class="stock-status @stockBadgeClass">@stockText</span>
+                    </div>
+
+                    <div class="store-card-body">
+                        <div class="text-[9px] font-bold text-[#C21E2E] tracking-widest uppercase mb-1">
+                            @(product.Category?.Name ?? "Uncategorized")
+                        </div>
+                        <h6 class="store-product-title">@product.Name</h6>
+                        <p class="store-product-desc">@product.Description</p>
+
+                        <div class="flex justify-between items-end mt-4">
+                            <div>
+                                <div class="store-price">R @product.Price.ToString("N2")</div>
+                                <div class="text-[9px] text-gray-400 font-bold uppercase">@product.QuantityInStock Units</div>
+                            </div>
+
+                            @if (product.IsInStock)
+                            {
+                                using (Html.BeginForm("Add", "Cart", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <div class="flex gap-1">
+                                        <input type="number" name="quantity" value="1" min="1" max="@product.QuantityInStock" class="store-qty-input" />
+                                        <button type="submit" class="store-add-btn">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

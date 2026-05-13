@@ -1,0 +1,258 @@
+﻿@model Michaelhouse.Models.Teacher
+@{
+    ViewBag.Title = "Provision Faculty";
+    var subjectsJson = (string)ViewBag.SubjectsJson;
+}
+
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+    @* --- INSTITUTIONAL GHOST HEADER --- *@
+    <div class="ac-header relative overflow-hidden mb-12"
+         style="background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 32px 32px; padding: 60px 0 40px; border-bottom: 2px solid #1a1a1a;">
+
+        <i class="bi bi-person-badge-fill absolute -right-10 -bottom-10 text-black/[0.02] text-[20rem] rotate-12 pointer-events-none"></i>
+
+        <div class="ac-header-left relative z-10 text-left">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Human Resources & Administration</h5>
+            </div>
+            <h1 class="text-4xl font-serif font-bold text-gray-900 tracking-tight uppercase">Provision Faculty Account</h1>
+            <p class="text-[11px] text-gray-400 mt-2 uppercase tracking-[3px] font-bold">Initialize a new staff identity. Credentials dispatched upon finalization.</p>
+        </div>
+
+        <div class="ac-header-actions relative z-10">
+            <a href="@Url.Action("Index", "Teacher")" class="bg-white border border-gray-200 px-6 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black hover:border-black transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Return to Staff Ledger
+            </a>
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Create", "Teacher", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row g-5">
+            <div class="col-lg-5">
+                <div class="ac-card relative overflow-hidden group border border-gray-100 bg-white shadow-sm">
+                    <i class="bi bi-person-vcard absolute -right-4 -bottom-4 text-black/[0.02] text-8xl rotate-12 transition-transform group-hover:scale-110"></i>
+
+                    <div class="ac-card-header bg-white py-4 px-6 border-b border-gray-50">
+                        <span class="text-[10px] text-gray-900 tracking-[3px] font-bold uppercase">Identity Profile</span>
+                    </div>
+
+                    <div class="p-8 space-y-8 relative z-10 text-left">
+                        <div class="ac-field">
+                            <label class="ac-label text-gray-400">Legal First Name *</label>
+                            <input name="firstName" class="ac-input border-0 border-b border-gray-100 px-0 focus:border-[#C21E2E] w-100 font-bold" placeholder="Required" required />
+                        </div>
+
+                        <div class="ac-field">
+                            <label class="ac-label text-gray-400">Legal Last Name *</label>
+                            <input name="lastName" class="ac-input border-0 border-b border-gray-100 px-0 focus:border-[#C21E2E] w-100 font-bold" placeholder="Required" required />
+                        </div>
+
+                        <div class="ac-field">
+                            <label class="ac-label text-gray-400">Institutional Email *</label>
+                            <input name="email" type="email" class="ac-input border-0 border-b border-gray-100 px-0 focus:border-[#C21E2E] w-100 font-monospace text-xs" placeholder="name@michaelhouse.co.za" required />
+                        </div>
+
+                        <div class="ac-field">
+                            <label class="ac-label text-gray-400">Contact Number</label>
+                            <input name="phone" class="ac-input border-0 border-b border-gray-100 px-0 w-100" placeholder="Optional" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-5 bg-gray-50/50 border border-gray-100 text-left">
+                    <div class="flex items-start gap-3">
+                        <i class="bi bi-info-circle text-[#C21E2E]"></i>
+                        <p class="text-[9px] uppercase tracking-widest text-gray-400 leading-relaxed font-bold">
+                            Credentials will be automatically provisioned and dispatched to the official email address recorded above.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 text-left">
+                <div class="mb-10">
+                    <h3 class="font-serif font-bold text-2xl text-gray-900 mb-2">Subject Assignments</h3>
+                    <p class="text-[10px] font-bold uppercase tracking-[3px] text-[#C21E2E]">Grade & Faculty Mapping</p>
+                </div>
+
+                <div class="space-y-10">
+                    @* Allocation 1 *@
+                    <div class="ac-card border-l-4 border-l-[#C21E2E] relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <i class="bi bi-1-square absolute -right-2 -bottom-2 text-black/[0.02] text-6xl"></i>
+                        <div class="p-8">
+                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary {
+                               { "index", 1 },
+                               { "required", true }
+                           })
+                        </div>
+                    </div>
+
+                    @* Allocation 2 *@
+                    <div class="ac-card relative overflow-hidden bg-white border border-gray-100 shadow-sm">
+                        <i class="bi bi-2-square absolute -right-2 -bottom-2 text-black/[0.01] text-6xl"></i>
+                        <div class="p-8">
+                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary {
+                               { "index", 2 },
+                               { "required", false }
+                           })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <button type="submit" class="bg-gray-900 text-white w-100 py-4 text-[11px] font-bold uppercase tracking-[4px] hover:bg-[#C21E2E] transition-all shadow-xl border-0">
+                        Finalize Staff Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-monospace {
+        font-family: 'Source Code Pro', monospace;
+    }
+
+    .ac-input:focus {
+        outline: none;
+    }
+
+    .ac-label {
+        margin-bottom: 4px;
+        display: block;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        font-size: 9px;
+    }
+
+    .ac-input {
+        background: transparent !important;
+        border-radius: 0;
+    }
+</style>
+
+@* Pass subjects data to JS *@
+<script>
+    var ALL_SUBJECTS = @Html.Raw(subjectsJson);
+</script>
+
+@section Scripts {
+    
+        <script>
+            // --- 1. PROXY-SAFE FILTERING LOGIC ---
+            function getSubjectsForGradeStream(grade, stream) {
+
+                if (!window.ALL_SUBJECTS) return [];
+
+                return ALL_SUBJECTS.filter(function (s) {
+                    // GUARD: Ensure applicableGrades exists and is a string before splitting
+                    var gradeStr = String(s.applicableGrades || "");
+                    var grades = gradeStr ? gradeStr.split(',').map(Number) : [];
+
+                    // If the subject has specific grades assigned, check if selected grade matches
+                    if (grades.length > 0 && grades.indexOf(grade) === -1) {
+                        return false;
+                    }
+
+                    // Stream Filtering
+                    if (grade <= 9) {
+                        return s.stream === 0; // Junior: Only General
+                    } else {
+                        if (stream === 0) {
+                            return s.stream === 0; // Senior: Only LO/English/Languages
+                        } else {
+                            // Senior: Specific Stream OR Compulsory (stream 0)
+                            return s.stream === stream || s.stream === 0;
+                        }
+                    }
+                });
+            }
+
+            // --- 2. ROW INITIALIZATION LOGIC ---
+            function initAssignmentRow(idx) {
+                var gradeEl = document.getElementById('grade_' + idx);
+                var streamEl = document.getElementById('stream_' + idx);
+                var streamRow = document.getElementById('stream_row_' + idx);
+                var subjectEl = document.getElementById('subject_' + idx);
+
+                if (!gradeEl || !subjectEl) return; // Guard against missing elements
+
+                function updateStream() {
+                    var grade = parseInt(gradeEl.value);
+
+                    if (!grade) {
+                        if (streamRow) streamRow.classList.add('d-none');
+                        subjectEl.innerHTML = '<option value="">-- Select Grade Allocation --</option>';
+                        subjectEl.disabled = true;
+                        return;
+                    }
+
+                    // Show/Hide stream selection based on Grade
+                    if (grade <= 9) {
+                        if (streamRow) streamRow.classList.add('d-none');
+                        if (streamEl) streamEl.value = '0';
+                        updateSubjects();
+                    } else {
+                        if (streamRow) streamRow.classList.remove('d-none');
+                        updateSubjects();
+                    }
+                }
+
+                function updateSubjects() {
+                    var grade = parseInt(gradeEl.value);
+                    var stream = streamEl ? (parseInt(streamEl.value) || 0) : 0;
+
+                    if (!grade) return;
+
+                    var subs = getSubjectsForGradeStream(grade, stream);
+
+                    // Enable dropdown only if we found subjects
+                    subjectEl.disabled = false;
+
+                    var isRequired = (idx === 1);
+                    var html = '<option value="">' + (isRequired ? '-- Select Specific Module --' : '-- No Secondary Subject --') + '</option>';
+
+                    // Sort alphabetically and build options
+                    subs.sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); })
+                        .forEach(function (s) {
+                            html += '<option value="' + s.subjectId + '">' + s.name + '</option>';
+                        });
+
+                    subjectEl.innerHTML = html;
+                }
+
+                // Listeners
+                gradeEl.addEventListener('change', updateStream);
+                if (streamEl) {
+                    streamEl.addEventListener('change', updateSubjects);
+                }
+
+                // Set initial state
+                updateStream();
+            }
+
+            // --- 3. EXECUTE ON LOAD ---
+            document.addEventListener('DOMContentLoaded', function () {
+                // Verify data loaded
+                if (!window.ALL_SUBJECTS || window.ALL_SUBJECTS.length === 0) {
+                    console.error("Dossier Error: ALL_SUBJECTS data is missing or empty.");
+                }
+
+                initAssignmentRow(1);
+                initAssignmentRow(2);
+            });
+        </script>
+    }
+}

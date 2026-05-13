@@ -1,0 +1,80 @@
+﻿@model List<Michaelhouse.Models.Notification>
+@{
+    ViewBag.Title = "All Notifications";
+}
+
+<h2>All Notifications</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No notifications found.</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Message</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var n in Model)
+            {
+                <tr>
+                    <td>
+                        @n.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                </td>
+                <td>
+                    @n.Message
+            </td>
+            <td id="status-@n.Id">
+                @if (n.IsRead)
+                {
+                    <span class="badge bg-secondary">Read</span>
+                }
+                else
+                {
+                    <a href="#" class="badge bg-primary mark-read-link" data-id="@n.Id" style="text-decoration: none; cursor: pointer;">Mark as Read</a>
+                }
+            </td>
+        </tr>
+    }
+        </tbody>
+    </table>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function() {
+            $('.mark-read-link').click(function(e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var link = $(this);
+                $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function(response) {
+                    if (response.success) {
+                        // Replace the link with a "Read" badge
+                        link.closest('td').html('<span class="badge bg-secondary">Read</span>');
+                        // Optionally update the notification badge count in the navbar
+                        var badgeSpan = $('#notificationBadge');
+                        var currentCount = parseInt(badgeSpan.text()) || 0;
+                        if (currentCount > 0) {
+                            var newCount = currentCount - 1;
+                            if (newCount > 0) {
+                                badgeSpan.text(newCount).show();
+                            } else {
+                                badgeSpan.hide();
+                            }
+                        }
+                    } else {
+                        alert('Error marking as read');
+                    }
+                }).fail(function() {
+                    alert('Error marking as read');
+                });
+            });
+        });
+    </script>
+}

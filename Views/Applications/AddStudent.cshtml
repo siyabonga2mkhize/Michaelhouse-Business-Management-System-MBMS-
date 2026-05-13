@@ -1,0 +1,153 @@
+﻿@model Michaelhouse.Models.ViewModels.AddStudentViewModel
+@{ ViewBag.Title = "Add Student"; }
+
+<div class="relative mb-12 border-b border-gray-200 bg-gray-50/50 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Enrollment Portal</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Register Prospective Student</h2>
+        <p class="text-gray-400 text-xs uppercase tracking-widest font-bold mt-2">Dossier Creation & Biographics</p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-12">
+    @using (Html.BeginForm("AddStudent", "Applications", FormMethod.Post, new { @class = "space-y-10" }))
+    {
+        @Html.AntiForgeryToken()
+
+        if (!ViewData.ModelState.IsValid)
+        {
+            <div class="bg-red-50 text-red-700 p-4 border-l-4 border-red-600 text-[11px] font-bold uppercase tracking-widest mb-8">
+                @Html.ValidationSummary(true, "")
+            </div>
+        }
+
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <section class="space-y-6 h-full">
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 flex items-center gap-3">
+                        <i class="bi bi-person-lines-fill"></i> 01. Biographic Data
+                    </h5>
+
+                    <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden h-full group">
+                        <i class="bi bi-fingerprint absolute -right-10 -bottom-10 text-black/5 text-[12rem] rotate-12 transition-transform group-hover:scale-105 duration-700"></i>
+
+                        <div class="row g-4 relative z-10">
+                            <div class="col-6">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">First Name</label>
+                                @Html.TextBoxFor(m => m.FirstName, new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm italic font-serif bg-transparent", placeholder = "e.g. Sipho" })
+                                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-red-500 text-[9px] mt-1 font-bold uppercase" })
+                            </div>
+                            <div class="col-6">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Surname</label>
+                                @Html.TextBoxFor(m => m.LastName, new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm italic font-serif bg-transparent", placeholder = "e.g. Dlamini" })
+                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-red-500 text-[9px] mt-1 font-bold uppercase" })
+                            </div>
+                            <div class="col-6">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Date of Birth</label>
+                                @Html.TextBoxFor(m => m.DOB, "{0:yyyy-MM-dd}", new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm bg-transparent", type = "date" })
+                                @Html.ValidationMessageFor(m => m.DOB, "", new { @class = "text-red-500 text-[9px] mt-1 font-bold uppercase" })
+                            </div>
+                            <div class="col-6">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Home Language</label>
+                                @Html.TextBoxFor(m => m.HomeLanguage, new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm bg-transparent", placeholder = "Primary tongue" })
+                            </div>
+                            <div class="col-12 mt-6">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">ID / Passport Number</label>
+                                @Html.TextBoxFor(m => m.IdNumber, new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm bg-transparent", placeholder = "Official identification" })
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="space-y-10">
+
+                    <section class="space-y-6">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 flex items-center gap-3">
+                            <i class="bi bi-bank2"></i> 02. Academic History
+                        </h5>
+                        <div class="bg-white border border-gray-100 p-8 shadow-sm relative overflow-hidden group">
+                            <i class="bi bi-building absolute -right-6 -bottom-6 text-black/5 text-[8rem] rotate-6 transition-transform group-hover:scale-105 duration-700"></i>
+
+                            <div class="space-y-6 relative z-10">
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Previous Institution</label>
+                                    @Html.TextBoxFor(m => m.PreviousSchool, new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none transition-all text-sm bg-transparent", placeholder = "Last school attended" })
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Current Grade Level</label>
+                                    @Html.DropDownListFor(m => m.CurrentGrade,
+                                        new SelectList(new[] { "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "Other" }),
+                                        "-- Select Grade --",
+                                        new { @class = "w-full p-3 border-b border-gray-100 focus:border-[#C21E2E] outline-none bg-transparent text-sm" })
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="space-y-6">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6 flex items-center gap-3 ps-1">
+                            <i class="bi bi-heart-pulse-fill text-amber-500"></i> 03. Health & Wellness
+                        </h5>
+
+                        <div class="bg-[#1a1a1a] p-8 shadow-xl relative overflow-hidden">
+                            <i class="bi bi-bandaid absolute -right-4 -bottom-4 text-white/5 text-8xl rotate-12"></i>
+
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-center mb-4">
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400">Conditions or Allergies</label>
+                                    <span class="text-[8px] uppercase tracking-widest font-bold text-amber-500 border border-amber-500 px-2 py-1">Strictly Confidential</span>
+                                </div>
+
+                                @Html.TextAreaFor(m => m.MedicalConditions, new
+                                {
+                                    @class = "w-full p-4 bg-white/5 border border-gray-700 text-white focus:border-amber-500 focus:bg-white/10 outline-none text-sm italic font-serif transition-all placeholder:text-gray-600",
+                                    rows = "3",
+                                    placeholder = "Please list any significant medical history or special educational needs..."
+                                })
+                                <p class="text-[9px] text-gray-500 mt-4 tracking-wide">
+                                    <i class="bi bi-lock-fill me-1"></i> Data is encrypted and shared only with the campus medical facility.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-8 flex flex-col sm:flex-row gap-6 items-center">
+            <button type="submit" class="w-full sm:w-auto bg-[#C21E2E] text-white px-16 py-4 font-bold uppercase tracking-[4px] text-[11px] hover:bg-black transition-all active:scale-[0.98] shadow-lg shadow-red-100">
+                Confirm & Create Dossier
+            </button>
+            <a href="@Url.Action("Index","Applications")" class="text-gray-400 text-[10px] uppercase font-bold tracking-widest hover:text-black transition-colors">
+                Discard Draft
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+    /* Fix date picker color on white backgrounds */
+    input[type="date"] {
+        color: #4b5563;
+    }
+    /* Custom scrollbar for text area */
+    textarea::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+        background-color: #333;
+        border-radius: 10px;
+    }
+</style>

@@ -1,0 +1,54 @@
+﻿@model List<Michaelhouse.Models.DriverApplication>
+@{
+    ViewBag.Title = "Driver Applications";
+}
+
+<h2>Driver Applications</h2>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>ID Number</th>
+            <th>Licence Number</th>
+            <th>PDP</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var app in Model)
+        {
+            <tr>
+                <td>
+                    @app.FullName
+            </td>
+            <td>
+                @app.Email
+        </td>
+        <td>@app.PhoneNumber
+    </td>
+    <td>@app.IDNumber
+</td>
+<td>@app.LicenceNumber
+</td>
+<td>@(app.HasPDP ? "Yes" : "No")
+</td>
+<td>
+    <span class="badge @(app.Status == "Pending" ? "bg-warning" : (app.Status == "Approved" ? "bg-success" : "bg-danger"))">
+        @app.Status
+    </span>
+</td>
+<td>
+    @(app.DateSubmitted?.ToString("dd MMM yyyy") ?? "—")
+</td>
+<td>
+    <a href="@Url.Action("Details", "DriverApplications", new { id = app.Id })" class="btn btn-sm btn-primary">View Details</a>
+</td>
+</tr>
+}
+    </tbody>
+    <table>

@@ -1,0 +1,144 @@
+﻿@using Michaelhouse.Models
+@using Michaelhouse.Models.Enums
+@model List<Michaelhouse.Models.Registration>
+@{
+    ViewBag.Title = "Registrations";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Registrar Records</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Enrollment Ledger</h2>
+    </div>
+</div>
+
+<div class="row g-4 mb-12 text-left">
+    <div class="col-md-3">
+        <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group">
+            <i class="bi bi-people absolute -right-4 -bottom-4 text-black/5 text-6xl rotate-12 transition-transform group-hover:scale-110"></i>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Total Dossiers</p>
+            <h3 class="text-3xl font-bold text-gray-900 relative z-10">@Model.Count</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group">
+            <i class="bi bi- hourglass-split absolute -right-4 -bottom-4 text-amber-500/5 text-6xl rotate-12"></i>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">In Progress</p>
+            <h3 class="text-3xl font-bold text-amber-600 relative z-10">
+                @Model.Count(r => r.Status != RegistrationStatus.Completed && r.Status != RegistrationStatus.Withdrawn)
+            </h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group">
+            <i class="bi bi-patch-check absolute -right-4 -bottom-4 text-green-600/5 text-6xl rotate-12"></i>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Finalized</p>
+            <h3 class="text-3xl font-bold text-green-700 relative z-10">@Model.Count(r => r.Status == RegistrationStatus.Completed)</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-[#1a1a1a] p-6 shadow-lg relative overflow-hidden group">
+            <i class="bi bi-shield-exclamation absolute -right-4 -bottom-4 text-white/10 text-6xl rotate-12"></i>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2 relative z-10">Withdrawn</p>
+            <h3 class="text-3xl font-bold text-white relative z-10">@Model.Count(r => r.Status == RegistrationStatus.Withdrawn)</h3>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+
+    <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <div class="relative z-10">
+            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-1">Active Ledger Records</h5>
+            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Durban, South Africa</p>
+        </div>
+
+        <div class="relative z-10">
+            <i class="bi bi-search absolute left-0 top-1/2 -translate-y-1/2 text-gray-300"></i>
+            <input type="text" id="searchInput"
+                   class="ps-8 pr-4 py-2 border-0 border-b border-gray-100 focus:border-[#C21E2E] outline-none bg-transparent text-sm transition-all"
+                   placeholder="Search ledger..." onkeyup="filterTable()" />
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" id="regTable">
+            <thead>
+                <tr class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 border-b">
+                    <th class="ps-8 py-5">Student / File ID</th>
+                    <th>Academic Grade</th>
+                    <th>Primary Guardian</th>
+                    <th>Subject Load</th>
+                    <th>Status</th>
+                    <th class="pe-8 text-end">Last Updated</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 border-0">
+                @foreach (var reg in Model)
+                {
+                    string statusColor = reg.Status == RegistrationStatus.Completed ? "#10b981"
+                                       : reg.Status == RegistrationStatus.Withdrawn ? "#ef4444" : "#f59e0b";
+
+                    <tr class="group">
+                        <td class="ps-8 py-4">
+                            <div class="fw-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">@(reg.Student != null ? reg.Student.Name : "—")</div>
+                            <div class="text-[9px] text-gray-300 font-bold uppercase tracking-widest">MH-@reg.RegistrationId</div>
+                        </td>
+                        <td>
+                            <span class="font-serif italic text-sm text-gray-600">Grade @reg.GradeEnrolling</span>
+                        </td>
+                        <td>
+                            <div class="text-xs font-bold text-gray-800">@(reg.Student?.Parent != null ? reg.Student.Parent.Name : "—")</div>
+                            <div class="text-[10px] text-gray-400 tracking-tighter">@(reg.Student?.User?.Email ?? "No digital record")</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="h-1 w-12 bg-gray-100">
+                                    <div class="h-full bg-gray-400" style="width: @((reg.Student?.StudentSubjects?.Count ?? 0) * 10)%;"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-gray-400">@(reg.Student?.StudentSubjects?.Count ?? 0)</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="px-3 py-1 text-[9px] font-bold uppercase tracking-widest border"
+                                  style="color: @statusColor; border-color: @statusColor;">
+                                @reg.Status
+                            </span>
+                        </td>
+                        <td class="pe-8 text-end">
+                            <span class="text-xs text-gray-400 font-serif italic">
+                                @(reg.CompletedAt.HasValue ? reg.CompletedAt.Value.ToString("dd MMM yyyy") : "—")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .table thead th {
+        border: none !important;
+    }
+
+    .table tbody tr {
+        border-bottom: 1px solid #f8f9fa !important;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+        .table tbody tr:hover {
+            background-color: #fafafa !important;
+        }
+</style>

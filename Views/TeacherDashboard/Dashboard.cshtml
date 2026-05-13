@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "Teacher Dashboard";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <h1 class="h3">Welcome back, @ViewBag.TeacherName</h1>
+        <div>
+            @if (!ViewBag.IsCheckedOut)
+            {
+                <a href="@Url.Action("Index", "TeacherAttendance")" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Check Out
+                </a>
+            }
+            else
+            {
+                <span class="badge bg-success">Checked Out at @ViewBag.CheckOutTime</span>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Mark Register Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-bookmark-fill fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Mark Register</h5>
+                    <p class="card-text">Record student attendance for your subjects.</p>
+                    <a href="@Url.Action("Index", "Attendances")" class="btn btn-primary">Go to Mark Register</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Timetable Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-week fs-1 text-info"></i>
+                    <h5 class="card-title mt-3">My Timetable</h5>
+                    <p class="card-text">View your weekly teaching schedule.</p>
+                    <a href="@Url.Action("MyTimetable", "Timetable")" class="btn btn-info text-white">View Timetable</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessments Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square fs-1 text-danger"></i>
+                    <h5 class="card-title mt-3">Assessments</h5>
+                    <p class="card-text">Manage tests, exams, and marks.</p>
+                    <a href="@Url.Action("Index", "Marks")" class="btn btn-danger">Go to Assessments</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-In/Out Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history fs-1 text-warning"></i>
+                    <h5 class="card-title mt-3">Check-In/Out</h5>
+                    <p class="card-text">View your attendance history and times.</p>
+                    <a href="@Url.Action("History", "TeacherAttendance")" class="btn btn-warning">View History</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Subjects Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge fs-1 text-success"></i>
+                    <h5 class="card-title mt-3">My Subjects</h5>
+                    <p class="card-text">You teach @ViewBag.SubjectsCount subject(s).</p>
+                    <a href="@Url.Action("Index", "Attendances")" class="btn btn-success">View Subjects</a>
+                </div>
+            </div>
+        </div>
+        <!-- Trips Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bus-front fs-1 text-success"></i>
+                    <h5 class="card-title mt-3">Manage Trips</h5>
+                    <p class="card-text">Book, schedule, and track student trips.</p>
+                    <a href="@Url.Action("BookTrip", "Trip")" class="btn btn-success">Go to Trips</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

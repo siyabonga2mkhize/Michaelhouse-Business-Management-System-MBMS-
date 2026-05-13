@@ -1,0 +1,43 @@
+﻿@model List<Michaelhouse.Models.AttendanceRecordViewModel>
+
+@if (Model != null && Model.Any())
+{
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Recorded By</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach (var att in Model)
+                {
+                    <tr>
+                        <td class="px-4 py-2 text-sm text-gray-900">@att.Date.ToString("dd MMM yyyy")</td>
+                        <td class="px-4 py-2">
+                            @if (att.Status == Michaelhouse.Models.AttendanceStatus.Present)
+                            {
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Present</span>
+                            }
+                            else if (att.Status == Michaelhouse.Models.AttendanceStatus.Absent)
+                            {
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Absent</span>
+                            }
+                            else if (att.Status == Michaelhouse.Models.AttendanceStatus.Late)
+                            {
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Late</span>
+                            }
+                        </td>
+                        <td class="px-4 py-2 text-sm text-gray-500">@att.RecordedBy</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-sm text-gray-500">No records found.</p>
+}

@@ -1,0 +1,245 @@
+﻿@model Michaelhouse.Services.StudentProgressReport
+@using Michaelhouse.Models
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Academic Progress";
+    var student = Model.Student;
+    int year = Model.AcademicYear;
+
+    var byTerm = Model.Assessments
+        .GroupBy(a => a.Term)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    Func<decimal, string> symClass = p =>
+    {
+        if (p >= 80) return "sym-a";
+        if (p >= 70) return "sym-b";
+        if (p >= 60) return "sym-c";
+        if (p >= 50) return "sym-d";
+        if (p >= 40) return "sym-e";
+        return "sym-f";
+    };
+
+    Func<decimal, string> barStyle = p =>
+        p >= 50 ? "background: var(--mh-charcoal);" : "background: var(--mh-red);";
+}
+
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page relative overflow-hidden">
+
+    <i class="bi bi-graph-up-arrow absolute -right-20 top-40 text-black/[0.02] text-[40rem] rotate-12 pointer-events-none z-0"></i>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="ac-alert border-l-4 border-gray-900 bg-gray-50 text-gray-900 mb-8 rounded-0 relative z-10">
+            <i class="bi bi-info-circle-fill me-2"></i> @TempData["Info"]
+        </div>
+    }
+
+    <div class="ac-header relative overflow-hidden mb-12" style="background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 32px 32px; padding: 60px 0 40px;">
+        <div class="ac-header-left relative z-10">
+            <div class="ac-eyebrow">Academic Transcript — Private & Confidential</div>
+            <h1 class="ac-title">Academic Progress</h1>
+            <p class="ac-subtitle">
+                <span class="font-bold text-gray-900">@(student?.Name ?? "Student Record")</span> &nbsp;·&nbsp;
+                Grade @(student?.CurrentGrade.ToString() ?? "—")  &nbsp;·&nbsp;
+                Academic Year @year
+            </p>
+        </div>
+
+        <div class="ac-header-actions relative z-10">
+            <div class="d-flex gap-2">
+                @for (int t = 1; t <= 4; t++)
+                {
+                    if (Model.TermResults.Any(tr => tr.Term == t))
+                    {
+                        <a href="@Url.Action("ReportCard", "Report", new { term = t })" class="bg-white border border-gray-200 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black hover:border-black transition-all">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Term @t Report
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Model.TermResults.Any())
+    {
+        <div class="row g-4 mb-16 relative z-10">
+            @foreach (var term in new[] { 1, 2, 3, 4 })
+            {
+                var termResults = Model.TermResults.Where(tr => tr.Term == term).ToList();
+                <div class="col-md-3">
+                    <div class="ac-stat h-100 shadow-sm border-t-0 border-r-0 border-b-0 @(termResults.Any() ? "bg-white border-l-[#1a1a1a]" : "bg-gray-50/50 border-l-gray-200 opacity-40")">
+                        @if (termResults.Any())
+                        {
+                            var avg = Math.Round(termResults.Average(tr => tr.TermMarkPercent), 1);
+                            <div class="ac-stat-val font-serif font-bold">@avg<small class="text-sm opacity-50 ms-1">%</small></div>
+                            <div class="ac-stat-lbl text-[9px] tracking-[2px]">TERM @term AGGREGATE</div>
+                            <div class="ac-progress mt-4" style="height: 2px; background: #eee;">
+                                <div class="ac-progress-bar" style="width:@(Math.Min((double)avg, 100))%; @barStyle(avg)"></div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ac-stat-val text-gray-200">—</div>
+                            <div class="ac-stat-lbl text-[9px] tracking-[2px]">TERM @term PENDING</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!Model.Assessments.Any())
+    {
+        <div class="bg-white border border-gray-100 py-32 text-center shadow-sm relative z-10">
+            <i class="bi bi-journal-x text-black/[0.03] text-9xl absolute center-abs"></i>
+            <h5 class="font-serif italic text-gray-400 relative z-10">No recorded assessments found for the @year cycle.</h5>
+        </div>
+    }
+    else
+    {
+        foreach (var termGroup in byTerm)
+        {
+            int termNum = termGroup.Key;
+            var termResult = Model.TermResults.Where(tr => tr.Term == termNum).ToList();
+
+            <div class="mb-20 relative z-10">
+                <div class="d-flex align-items-end justify-content-between mb-6 border-b border-gray-100 pb-3">
+                    <h2 class="font-serif font-bold text-3xl text-gray-900 mb-0">Cycle @termNum <span class="text-gray-300 text-xl ms-2 font-normal italic">Breakdown</span></h2>
+                </div>
+
+                @foreach (var subjectGroup in termGroup.GroupBy(a => a.SubjectId).OrderBy(g => g.First().Subject?.Name))
+                {
+                    var firstAssessment = subjectGroup.First();
+                    var subjectName = firstAssessment.Subject?.Name?.ToString() ?? "Subject Unspecified";
+                    var subjectId = subjectGroup.Key;
+                    var subTr = termResult.FirstOrDefault(tr => tr.SubjectId == subjectId);
+
+                    <div class="ac-card mb-8 relative overflow-hidden group">
+                        <i class="bi bi-journal-bookmark-fill absolute -right-4 -bottom-4 text-black/[0.02] text-8xl rotate-12 transition-transform group-hover:scale-110"></i>
+
+                        <div class="ac-card-header bg-white py-4 px-6 border-b-gray-50">
+                            <span class="ac-card-title text-gray-900 tracking-[3px] font-bold">@subjectName</span>
+                            @if (subTr != null)
+                            {
+                                <div class="d-flex align-items-center gap-4">
+                                    <div class="text-end">
+                                        <div class="text-[8px] font-bold text-gray-300 uppercase tracking-[3px] mb-1">Status: Formalized</div>
+                                        <div class="text-xl font-serif font-bold text-gray-900 leading-none">@subTr.TermMarkPercent.ToString("0.0")%</div>
+                                    </div>
+                                    <div class="symbol @symClass(subTr.TermMarkPercent) shadow-sm border-0 font-serif font-bold text-lg">@subTr.Symbol</div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="ac-table-wrap">
+                            <table class="ac-table mb-0">
+                                <thead>
+                                    <tr class="bg-gray-50/50">
+                                        <th class="ps-8 py-3">Module Assessment</th>
+                                        <th>Category</th>
+                                        <th>Date</th>
+                                        <th class="num">Max</th>
+                                        <th class="num">Score</th>
+                                        <th class="num">Percent</th>
+                                        <th class="num pe-8">Weight</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @foreach (var a in subjectGroup.OrderBy(x => x.ScheduledDate))
+                                    {
+                                        StudentMark mark = null;
+                                        Model.Marks.TryGetValue(a.AssessmentId, out mark);
+                                        bool absent = mark?.IsAbsent ?? false;
+
+                                        decimal? pct = (mark?.MarksObtained.HasValue == true && a.TotalMarks > 0)
+                                                       ? (decimal?)Math.Round(mark.MarksObtained.Value / a.TotalMarks * 100, 1)
+                                                       : null;
+
+                                        <tr class="group hover:bg-red-50/[0.15] transition-colors">
+                                            <td class="ps-8 py-5">
+                                                <div class="font-bold text-gray-800 text-sm uppercase tracking-tight">@(a.Title?.ToString() ?? "Assessment")</div>
+                                                @if (!string.IsNullOrEmpty(mark?.TeacherComment))
+                                                {
+                                                    <div class="text-[10px] italic text-gray-400 mt-1"><i class="bi bi-chat-left-dots-fill me-1 opacity-30"></i>@(mark.TeacherComment)</div>
+                                                }
+                                            </td>
+                                            <td><span class="text-[8px] font-bold uppercase tracking-[2px] px-2 py-1 bg-gray-100 text-gray-500 border border-gray-200/50">@(a.AssessmentType?.ToString() ?? "Standard")</span></td>
+                                            <td class="text-gray-400 text-[10px] font-monospace uppercase">@a.ScheduledDate.ToString("dd MMM yyyy")</td>
+                                            <td class="num text-gray-300 font-monospace text-xs">@a.TotalMarks.ToString("0.##")</td>
+                                            <td class="num font-bold text-sm">
+                                                @if (absent)
+                                                {<span class="text-[#C21E2E] text-[10px] uppercase tracking-widest font-bold">Absent</span> }
+                                                else if (mark?.MarksObtained.HasValue == true)
+                                                { @mark.MarksObtained.Value.ToString("0.##") }
+                                            else
+                                            { <span class="text-gray-200">—</span>}
+                                            </td>
+                                            <td class="num font-monospace font-bold text-sm">
+                                                @if (pct.HasValue)
+                                                {
+                                                    <span style="color:@(pct >= 40 ? "#1a1a1a" : "var(--mh-red)")">@pct.Value.ToString("0.0")%</span>
+                                                }
+                                                else
+                                                { <span class="text-gray-200">—</span>}
+                                            </td>
+                                            <td class="num pe-8 font-bold text-gray-300 text-xs">@a.WeightingPercent.ToString("0")%</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .ac-header {
+        border-bottom: 2px solid #1a1a1a !important;
+    }
+
+    .ac-table th {
+        border-top: 1px solid #eee;
+    }
+
+    /* Symbol Stamps */
+    .symbol {
+        width: 42px;
+        height: 42px;
+        line-height: 42px;
+        border-radius: 0;
+        text-align: center;
+        display: inline-block;
+    }
+
+    .sym-a {
+        background: #1a1a1a;
+        color: white;
+    }
+
+    .sym-f {
+        background: var(--mh-red);
+        color: white;
+    }
+
+    .center-abs {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .num {
+        font-family: 'Source Code Pro', monospace;
+        text-align: right;
+    }
+</style>

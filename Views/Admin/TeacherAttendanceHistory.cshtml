@@ -1,0 +1,97 @@
+﻿@model List<Michaelhouse.Models.TeacherAttendanceRecordViewModel>
+@{
+    ViewBag.Title = "Teacher Attendance Log";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4">Teacher Check‑In/Out History</h2>
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    @using (Html.BeginForm("TeacherAttendanceHistory", "Admin", FormMethod.Get, new { @class = "row g-3 mb-4 align-items-end" }))
+    {
+        <div class="col-md-3">
+            <label class="form-label small text-muted">Teacher</label>
+            <select name="teacherId" class="form-select form-select-sm">
+                <option value="">All Teachers</option>
+                @foreach (var t in ViewBag.Teachers as List<Michaelhouse.Models.Teacher>)
+                {
+                    <option value="@t.TeacherId" @(Request.QueryString["teacherId"] == t.TeacherId.ToString() ? "selected" : "")>
+                        @t.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted">From Date</label>
+            <input type="date" name="fromDate" class="form-control form-control-sm" value="@Request.QueryString["fromDate"]" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small text-muted">To Date</label>
+            <input type="date" name="toDate" class="form-control form-control-sm" value="@Request.QueryString["toDate"]" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-2">
+            <a href="@Url.Action("TeacherAttendanceHistory", "Admin")" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Teacher</th>
+                    <th>Date</th>
+                    <th>Sign In</th>
+                    <th>Sign Out</th>
+                    <th>Duration</th>
+                    <th>Verified</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rec in Model)
+                {
+                    <tr>
+                        <td>
+                            @rec.TeacherName
+                    </td>
+                    <td>
+                        @rec.Date.ToString("dd MMM yyyy")
+                </td>
+                <td>@(rec.SignInTime?.ToString("HH:mm") ?? "—")
+                </td>
+                <td>@(rec.SignOutTime?.ToString("HH:mm") ?? "—")
+                </td>
+                <td>
+                    @if (rec.Duration.HasValue)
+                    {
+                        <text>@rec.Duration.Value.Hours h @rec.Duration.Value.Minutes m</text>
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </td>
+                <td>
+                    @if (rec.IsVerified)
+                    {
+                        <span class="badge bg-success">Verified</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Unverified</span>
+                    }
+                </td>
+            </tr>
+        }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No attendance records found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,199 @@
+﻿@model List<Michaelhouse.Models.StockMovement>
+@using Michaelhouse.Models
+@{
+    ViewBag.Title = "Stock History";
+    var product = (Product)ViewBag.Product;
+    var suppliers = (List<SupplierProduct>)ViewBag.Suppliers;
+
+    string statusColor = product.QuantityInStock == 0 ? "#ef4444"
+                       : product.QuantityInStock <= product.ReorderLevel ? "#f59e0b"
+                       : "#10b981";
+
+    string statusLabel = product.QuantityInStock == 0 ? "DEPLETED"
+                       : product.QuantityInStock <= product.ReorderLevel ? "CRITICAL"
+                       : "OPTIMAL";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Inventory History</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Stock History</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Asset Ref: MH-PRD-@product.Id • @product.Name</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "Inventory")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Return to List
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE AUDIT CONTENT --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+        <div class="row g-5">
+
+            @* --- LEFT SIDE: ASSET METADATA --- *@
+            <div class="col-lg-4">
+
+                @* Asset Status Card *@
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-6">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Asset Status</h5>
+                    </div>
+                    <div class="p-8">
+                        <div class="text-center py-4 border-b border-gray-50 mb-6">
+                            <h3 class="text-6xl font-mono font-bold text-gray-900 mb-2">@product.QuantityInStock</h3>
+                            <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-[2px] border"
+                                  style="color: @statusColor; border-color: @statusColor;">
+                                @statusLabel
+                            </span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between">
+                                <span class="text-[9px] uppercase font-bold text-gray-400">Unit Category</span>
+                                <span class="text-sm font-serif italic text-gray-700">@(product.Category != null ? product.Category.Name.ToString() : "General")</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-[9px] uppercase font-bold text-gray-400">Registry Price</span>
+                                <span class="text-sm font-mono font-bold text-gray-900">ZAR @product.Price.ToString("N2")</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-[9px] uppercase font-bold text-gray-400">Reorder Threshold</span>
+                                <span class="text-sm font-mono text-gray-500">@product.ReorderLevel Units</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Manual Adjustment Form (Audit Style) *@
+                <div class="bg-white shadow-sm border-2 border-amber-400/30 overflow-hidden relative">
+                    <div class="p-6 border-b border-amber-100 bg-amber-50/30">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-amber-800 mb-0">Manual Stock Adjustment</h5>
+                    </div>
+                    <div class="p-8">
+                        @using (Html.BeginForm("AdjustStock", "Inventory", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@product.Id" />
+                            <div class="mb-6">
+                                <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 d-block">Adjusted Level</label>
+                                <input type="number" name="newQuantity" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-amber-400 font-mono text-2xl" value="@product.QuantityInStock" required />
+                            </div>
+                            <div class="mb-8">
+                                <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 d-block">Reason for Variance</label>
+                                <input type="text" name="reason" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-amber-400 font-serif italic text-sm" placeholder="e.g., Physical count reconciliation..." required />
+                            </div>
+                            <button type="submit" class="w-full bg-black text-white py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-amber-600 transition-all shadow-xl"
+                                    onclick="return confirm('Log this physical count variance?');">
+                                <i class="bi bi-shield-check me-2"></i> Commit Adjustment
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT SIDE: MOVEMENT LEDGER --- *@
+            <div class="col-lg-8">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+                    @* Archival Dot Grid Header *@
+                    <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <div class="relative z-10">
+                            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-0">Movement History</h5>
+                        </div>
+                        <div class="relative z-10">
+                            <span class="text-[10px] font-bold text-gray-400 font-mono uppercase">Records: @Model.Count</span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead>
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/30">
+                                    <th class="ps-8 py-4">Timestamp</th>
+                                    <th>Type</th>
+                                    <th class="text-center">Qty Change</th>
+                                    <th class="text-center">Stock After</th>
+                                    <th class="pe-8">Audit Reference / Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @if (Model.Any())
+                                {
+                                    foreach (var mv in Model)
+                                    {
+                                        bool isPositive = mv.Quantity > 0;
+                                        string movementTypeColor = mv.MovementType == StockMovementType.Purchase ? "#10b981"
+                                                                 : mv.MovementType == StockMovementType.Sale ? "#C21E2E"
+                                                                 : "#3b82f6";
+                                        <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all">
+                                            <td class="ps-8 py-4 text-[11px] font-serif italic text-gray-500">
+                                                @mv.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                            </td>
+                                            <td>
+                                                <span class="px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest border"
+                                                      style="color: @movementTypeColor; border-color: @movementTypeColor;">
+                                                    @mv.MovementType
+                                                </span>
+                                            </td>
+                                            <td class="text-center font-mono font-bold @(isPositive ? "text-green-600" : "text-red-600")">
+                                                @(isPositive ? "+" : "")@mv.Quantity
+                                            </td>
+                                            <td class="text-center font-mono text-sm text-gray-900">
+                                                @mv.StockAfter
+                                            </td>
+                                            <td class="pe-8 py-4">
+                                                <div class="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-tighter">REF: @(mv.Reference ?? "SYSTEM")</div>
+                                                <div class="text-[11px] font-serif italic text-gray-600 leading-tight">@(mv.Notes ?? "No additional audit notes provided.")</div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="py-20 text-center">
+                                            <i class="bi bi-clock-history text-gray-100 text-6xl d-block mb-4"></i>
+                                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-300">No Transaction Records Mapped</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

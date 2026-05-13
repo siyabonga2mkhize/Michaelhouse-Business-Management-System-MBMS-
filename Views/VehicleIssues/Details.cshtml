@@ -1,0 +1,60 @@
+﻿@model Michaelhouse.Models.VehicleIssue
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Vehicle Issue Details</h2>
+
+<div>
+    <hr />
+
+    <dl class="dl-horizontal">
+        <dt>Driver ID</dt>
+        <dd>@Html.DisplayFor(model => model.DriverId)</dd>
+
+        <dt>Vehicle ID</dt>
+        <dd>@Html.DisplayFor(model => model.VehicleId)</dd>
+
+        <dt>Description</dt>
+        <dd>@Html.DisplayFor(model => model.Description)</dd>
+
+        <dt>Date Reported</dt>
+        <dd>@Html.DisplayFor(model => model.DateReported)</dd>
+
+        <dt>Status</dt>
+        <dd><strong>@Html.DisplayFor(model => model.Status)</strong></dd>
+    </dl>
+</div>
+
+<hr />
+
+@if (Session["UserRole"] != null && Session["UserRole"].ToString() == "TransportManager")
+{
+    using (Html.BeginForm("UpdateStatus", "VehicleIssues", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group">
+            <label class="control-label">Update Status</label>
+
+            @Html.DropDownListFor(model => model.Status,
+                new SelectList(new List<string>
+                {
+                    "Pending",
+                    "In Progress",
+                    "Resolved"
+                }),
+                new { @class = "form-control", style = "max-width:300px;" })
+        </div>
+
+        <br />
+
+        <button type="submit" class="btn btn-success">
+            Update Status
+        </button>
+    }
+}
+
+@Html.ActionLink("Back to List", "Index")

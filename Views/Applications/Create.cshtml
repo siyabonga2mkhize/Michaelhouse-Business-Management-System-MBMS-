@@ -1,0 +1,158 @@
+﻿@model Michaelhouse.Models.ViewModels.ApplicationCreateViewModel
+@{
+    ViewBag.Title = "New Application";
+}
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-12 text-center">
+        <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse Crest" class="h-24 mx-auto mb-6 object-contain" />
+        <h2 class="text-4xl font-serif font-bold text-gray-900 mb-2">Enrollment Application</h2>
+        <p class="text-gray-400 uppercase tracking-[4px] text-[10px] font-bold">Begin the journey of a Michaelhouse Man</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            @using (Html.BeginForm("Create", "Applications", FormMethod.Post, new { enctype = "multipart/form-data", id = "appForm", @class = "space-y-12" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <section class="relative pl-12 border-l-2 border-gray-50 pb-10">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">1</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Select Student</h4>
+
+                    <div class="bg-white border border-gray-100 p-8 shadow-sm focus-within:border-[#C21E2E] transition-all">
+                        <div class="row g-4 text-left">
+                            <div class="col-md-7">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Prospective Student</label>
+                                @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "-- Select Student --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+                            <div class="col-md-5 flex items-end">
+                                <a href="@Url.Action("AddStudent")" class="w-full text-center py-3 border border-dashed border-gray-300 text-gray-400 text-[10px] uppercase font-bold tracking-widest hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                                    <i class="bi bi-plus-lg me-2"></i>Register New Student
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="relative pl-12 border-l-2 border-gray-50 pb-10">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">2</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Academic Year</h4>
+
+                    <div class="bg-white border border-gray-100 p-8 shadow-sm">
+                        <div class="row g-4">
+                            <div class="col-md-6 text-left">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Grade Applying For</label>
+                                @{
+                                    var gradeList = Enumerable.Range(8, 5).Select(i => new SelectListItem { Value = i.ToString(), Text = "Grade " + i });
+                                }
+                                @Html.DropDownListFor(m => m.GradeApplying, gradeList, "-- Select Grade --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.GradeApplying, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+
+                            <div class="col-md-6 text-left">
+                                <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">Entrance Year</label>
+                                @{
+                                    int startYear = DateTime.Now.Year;
+                                    var years = Enumerable.Range(startYear, 3).Select(y => new SelectListItem { Value = y.ToString(), Text = y.ToString() });
+                                }
+                                @Html.DropDownListFor(m => m.ApplicationYear, years, "-- Select Year --", new { @class = "w-full p-3 border-b-2 border-gray-100 focus:border-[#C21E2E] outline-none transition-all bg-transparent" })
+                                @Html.ValidationMessageFor(m => m.ApplicationYear, "", new { @class = "text-red-500 text-[10px] mt-2 font-bold uppercase" })
+                            </div>
+                        </div>
+                        <div id="gradeNotice" class="mt-6 p-4 bg-gray-50 border-l-4 border-gray-200 hidden">
+                            <p id="gradeNoticeText" class="text-[11px] text-gray-500 italic leading-relaxed"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="relative pl-12">
+                    <div class="absolute -left-[21px] top-0 h-10 w-10 rounded-full bg-[#C21E2E] text-white flex items-center justify-center font-bold text-sm shadow-lg">3</div>
+                    <h4 class="text-xl font-serif font-bold text-gray-800 mb-6">Documentation</h4>
+
+                    <div class="bg-gray-50 p-8 border border-gray-100">
+                        <div id="documentRows" class="space-y-4"></div>
+                        <button type="button" class="mt-4 text-[10px] font-bold text-[#C21E2E] uppercase tracking-[2px] flex items-center hover:opacity-70 transition-opacity" onclick="addRow()">
+                            <i class="bi bi-plus-square-fill me-2 text-lg"></i> Add Document
+                        </button>
+                    </div>
+                </section>
+
+                <div class="pt-10 flex flex-col sm:flex-row gap-4 items-center pl-12">
+                    <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-[#C21E2E] text-white px-12 py-4 font-bold uppercase tracking-[3px] text-[11px] hover:bg-[#a01826] transition-all active:scale-[0.98]">
+                        Submit Application
+                    </button>
+                    <a href="@Url.Action("Index")" class="text-gray-400 text-[10px] uppercase font-bold tracking-widest hover:text-black">Cancel</a>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sticky top-24 space-y-6">
+                <div class="bg-[#1a1a1a] text-white p-8">
+                    <h5 class="font-serif text-xl mb-6">Checklist</h5>
+                    <ul class="space-y-4 text-[11px] uppercase tracking-widest text-gray-400">
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> Birth Certificate</li>
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> 2 Year Report History</li>
+                        <li class="flex items-start"><i class="bi bi-check2 text-[#C21E2E] me-3"></i> Proof of Identity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        var rowIdx = 0;
+        var docTypes = ["Birth Certificate", "Report Card", "ID Copy", "Other"];
+
+        function buildOptions() {
+            return docTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function addRow(isFirst = false) {
+            var c = document.getElementById('documentRows');
+            var div = document.createElement('div');
+            div.className = 'flex flex-col sm:flex-row gap-4 bg-white p-4 border border-gray-100 relative group animate-fade-in';
+            div.innerHTML = `
+                    <div class="flex-1 text-left">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 mb-2">Type</label>
+                        <select name="DocumentTypes[${rowIdx}]" class="w-full text-sm border-b border-gray-100 outline-none pb-2 bg-transparent focus:border-[#C21E2E]">
+                            ${buildOptions()}
+                        </select>
+                    </div>
+                    <div class="flex-[2] text-left">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 mb-2">File</label>
+                        <input type="file" name="files" class="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-[10px] file:font-bold file:uppercase file:bg-gray-100 file:text-gray-600 cursor-pointer" />
+                    </div>
+                    ${!isFirst ? '<button type="button" class="text-gray-300 hover:text-red-500 pt-6" onclick="this.closest(\'div\').remove()"><i class="bi bi-trash"></i></button>' : ''}
+                `;
+            c.appendChild(div);
+            rowIdx++;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            addRow(true);
+            const gs = document.getElementById('GradeApplying');
+            const gn = document.getElementById('gradeNotice');
+            const gt = document.getElementById('gradeNoticeText');
+
+            gs.addEventListener('change', function () {
+                const val = parseInt(this.value);
+                if (!val) { gn.classList.add('hidden'); return; }
+                gn.classList.remove('hidden');
+                gt.innerText = val >= 10
+                    ? `Grade ${val} requires subject selection after application approval.`
+                    : `Grade ${val} utilizes a fixed core curriculum.`;
+            });
+        });
+    </script>
+}

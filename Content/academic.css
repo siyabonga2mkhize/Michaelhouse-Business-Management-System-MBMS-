@@ -1,0 +1,484 @@
+﻿/*
+ * Michaelhouse Academic System — Institutional Style
+ * Aesthetic: High-end "White Dossier" — Sharp edges, Michaelhouse Red accents, 
+ * ghost watermarks, and architectural data grids.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Source+Code+Pro:wght@500&display=swap');
+/* Layout Wrapper */
+.main-wrapper {
+    display: flex; /* Enables side-by-side flex behavior */
+    min-h-screen; /* Ensures it always hits the bottom of the monitor */
+    width: 100%;
+    overflow: hidden; /* Prevents double scrollbars */
+}
+
+/* Sidebar Consideration */
+.sidebar {
+    width: 280px; /* Your fixed sidebar width */
+    flex-shrink: 0; /* Prevents the sidebar from squishing on small screens */
+    height: 100vh;
+    position: sticky;
+    top: 0;
+}
+
+/* Dynamic Content Area */
+.ac-page {
+    flex-grow: 1; /* Forces the view to fill all remaining space */
+    height: 100vh;
+    overflow-y: auto; /* Allows the content to scroll independently */
+    padding: 3rem; /* Generous "Institutional" white space */
+    background-color: #FBFBFB;
+    display: flex;
+    flex-direction: column;
+}
+/* ── Reset & Variables ────────────────────────────────────────── */
+:root {
+    --mh-red: #C21E2E;
+    --mh-red-lt: #fff5f5;
+    --mh-charcoal: #1a1a1a;
+    --mh-ghost: #fafafa;
+    --mh-border: #eeeeee;
+    --mh-ink: #111111;
+    --mh-muted: #999999;
+    /* Semantic Colors */
+    --pass: #166534;
+    --fail: #C21E2E;
+    --shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: #ffffff;
+    color: var(--mh-ink);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ── Shared Ghost Header ─────────────────────────────────────── */
+.ac-header {
+    position: relative;
+    padding: 48px 0 32px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--mh-border);
+    background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.ac-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--mh-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .ac-eyebrow::before {
+        content: "";
+        height: 1px;
+        width: 24px;
+        background: var(--mh-red);
+    }
+
+.ac-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    color: var(--mh-charcoal);
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* ── The Michaelhouse Card (No Rounds) ───────────────────────── */
+.ac-card {
+    background: #fff;
+    border: 1px solid var(--mh-border);
+    border-radius: 0; /* Sharp architectural edges */
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+}
+
+.ac-card-header {
+    background: var(--mh-ghost);
+    border-bottom: 1px solid var(--mh-border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ac-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--mh-charcoal);
+    margin: 0;
+}
+
+/* ── Ledger Tables ───────────────────────────────────────────── */
+.ac-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .ac-table th {
+        background: var(--mh-charcoal);
+        color: #fff;
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .ac-table td {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--mh-ghost);
+        font-weight: 500;
+    }
+
+    .ac-table tr:hover td {
+        background: var(--mh-red-lt);
+    }
+
+/* ── Stats & Symbol stamps ───────────────────────────────────── */
+.ac-stat {
+    border-left: 4px solid var(--mh-charcoal);
+    padding: 20px;
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+.ac-stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--mh-red);
+}
+
+.symbol {
+    border-radius: 0;
+    border: 1px solid var(--mh-border);
+    width: 32px;
+    height: 32px;
+    line-height: 30px;
+    font-family: 'Playfair Display', serif;
+}
+
+/* ── Form Elements (The Register Look) ───────────────────────── */
+.ac-input, .ac-select {
+    border-radius: 0;
+    border: 1px solid var(--mh-border);
+    padding: 10px 15px;
+    font-weight: 600;
+}
+
+    .ac-input:focus {
+        border-color: var(--mh-red);
+        box-shadow: none;
+    }
+
+.ac-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--mh-muted);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn-primary {
+    background: var(--mh-charcoal);
+    border-radius: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 11px;
+    padding: 12px 24px;
+}
+
+    .btn-primary:hover {
+        background: var(--mh-red);
+    }
+
+.btn-ghost {
+    border: 1px solid var(--mh-charcoal);
+    color: var(--mh-charcoal);
+    border-radius: 0;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+* Custom Premium Elements */
+.btn-premium-red {
+    background: #C21E2E;
+    color: white !important;
+    padding: 12px 24px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-premium-red:hover {
+    background: #1a1a1a;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.btn-ghost-premium {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #999;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #eee;
+    transition: all 0.2s;
+}
+
+    .btn-ghost-premium:hover {
+        color: #C21E2E;
+        border-color: #C21E2E;
+    }
+
+/* Cart Quantity Controls */
+.cart-qty-group {
+    display: flex;
+    border: 1px solid #eee;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.cart-qty-input {
+    width: 50px;
+    border: none;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px;
+}
+
+.cart-qty-btn {
+    background: #f9f9f9;
+    border: none;
+    border-left: 1px solid #eee;
+    padding: 5px 10px;
+    color: #bbb;
+    transition: all 0.2s;
+}
+
+    .cart-qty-btn:hover {
+        background: #1a1a1a;
+        color: white;
+    }
+
+/* Table Refinements */
+.ac-table th {
+    background: #fbfbfb;
+    color: #bbb;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 15px 10px;
+}
+
+.font-monospace {
+    font-family: 'Source Code Pro', monospace;
+}
+
+.bg-blueprint {
+    background-color: #ffffff;
+    background-image: linear-gradient(#f9f9f9 1.1px, transparent 1.1px), linear-gradient(90deg, #f9f9f9 1.1px, transparent 1.1px);
+    background-size: 12px 12px;
+}
+
+/* Premium Cart Button */
+.btn-cart-premium {
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 24px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+}
+
+    .btn-cart-premium:hover {
+        background: #C21E2E;
+        color: white;
+        box-shadow: 0 10px 20px rgba(194, 30, 46, 0.2);
+    }
+
+.cart-badge-red {
+    background: white;
+    color: #C21E2E;
+    font-size: 9px;
+    padding: 2px 6px;
+    margin-left: 10px;
+    border-radius: 2px;
+}
+
+/* Category Pills */
+.cat-pill {
+    padding: 8px 16px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #999;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+    .cat-pill.active {
+        color: #1a1a1a;
+        border-bottom: 2px solid #C21E2E;
+    }
+
+    .cat-pill:hover {
+        color: #C21E2E;
+    }
+
+/* Store Cards */
+.store-card {
+    background: white;
+    border: 1px solid #eee;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+    .store-card:hover {
+        transform: translateY(-5px);
+        border-color: #C21E2E;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+.store-card-img {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    font-size: 3rem;
+}
+
+.bg-blueprint {
+    background-color: #ffffff;
+    background-image: linear-gradient(#f9f9f9 1.1px, transparent 1.1px), linear-gradient(90deg, #f9f9f9 1.1px, transparent 1.1px);
+    background-size: 15px 15px;
+}
+
+.stock-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 8px;
+    font-weight: 800;
+    padding: 4px 8px;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.store-card-body {
+    padding: 20px;
+}
+
+.store-product-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.store-product-desc {
+    font-size: 11px;
+    color: #777;
+    line-height: 1.5;
+    height: 33px;
+    overflow: hidden;
+}
+
+.store-price {
+    font-family: 'Source Code Pro', monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #1a1a1a;
+}
+
+.store-qty-input {
+    width: 45px;
+    border: 1px solid #eee;
+    font-size: 11px;
+    text-align: center;
+    outline: none;
+}
+
+.store-add-btn {
+    background: #f4f4f4;
+    border: none;
+    padding: 8px 12px;
+    transition: all 0.2s;
+}
+
+    .store-add-btn:hover {
+        background: #C21E2E;
+        color: white;
+    }
+/* Custom Archival Input Style */
+.ac-input-line {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #f0f0f0;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    transition: border-color 0.3s ease;
+    outline: none !important;
+}
+
+    .ac-input-line:focus {
+        border-bottom-color: #C21E2E;
+    }
+
+.ac-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #bbb;
+    margin-bottom: 2px;
+}
+
+.doc-upload-box {
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    background: white;
+    transition: all 0.2s;
+}
+
+    .doc-upload-box:hover {
+        border-color: #C21E2E;
+    }
+
+.ac-field {
+    margin-bottom: 5px;
+}
+
+/* Typography alignment with rest of app */
+.font-serif {
+    font-family: 'Playfair Display', serif !important;
+}

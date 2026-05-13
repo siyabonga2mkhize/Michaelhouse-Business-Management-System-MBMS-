@@ -1,0 +1,12 @@
+﻿@model Michaelhouse.Models.Vehicle
+<div class="text-center">
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <img src="@Model.ImageUrl" alt="@Model.VehicleNumber" style="max-width: 200px;" />
+    }
+    <h4>@Model.VehicleNumber</h4>
+    <p>Model: @Model.Model</p>
+    <p>Type: @Model.Type</p>
+    <p>Capacity: @Model.Capacity</p>
+    <p>Status: @(Model.IsActive ? "Active" : "Inactive")</p>
+</div>

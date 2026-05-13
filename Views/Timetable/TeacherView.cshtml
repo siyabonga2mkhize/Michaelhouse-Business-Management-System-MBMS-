@@ -1,0 +1,197 @@
+﻿@model List<Michaelhouse.Models.TimetableSlot>
+@using Michaelhouse.Models.Enums
+@using Michaelhouse.Services
+@{
+    ViewBag.Title = "Teacher Timetable";
+    var teacher = (Michaelhouse.Models.Teacher)ViewBag.Teacher;
+    var periods = (List<Michaelhouse.Models.Period>)ViewBag.Periods;
+    int academicYear = (int)ViewBag.AcademicYear;
+
+    var days = new[] {
+        new { Num = 1, Name = "Monday"    },
+        new { Num = 2, Name = "Tuesday"   },
+        new { Num = 3, Name = "Wednesday" },
+        new { Num = 4, Name = "Thursday"  },
+        new { Num = 5, Name = "Friday"    }
+    };
+
+    string StreamColor(AcademicStream s)
+    {
+        switch (s)
+        {
+            case AcademicStream.ArtsAndCulture: return "#e3d5f7";
+            case AcademicStream.HumanAndSocialStudies: return "#d5e8f7";
+            case AcademicStream.Sciences: return "#d5f7e0";
+            case AcademicStream.Commerce: return "#f7f0d5";
+            case AcademicStream.EngineeringAndTechnology: return "#f7d5d5";
+            default: return "#e8f0f7";
+        }
+    }
+    string StreamBorder(AcademicStream s)
+    {
+        switch (s)
+        {
+            case AcademicStream.ArtsAndCulture: return "#a78bda";
+            case AcademicStream.HumanAndSocialStudies: return "#4a9fd4";
+            case AcademicStream.Sciences: return "#4ad47a";
+            case AcademicStream.Commerce: return "#d4b94a";
+            case AcademicStream.EngineeringAndTechnology: return "#d44a4a";
+            default: return "#1a3c5e";
+        }
+    }
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0">
+            <i class="bi bi-calendar3 me-2 text-warning"></i>
+            @teacher?.Name — Timetable @academicYear
+        </h3>
+        <small class="text-muted">Weekly teaching schedule</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Index", "Teacher")" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Teachers
+        </a>
+        <a href="@Url.Action("GradeView", "Timetable", new { grade = 8, year = academicYear })"
+           class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-grid me-1"></i>Grade View
+        </a>
+    </div>
+</div>
+
+<!-- Teaching summary cards -->
+@if (Model.Any())
+{
+    var teachingGroups = Model
+        .GroupBy(ts => new { ts.Grade, ts.Subject?.Name, ts.Stream })
+        .ToList();
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center py-3">
+                <div class="fw-bold fs-3 text-primary">@Model.Count</div>
+                <div class="small text-muted">Total Periods/Week</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center py-3">
+                <div class="fw-bold fs-3 text-success">@teachingGroups.Count</div>
+                <div class="small text-muted">Distinct Classes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center py-3">
+                <div class="fw-bold fs-3 text-warning">
+                    @Model.Select(ts => ts.Grade).Distinct().Count()
+                </div>
+                <div class="small text-muted">Grades Taught</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center py-3">
+                <div class="fw-bold fs-3">
+                    @Model.Select(ts => ts.Subject?.Name).Distinct().Count()
+                </div>
+                <div class="small text-muted">Subjects</div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-calendar-x" style="font-size:3rem;color:#ccc;"></i>
+            <h5 class="mt-3 text-muted">No timetable slots assigned</h5>
+            <p class="text-muted small">Generate the timetable first.</p>
+            <a href="@Url.Action("Generate", "Timetable")" class="btn btn-primary">
+                <i class="bi bi-magic me-2"></i>Generate Timetable
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0" style="min-width:800px;">
+                <thead>
+                    <tr class="table-dark">
+                        <th style="width:110px;">Period</th>
+                        @foreach (var day in days)
+                        {
+                            <th class="text-center">@day.Name</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var period in periods)
+                    {
+                        if (period.IsBreak)
+                        {
+                            <tr class="table-light">
+                                <td class="text-muted small fw-semibold">
+                                    @period.Label<br />
+                                    <span style="font-size:0.72rem;">
+                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
+                                    </span>
+                                </td>
+                                @foreach (var day in days)
+                                {
+                                    <td class="text-center text-muted small" style="background:#f8f9fa;">
+                                        @period.Label
+                                    </td>
+                                }
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="small fw-semibold" style="vertical-align:middle;">
+                                    @period.Label<br />
+                                    <span class="text-muted" style="font-size:0.72rem;">
+                                        @period.StartTime.ToString(@"hh\:mm") – @period.EndTime.ToString(@"hh\:mm")
+                                    </span>
+                                </td>
+                                @foreach (var day in days)
+                                {
+                                    var slot = Model.FirstOrDefault(ts =>
+                                        ts.DayOfWeek == day.Num &&
+                                        ts.PeriodId == period.PeriodId);
+
+                                    <td style="vertical-align:middle;text-align:center;padding:6px;">
+                                        @if (slot == null)
+                                        {
+                                            <span class="text-muted" style="font-size:0.78rem;">—</span>
+                                        }
+                                        else
+                                        {
+                                            string bg = StreamColor(slot.Stream);
+                                            string border = StreamBorder(slot.Stream);
+                                            <div style="background:@bg;border-left:3px solid @border;
+                                                        border-radius:4px;padding:6px 8px;font-size:0.8rem;text-align:left;">
+                                                <div class="fw-semibold">@slot.Subject?.Name</div>
+                                                <div>
+                                                    <span class="badge bg-secondary">Gr @slot.Grade</span>
+                                                    @if (slot.Stream != AcademicStream.None)
+                                                    {
+                                                        <span class="badge ms-1"
+                                                              style="background:@border;font-size:0.65rem;">
+                                                            @RegistrationService.GetStreamName(slot.Stream)
+                                                        </span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

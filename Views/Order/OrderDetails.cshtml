@@ -1,0 +1,118 @@
+﻿@model Michaelhouse.Models.OrderDetailsViewModel
+@{
+    ViewBag.Title = "Order Details - " + Model.OrderNumber;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="mb-0"><i class="bi bi-receipt me-2 text-primary"></i>Order Details</h3>
+        <small class="text-muted">Order #: @Model.OrderNumber</small>
+    </div>
+    <a href="@Url.Action("TrackOrder")" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Track Another
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-light">
+                <span><i class="bi bi-box-seam me-2"></i>Items Ordered</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.ProductName</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">R @item.UnitPrice.ToString("N2")</td>
+                                <td class="text-end">R @item.Subtotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <th colspan="3" class="text-end">Total</th>
+                            <th class="text-end text-primary fs-5">R @Model.TotalAmount.ToString("N2")</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <span><i class="bi bi-info-circle me-2"></i>Order Information</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="text-muted small">Order Date</div>
+                    <div class="fw-semibold">@Model.OrderDate.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Status</div>
+                    <span class="badge @Model.StatusClass">@Model.Status</span>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Customer Name</div>
+                    <div>@Model.CustomerName</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Email</div>
+                    <div>@Model.CustomerEmail</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mb-3">
+                        <div class="text-muted small">Notes</div>
+                        <div class="small">@Model.Notes</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (Model.CanCancel)
+        {
+            <div class="card mt-3 border-danger">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-danger fs-3"></i>
+                    <p class="mt-2 mb-3">You can cancel this order while it's still pending.</p>
+                    @using (Html.BeginForm("CancelOrder", "Order", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this order?');">
+                            <i class="bi bi-x-circle me-1"></i> Cancel Order
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+        else if (Model.Status == "Cancelled")
+        {
+            <div class="card mt-3 border-secondary">
+                <div class="card-body text-center text-muted">
+                    <i class="bi bi-check-circle"></i> This order has been cancelled.
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="@Url.Action("Index", "Store")" class="btn btn-outline-primary">
+        <i class="bi bi-shop me-1"></i> Continue Shopping
+    </a>
+</div>

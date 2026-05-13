@@ -1,0 +1,220 @@
+﻿@model Michaelhouse.Models.Application
+@using Michaelhouse.Models.Enums
+@{
+    ViewBag.Title = "Review Application #" + Model.AppId;
+    bool canDecide = Model.Status == ApplicationStatus.AwaitingAdminDecision
+                  || Model.Status == ApplicationStatus.Flagged;
+
+    string studentName = Model.Student != null ? Model.Student.Name : "Student";
+    string parentName = Model.Parent != null ? Model.Parent.Name : "Parent";
+
+    // Clean Age Calculation
+    int studentAge = 0;
+    if (Model.Student != null)
+    {
+        studentAge = DateTime.Today.Year - Model.Student.DOB.Year;
+        if (Model.Student.DOB.Date > DateTime.Today.AddYears(-studentAge)) { studentAge--; }
+    }
+
+    // AI Theme Logic
+    string themeColor = Model.AiRecommendation == "APPROVE" ? "#10b981" :
+                        Model.AiRecommendation == "REJECT" ? "#ef4444" : "#f59e0b";
+    string aiBgClass = Model.AiRecommendation == "APPROVE" ? "bg-green-50/50" :
+                       Model.AiRecommendation == "REJECT" ? "bg-red-50/50" : "bg-amber-50/50";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-3 mb-3">
+            <span class="bg-[#C21E2E] text-white text-[9px] font-bold uppercase tracking-[3px] px-3 py-1">Secure Dossier</span>
+            <span class="text-gray-300">/</span>
+            <span class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">File ID: MH-@Model.AppId</span>
+        </div>
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">@studentName</h2>
+    </div>
+    <div class="flex items-center gap-4">
+        @Html.Partial("_StatusBadge", Model.Status)
+        <a href="@Url.Action("Dashboard", "Admin")" class="text-[10px] uppercase font-bold tracking-widest text-gray-400 hover:text-[#C21E2E] transition-all">
+            <i class="bi bi-x-circle me-1"></i> Close File
+        </a>
+    </div>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-4">
+        <div class="space-y-8 sticky top-24">
+
+            <div class="bg-[#FBFBFB] p-8 border border-gray-100 relative overflow-hidden">
+                <i class="bi bi-mortarboard absolute -right-4 -top-4 text-black/5 text-7xl"></i>
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-8">Biographic Profile</h5>
+
+                <div class="space-y-6 relative z-10">
+                    <div class="border-b border-gray-100 pb-3">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Status</label>
+                        <p class="text-sm font-bold italic font-serif text-[#C21E2E]">Prospective: Class of @Model.ApplicationYear</p>
+                    </div>
+                    <div class="border-b border-gray-100 pb-3">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Age & DOB</label>
+                        <p class="text-sm font-bold text-gray-800">@studentAge Years <span class="text-gray-400 font-normal">(@Model.Student.DOB.ToString("dd MMM yyyy"))</span></p>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Parental Lead</label>
+                        <p class="text-sm font-bold text-gray-800">@parentName</p>
+                        <p class="text-[11px] text-gray-400 tracking-tighter">@Model.Parent.Contact</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 ps-2">Dossier Attachments</h5>
+                <div class="space-y-2">
+                    @if (Model.Documents != null && Model.Documents.Any())
+                    {
+                        foreach (var doc in Model.Documents)
+                        {
+                            <a href="@Url.Action("ViewDocument", "Admin", new { id = doc.DId })" target="_blank"
+                               class="flex items-center justify-between p-4 bg-white border border-gray-100 hover:border-[#C21E2E] hover:shadow-sm transition-all group">
+                                <div>
+                                    <p class="text-[10px] font-bold uppercase mb-0 text-gray-700">@doc.Type</p>
+                                    <p class="text-[9px] text-gray-400 truncate w-48">@doc.FileName</p>
+                                </div>
+                                <i class="bi bi-file-earmark-text text-gray-200 group-hover:text-[#C21E2E] transition-colors"></i>
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+
+        <div class="mb-12 relative group">
+            <div class="flex items-center gap-2 mb-4">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900">Neural Review Analysis</h5>
+            </div>
+
+            <div class="relative border border-gray-100 p-10 overflow-hidden @aiBgClass transition-all duration-500 shadow-sm">
+
+                <div class="absolute inset-0 opacity-[0.04] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+                <i class="bi bi-cpu absolute -right-8 -bottom-12 text-black/5 text-[15rem] rotate-12 transition-transform group-hover:scale-110 duration-1000"></i>
+
+                <div class="relative z-10">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                        <div>
+                            <span class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 block mb-2">Automated Recommendation</span>
+                            <h4 class="text-2xl font-bold tracking-tighter" style="color: @themeColor">
+                                <i class="bi bi-robot me-2"></i> @Model.AiRecommendation
+                            </h4>
+                        </div>
+
+                        <div class="md:text-end">
+                            <span class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 block mb-2">System Confidence</span>
+                            <div class="flex items-center gap-3">
+                                <div class="h-1.5 w-40 bg-gray-200/50 rounded-full overflow-hidden">
+                                    <div class="h-full transition-all duration-1000 delay-300"
+                                         style="width: 88%; background-color: @themeColor"></div>
+                                </div>
+                                <span class="text-xs font-bold text-gray-500">88%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative mb-10">
+                        <i class="bi bi-quote absolute -left-8 -top-4 text-gray-200/50 text-5xl"></i>
+                        <div class="text-lg leading-relaxed italic font-serif text-gray-700 ps-6 border-l-4"
+                             style="border-color: @themeColor">
+                            "@Model.AiReviewSummary"
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-200/40 flex gap-8">
+                        <div class="text-[9px] uppercase font-bold text-gray-400 tracking-widest">
+                            <i class="bi bi-shield-check me-1"></i> Data Integrity: Verified
+                        </div>
+                        <div class="text-[9px] uppercase font-bold text-gray-400 tracking-widest">
+                            <i class="bi bi-activity me-1"></i> Engine: Michaelhouse-Neural-v2
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (canDecide)
+        {
+            <div class="bg-white border border-gray-100 p-10 shadow-sm border-t-4 border-t-gray-900">
+                <h4 class="text-3xl font-serif font-bold text-gray-900 mb-10">Final Adjudication</h4>
+
+                @using (Html.BeginForm("Confirm", "Admin", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="AppId" value="@Model.AppId" />
+
+                    <div class="row g-4 mb-10">
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="Decision" id="dec_approve" value="Approved" required />
+                            <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-green-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_approve">
+                                Approve Admission
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="Decision" id="dec_flag" value="Flagged" />
+                            <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-amber-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_flag">
+                                Flag for Interview
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="Decision" id="dec_reject" value="Rejected" />
+                            <label class="w-full py-5 text-center border border-gray-100 cursor-pointer hover:border-red-500 block font-bold uppercase tracking-[2px] text-[10px] transition-all" for="dec_reject">
+                                Decline Case
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-10">
+                        <label class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-4 block ps-1">Admissions Officer Remarks</label>
+                        <textarea name="Notes" class="w-full p-5 bg-gray-50 border-0 focus:ring-1 focus:ring-[#C21E2E] outline-none text-md italic font-serif leading-relaxed"
+                                  rows="4" placeholder="Enter final remarks to be shared with the parent..."></textarea>
+                    </div>
+
+                    <button type="submit" class="bg-gray-900 text-white px-16 py-4 font-bold uppercase tracking-[4px] text-[11px] hover:bg-[#C21E2E] transition-all active:scale-[0.98] shadow-lg shadow-gray-200">
+                        Seal & Finalize Decision
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    /* Precision Radio Styling */
+    .btn-check:checked + label {
+        border-color: #1a1a1a !important;
+        background: #1a1a1a;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

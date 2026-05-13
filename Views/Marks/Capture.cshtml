@@ -1,0 +1,315 @@
+﻿@model List<Michaelhouse.Services.StudentMarkEntry>
+@using Michaelhouse.Models.Enums
+@using Michaelhouse.Services
+@{
+    var assessment = ViewBag.Assessment as Michaelhouse.Models.Assessment;
+
+    // --- PROXY-PROOF DATA EXTRACTION ---
+    string aTitle = assessment?.Title ?? "Untitled Assessment";
+    string sName = assessment?.Subject?.Name ?? "Subject Unspecified";
+    string aType = assessment?.AssessmentType ?? "General Assessment";
+    string aGrade = assessment?.Grade.ToString() ?? "—";
+    string aTerm = assessment?.Term.ToString() ?? "—";
+    string aYear = assessment?.AcademicYear.ToString() ?? "—";
+    string aDate = assessment?.ScheduledDate.ToString("dd MMMM yyyy") ?? "—";
+    string totalMax = assessment?.TotalMarks.ToString("0.##") ?? "0";
+    string weight = assessment?.WeightingPercent.ToString() ?? "0";
+
+    ViewBag.Title = "Mark Capture — " + aTitle;
+    bool closed = assessment?.MarksCaptureClosed ?? false;
+}
+
+<link rel="stylesheet" href="~/Content/academic.css" />
+
+<div class="ac-page">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="ac-alert ac-alert-success" style="border-radius:0; font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:1px; margin-bottom: 20px;">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="ac-alert ac-alert-error" style="border-radius:0; font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:1px; margin-bottom: 20px;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="ac-header">
+        <div class="ac-header-left text-left">
+            <div class="ac-eyebrow">Mark Ledger — @sName Grade @aGrade</div>
+            <h1 class="ac-title">@aTitle</h1>
+            <p class="ac-subtitle">
+                <span class="font-bold text-gray-900 uppercase tracking-tighter">@aType</span> &nbsp;·&nbsp;
+                Term @aTerm, @aYear &nbsp;·&nbsp;
+                @aDate &nbsp;·&nbsp;
+                Out of <strong class="text-[#C21E2E]">@totalMax</strong> &nbsp;·&nbsp;
+                Weighting: <strong>@weight%</strong>
+            </p>
+        </div>
+        <div class="ac-header-actions">
+            <a href="@Url.Action("Index", "Marks")" class="btn btn-ghost border border-gray-200 text-[10px] font-bold uppercase tracking-widest px-4">
+                <i class="bi bi-arrow-left me-1"></i> Back to Archive
+            </a>
+        </div>
+    </div>
+
+    @if (closed)
+    {
+        <div class="ac-alert border-l-4 border-gray-900 bg-gray-50 text-gray-900 mb-8" style="border-radius:0;">
+            <i class="bi bi-lock-fill me-2 text-[#C21E2E]"></i> This ledger has been <strong>Sealed</strong>. Marks are currently in read-only mode.
+        </div>
+    }
+
+    <div class="row g-4 mb-10">
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border border-gray-100 p-4">
+                <div class="ac-stat-val text-2xl font-bold">@(Model?.Count ?? 0)</div>
+                <div class="ac-stat-lbl text-[9px] text-gray-400 font-bold uppercase tracking-widest">TOTAL ENROLLMENT</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border border-gray-100 p-4">
+                <div class="ac-stat-val text-2xl font-bold" id="capturedCount">@(Model?.Count(m => m.MarksObtained.HasValue) ?? 0)</div>
+                <div class="ac-stat-lbl text-[9px] text-gray-400 font-bold uppercase tracking-widest">MARKS CAPTURED</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border border-gray-100 p-4">
+                <div class="ac-stat-val text-2xl font-bold" id="absentCount">@(Model?.Count(m => m.IsAbsent) ?? 0)</div>
+                <div class="ac-stat-lbl text-[9px] text-gray-400 font-bold uppercase tracking-widest">ABSENT / EXCUSED</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ac-stat bg-white border-2 border-[#C21E2E] p-4">
+                <div class="ac-stat-val text-2xl font-bold text-[#C21E2E]" id="avgDisplay">—</div>
+                <div class="ac-stat-lbl text-[9px] text-[#C21E2E] font-bold uppercase tracking-widest">CLASS AVERAGE</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ac-card border border-gray-200 shadow-xl bg-white">
+        <div class="ac-card-header bg-gray-50/50 py-4 px-8 border-b border-gray-100 flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase tracking-[3px] text-gray-900">Mark Capture Ledger</span>
+            @if (!closed)
+            {
+                <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400">
+                    <i class="bi bi-keyboard me-2"></i> Use 'Enter' to move down
+                </span>
+            }
+        </div>
+
+        @using (Html.BeginForm("Capture", "Marks", FormMethod.Post, new { id = "captureForm" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="assessmentId" value="@(assessment?.AssessmentId ?? 0)" />
+
+            <div class="ac-table-wrap">
+                <table class="ac-table w-100" id="markTable">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-100">
+                            <th style="width:60px;" class="ps-8 py-4 text-[10px] uppercase font-bold text-gray-400">#</th>
+                            <th class="py-4 text-[10px] uppercase font-bold text-gray-400">Student Candidate</th>
+                            <th style="width:100px; text-align:center;" class="py-4 text-[10px] uppercase font-bold text-gray-400">Absent</th>
+                            <th style="width:150px; text-align:right;" class="py-4 text-[10px] uppercase font-bold text-gray-400 pe-4">Raw Score <span class="opacity-50">/ @totalMax</span></th>
+                            <th style="width:120px; text-align:right;" class="py-4 text-[10px] uppercase font-bold text-gray-400 pe-4">Percent</th>
+                            <th class="pe-8 py-4 text-[10px] uppercase font-bold text-gray-400">Institutional Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="py-20 text-center">
+                                    <i class="bi bi-people text-gray-200 text-5xl d-block mb-3"></i>
+                                    <p class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">
+                                        No students found for Subject: @sName, Grade: @aGrade
+                                    </p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            int rowNum = 0;
+                            foreach (var entry in Model)
+                            {
+                                rowNum++;
+                                string rowId = entry.StudentId.ToString();
+                                <tr id="row-@rowId" class="group transition-colors hover:bg-gray-50 text-left">
+                                    <td class="ps-8 py-4 text-[11px] font-monospace text-gray-400">@rowNum.ToString("D2")</td>
+                                    <td class="py-4">
+                                        <div class="font-bold text-gray-900">@(string.IsNullOrEmpty(entry.StudentName) ? "Identity Unknown" : entry.StudentName)</div>
+                                        @if (entry.AlreadyCaptured && !entry.IsAbsent)
+                                        {
+                                            <span class="text-[8px] font-bold uppercase tracking-widest text-green-600 border border-green-100 bg-green-50 px-2 py-0.5 mt-1 d-inline-block">Record Saved</span>
+                                        }
+                                    </td>
+                                    <td style="text-align:center;" class="py-4">
+                                        <input type="checkbox" name="absent_@rowId" id="absent_@rowId" class="absent-check"
+                                               @(entry.IsAbsent ? "checked" : "") @(closed ? "disabled" : "") onchange="toggleAbsent('@rowId')" />
+                                    </td>
+                                    <td style="text-align:right;" class="py-4 pe-4">
+                                        <input type="number" name="mark_@rowId" id="mark_@rowId" class="mark-input font-monospace border-0 border-b border-gray-200 text-right"
+                                               value="@(entry.MarksObtained.HasValue ? entry.MarksObtained.Value.ToString("0.##") : "")"
+                                               min="0" max="@totalMax" step="0.5"
+                                               @(entry.IsAbsent || closed ? "disabled" : "") oninput="updatePct('@rowId', @totalMax)" />
+                                    </td>
+                                    <td style="text-align:right;" class="py-4 pe-4">
+                                        <span id="pct_@rowId" class="font-monospace font-bold text-xs text-gray-400">
+                                            @if (entry.MarksObtained.HasValue && !entry.IsAbsent)
+                                            {
+                                                var p = Math.Round((double)entry.MarksObtained.Value / (double)(assessment?.TotalMarks ?? 1) * 100, 1);
+                                                @(p.ToString("0.0") + "%")
+                                            }
+                                            else if (entry.IsAbsent)
+                                            { <text>ABS</text> }
+                                        else
+                                        { <text>—</text>}
+                                        </span>
+                                    </td>
+                                    <td class="pe-8 py-4">
+                                        <input type="text" name="comment_@rowId" class="comment-input bg-transparent border-0 border-b border-gray-100 focus:border-[#C21E2E] rounded-0 text-[11px] w-100 py-1"
+                                               value="@(entry.TeacherComment ?? "")" placeholder="Internal notes..." maxlength="300" @(closed ? "disabled" : "") />
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            if (Model != null && Model.Any() && !closed)
+            {
+                <div class="p-8 flex justify-end gap-3 bg-gray-50/50 border-t border-gray-100">
+                    <button type="submit" name="closeCapture" value="false" class="bg-white border border-gray-300 text-gray-700 px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-all border-0 shadow-sm">
+                        <i class="bi bi-save me-2"></i> Save Progress
+                    </button>
+                    <button type="submit" name="closeCapture" value="true" class="bg-gray-900 text-white px-10 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all shadow-lg border-0"
+                            onclick="return confirm('Seal this ledger? You will not be able to modify these results after sealing.')">
+                        <i class="bi bi-shield-lock me-2"></i> Finalize Ledger
+                    </button>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    var totalMarksVal = parseFloat("@totalMax") || 100;
+
+    function toggleAbsent(id) {
+        var cb = document.getElementById('absent_' + id);
+        var input = document.getElementById('mark_' + id);
+        var pct = document.getElementById('pct_' + id);
+        if (cb.checked) {
+            input.disabled = true;
+            input.value = '';
+            pct.textContent = 'ABS';
+            pct.style.color = '#999';
+        } else {
+            input.disabled = false;
+            pct.textContent = '—';
+            pct.style.color = '#ccc';
+        }
+        recalcAvg();
+    }
+
+    function updatePct(id, total) {
+        var input = document.getElementById('mark_' + id);
+        var pct = document.getElementById('pct_' + id);
+        var val = parseFloat(input.value);
+        if (!isNaN(val) && total > 0) {
+            var p = (val / total * 100).toFixed(1);
+            pct.textContent = p + '%';
+            pct.style.color = p >= 40 ? '#166534' : '#C21E2E';
+        } else {
+            pct.textContent = '—';
+            pct.style.color = '#ccc';
+        }
+        recalcAvg();
+    }
+
+    function recalcAvg() {
+        var rows = document.querySelectorAll('#markTable tbody tr[id^="row-"]');
+        var sum = 0, count = 0, absCnt = 0, capCnt = 0;
+
+        rows.forEach(function(row) {
+            var id = row.id.replace('row-', '');
+            var absent = document.getElementById('absent_' + id);
+            var markEl = document.getElementById('mark_' + id);
+
+            if (absent && absent.checked) {
+                absCnt++;
+            } else if (markEl) {
+                var v = parseFloat(markEl.value);
+                if (!isNaN(v)) {
+                    sum += v;
+                    count++;
+                    capCnt++;
+                }
+            }
+        });
+
+        var avgEl = document.getElementById('avgDisplay');
+        if(avgEl) {
+            avgEl.textContent = count > 0 ? (sum / count).toFixed(1) + ' / ' + totalMarksVal : '—';
+        }
+
+        var capEl = document.getElementById('capturedCount');
+        if(capEl) capEl.textContent = capCnt;
+
+        var absEl = document.getElementById('absentCount');
+        if(absEl) absEl.textContent = absCnt;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        recalcAvg();
+
+        document.querySelectorAll('.mark-input').forEach(function(inp, idx, all) {
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var next = Array.from(document.querySelectorAll('.mark-input'))[idx + 1];
+                    if (next) next.focus();
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .mark-input {
+        width: 85px;
+        background: transparent;
+        padding: 4px 0;
+        transition: all 0.2s;
+    }
+
+        .mark-input:focus {
+            border-bottom-color: #C21E2E !important;
+            outline: none;
+        }
+
+    .absent-check {
+        width: 16px;
+        height: 16px;
+        accent-color: #C21E2E;
+        cursor: pointer;
+    }
+
+    .comment-input:focus {
+        outline: none;
+        border-bottom-color: #C21E2E !important;
+    }
+
+    .ac-stat {
+        border-radius: 0;
+        transition: transform 0.2s;
+    }
+
+        .ac-stat:hover {
+            transform: translateY(-2px);
+        }
+</style>

@@ -1,0 +1,185 @@
+﻿@using Michaelhouse.Models
+@model Order
+@{
+    ViewBag.Title = "Transaction Finalized";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL SUCCESS HEADER --- *@
+    <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#10b981]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">School Store Transaction</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Order Confirmed</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Ref: @Model.OrderNumber • Balgowan Registry</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.print();" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                <i class="bi bi-printer me-2"></i> Print Receipt
+            </button>
+            <a href="@Url.Action("Index", "Store")" class="inline-block bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-shop me-2"></i> Return to Store
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE TRANSACTION CONTENT --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+
+        @* Hero Summary Cards *@
+        <div class="row g-4 mb-12 flex-shrink-0">
+            <div class="col-md-3">
+                <div class="bg-[#1a1a1a] text-white p-6 shadow-xl relative overflow-hidden group h-full">
+                    <i class="bi bi-calendar-check absolute -right-2 -bottom-2 text-white/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-2 relative z-10">Transaction Date</p>
+                    <h3 class="text-xl font-mono font-bold relative z-10">@Model.OrderDate.ToLocalTime().ToString("dd MMM yyyy")</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-person-badge absolute -right-2 -bottom-2 text-black/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Account Identity</p>
+                    <h3 class="text-xl font-serif font-bold text-gray-900 relative z-10">@Model.CustomerName</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-white border border-gray-100 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-shield-check absolute -right-2 -bottom-2 text-green-600/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2 relative z-10">Status</p>
+                    <h3 class="text-xl font-serif font-bold text-green-600 relative z-10">@Model.Status.ToString().ToUpper()</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="bg-white border-2 border-[#C21E2E] p-6 shadow-sm relative overflow-hidden group h-full">
+                    <i class="bi bi-cash-stack absolute -right-2 -bottom-2 text-[#C21E2E]/5 text-6xl rotate-12"></i>
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-[#C21E2E] mb-2 relative z-10">Total Fiscal Value</p>
+                    <h3 class="text-xl font-mono font-bold text-gray-900 relative z-10">ZAR @Model.TotalAmount.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-5">
+            @* --- LEFT: TRANSACTION LEDGER --- *@
+            <div class="col-lg-8">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+                    @* Archival Dot Grid Header *@
+                    <div class="p-8 border-b border-gray-100 bg-white relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 relative z-10 mb-0">Authorized Item Manifest</h5>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead>
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/30">
+                                    <th class="ps-8 py-4">Article Description</th>
+                                    <th class="text-center">Units</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="pe-8 text-end">Fiscal Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-all">
+                                        <td class="ps-8 py-5">
+                                            <div class="fw-bold text-gray-900">@item.Product.Name</div>
+                                            <div class="text-[9px] text-gray-400 font-mono tracking-tighter uppercase">ITEM-REF-@item.ProductId</div>
+                                        </td>
+                                        <td class="text-center font-mono text-sm">@item.Quantity</td>
+                                        <td class="text-end font-mono text-xs text-gray-500">@item.UnitPrice.ToString("N2")</td>
+                                        <td class="pe-8 text-end font-mono font-bold text-gray-900">@item.Subtotal.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-gray-50/50">
+                                <tr>
+                                    <td colspan="3" class="ps-8 py-4 text-[9px] uppercase tracking-[3px] font-bold text-gray-400 text-end">Net Total Amount</td>
+                                    <td class="pe-8 py-4 text-end text-xl font-mono font-bold text-[#C21E2E]">R @Model.TotalAmount.ToString("N2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: LOGISTICS & NOTIFICATIONS --- *@
+            <div class="col-lg-4">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Delivery Registry</h5>
+                    </div>
+                    <div class="p-8 space-y-6">
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <div>
+                                <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Internal Notes</p>
+                                <div class="p-4 bg-amber-50/50 border-l-2 border-amber-200 text-xs font-serif italic text-gray-600 leading-relaxed">
+                                    "@Model.Notes"
+                                </div>
+                            </div>
+                        }
+                        <div class="flex items-start gap-4">
+                            <i class="bi bi-envelope-check text-green-500 fs-4"></i>
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-800 uppercase tracking-tight">Notification Dispatched</p>
+                                <p class="text-[9px] text-gray-400 leading-tight">A formal archival receipt has been transmitted to <span class="font-mono text-gray-600">@Model.CustomerEmail</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Action Tiles *@
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-gray-50 p-6 border border-gray-100 group hover:bg-[#1a1a1a] transition-all cursor-pointer">
+                        <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 group-hover:text-gray-500 mb-1">Support Services</p>
+                        <h4 class="text-sm font-bold text-gray-700 group-hover:text-white transition-colors">Initiate Inquiry</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#C21E2E', '#1a1a1a', '#ffffff']
+            });
+        });
+    </script>
+}

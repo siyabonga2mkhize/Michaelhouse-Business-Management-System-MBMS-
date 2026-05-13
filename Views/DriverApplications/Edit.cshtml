@@ -1,0 +1,166 @@
+﻿@model Michaelhouse.Models.DriverApplication
+@{
+    ViewBag.Title = "Edit Application";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Edit Application</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+</head>
+
+<body class="bg-white">
+
+    <div class="flex min-h-screen">
+
+        <!-- LEFT PANEL -->
+        <div class="hidden md:flex md:w-5/12 bg-[#C21E2E] text-white items-center justify-center p-10">
+            <div>
+                <h1 class="text-4xl font-serif font-bold mb-4">Edit Application</h1>
+                <p class="text-white/80 text-sm">Update your driver information</p>
+            </div>
+        </div>
+
+        <!-- FORM SIDE -->
+        <div class="w-full md:w-7/12 flex items-center justify-center p-10">
+            <div class="w-full max-w-xl">
+
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Update Details</h2>
+                <div class="h-1 w-12 bg-[#C21E2E] mb-8"></div>
+
+                @using (Html.BeginForm("Edit", "DriverApplications", FormMethod.Post, new { @class = "space-y-8" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+
+                    <!-- VALIDATION -->
+                    @Html.ValidationSummary(true, "", new { @class = "text-red-500 text-sm" })
+
+                    <!-- SECTION 1 -->
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                            01. Personal Information
+                        </p>
+
+                        <div class="space-y-4">
+                            @Html.TextBoxFor(m => m.FullName, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "Full Name"
+                            })
+
+                            @Html.TextBoxFor(m => m.IDNumber, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "ID Number"
+                            })
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.PhoneNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control", placeholder = "e.g. 0821234567" } })
+                                    @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            @Html.TextBoxFor(m => m.PhoneNumber, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "Phone Number"
+                            })
+
+                            @Html.TextBoxFor(m => m.Email, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "Email"
+                            })
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2 -->
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                            02. Licence Details
+                        </p>
+
+                        <div class="space-y-4">
+                            @Html.TextBoxFor(m => m.LicenceNumber, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "Licence Number"
+                            })
+
+                            @Html.TextBoxFor(m => m.LicenceExpiryDate,
+                                "{0:yyyy-MM-dd}",
+                                new
+                                     {
+                                    type = "date",
+                                    @class = "w-full p-3 border border-gray-200 text-sm"
+                                })
+
+                            <label class="flex items-center gap-2 text-sm">
+                                @Html.CheckBoxFor(m => m.HasPDP)
+                                <span>Has PDP</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3 -->
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-6 border-b pb-2">
+                            03. System Info
+                        </p>
+
+                        <div class="space-y-4">
+                            @Html.TextBoxFor(m => m.Status, new
+                            {
+                                @class = "w-full p-3 border border-gray-200 text-sm",
+                                placeholder = "Status"
+                            })
+
+                            @Html.TextBoxFor(m => m.DateSubmitted,
+                                "{0:yyyy-MM-dd}",
+                                new
+                                     {
+                                    type = "date",
+                                    @class = "w-full p-3 border border-gray-200 text-sm"
+                                })
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="flex gap-4 pt-4">
+
+                        <button type="submit"
+                                class="flex-1 bg-[#C21E2E] text-white py-3 text-xs uppercase tracking-widest font-bold hover:bg-black transition">
+                            Save Changes
+                        </button>
+
+                        <a href="@Url.Action("Details", "DriverApplications", new { id = Model.Id })"
+                           class="flex-1 text-center border border-gray-300 py-3 text-xs uppercase tracking-widest font-bold hover:bg-gray-100 transition">
+                            Cancel
+                        </a>
+
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

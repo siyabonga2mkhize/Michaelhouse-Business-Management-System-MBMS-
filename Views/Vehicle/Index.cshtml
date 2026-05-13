@@ -1,0 +1,164 @@
+﻿@model List<Michaelhouse.Models.Vehicle>
+@{
+    ViewBag.Title = "Fleet Registry";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Fleet Registry</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Master Record of Institutional Transport Units</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Transport")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Fleet Command
+            </a>
+            <a href="@Url.Action("Create", "Vehicle")" class="inline-block bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black transition-all shadow-xl">
+                <i class="bi bi-plus-lg me-2"></i> Register New Unit
+            </a>
+            <a href="@Url.Action("Index", "VehicleIssues")"
+               class="inline-block bg-[#C21E2E] text-white px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                <i class="bi bi-tools me-1"></i> Manage Issues
+            </a>
+        </div>
+
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mx-8 mb-8">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Active Transport Ledger</h5>
+            </div>
+
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Total Units: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="vehiclesTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Visual Identity & Number</th>
+                        <th>Hardware Specifications</th>
+                        <th class="text-center">Pax Capacity</th>
+                        <th class="text-center">Operational Status</th>
+                        <th class="pe-8 text-end">Administrative</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="py-20 text-center">
+                                <i class="bi bi-truck-flatbed text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Registry Empty</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">No active or inactive transport units exist in the database.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var v in Model)
+                        {
+                            string statusColor = v.IsActive ? "#10b981" : "#ef4444";
+                            string statusText = v.IsActive ? "ACTIVE" : "OUT OF SERVICE";
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-4">
+                                    <div class="flex items-center gap-5">
+                                        <div class="w-24 h-16 bg-white border border-gray-200 shadow-sm flex items-center justify-center p-1 flex-shrink-0">
+                                            @if (!string.IsNullOrEmpty(v.ImageUrl))
+                                            {
+                                                <img src="@v.ImageUrl" alt="Vehicle" class="max-w-full max-h-full object-contain" />
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-truck text-gray-200 text-3xl"></i>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="font-mono text-sm font-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors tracking-tight">@v.VehicleNumber</div>
+                                            <div class="text-[9px] uppercase tracking-widest text-gray-400 mt-1">Fleet ID</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-gray-800 text-sm font-serif">@v.Model</div>
+                                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">@v.Type</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="font-mono text-lg font-bold text-gray-900">@v.Capacity</span>
+                                    <span class="text-[9px] text-gray-400 uppercase ml-1">Pax</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                          style="color: @statusColor; border-color: @statusColor;">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="@Url.Action("Edit", "Vehicle", new { id = v.Id })" class="inline-block bg-black text-white px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                            <i class="bi bi-pencil-square me-1"></i> Modify
+                                        </a>
+                                        <a href="@Url.Action("Delete", "Vehicle", new { id = v.Id })" class="inline-block bg-white border border-gray-300 text-gray-500 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-red-500 hover:text-red-600 transition-all shadow-sm">
+                                            <i class="bi bi-trash3 me-1"></i> Retire
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

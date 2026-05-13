@@ -1,0 +1,118 @@
+﻿@{
+    Layout = null; // Ensure this doesn't render inside the main dashboard shell
+    ViewBag.Title = ViewBag.Type + " Verification Target";
+    var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
+    string qrImage = ViewBag.QRCodeImage;
+    string type = ViewBag.Type;
+    string instruction = ViewBag.Instruction;
+
+    // Dynamic color coding based on scan type
+    string accentColor = type == "Departure" ? "#C21E2E" : "#10b981";
+    string accentBg = type == "Departure" ? "bg-[#C21E2E]" : "bg-[#10b981]";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title – @schedule.TripRequest.Title</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        body { background-color: #f3f4f6; }
+        .font-serif { font-family: 'Playfair Display', serif !important; }
+        .font-mono { font-family: 'Source Code Pro', monospace !important; }
+
+        /* Strict Print Rules */
+        media print {
+            body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-shadow-none { box-shadow: none !important; }
+            .print-border-none { border: none !important; }
+            page { margin: 0; size: auto; } /* Removes default browser headers/footers */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10">
+
+    @* --- ADMINISTRATIVE NO-PRINT BAR --- *@
+    <div class="w-full max-w-3xl flex justify-between items-center mb-8 no-print px-4">
+        <a href="@Url.Action("Manifest", "Trip", new { scheduleId = schedule.Id })" class="text-[10px] font-bold uppercase tracking-[2px] text-gray-500 hover:text-[#C21E2E] transition-colors flex items-center">
+            <i class="bi bi-arrow-left me-2 text-lg"></i> Return to Manifest
+        </a>
+        <button onclick="window.print()" class="bg-black text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-gray-800 transition-all shadow-xl flex items-center">
+            <i class="bi bi-printer me-2 text-lg"></i> Print Verification Target
+        </button>
+    </div>
+
+    @* --- PRINTABLE DOCUMENT CANVASS --- *@
+    <div class="bg-white shadow-2xl print-shadow-none w-full max-w-2xl relative overflow-hidden flex flex-col" style="min-height: 850px;">
+
+        @* Top Accent Bar *@
+        <div class="h-4 w-full @accentBg"></div>
+
+        @* Archival Header *@
+        <div class="px-12 pt-12 pb-8 border-b border-gray-100 relative">
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+            <div class="relative z-10 flex justify-between items-start">
+                <div>
+                    <h5 class="text-[10px] uppercase tracking-[5px] font-bold text-gray-400 mb-2">Logistics Protocol</h5>
+                    <h1 class="text-4xl font-serif font-bold text-gray-900 leading-tight mb-2">@schedule.TripRequest.Title</h1>
+                    <p class="text-sm font-mono text-gray-500 uppercase tracking-widest mb-0">Ref: SCH-@schedule.Id</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Target Date</div>
+                    <div class="font-mono font-bold text-gray-900 border border-gray-200 px-3 py-2 bg-gray-50">
+                        @schedule.ScheduledDate.ToString("dd MMM yyyy")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Core QR Content *@
+        <div class="flex-grow flex flex-col items-center justify-center p-12">
+
+            <h2 class="text-5xl font-mono font-bold tracking-tight mb-2" style="color: @accentColor;">
+                @(type == "Departure" ? "DEPARTURE" : "RETURN")
+            </h2>
+            <p class="text-sm font-bold uppercase tracking-[4px] text-gray-400 mb-10">Scan Target</p>
+
+            @* Framed QR Code *@
+            <div class="p-4 border-4 border-gray-900 bg-white relative">
+                @* Corner Accents for technical feel *@
+                <div class="absolute -top-2 -left-2 w-4 h-4 border-t-4 border-l-4 border-[#C21E2E]"></div>
+                <div class="absolute -top-2 -right-2 w-4 h-4 border-t-4 border-r-4 border-[#C21E2E]"></div>
+                <div class="absolute -bottom-2 -left-2 w-4 h-4 border-b-4 border-l-4 border-[#C21E2E]"></div>
+                <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-4 border-r-4 border-[#C21E2E]"></div>
+
+                <img src="@qrImage" alt="@type QR Code" class="w-80 h-80 object-contain" />
+            </div>
+
+            <p class="text-xl font-serif italic text-gray-800 mt-10 text-center max-w-md">
+                "@instruction"
+            </p>
+        </div>
+
+        @* Footer Instructions *@
+        <div class="bg-[#1a1a1a] text-white p-8 mt-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <i class="bi bi-shield-lock text-3xl text-gray-500"></i>
+                <div>
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-300 mb-1">Authentication Required</h6>
+                    <p class="text-[10px] font-mono text-gray-500 mb-0">Students must authenticate via institutional credentials prior to scanning.</p>
+                </div>
+            </div>
+            <div>
+                <img src="~/Content/logo.svg.png" alt="Michaelhouse" class="h-10 opacity-50 grayscale invert" />
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

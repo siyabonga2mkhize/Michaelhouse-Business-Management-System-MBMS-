@@ -1,0 +1,368 @@
+﻿@model Michaelhouse.Models.TripRequestCreateViewModel
+@{
+    ViewBag.Title = "Transport Requisition";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+@* --- INSTITUTIONAL HEADER --- *@
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+        </div>
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Transport Requisition</h2>
+    </div>
+    <div class="flex gap-3">
+        <a href="@Url.Action("MyRequests", "Trip")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Return to Registry
+        </a>
+    </div>
+</div>
+
+@using (Html.BeginForm("CreateTripRequest", "Trip", FormMethod.Post, new { @class = "w-full" }))
+{
+    @Html.AntiForgeryToken()
+    if (ViewBag.RebookId != null)
+    {
+        <input type="hidden" name="rebookId" value="@ViewBag.RebookId" />
+    }
+
+    <div class="row g-5">
+        @* --- LEFT SIDE: TRIP PARAMETERS --- *@
+        <div class="col-lg-5">
+            <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative h-full">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                    <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">01. Excursion Parameters</h5>
+                </div>
+
+                <div class="p-8 space-y-8">
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Trip Designation / Title <span class="text-[#C21E2E]">*</span></label>
+                        @Html.TextBoxFor(m => m.Title, new { @class = "w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-serif italic text-sm transition-colors", placeholder = "e.g., First Team Rugby vs Hilton" })
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-[#C21E2E] text-[10px] font-bold uppercase mt-2 block tracking-widest" })
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Logistical Notes / Description</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm transition-colors", rows = "3", placeholder = "Special requirements, equipment transport..." })
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6 pt-2">
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Departure Target <span class="text-[#C21E2E]">*</span></label>
+                            <input type="datetime-local" name="DepartureTime" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-xs text-gray-700 transition-colors" required
+                                   value="@Model.DepartureTime.ToString("yyyy-MM-ddTHH:mm")"
+                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        </div>
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Return Target <span class="text-[#C21E2E]">*</span></label>
+                            <input type="datetime-local" name="ReturnTime" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-xs text-gray-700 transition-colors" required
+                                   value="@Model.ReturnTime.ToString("yyyy-MM-ddTHH:mm")"
+                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-50">
+                        <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Passenger Manifest Size (Max Students)</label>
+                        @Html.TextBoxFor(m => m.MaxStudents, new { @class = "w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-2xl text-gray-900 transition-colors", type = "number", min = "1", placeholder = "0" })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* --- RIGHT SIDE: ROUTING & MAP --- *@
+        <div class="col-lg-7">
+            <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col h-full">
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-white relative overflow-hidden flex-shrink-0">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 relative z-10 mb-0">02. Destination Routing</h5>
+                </div>
+
+                <div class="p-8 flex flex-col flex-grow">
+
+                    @* Unified Search Bar *@
+                    <div class="mb-6 relative">
+                        <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Locate Coordinates</label>
+                        <div class="flex gap-4">
+                            <div class="relative flex-grow">
+                                <i class="bi bi-search absolute left-0 top-3 text-gray-300"></i>
+                                <input type="text" id="locationSearch" class="w-full border-b-2 border-gray-100 py-2 pl-8 outline-none focus:border-[#C21E2E] text-sm font-serif italic transition-colors" placeholder="City, opposing school, landmark..." autocomplete="off" />
+                            </div>
+                            <button id="searchBtn" class="bg-gray-900 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all flex-shrink-0 shadow-sm" type="button">
+                                Locate
+                            </button>
+                        </div>
+                        @* Autocomplete Dropdown *@
+                        <ul id="suggestions" class="absolute left-0 w-full bg-white border border-gray-100 shadow-2xl z-[1000] max-h-48 overflow-y-auto mt-2 custom-scrollbar hidden"></ul>
+                    </div>
+
+                    @* Selected Waypoint Display *@
+                    <div class="bg-gray-50 border-l-2 border-[#C21E2E] p-4 mb-6 flex-shrink-0">
+                        <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Registered Waypoint</p>
+                        <p class="text-sm font-mono text-gray-800 leading-tight mb-0" id="selectedAddress">
+                            @(string.IsNullOrEmpty(Model.Destination) ? "Awaiting Coordinate Selection..." : Model.Destination)
+                        </p>
+                    </div>
+
+                    @* The Interactive Map *@
+                    <div class="flex-grow border border-gray-200 relative min-h-[400px] z-0">
+                        <div id="map" class="absolute inset-0 w-full h-full"></div>
+                    </div>
+
+                    @Html.HiddenFor(m => m.Destination, new { @id = "Destination" })
+                    @Html.HiddenFor(m => m.DestinationLat, new { @id = "DestinationLat" })
+                    @Html.HiddenFor(m => m.DestinationLng, new { @id = "DestinationLng" })
+                </div>
+            </div>
+        </div>
+
+        @* --- SUBMIT ACTION --- *@
+        <div class="col-12 mt-6">
+            <button type="submit" class="w-full bg-black text-white py-5 text-[11px] font-bold uppercase tracking-[4px] hover:bg-[#C21E2E] transition-all shadow-xl active:scale-[0.99]">
+                <i class="bi bi-shield-check me-2"></i> Submit Formal Transport Requisition
+            </button>
+        </div>
+    </div>
+}
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Map Fullscreen Button Overrides */
+    .custom-fullscreen-btn {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 0;
+        padding: 6px 10px;
+        font-size: 16px;
+        cursor: pointer;
+        line-height: 1;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        color: #1a1a1a;
+        transition: all 0.2s;
+    }
+
+        .custom-fullscreen-btn:hover {
+            background: #C21E2E;
+            color: white;
+            border-color: #C21E2E;
+        }
+
+    /* Map Tooltip/Popup formatting */
+    .leaflet-popup-content-wrapper {
+        border-radius: 0 !important;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    /* Internal Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+    /* Helper classes for JS toggle */
+    .hidden {
+        display: none !important;
+    }
+
+    .block {
+        display: block !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        let map, marker;
+        let searchTimeout;
+
+        function initMap(centerLatLng) {
+            map = L.map('map').setView(centerLatLng, 12);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
+            }).addTo(map);
+
+            // Fullscreen button
+            var fullscreenControl = L.control({ position: 'topright' });
+            fullscreenControl.onAdd = function () {
+                var div = L.DomUtil.create('div', 'custom-fullscreen-btn');
+                div.innerHTML = '⛶';
+                div.title = 'Fullscreen Mode';
+                div.onclick = function () {
+                    var mapContainer = document.getElementById('map');
+                    if (mapContainer.requestFullscreen) mapContainer.requestFullscreen();
+                    else if (mapContainer.webkitRequestFullscreen) mapContainer.webkitRequestFullscreen();
+                    else if (mapContainer.msRequestFullscreen) mapContainer.msRequestFullscreen();
+                };
+                return div;
+            };
+            fullscreenControl.addTo(map);
+
+            map.on('click', function (e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                setMarker(lat, lng);
+                reverseGeocode(lat, lng);
+            });
+        }
+
+        function setMarker(lat, lng) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map);
+            document.getElementById("DestinationLat").value = lat;
+            document.getElementById("DestinationLng").value = lng;
+        }
+
+        function reverseGeocode(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name || "Unverified Coordinate Alignment";
+                    document.getElementById("Destination").value = address;
+                    document.getElementById("selectedAddress").innerText = address;
+                })
+                .catch(() => {
+                    document.getElementById("selectedAddress").innerText = "Coordinate alignment unverified";
+                });
+        }
+
+        function searchLocation(query, lat = null, lon = null, name = null) {
+            if (lat && lon && name) {
+                const latNum = parseFloat(lat);
+                const lonNum = parseFloat(lon);
+                map.setView([latNum, lonNum], 15);
+                setMarker(latNum, lonNum);
+                document.getElementById("Destination").value = name;
+                document.getElementById("selectedAddress").innerText = name;
+                document.getElementById("locationSearch").value = name;
+                hideSuggestions();
+                return;
+            }
+
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data[0]) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        const displayName = data[0].display_name;
+                        map.setView([lat, lon], 15);
+                        setMarker(lat, lon);
+                        document.getElementById("Destination").value = displayName;
+                        document.getElementById("selectedAddress").innerText = displayName;
+                        document.getElementById("locationSearch").value = displayName;
+                    } else {
+                        alert("Location not found in South African Registry.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Coordinate search failed.");
+                });
+        }
+
+        function fetchSuggestions(query) {
+            if (query.length < 3) {
+                hideSuggestions();
+                return;
+            }
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=za`;
+            fetch(url, { headers: { 'User-Agent': 'MichaelhouseSchoolApp/1.0' } })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length) {
+                        const results = data.map(item => ({
+                            lat: item.lat,
+                            lon: item.lon,
+                            display: item.display_name
+                        }));
+                        showSuggestions(results);
+                    } else {
+                        hideSuggestions();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    hideSuggestions();
+                });
+        }
+
+        function showSuggestions(results) {
+            const ul = document.getElementById("suggestions");
+            ul.innerHTML = "";
+            results.forEach(item => {
+                const li = document.createElement("li");
+                // Applying Michaelhouse Aesthetic to list items
+                li.className = "px-4 py-3 border-b border-gray-50 text-xs font-serif italic text-gray-700 hover:bg-gray-50 hover:text-[#C21E2E] cursor-pointer transition-colors";
+                li.textContent = item.display;
+                li.addEventListener("click", () => {
+                    searchLocation("", item.lat, item.lon, item.display);
+                });
+                ul.appendChild(li);
+            });
+            ul.classList.remove('hidden');
+            ul.classList.add('block');
+        }
+
+        function hideSuggestions() {
+            const ul = document.getElementById("suggestions");
+            ul.classList.remove('block');
+            ul.classList.add('hidden');
+        }
+
+        // Initialize Map centered on Durban defaults, utilizing browser Geolocation if allowed
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => initMap([position.coords.latitude, position.coords.longitude]),
+                () => initMap([-29.850269, 31.006702])
+            );
+        } else {
+            initMap([-29.850269, 31.006702]);
+        }
+
+        // Search Handlers
+        document.getElementById("searchBtn").addEventListener("click", () => {
+            const query = document.getElementById("locationSearch").value;
+            if (query) searchLocation(query);
+        });
+
+        const searchInput = document.getElementById("locationSearch");
+        searchInput.addEventListener("input", (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => fetchSuggestions(e.target.value), 300);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!searchInput.contains(e.target) && !document.getElementById("suggestions").contains(e.target)) {
+                hideSuggestions();
+            }
+        });
+
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const query = searchInput.value;
+                if (query) searchLocation(query);
+                hideSuggestions();
+            }
+        });
+    </script>
+}

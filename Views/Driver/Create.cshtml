@@ -1,0 +1,47 @@
+﻿@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+@model Michaelhouse.Models.Driver
+@{
+    ViewBag.Title = "Add Driver";
+}
+
+<h2>Add Driver</h2>
+
+@using (Html.BeginForm("Create", "DriverApplications", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        @Html.LabelFor(m => m.FullName)
+        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.FullName)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Email)
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.PhoneNumber)
+        @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.IDNumber)
+        @Html.TextBoxFor(m => m.IDNumber, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.LicenceNumber)
+        @Html.TextBoxFor(m => m.LicenceNumber, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.LicenceExpiryDate)
+        @Html.TextBoxFor(m => m.LicenceExpiryDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.HasPDP)
+        @Html.CheckBoxFor(m => m.HasPDP)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.ImageUrl)
+        @Html.TextBoxFor(m => m.ImageUrl, new { @class = "form-control", placeholder = "/Content/Images/Drivers/photo.jpg" })
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="@Url.Action("Index")" class="btn btn-default">Cancel</a>
+}

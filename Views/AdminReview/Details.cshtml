@@ -1,0 +1,66 @@
+﻿@model Michaelhouse.Models.AdminReview
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>AdminReview</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Application.AiReviewSummary)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Application.AiReviewSummary)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AdminId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AdminId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Date)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Date)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Decision)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Decision)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AdminNotes)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AdminNotes)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AgreedWithAi)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AgreedWithAi)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ReviewId }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

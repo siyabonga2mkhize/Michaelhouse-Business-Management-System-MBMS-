@@ -1,0 +1,174 @@
+﻿@model List<Michaelhouse.Models.Invoice>
+@{
+    ViewBag.Title = "Payments & Invoices";
+    int? regId = ViewBag.RegistrationId as int?;
+    int? appId = ViewBag.AppId as int?;
+    bool regFeePaid = ViewBag.RegistrationFeePaid is bool b && b;
+
+    var pendingInvoices = Model.Where(i => i.Status == "Pending" && i.Amount > 0).ToList();
+    var paidInvoices = Model.Where(i => i.Status == "Paid").ToList();
+
+    decimal totalOwing = pendingInvoices.Sum(i => i.Amount);
+    decimal totalPaid = paidInvoices.Sum(i => i.Amount);
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end">
+    <div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 mb-2">Financial Ledger</h2>
+        <p class="text-gray-400 uppercase tracking-[3px] text-[10px] font-bold">School Fees & Enrollment Dues</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="@Url.Action("Index", "Applications")" class="text-[10px] uppercase font-bold tracking-widest text-gray-400 hover:text-[#C21E2E] transition-all">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
+</div>
+
+@* ── REGISTRATION FEE GATE ── *@
+@if (regId.HasValue && !regFeePaid)
+{
+    var regFeeInvoice = Model.FirstOrDefault(i => i.InvoiceType == "RegistrationFee" && i.Status == "Pending");
+
+    <div class="bg-[#1a1a1a] text-white p-8 mb-10 shadow-2xl relative overflow-hidden group">
+        <i class="bi bi-mortarboard-fill absolute -right-10 -bottom-10 text-white/5 text-[12rem] rotate-12"></i>
+
+        <div class="row align-items-center relative z-10">
+            <div class="col-md-8">
+                <span class="bg-[#C21E2E] text-white text-[9px] font-bold uppercase tracking-[3px] px-3 py-1 mb-4 d-inline-block">Action Required</span>
+                <h3 class="text-3xl font-serif mb-2">Secure Enrollment Place</h3>
+                <p class="text-gray-400 text-sm italic mb-0">The non-refundable registration fee of ZAR 950.00 is required to move to the next phase.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                <div class="mb-4">
+                    <span class="text-xs uppercase tracking-widest text-gray-500">Amount Due</span>
+                    <h4 class="text-3xl font-bold">ZAR 950.00</h4>
+                </div>
+                @if (regFeeInvoice != null)
+                {
+                    <a href="@Url.Action("Pay", "Payment", new { id = regFeeInvoice.InvoiceId })"
+                       class="bg-[#C21E2E] text-white px-8 py-3 font-bold uppercase tracking-widest text-[11px] hover:bg-white hover:text-[#C21E2E] transition-all d-inline-block">
+                        Proceed to Payment
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* ── FINANCIAL SUMMARY ── *@
+<div class="row g-4 mb-12">
+    <div class="col-md-4">
+        <div class="bg-white border-t-4 border-amber-500 p-6 shadow-sm">
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Total Outstanding</p>
+            <h3 class="text-2xl font-bold @(totalOwing > 0 ? "text-amber-600" : "text-gray-900")">ZAR @totalOwing.ToString("N2")</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white border-t-4 border-green-600 p-6 shadow-sm">
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Settled to Date</p>
+            <h3 class="text-2xl font-bold text-green-700">ZAR @totalPaid.ToString("N2")</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="bg-white border-t-4 border-[#C21E2E] p-6 shadow-sm">
+            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Active Invoices</p>
+            <h3 class="text-2xl font-bold text-gray-900">@Model.Count</h3>
+        </div>
+    </div>
+</div>
+
+@* ── INVOICE LISTS ── *@
+<div class="space-y-12">
+
+    @if (pendingInvoices.Any())
+    {
+        <section>
+            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-400 mb-6 border-b pb-2">Pending Invoices</h5>
+            <div class="space-y-4">
+                @foreach (var inv in pendingInvoices.OrderBy(i => i.DueDate))
+                {
+                    bool overdue = inv.DueDate < DateTime.Now;
+                    <div class="bg-white border border-gray-100 p-6 hover:border-[#C21E2E] transition-all group shadow-sm">
+                        <div class="row align-items-center text-left">
+                            <div class="col-md-2">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Inv #</span>
+                                <span class="text-sm font-bold">@inv.InvoiceNumber</span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Description</span>
+                                <span class="text-sm font-serif italic text-gray-700">@inv.Description</span>
+                                @if (overdue)
+                                {<span class="ms-2 badge bg-red-100 text-red-700 rounded-0 text-[9px] uppercase">Overdue</span>}
+                            </div>
+                            <div class="col-md-2">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Due Date</span>
+                                <span class="text-sm">@inv.DueDate.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Amount</span>
+                                <span class="text-sm font-bold text-[#C21E2E]">ZAR @inv.Amount.ToString("N2")</span>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <a href="@Url.Action("Pay", "Payment", new { id = inv.InvoiceId })"
+                                   class="bg-gray-900 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-[#C21E2E] transition-all">
+                                    Pay Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    @if (paidInvoices.Any())
+    {
+        <section>
+            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-400 mb-6 border-b pb-2">Payment History</h5>
+            <div class="bg-white shadow-sm overflow-hidden border border-gray-100">
+                <table class="table mb-0 text-sm">
+                    <thead class="bg-gray-50 uppercase text-[9px] font-bold tracking-widest text-gray-500">
+                        <tr>
+                            <th class="ps-6">Invoice</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th class="text-end pe-6">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-600">
+                        @foreach (var inv in paidInvoices)
+                        {
+                            <tr class="border-b border-gray-50">
+                                <td class="ps-6 py-4 font-bold">@inv.InvoiceNumber</td>
+                                <td class="italic font-serif">@inv.Description</td>
+                                <td class="text-green-700 font-bold">ZAR @inv.Amount.ToString("N2")</td>
+                                <td><span class="text-[10px] uppercase font-bold text-gray-400">Settled</span></td>
+                                <td class="text-end pe-6">
+                                    <a href="@Url.Action("Receipt", "Payment", new { id = inv.InvoiceId })" class="text-gray-400 hover:text-[#C21E2E] transition-all">
+                                        <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .table th {
+        border: none !important;
+    }
+
+    .table td {
+        border: none !important;
+        vertical-align: middle;
+    }
+</style>

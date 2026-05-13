@@ -1,0 +1,122 @@
+﻿@model Michaelhouse.Models.DriverAvailability
+@{
+    ViewBag.Title = "Declare Personnel Absence";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Personnel Portal</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Declare Absence</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Register Schedule Unavailability</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Availabilities", "Driver")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE FORM SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+
+        @* Form constrained to a readable max-width on large screens *@
+        <div class="max-w-4xl">
+            @using (Html.BeginForm("AddAvailability", "Driver", FormMethod.Post, new { @class = "h-full" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative">
+
+                    @* Archival Dot Grid Header *@
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">01. Absence Parameters</h5>
+                    </div>
+
+                    <div class="p-8 space-y-10">
+
+                        <div class="row g-6">
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Absence Inception (Start Date) <span class="text-[#C21E2E]">*</span></label>
+                                @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "w-full border-b-2 border-gray-100 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", type = "date" })
+                                @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Expected Return (End Date) <span class="text-[#C21E2E]">*</span></label>
+                                @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "w-full border-b-2 border-gray-100 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", type = "date" })
+                                @Html.ValidationMessageFor(m => m.EndDate, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Official Justification / Notes</label>
+                            @Html.TextAreaFor(m => m.Reason, new { @class = "w-full border-b-2 border-gray-100 py-3 outline-none focus:border-[#C21E2E] text-sm font-serif italic transition-colors bg-transparent", rows = 4, placeholder = "e.g., Medical leave, mandatory off-duty cycle, personal absence..." })
+                            @Html.ValidationMessageFor(m => m.Reason, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            <p class="text-[10px] text-gray-400 font-serif italic mt-2"><i class="bi bi-info-circle me-1"></i> Supplying a formal justification assists the Logistics Manager in capacity planning.</p>
+                        </div>
+
+                    </div>
+
+                    @* Institutional Footer Actions *@
+                    <div class="p-6 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0">
+                        <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                            <i class="bi bi-shield-lock me-2 text-gray-500"></i> Official Registry Entry
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="@Url.Action("Availabilities", "Driver")" class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 hover:text-white px-4 py-3 transition-colors">
+                                Discard Draft
+                            </a>
+                            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] shadow-xl hover:bg-white hover:text-[#C21E2E] transition-all">
+                                <i class="bi bi-calendar-x me-2"></i> Commit Declaration
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Hide default date picker calendar icons to keep it cleaner (optional, depends on browser) */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

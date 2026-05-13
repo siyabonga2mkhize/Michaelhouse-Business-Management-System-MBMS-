@@ -1,0 +1,64 @@
+﻿@model Michaelhouse.Models.VehicleIssue
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>VehicleIssue</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.DriverId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DriverId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VehicleId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VehicleId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DateReported)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DateReported)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    }
+</div>

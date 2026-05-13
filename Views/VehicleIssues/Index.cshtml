@@ -1,0 +1,92 @@
+﻿@model IEnumerable<Michaelhouse.Models.VehicleIssue>
+
+@{
+    ViewBag.Title = "Transport Manager - Vehicle Issues";
+}
+
+<div class="px-8 pt-6">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Vehicle Issues</h2>
+        <p class="text-muted small mb-0">All reported issues requiring transport management attention</p>
+    </div>
+
+    <div class="table-responsive shadow-sm border rounded bg-white">
+
+        <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+                <tr class="text-uppercase small text-muted">
+                    <th>Driver</th>
+                    <th>Vehicle</th>
+                    <th>Description</th>
+                    <th>Date Reported</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    string badge =
+                        item.Status == "Pending" ? "warning" :
+                        item.Status == "In Progress" ? "primary" :
+                        "success";
+
+                    <tr>
+
+                        <td>
+                            <div class="fw-bold">
+                                👤 @(item.Driver?.FullName)
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="fw-bold">
+                                🚗 @(item.Vehicle?.Model)
+                            </div>
+
+                            <div class="text-muted small">
+                                @(item.Vehicle?.VehicleNumber)
+                            </div>
+                        </td>
+
+
+
+                        <td>
+                            @item.Description
+                        </td>
+
+                        <td class="text-muted small">
+                            @item.DateReported.ToString("yyyy-MM-dd HH:mm")
+                        </td>
+
+                        <td>
+                            <span class="badge bg-@badge">
+                                @item.Status
+                            </span>
+                        </td>
+                        @if (Session["UserRole"] != null && Session["UserRole"].ToString() == "TransportManager")
+                        {
+                            <td class="text-end">
+
+                                <a href="@Url.Action("Details", "VehicleIssues", new { id = item.Id })"
+                                   class="btn btn-sm btn-dark">
+                                    Review
+                                </a>
+
+                            </td>
+                        }
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+

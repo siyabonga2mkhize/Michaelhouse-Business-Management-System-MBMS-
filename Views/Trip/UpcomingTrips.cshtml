@@ -1,0 +1,307 @@
+﻿@model List<Michaelhouse.Models.TripSchedule>
+@{
+    ViewBag.Title = "Transport Schedules";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Scheduled Excursions</h2>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("BookTrip", "Trip")" class="inline-block bg-gray-900 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-xl active:scale-95">
+                <i class="bi bi-plus-lg me-2"></i> File New Request
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0 mb-4">
+
+        @* Archival Dot Grid Header *@
+        <div class="p-8 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
+            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <div class="relative z-10">
+                <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Active Schedule Ledger</h5>
+                <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Formal Transport Allocations</p>
+            </div>
+            <div class="relative z-10">
+                <span class="text-[10px] font-bold text-gray-400 font-mono uppercase tracking-widest">Records: @Model.Count</span>
+            </div>
+        </div>
+
+        @* Table Container (Scrolls Internally) *@
+        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+            <table class="table table-hover mb-0 align-middle w-full" id="scheduleTable">
+                <thead class="sticky top-0 z-10 bg-white">
+                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
+                        <th class="ps-8 py-5">Excursion Title</th>
+                        <th>Routing</th>
+                        <th>Target Date</th>
+                        <th>Logistics Personnel</th>
+                        <th>Transport Unit</th>
+                        <th class="text-center">Status</th>
+                        <th class="pe-8 text-end">Administrative</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="py-20 text-center">
+                                <i class="bi bi-calendar-x text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">No Active Schedules</h4>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var schedule in Model)
+                        {
+                            var request = schedule.TripRequest;
+                            string statusColor = schedule.Status == "Confirmed" ? "#10b981"
+                                               : schedule.Status == "Cancelled" ? "#ef4444"
+                                               : "#f59e0b"; // Draft / Awaiting
+
+                            string statusText = schedule.Status == "Draft" ? "Awaiting Assignment" : schedule.Status;
+
+                            <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                <td class="ps-8 py-5">
+                                    <div class="fw-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">@(request?.Title ?? "Unknown Requisition")</div>
+                                </td>
+                                <td>
+                                    @if (request != null && !string.IsNullOrEmpty(request.Destination))
+                                    {
+                                        <a href="#" class="view-map-link inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                                           data-lat="@(request.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                           data-lng="@(request.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                           data-address="@request.Destination">
+                                            <i class="bi bi-geo-alt-fill"></i> View Map
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unspecified</span>
+                                    }
+                                </td>
+                                <td class="font-mono text-[11px] text-gray-800">
+                                    @schedule.ScheduledDate.ToString("dd MMM yyyy")
+                                </td>
+                                <td>
+                                    @if (schedule.VehicleAssignments != null && schedule.VehicleAssignments.Any(a => a.Driver != null))
+                                    {
+                                        var driverList = schedule.VehicleAssignments.Where(a => a.Driver != null).Select(a => new { a.DriverId, a.Driver.FullName }).ToList();
+                                        for (int i = 0; i < driverList.Count; i++)
+                                        {
+                                            <a href="#" class="view-driver-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase" data-driverid="@driverList[i].DriverId">
+                                                @driverList[i].FullName
+                                            </a>
+                                            if (i < driverList.Count - 1)
+                                            { <text>, </text> }
+                                    }
+                                }
+                                else if (schedule.Driver != null)
+                                {
+                                    <a href="#" class="view-driver-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase" data-driverid="@schedule.DriverId">
+                                        @schedule.Driver.FullName
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Pending</span>
+                                }
+                                </td>
+                                <td>
+                                    @if (schedule.VehicleAssignments != null && schedule.VehicleAssignments.Any(a => a.Vehicle != null))
+                                    {
+                                        var vehicleList = schedule.VehicleAssignments.Where(a => a.Vehicle != null).Select(a => new { a.VehicleId, a.Vehicle.VehicleNumber }).ToList();
+                                        for (int i = 0; i < vehicleList.Count; i++)
+                                        {
+                                            <a href="#" class="view-vehicle-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase" data-vehicleid="@vehicleList[i].VehicleId">
+                                                @vehicleList[i].VehicleNumber
+                                            </a>
+                                            if (i < vehicleList.Count - 1)
+                                            { <text>, </text> }
+                                    }
+                                }
+                                else if (schedule.Vehicle != null)
+                                {
+                                    <a href="#" class="view-vehicle-details text-[10px] font-bold font-mono text-gray-600 hover:text-[#C21E2E] transition-colors uppercase" data-vehicleid="@schedule.VehicleId">
+                                        @schedule.Vehicle.VehicleNumber
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Pending</span>
+                                }
+                                </td>
+                                <td class="text-center">
+                                    <span class="px-3 py-1 text-[8px] font-bold uppercase tracking-widest border"
+                                          style="color: @statusColor; border-color: @statusColor;">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td class="pe-8 text-end">
+                                    @if (schedule.Status == "Confirmed")
+                                    {
+                                        <a href="@Url.Action("Manifest", "Trip", new { scheduleId = schedule.Id })" class="inline-block bg-gray-50 text-gray-600 border border-gray-200 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-900 hover:text-white transition-all shadow-sm">
+                                            <i class="bi bi-clipboard-check me-1"></i> Manifest
+                                        </a>
+                                    }
+                                    else if (schedule.Status == "Draft")
+                                    {
+                                        using (Html.BeginForm("CancelSchedule", "Trip", FormMethod.Post, new { @class = "m-0 d-inline" }))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="scheduleId" value="@schedule.Id" />
+                                            <button type="submit" class="text-[9px] font-bold uppercase tracking-[2px] text-red-400 hover:text-red-700 border-0 bg-transparent" onclick="return confirm('Void this schedule?');">
+                                                <i class="bi bi-x-circle me-1"></i> Void
+                                            </button>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* --- MODALS --- *@
+@Html.Partial("_TripMapModal")
+
+<div class="modal fade" id="driverDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Personnel File</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="driverDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="vehicleDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Transport Unit Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="vehicleDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let currentMap = null;
+
+        // Map link click
+        $('.view-map-link').click(function(e) {
+            e.preventDefault();
+            var lat = parseFloat($(this).data('lat'));
+            var lng = parseFloat($(this).data('lng'));
+            var address = $(this).data('address');
+
+            $('#modalAddress').text(address);
+            $('#tripMapModal').modal('show');
+
+            $('#tripMapModal').on('shown.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12);
+                }
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                }).addTo(currentMap);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
+            });
+            $('#tripMapModal').on('hidden.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                currentMap = null;
+            });
+        });
+
+        // Driver details modal
+        $('.view-driver-details').click(function(e) {
+            e.preventDefault();
+            var driverId = $(this).data('driverid');
+            $('#driverDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+            $('#driverDetailsModal').modal('show');
+            $.get('@Url.Action("DriverDetails", "Transport")?id=' + driverId, function(data) {
+                $('#driverDetailsContent').html(data);
+            });
+        });
+
+        // Vehicle details modal
+        $('.view-vehicle-details').click(function(e) {
+            e.preventDefault();
+            var vehicleId = $(this).data('vehicleid');
+            $('#vehicleDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+            $('#vehicleDetailsModal').modal('show');
+            $.get('@Url.Action("VehicleDetails", "Transport")?id=' + vehicleId, function(data) {
+                $('#vehicleDetailsContent').html(data);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,405 @@
+﻿@model Michaelhouse.Models.TripSchedule
+@{
+    var drivers = ViewBag.Drivers as List<Michaelhouse.Models.Driver>;
+    var vehicles = ViewBag.Vehicles as List<Michaelhouse.Models.Vehicle>;
+    int studentCount = ViewBag.StudentCount != null ? (int)ViewBag.StudentCount : 0;
+    int totalAllocated = ViewBag.TotalAllocated != null ? (int)ViewBag.TotalAllocated : 0;
+    bool capacitySufficient = totalAllocated >= studentCount;
+    ViewBag.Title = "Fleet Assignment Dossier";
+}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Fleet Allocation</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Ref: EX-@(Model.TripRequest?.Id) • @(Model.TripRequest?.Title)</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("UnassignedSchedules", "Transport")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Unassigned
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DOSSIER CONTENT --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+
+        @* Capacity Alert Banner *@
+        @if (!capacitySufficient)
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] mb-8 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Insufficient Logistics Allocation</h6>
+                        <p class="text-xs font-serif italic mb-0">The current transport assignment (<span class="font-mono font-bold">@totalAllocated</span> seats) cannot accommodate the required manifest (<span class="font-mono font-bold">@studentCount</span> pax).</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-3xl font-mono font-bold">@(studentCount - totalAllocated)</span>
+                        <span class="text-[9px] uppercase tracking-widest block">Shortfall</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (Model.Status == "Draft")
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 mb-8 shadow-sm flex justify-between items-center">
+                <div>
+                    <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-check-circle-fill me-2"></i>Allocation Satisfied</h6>
+                    <p class="text-xs font-serif italic mb-0">Fleet capacity meets or exceeds manifest requirements. Schedule is ready for formal confirmation.</p>
+                </div>
+                @using (Html.BeginForm("ConfirmTripAssignment", "Transport", FormMethod.Post, new { @class = "m-0" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="scheduleId" value="@Model.Id" />
+                    <button type="submit" class="bg-green-600 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-green-700 transition-all shadow-md">
+                        <i class="bi bi-shield-check me-2"></i> Confirm Fleet Roster
+                    </button>
+                }
+            </div>
+        }
+
+        <div class="row g-6">
+
+            @* --- LEFT SIDE: NEW ASSIGNMENT FORM --- *@
+            <div class="col-lg-5">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative h-full flex flex-col">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden flex-shrink-0">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">01. Fleet & Personnel Allocation</h5>
+                    </div>
+
+                    <div class="p-8 flex-grow">
+                        @using (Html.BeginForm("AddVehicleAssignment", "Transport", FormMethod.Post, new { id = "addAssignmentForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="scheduleId" value="@Model.Id" />
+
+                            <div class="space-y-6">
+                                @* Vehicle Selection *@
+                                <div>
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Transport Unit</label>
+                                    <select name="vehicleId" id="vehicleSelect" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700 bg-transparent" required>
+                                        <option value="">-- Assign Vehicle from Registry --</option>
+                                        @foreach (var v in vehicles ?? new List<Michaelhouse.Models.Vehicle>())
+                                        {
+                                            <option value="@v.Id" data-img="@v.ImageUrl" data-number="@v.VehicleNumber" data-model="@v.Model" data-capacity="@v.Capacity">
+                                                @v.VehicleNumber - @v.Model (Cap: @v.Capacity)
+                                            </option>
+                                        }
+                                    </select>
+
+                                    @* Dynamic Vehicle Preview *@
+                                    <div id="vehiclePreview" class="mt-4 p-4 border border-gray-100 bg-gray-50/50 hidden flex gap-4 items-center">
+                                        <div class="w-20 h-20 bg-white border border-gray-200 shadow-sm flex items-center justify-center p-1">
+                                            <img id="vehicleImg" src="" alt="Vehicle" class="max-w-full max-h-full object-contain" />
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-0">Assigned Unit</p>
+                                            <h6 id="vehicleNumber" class="font-mono font-bold text-gray-900 mb-0"></h6>
+                                            <p id="vehicleModel" class="text-xs font-serif italic text-gray-600 mb-0"></p>
+                                            <p id="vehicleCapacity" class="text-[10px] font-mono text-[#C21E2E] mt-1 mb-0 font-bold"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* Driver Selection *@
+                                <div>
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Personnel Allocation</label>
+                                    <select name="driverId" id="driverSelect" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700 bg-transparent" required>
+                                        <option value="">-- Assign Authorized Driver --</option>
+                                        @foreach (var d in drivers ?? new List<Michaelhouse.Models.Driver>())
+                                        {
+                                            <option value="@d.Id" data-img="@d.ImageUrl" data-name="@d.FullName" data-phone="@d.PhoneNumber" data-licence="@d.LicenceNumber">
+                                                @d.FullName
+                                            </option>
+                                        }
+                                    </select>
+
+                                    @* Dynamic Driver Preview *@
+                                    <div id="driverPreview" class="mt-4 p-4 border border-gray-100 bg-gray-50/50 hidden flex gap-4 items-center">
+                                        <div class="w-16 h-16 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gray-200 flex-shrink-0">
+                                            <img id="driverImg" src="" alt="Driver" class="w-full h-full object-cover" />
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-0">Authorized Personnel</p>
+                                            <h6 id="driverName" class="font-serif font-bold text-gray-900 mb-0"></h6>
+                                            <p id="driverPhone" class="text-[10px] font-mono text-gray-500 mb-0"></p>
+                                            <p id="driverLicence" class="text-[10px] font-mono text-gray-500 mb-0"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @* Seat Allocation *@
+                                <div>
+                                    <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Authorized Manifest (Seats)</label>
+                                    <input type="number" name="allocatedSeats" id="allocatedSeats" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-2xl text-gray-900 bg-transparent" required min="1" placeholder="0" />
+                                </div>
+                            </div>
+
+                            <div class="mt-8">
+                                <button type="submit" class="w-full bg-black text-white py-4 text-[10px] font-bold uppercase tracking-[3px] shadow-xl hover:bg-[#C21E2E] transition-all">
+                                    <i class="bi bi-plus-lg me-2"></i> Register Allocation
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT SIDE: CURRENT ASSIGNMENTS LEDGER --- *@
+            <div class="col-lg-7">
+                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative h-full flex flex-col">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden flex-shrink-0">
+                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">02. Official Assignment Ledger</h5>
+                    </div>
+
+                    <div class="table-responsive flex-grow">
+                        @if (Model.VehicleAssignments != null && Model.VehicleAssignments.Any())
+                        {
+                            <table class="table table-hover mb-0 align-middle w-full">
+                                <thead class="bg-white">
+                                    <tr class="text-[8px] uppercase tracking-[3px] font-bold text-gray-400 border-b">
+                                        <th class="ps-6 py-4">Transport Unit</th>
+                                        <th>Personnel</th>
+                                        <th class="text-center">Allocation</th>
+                                        <th class="pe-6 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var assign in Model.VehicleAssignments)
+                                    {
+                                        <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
+                                            <td class="ps-6 py-4">
+                                                @if (assign.Vehicle != null)
+                                                {
+                                                    <a href="#" class="view-vehicle-details fw-bold text-gray-900 font-mono text-sm hover:text-[#C21E2E] transition-colors" data-vehicleid="@assign.VehicleId">
+                                                        @assign.Vehicle.VehicleNumber
+                                                    </a>
+                                                    <div class="text-[10px] font-serif italic text-gray-500 mt-1">@assign.Vehicle.Model</div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unassigned</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (assign.Driver != null)
+                                                {
+                                                    <a href="#" class="view-driver-details font-serif font-bold text-gray-800 text-sm hover:text-[#C21E2E] transition-colors" data-driverid="@assign.DriverId">
+                                                        @assign.Driver.FullName
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Unassigned</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="font-mono text-sm font-bold text-gray-900">@assign.AllocatedSeats</span>
+                                                <span class="text-[9px] text-gray-400 uppercase ml-1">of @(assign.Vehicle?.Capacity ?? 0)</span>
+                                            </td>
+                                            <td class="pe-6 text-end">
+                                                @using (Html.BeginForm("RemoveAssignment", "Transport", FormMethod.Post, new { @class = "m-0" }))
+                                                {
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="assignmentId" value="@assign.Id" />
+                                                    <button type="submit" class="text-[9px] font-bold uppercase tracking-[2px] text-red-400 hover:text-red-700 border-0 bg-transparent" onclick="return confirm('Sever this logistical allocation?');">
+                                                        <i class="bi bi-x-circle me-1"></i> Void
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-20">
+                                <i class="bi bi-diagram-2 text-gray-100 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-300 uppercase tracking-[3px]">Ledger Empty</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">No personnel or transport units have been assigned to this excursion.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- MODALS --- *@
+<div class="modal fade" id="driverDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Personnel File</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="driverDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="vehicleDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Transport Unit Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="vehicleDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Driver preview functionality
+            $('#driverSelect').change(function() {
+                var selected = $(this).find(':selected');
+                var val = $(this).val();
+                if (!val) {
+                    $('#driverPreview').addClass('hidden');
+                    return;
+                }
+
+                var img = selected.data('img');
+                var name = selected.data('name');
+                var phone = selected.data('phone');
+                var licence = selected.data('licence');
+
+                $('#driverImg').attr('src', (img && img !== "") ? img : '/Content/Images/default-driver.png');
+                $('#driverName').text(name || 'Unverified');
+                $('#driverPhone').text('Comms: ' + (phone || 'N/A'));
+                $('#driverLicence').text('Licence: ' + (licence || 'N/A'));
+
+                $('#driverPreview').removeClass('hidden');
+            });
+
+            // Vehicle preview + capacity logic
+            $('#vehicleSelect').change(function() {
+                var selected = $(this).find(':selected');
+                var val = $(this).val();
+                if (!val) {
+                    $('#vehiclePreview').addClass('hidden');
+                    $('#allocatedSeats').removeAttr('max').attr('placeholder', '0');
+                    return;
+                }
+
+                var img = selected.data('img');
+                var number = selected.data('number');
+                var model = selected.data('model');
+                var capacity = selected.data('capacity');
+
+                $('#vehicleImg').attr('src', (img && img !== "") ? img : '/Content/Images/default-vehicle.png');
+                $('#vehicleNumber').text(number || 'Unverified');
+                $('#vehicleModel').text(model || 'N/A');
+                $('#vehicleCapacity').text('Max Cap: ' + (capacity || '?'));
+
+                $('#vehiclePreview').removeClass('hidden');
+
+                if (capacity) {
+                    $('#allocatedSeats').attr('max', capacity);
+                    $('#allocatedSeats').attr('placeholder', 'Limit: ' + capacity);
+                    var currentVal = parseInt($('#allocatedSeats').val());
+                    if (!isNaN(currentVal) && currentVal > capacity) {
+                        $('#allocatedSeats').val(capacity);
+                    }
+                }
+            });
+
+            // Enforce max allocated seats on input
+            $('#allocatedSeats').on('input', function () {
+                var max = parseInt($(this).attr('max'));
+                var val = parseInt($(this).val());
+                if (!isNaN(max) && !isNaN(val) && val > max) {
+                    $(this).val(max);
+                }
+            });
+
+            // Form validation
+            $('#addAssignmentForm').submit(function (e) {
+                var driver = $('#driverSelect').val();
+                var vehicle = $('#vehicleSelect').val();
+                if (!driver || !vehicle) {
+                    alert('Logistics protocol requires both Personnel and a Transport Unit.');
+                    e.preventDefault();
+                    return false;
+                }
+                return true;
+            });
+
+            // Modals
+            $('.view-driver-details').click(function(e) {
+                e.preventDefault();
+                var driverId = $(this).data('driverid');
+                $('#driverDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+                $('#driverDetailsModal').modal('show');
+                $.get('@Url.Action("DriverDetails", "Transport")?id=' + driverId, function(data) {
+                    $('#driverDetailsContent').html(data);
+                });
+            });
+
+            $('.view-vehicle-details').click(function(e) {
+                e.preventDefault();
+                var vehicleId = $(this).data('vehicleid');
+                $('#vehicleDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+                $('#vehicleDetailsModal').modal('show');
+                $.get('@Url.Action("VehicleDetails", "Transport")?id=' + vehicleId, function(data) {
+                    $('#vehicleDetailsContent').html(data);
+                });
+            });
+        });
+    </script>
+}

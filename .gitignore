@@ -1,0 +1,15 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.db-shm
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.dll
+*.pdb
+
+/Migrations/202605111135347_initialcreate.Designer.cs
+/Migrations/202605111135347_initialcreate.resx
