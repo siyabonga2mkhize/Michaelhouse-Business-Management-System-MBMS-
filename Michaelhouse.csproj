@@ -218,17 +218,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605120841037_InitialBaseline.cs" />
-    <Compile Include="Migrations\202605120841037_InitialBaseline.Designer.cs">
-      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605120843363_AddNewTables.cs" />
-    <Compile Include="Migrations\202605120843363_AddNewTables.Designer.cs">
-      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605121021512_AddInterviewDetails.cs" />
-    <Compile Include="Migrations\202605121021512_AddInterviewDetails.Designer.cs">
-      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
+    <Compile Include="Migrations\202605132015374_addAdminReview.cs" />
+    <Compile Include="Migrations\202605132015374_addAdminReview.Designer.cs">
+      <DependentUpon>202605132015374_addAdminReview.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
@@ -239,6 +231,7 @@
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Driver.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
@@ -275,7 +268,6 @@
     <Compile Include="Models\AppUser.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Assessment.cs" />
-    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
@@ -369,6 +361,9 @@
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
     <Content Include="Views\Driver\TripManifest.cshtml" />
+    <Content Include="Views\TransportManager\Details.cshtml" />
+    <Content Include="Views\TransportManager\Index.cshtml" />
+    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -565,14 +560,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605120841037_InitialBaseline.resx">
-      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605120843363_AddNewTables.resx">
-      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605121021512_AddInterviewDetails.resx">
-      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605132015374_addAdminReview.resx">
+      <DependentUpon>202605132015374_addAdminReview.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

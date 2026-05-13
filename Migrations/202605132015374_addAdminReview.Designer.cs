@@ -7,18 +7,18 @@ namespace Michaelhouse.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class AddInterviewDetails : IMigrationMetadata
+    public sealed partial class addAdminReview : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddInterviewDetails));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(addAdminReview));
         
         string IMigrationMetadata.Id
         {
-            get { return "202605121021512_AddInterviewDetails"; }
+            get { return "202605132015374_addAdminReview"; }
         }
         
         string IMigrationMetadata.Source
         {
-            get { return Resources.GetString("Source"); }
+            get { return null; }
         }
         
         string IMigrationMetadata.Target

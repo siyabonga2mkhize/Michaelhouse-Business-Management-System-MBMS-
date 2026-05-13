@@ -77,6 +77,33 @@ namespace Michaelhouse.Models
         public string InterviewMeetingLink { get; set; }      // Jitsi/Google Meet URL
         public bool InterviewEmailSent { get; set; }          // to track if email already sent
         public DateTime? InterviewEmailSentAt { get; set; }
+        public string AiReviewSummary { get; set; }
+        public string AiRecommendation { get; set; }  // "APPROVE" / "FLAG" / "REJECT"
+        public int?   AiScore { get; set; }            // 0-100 calculated score
+        public bool   AiReviewComplete { get; set; }
+        //
+        // ── AiScore calculation ───────────────────────────────────────────────────────
+        // Scoring criteria (out of 100):
+        //   +30  PDP present
+        //   +25  Licence valid for > 2 years
+        //   +15  Licence valid for 1-2 years
+        //   +0   Licence expired or < 1 year
+        //   +20  All required documents submitted (ID + Licence)
+        //   +10  Only 1 required document missing
+        //   +25  AI recommendation = APPROVE
+        //   +10  AI recommendation = FLAG
+        //   +0   AI recommendation = REJECT
+        // Total possible: 100
+
+        // ── DriverCriteria (transport manager sets the bar) ───────────────────────────
+        // These are stored in the DB and shown on the AI review to let it
+        // apply school-specific rules consistently.
+        //
+        // Default criteria:
+        //   - Must have a valid driver's licence (not expired)
+        //   - PDP is preferred but not mandatory (weighted in scoring)
+        //   - Must submit ID document and driver's licence copy
+        //   - Must not have criminal convictions (checked via document integrity)
     }
     public class DriverAvailability
     {
