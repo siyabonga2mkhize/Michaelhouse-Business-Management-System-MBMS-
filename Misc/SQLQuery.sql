@@ -1,6 +1,6 @@
 ﻿select * from SchoolClasses
 
-SELECT * FROM appusers;
+    
 
 
 Select * from ClassSubjects
