@@ -243,55 +243,42 @@
     @{
 
         string currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
-
         string currentAction = (ViewContext.RouteData.Values["action"] ?? "").ToString();
 
-        string userRole = Session["UserRole"]?.ToString() ?? "";
+        // Session values - avoid null-conditional operator
+        string userRole = "";
+        if (Session["UserRole"] != null) { userRole = Session["UserRole"].ToString(); }
 
-        string userName = Session["UserName"]?.ToString() ?? "";
+        string userName = "";
+        if (Session["UserName"] != null) { userName = Session["UserName"].ToString(); }
 
-        bool isLoggedIn = Session["UserId"] != null;
+        bool isLoggedIn = (Session["UserId"] != null);
 
         // This pulls the name of the current controller (e.g., "Inventory")
-
-        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
-
-
+        string ctrl = "";
+        if (ViewContext.RouteData.Values["controller"] != null) { ctrl = ViewContext.RouteData.Values["controller"].ToString(); }
 
         // 2. Define 'lowStockCount' for the notification badge
-
-        // We initialize it to 0 so the page doesn't crash if the value isn't sent
-
-        int lowStockCount = ViewBag.LowStockCount ?? 0;
-
-
+        int lowStockCount = 0;
+        if (ViewBag.LowStockCount != null)
+        {
+            try { lowStockCount = Convert.ToInt32(ViewBag.LowStockCount); } catch { lowStockCount = 0; }
+        }
 
         // Determine if this is the home page (to hide login button on home)
-
         bool isHomePage = (currentController == "Home" && currentAction == "Index");
 
-
-
         // Get cart count
-
         int cartCount = 0;
-
         if (isLoggedIn)
-
         {
-
             try
-
             {
-
                 var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
-
-                cartCount = cartService.GetCart().TotalItems;
-
+                var cart = cartService.GetCart();
+                if (cart != null) { cartCount = cart.TotalItems; }
             }
-
-            catch { }
-
+            catch { /* swallow for startup safety */ }
         }
 
     }

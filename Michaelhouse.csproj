@@ -116,8 +116,8 @@
     <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
       <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
     </Reference>
-    <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
+    <Reference Include="Stripe.net, Version=50.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.50.4.1\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -224,13 +224,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605131132208_AddStudentAttendanceTokens.cs" />
-    <Compile Include="Migrations\202605131132208_AddStudentAttendanceTokens.Designer.cs">
-      <DependentUpon>202605131132208_AddStudentAttendanceTokens.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202605131218548_AddStudentAttendanceTokens1.cs" />
-    <Compile Include="Migrations\202605131218548_AddStudentAttendanceTokens1.Designer.cs">
-      <DependentUpon>202605131218548_AddStudentAttendanceTokens1.cs</DependentUpon>
+    <Compile Include="Migrations\202605131652431_initialcreate.cs" />
+    <Compile Include="Migrations\202605131652431_initialcreate.Designer.cs">
+      <DependentUpon>202605131652431_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
@@ -380,12 +376,16 @@
     <Content Include="Views\Students\ScanQRCode.cshtml" />
     <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
     <Content Include="Views\Shared\SingleQRCode.cshtml" />
-    <WebConfigFile Include="Web.config" />
+    <WebConfigFile Include="Web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </WebConfigFile>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -576,11 +576,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605131132208_AddStudentAttendanceTokens.resx">
-      <DependentUpon>202605131132208_AddStudentAttendanceTokens.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605131218548_AddStudentAttendanceTokens1.resx">
-      <DependentUpon>202605131218548_AddStudentAttendanceTokens1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605131652431_initialcreate.resx">
+      <DependentUpon>202605131652431_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

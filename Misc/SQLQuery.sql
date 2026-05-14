@@ -30,6 +30,23 @@ WHERE GradeLevel = 8 AND StudentId = 1;
 
 -- Create a Teacher
 Select * from Teachers;
+BEGIN TRANSACTION;
+
+-- 1. Assign a UserID to teacher 3 (example: based on email match)
+--    Replace 'desired.email@example.com' with the actual email of the user in AppUsers
+UPDATE Teachers 
+SET UserID = (SELECT UserID FROM AppUsers WHERE Email = 'teacher.lower@michaelhouse.org')
+WHERE TeacherID = 3;
+
+-- 2. Remove all subject‑grade assignments for teacher 4
+DELETE FROM TeacherSubjectGrades WHERE TeacherID = 4;
+
+-- 3. Delete teacher 4 from Teachers table
+DELETE FROM Teachers WHERE TeacherID = 4;
+
+COMMIT;
+
+
 
 
 INSERT INTO Teachers (FirstName, LastName, Email, Phone, EmployeeNumber, Department, Specialization, HireDate)
@@ -909,6 +926,41 @@ Select * from man ;
 
 Select * from Drivers;
 
+DELETE FROM Drivers
+WHERE Id IN (1, 5, 6);
+
+BEGIN TRANSACTION;
+
+-- 1. Reassign trips to driver 2
+UPDATE dbo.TripSchedules
+SET DriverId = 2 
+WHERE DriverId IN (1, 5, 6);
+
+-- 2. Delete the original drivers
+DELETE FROM Drivers
+WHERE Id IN (1, 5, 6);
+
+COMMIT TRANSACTION;
+
+
+BEGIN TRANSACTION;
+
+-- 1. Clear references in TripVehicleAssignments table
+DELETE FROM dbo.TripVehicleAssignments
+WHERE DriverId IN (1, 5, 6);
+
+-- 2. Clear references in TripSchedules table
+DELETE FROM dbo.TripSchedules
+WHERE DriverId IN (1, 5, 6);
+
+-- 3. Delete the records from Drivers table
+DELETE FROM dbo.Drivers
+WHERE Id IN (1, 5, 6);
+
+-- Commit changes if everything executes without errors
+COMMIT TRANSACTION;
+
+
 SELECT Id, TripRequestId, DriverId, ScheduledDate, Status
 FROM TripSchedules
 WHERE DriverId = 4;
@@ -922,3 +974,20 @@ SET ts.DriverId = tva.DriverId,
 FROM TripSchedules ts
 INNER JOIN TripVehicleAssignments tva ON tva.TripScheduleId = ts.Id
 WHERE ts.DriverId IS NULL AND tva.Id IN (SELECT MIN(Id) FROM TripVehicleAssignments GROUP BY TripScheduleId)
+
+
+
+
+------
+
+SELECT 
+    t.name AS TableName,
+    c.name AS ColumnName,
+    ty.name AS DataType,
+    c.max_length AS MaxLength,
+    c.is_nullable AS IsNullable,
+    c.is_identity AS IsIdentity
+FROM sys.tables t
+INNER JOIN sys.columns c ON t.object_id = c.object_id
+INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+ORDER BY t.name, c.column_id;
