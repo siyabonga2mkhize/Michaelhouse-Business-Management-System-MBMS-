@@ -224,9 +224,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605140105161_initialcreate.cs" />
-    <Compile Include="Migrations\202605140105161_initialcreate.Designer.cs">
-      <DependentUpon>202605140105161_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605140202101_initialcreate.cs" />
+    <Compile Include="Migrations\202605140202101_initialcreate.Designer.cs">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -347,10 +347,7 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
-    <Content Include="Misc\Driver.pdf" />
-    <Content Include="Misc\ID.pdf" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\html5-qrcode.min.js" />
@@ -581,8 +578,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605140105161_initialcreate.resx">
-      <DependentUpon>202605140105161_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605140202101_initialcreate.resx">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
