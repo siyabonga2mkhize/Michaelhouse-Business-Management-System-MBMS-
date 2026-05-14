@@ -241,7 +241,6 @@
 <body>
 
     @{
-
         string currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
         string currentAction = (ViewContext.RouteData.Values["action"] ?? "").ToString();
 
@@ -255,8 +254,8 @@
         bool isLoggedIn = (Session["UserId"] != null);
 
         // This pulls the name of the current controller (e.g., "Inventory")
-        string ctrl = "";
-        if (ViewContext.RouteData.Values["controller"] != null) { ctrl = ViewContext.RouteData.Values["controller"].ToString(); }
+        // Keep only ONE declaration of 'ctrl'
+        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 
         // 2. Define 'lowStockCount' for the notification badge
         int lowStockCount = 0;
@@ -280,9 +279,7 @@
             }
             catch { /* swallow for startup safety */ }
         }
-
     }
-
 
 
     <nav class="navbar navbar-expand-lg">
@@ -307,54 +304,54 @@
 
                 <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
 
-            <!-- Center: brand logo + text -->
-            <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
-                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
-                <span class="d-none d-sm-inline">Michaelhouse</span>
+                <!-- Center: brand logo + text -->
+                <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
+                    <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
+                    <span class="d-none d-sm-inline">Michaelhouse</span>
 
-            </a>
+                </a>
 
-            <!-- Right: notification, user pill, logout -->
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <!-- Notification bell (child action) -->
-                @Html.Action("NotificationBadge", "Notification")
+                <!-- Right: notification, user pill, logout -->
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <!-- Notification bell (child action) -->
+                    @Html.Action("NotificationBadge", "Notification")
 
-                <!-- User info pill (only when logged in) -->
-                @if (isLoggedIn)
+                    <!-- User info pill (only when logged in) -->
+                    @if (isLoggedIn)
 
-                {
+                    {
 
-                    <div class="user-pill d-none d-md-block">
+                        <div class="user-pill d-none d-md-block">
 
-                        <i class="bi bi-person-circle me-1"></i>
+                            <i class="bi bi-person-circle me-1"></i>
 
-                        <span class="fw-bold">@userName</span>
+                            <span class="fw-bold">@userName</span>
 
-                        <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
+                            <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
 
-                    </div>
-                }
+                        </div>
+                    }
 
-                <!-- Logout button (only when logged in) -->
-                @if (isLoggedIn)
-                {
-                    <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
+                    <!-- Logout button (only when logged in) -->
+                    @if (isLoggedIn)
+                    {
+                        <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
 
-                        <i class="bi bi-box-arrow-right fs-5"></i>
+                            <i class="bi bi-box-arrow-right fs-5"></i>
 
-                    </a>
+                        </a>
 
-                }
+                    }
 
-                else if (!isHomePage)
+                    else if (!isHomePage)
 
-                {
+                    {
 
-                    <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
 
-                }
+                    }
 
-            </div>
+                </div>
 
         </div>
 
@@ -666,10 +663,10 @@
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                     }
 
                     else if (userRole == "Teacher")

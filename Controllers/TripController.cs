@@ -397,7 +397,7 @@ namespace Michaelhouse.Controllers
                 string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, Request.Url.Scheme);
 
                 students.Add(new ManifestStudentViewModel
-                {
+            {
                     StudentId = studentId,
                     StudentName = student.FirstName + " " + student.LastName,
                     ParentName = student.Parent?.Name ?? "N/A",

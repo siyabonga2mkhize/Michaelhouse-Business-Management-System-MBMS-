@@ -102,20 +102,13 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
         public ActionResult Create(
-           DriverApplication driverApplication,
-           HttpPostedFileBase idFile,
-           HttpPostedFileBase licenceFile,
-           IEnumerable<HttpPostedFileBase> otherFiles,
-           string otherDescription)
+     DriverApplication driverApplication,
+     HttpPostedFileBase idFile,
+     HttpPostedFileBase licenceFile,
+     IEnumerable<HttpPostedFileBase> otherFiles,
+     string otherDescription)
         {
             if (!ModelState.IsValid) return View(driverApplication);
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var e in errors)
-                    System.Diagnostics.Debug.WriteLine("Model error: " + e.ErrorMessage);
-                return View(driverApplication);
-            }
 
             driverApplication.UserId = GetCurrentAppUserId();
 
@@ -159,39 +152,61 @@ namespace Michaelhouse
             }
             db.SaveChanges();
 
-            // Trigger AI review in background (optional)
+            // ════════════════════════════════════════════════════════════════════
+            // Trigger AI review in background (single, clean version)
+            // ════════════════════════════════════════════════════════════════════
             try
             {
                 Task.Run(async () =>
                 {
                     try
                     {
-                        var ai = new AiReviewService();
-                        var result = await ai.ReviewDriverApplicationAsync(driverApplication);
-                        string decision;
-                        if (result.Recommendation == "APPROVE") decision = "Approved";
-                        else if (result.Recommendation == "REJECT") decision = "Rejected";
-                        else decision = "Waitlisted";
-
                         using (var db2 = new DBContextClass())
                         {
+                            var appWithDocs = db2.DriverApplications
+                                .Include(a => a.Documents)
+                                .FirstOrDefault(a => a.Id == driverApplication.Id);
+                            if (appWithDocs == null) return;
+
+                            var ai = new AiReviewService();
+                            var result = await ai.ReviewDriverApplicationAsync(appWithDocs);
+
+                            string decision = result.Recommendation == "APPROVE" ? "Approved"
+                                            : result.Recommendation == "REJECT" ? "Rejected"
+                                            : "Waitlisted";
+
                             var review = new AdminReview
                             {
                                 DriverAppId = driverApplication.Id,
-                                AdminId = "system",
+                                AdminId = "ai-system",
                                 Date = DateTime.UtcNow,
                                 Decision = decision,
                                 AdminNotes = result.Summary,
                                 AgreedWithAi = false
                             };
                             db2.AdminReviews.Add(review);
+
+                            var appToUpdate = db2.DriverApplications.Find(driverApplication.Id);
+                            if (appToUpdate != null)
+                            {
+                                appToUpdate.AiReviewSummary = result.Summary;
+                                appToUpdate.AiRecommendation = result.Recommendation;
+                                if (result.Recommendation == "APPROVE")
+                                    appToUpdate.Status = "Pending Interview";
+                                else
+                                    appToUpdate.Status = "Flagged";
+                            }
                             db2.SaveChanges();
                         }
                     }
-                    catch { /* log if needed */ }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"AI driver review failed: {ex.Message}");
+                    }
                 });
             }
             catch { /* ignore */ }
+            // ════════════════════════════════════════════════════════════════════
 
             // Send acknowledgment email (no account created)
             var currentUid = GetCurrentAppUserId();
@@ -317,6 +332,7 @@ Michaelhouse Transport Team
 
             return RedirectToAction("Details", new { id = id });
         }
+
         // POST: Create Driver Account (after successful interview)
         [HttpPost]
         [AdminOrTransportManagerOnly]

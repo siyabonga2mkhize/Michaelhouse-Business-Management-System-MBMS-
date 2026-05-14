@@ -45,127 +45,127 @@
     </div>
 
     @* --- SCROLLABLE CONTENT AREA --- *@
-<div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
-    @using (Html.BeginForm("CreateSchedule", "Trip", FormMethod.Post, new { @class = "h-full" }))
-    {
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="tripRequestId" value="@ViewBag.TripRequestId" />
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2">
+        @using (Html.BeginForm("CreateSchedule", "Trip", FormMethod.Post, new { @class = "h-full" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="tripRequestId" value="@ViewBag.TripRequestId" />
 
-        <div class="row g-5">
+            <div class="row g-5">
 
-            @* --- LEFT SIDE: CONFIGURATION & FILTERS --- *@
-            <div class="col-lg-4">
-                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-6">
-                    <div class="p-6 border-b border-gray-100 bg-gray-50/50">
-                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">01. Departure Parameters</h5>
-                    </div>
-                    <div class="p-8 space-y-8">
-
-                        @* Capacity Alert Banner *@
-                        @if (remaining <= 0)
-                        {
-                            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E]">
-                                <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-x-octagon-fill me-2"></i>Manifest Full</h6>
-                                <p class="text-xs font-serif italic mb-0">Maximum capacity reached. No further additions permitted.</p>
-                            </div>
-                        }
-                        else if (remaining < max)
-                        {
-                            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 text-amber-700">
-                                <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Partial Capacity</h6>
-                                <p class="text-xs font-serif italic mb-0"><span class="font-mono font-bold">@remaining</span> out of <span class="font-mono font-bold">@max</span> seats remaining in transport registry.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="bg-green-50 border-l-4 border-[#10b981] p-4 text-green-700">
-                                <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-check-circle-fill me-2"></i>Maximum Availability</h6>
-                                <p class="text-xs font-serif italic mb-0">Registry open. Maximum transport limit: <span class="font-mono font-bold">@max</span> pax.</p>
-                            </div>
-                        }
-
-                        <div>
-                            <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Scheduled Departure Date</label>
-                            <input type="date" name="scheduledDate" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors" required
-                                   value="@(tripRequest.DepartureTime.ToString("yyyy-MM-dd"))" />
-                            <small class="text-[9px] text-gray-400 mt-2 block font-serif italic">Defaults to requested date. Adjust if logistics dictate otherwise.</small>
+                @* --- LEFT SIDE: CONFIGURATION & FILTERS --- *@
+                <div class="col-lg-4">
+                    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-6">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+                            <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">01. Departure Parameters</h5>
                         </div>
+                        <div class="p-8 space-y-8">
 
-                        <div class="border-t border-gray-50 pt-6">
-                            <h6 class="text-[10px] uppercase font-bold text-gray-400 mb-4 tracking-[2px]">Filter Student Registry</h6>
+                            @* Capacity Alert Banner *@
+                            @if (remaining <= 0)
+                            {
+                                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E]">
+                                    <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-x-octagon-fill me-2"></i>Manifest Full</h6>
+                                    <p class="text-xs font-serif italic mb-0">Maximum capacity reached. No further additions permitted.</p>
+                                </div>
+                            }
+                            else if (remaining < max)
+                            {
+                                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 text-amber-700">
+                                    <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Partial Capacity</h6>
+                                    <p class="text-xs font-serif italic mb-0"><span class="font-mono font-bold">@remaining</span> out of <span class="font-mono font-bold">@max</span> seats remaining in transport registry.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-green-50 border-l-4 border-[#10b981] p-4 text-green-700">
+                                    <h6 class="text-[10px] font-bold uppercase tracking-[2px] mb-1"><i class="bi bi-check-circle-fill me-2"></i>Maximum Availability</h6>
+                                    <p class="text-xs font-serif italic mb-0">Registry open. Maximum transport limit: <span class="font-mono font-bold">@max</span> pax.</p>
+                                </div>
+                            }
 
-                            <div class="space-y-4">
-                                <div>
-                                    <select id="gradeFilter" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700">
-                                        <option value="">-- All Academic Grades --</option>
-                                        @foreach (var g in grades ?? new List<int>())
-                                        {
-                                            <option value="@g" @(selectedGrade == g ? "selected" : "")>Grade @g</option>
-                                        }
-                                    </select>
+                            <div>
+                                <label class="text-[9px] uppercase font-bold text-gray-400 mb-2 block">Scheduled Departure Date</label>
+                                <input type="date" name="scheduledDate" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors" required
+                                       value="@(tripRequest.DepartureTime.ToString("yyyy-MM-dd"))" />
+                                <small class="text-[9px] text-gray-400 mt-2 block font-serif italic">Defaults to requested date. Adjust if logistics dictate otherwise.</small>
+                            </div>
+
+                            <div class="border-t border-gray-50 pt-6">
+                                <h6 class="text-[10px] uppercase font-bold text-gray-400 mb-4 tracking-[2px]">Filter Student Registry</h6>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <select id="gradeFilter" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700">
+                                            <option value="">-- All Academic Grades --</option>
+                                            @foreach (var g in grades ?? new List<int>())
+                                            {
+                                                <option value="@g" @(selectedGrade == g ? "selected" : "")>Grade @g</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <select id="subjectFilter" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700">
+                                            <option value="">-- All Subject Clusters --</option>
+                                            @foreach (var sub in subjects ?? new List<Michaelhouse.Models.Subject>())
+                                            {
+                                                <option value="@sub.SubjectId" @(selectedSubject == sub.SubjectId ? "selected" : "")>@sub.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <button type="button" id="applyFilters" class="w-full bg-gray-900 text-white py-3 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all mt-2">
+                                        Apply Filters
+                                    </button>
                                 </div>
-                                <div>
-                                    <select id="subjectFilter" class="w-full border-b-2 border-gray-100 py-2 outline-none focus:border-[#C21E2E] text-sm font-serif italic text-gray-700">
-                                        <option value="">-- All Subject Clusters --</option>
-                                        @foreach (var sub in subjects ?? new List<Michaelhouse.Models.Subject>())
-                                        {
-                                            <option value="@sub.SubjectId" @(selectedSubject == sub.SubjectId ? "selected" : "")>@sub.Name</option>
-                                        }
-                                    </select>
-                                </div>
-                                <button type="button" id="applyFilters" class="w-full bg-gray-900 text-white py-3 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all mt-2">
-                                    Apply Filters
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* --- RIGHT SIDE: STUDENT MANIFEST --- *@
+                <div class="col-lg-8">
+                    <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-6 flex flex-col">
+
+                        @* Archival Dot Grid Header with Controls *@
+                        <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden">
+                            <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                                 style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+                            <div class="relative z-10">
+                                <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-0">02. Passenger Selection</h5>
+                            </div>
+
+                            <div class="relative z-10 flex gap-2">
+                                <button type="button" id="selectAllBtn" class="bg-white border border-green-500 text-green-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-50 transition-all shadow-sm">
+                                    <i class="bi bi-check-all me-1"></i> Select All
+                                </button>
+                                <button type="button" id="clearAllBtn" class="bg-white border border-gray-300 text-gray-500 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-all shadow-sm">
+                                    <i class="bi bi-eraser me-1"></i> Clear
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            @* --- RIGHT SIDE: STUDENT MANIFEST --- *@
-            <div class="col-lg-8">
-                <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative mb-6 flex flex-col">
-
-                    @* Archival Dot Grid Header with Controls *@
-                    <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden">
-                        <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
-                             style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-
-                        <div class="relative z-10">
-                            <h5 class="text-xs uppercase tracking-[4px] font-bold text-gray-900 mb-0">02. Passenger Selection</h5>
+                        @* Dynamic Partial View Container *@
+                        <div class="p-6 bg-gray-50/30 border-b border-gray-100 min-h-[300px]">
+                            <div id="studentList">
+                                @Html.Partial("_StudentCheckboxList", Model)
+                            </div>
                         </div>
 
-                        <div class="relative z-10 flex gap-2">
-                            <button type="button" id="selectAllBtn" class="bg-white border border-green-500 text-green-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-50 transition-all shadow-sm">
-                                <i class="bi bi-check-all me-1"></i> Select All
-                            </button>
-                            <button type="button" id="clearAllBtn" class="bg-white border border-gray-300 text-gray-500 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-all shadow-sm">
-                                <i class="bi bi-eraser me-1"></i> Clear
+                        @* Footer Controls *@
+                        <div class="p-6 bg-[#1a1a1a] text-white flex justify-between items-center">
+                            <div id="capacityMessage" class="text-[10px] uppercase font-bold tracking-[2px] text-gray-400 font-mono">
+                                Calculating manifest capability...
+                            </div>
+                            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-white hover:text-[#C21E2E] transition-all shadow-xl">
+                                <i class="bi bi-shield-check me-2"></i> Authorize Manifest
                             </button>
                         </div>
                     </div>
-
-                    @* Dynamic Partial View Container *@
-                    <div class="p-6 bg-gray-50/30 border-b border-gray-100 min-h-[300px]">
-                        <div id="studentList">
-                            @Html.Partial("_StudentCheckboxList", Model)
-                        </div>
-                    </div>
-
-                    @* Footer Controls *@
-                    <div class="p-6 bg-[#1a1a1a] text-white flex justify-between items-center">
-                        <div id="capacityMessage" class="text-[10px] uppercase font-bold tracking-[2px] text-gray-400 font-mono">
-                            Calculating manifest capability...
-                        </div>
-                        <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-white hover:text-[#C21E2E] transition-all shadow-xl">
-                            <i class="bi bi-shield-check me-2"></i> Authorize Manifest
-                        </button>
-                    </div>
                 </div>
-            </div>
 
-        </div>
-    }
+            </div>
+        }
     @{
         var existingSchedule = ViewBag.ExistingSchedule as Michaelhouse.Models.TripSchedule;
     }
@@ -179,7 +179,7 @@
             </a>
         </div>
     }
-</div>
+    </div>
 </div>
 
 <style>

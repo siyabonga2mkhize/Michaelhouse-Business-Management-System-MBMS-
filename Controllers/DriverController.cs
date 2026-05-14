@@ -193,6 +193,7 @@ namespace Michaelhouse.Controllers
         }
 
 
+        // Trip Manifest — view students for a specific assigned trip
         public ActionResult TripManifest(int? scheduleId)
         {
             if (scheduleId == null)
@@ -294,7 +295,7 @@ namespace Michaelhouse.Controllers
                 string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, Request.Url.Scheme);
 
                 students.Add(new ManifestStudentViewModel
-                {
+            {
                     StudentId = studentId,
                     StudentName = student.FirstName + " " + student.LastName,
                     ParentName = student.Parent?.Name ?? "N/A",
@@ -313,6 +314,7 @@ namespace Michaelhouse.Controllers
             ViewBag.VehicleDisplay = vehicleDisplay;
             return View(students);
         }
+
         // Mark students present/absent — before departure or after return
         [HttpPost]
         [ValidateAntiForgeryToken]

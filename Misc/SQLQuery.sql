@@ -1,6 +1,8 @@
 ﻿select * from SchoolClasses
 
 select * from appusers
+    
+
 
 Select * from ClassSubjects
 
@@ -838,42 +840,42 @@ CREATE TABLE dbo.DriverDocuments (
 -- ============================================
 -- TEST DATA FOR DriverApplications
 -- ============================================
+-- Add a default value (0 = false) for InterviewEmailSent
 
--- Application 1: Pending, with documents, linked to existing AppUser (e.g., UserId 1015 = Themba Nkosi)
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+-- Application 1: Pending, with documents, linked to existing AppUser (UserId 1015)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Themba Nkosi', '9001015009087', '0711111111', 'themba.nkosi@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, 1015, NULL, NULL);
+('Themba Nkosi', '9001015009087', '0711111111', 'themba.nkosi@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, 1015, NULL, NULL, 0);
 
 -- Application 2: Approved, waiting for interview, linked to existing AppUser
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Andile Zulu', '9202027009089', '0733333333', 'andile.zulu@example.com', 'LIC1003', '2029-05-20', 1, NULL, 'Approved', 'ID and licence verified. AI score 85.', DATEADD(day, -5, GETDATE()), DATEADD(day, -2, GETDATE()), 1017, NULL, NULL);
+('Andile Zulu', '9202027009089', '0733333333', 'andile.zulu@example.com', 'LIC1003', '2029-05-20', 1, NULL, 'Approved', 'ID and licence verified. AI score 85.', DATEADD(day, -5, GETDATE()), DATEADD(day, -2, GETDATE()), 1017, NULL, NULL, 0);
 
 -- Application 3: Rejected, with rejection reason
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Nkosi Khumalo', '8703038009090', '0744444444', 'nkosi.khumalo@example.com', 'LIC1004', '2026-11-30', 0, NULL, 'Rejected', 'PDP not held and licence expires soon.', DATEADD(day, -10, GETDATE()), DATEADD(day, -8, GETDATE()), 1018, NULL, NULL);
+('Nkosi Khumalo', '8703038009090', '0744444444', 'nkosi.khumalo@example.com', 'LIC1004', '2026-11-30', 0, NULL, 'Rejected', 'PDP not held and licence expires soon.', DATEADD(day, -10, GETDATE()), DATEADD(day, -8, GETDATE()), 1018, NULL, NULL, 0);
 
--- Application 4: Pending, no user linked (anonymous application with public token)
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+-- Application 4: Pending, no user linked (anonymous with public token)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Sibusiso Dlamini', '9001015009087', '0710000000', 'sibusiso.dlamini@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, NULL, 'e0d123e5f3169a7f3d5b1c2a4f6e8d9c7b5a3e1f2d4c6b8a0e2f4c6d8a0e1f', DATEADD(day, 14, GETDATE()));
+('Sibusiso Dlamini', '9001015009087', '0710000000', 'sibusiso.dlamini@example.com', 'LIC1001', '2028-12-31', 1, NULL, 'Pending', NULL, GETDATE(), NULL, NULL, 'e0d123e5f3169a7f3d5b1c2a4f6e8d9c7b5a3e1f2d4c6b8a0e2f4c6d8a0e1f', DATEADD(day, 14, GETDATE()), 0);
 
 -- Application 5: Approved, not yet interviewed, anonymous with public token
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Thabo Mkhize', '8805056009088', '0722222222', 'thabo.mkhize@example.com', 'LIC1002', '2027-10-15', 1, NULL, 'Approved', 'Interview scheduled for next week.', DATEADD(day, -3, GETDATE()), GETDATE(), NULL, 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3', DATEADD(day, 7, GETDATE()));
+('Thabo Mkhize', '8805056009088', '0722222222', 'thabo.mkhize@example.com', 'LIC1002', '2027-10-15', 1, NULL, 'Approved', 'Interview scheduled for next week.', DATEADD(day, -3, GETDATE()), GETDATE(), NULL, 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3', DATEADD(day, 7, GETDATE()), 0);
 
 -- Application 6: Rejected, anonymous, with reason
-INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry)
+INSERT INTO DriverApplications (FullName, IDNumber, PhoneNumber, Email, LicenceNumber, LicenceExpiryDate, HasPDP, DocumentPath, Status, AdminNotes, DateSubmitted, ReviewedDate, UserId, PublicTokenHash, PublicTokenExpiry, InterviewEmailSent)
 VALUES 
-('Bongani Ndlovu', '9801015009087', '0799999999', 'bongani.ndlovu@example.com', 'LIC2001', '2025-01-01', 0, NULL, 'Rejected', 'Failed background check.', DATEADD(day, -15, GETDATE()), DATEADD(day, -12, GETDATE()), NULL, NULL, NULL);
+('Bongani Ndlovu', '9801015009087', '0799999999', 'bongani.ndlovu@example.com', 'LIC2001', '2025-01-01', 0, NULL, 'Rejected', 'Failed background check.', DATEADD(day, -15, GETDATE()), DATEADD(day, -12, GETDATE()), NULL, NULL, NULL, 0);
 
 -- ============================================
 -- TEST DATA FOR DriverDocuments
 -- ============================================
--- For each application, create 2‑3 documents (ID, Licence, Other)
--- Note: The FilePath must point to real or dummy files. Use dummy paths for testing.
+-- These will now work because the parent rows exist
 
 -- Documents for Application 1 (Pending, Themba Nkosi)
 INSERT INTO DriverDocuments (DriverApplicationId, FilePath, DocumentType, OtherDocumentType)
@@ -913,9 +915,10 @@ VALUES
 (6, '/Uploads/id_bongani.pdf', 'ID', NULL),
 (6, '/Uploads/licence_bongani.pdf', 'Licence', NULL);
 
-SELECT Id, FullName, LicenceExpiryDate FROM DriverApplications WHERE LicenceExpiryDate IS NULL;
-
-
+-- Final query (fixed: use a proper condition or remove the WHERE clause)
+SELECT Id, FullName, LicenceExpiryDate FROM DriverApplications;
+-- If you want only rows where LicenceExpiryDate IS NULL, use:
+-- SELECT Id, FullName, LicenceExpiryDate FROM DriverApplications WHERE LicenceExpiryDate IS NULL;
 --
 SELECT Id, FullName, Email, InterviewDateTime, InterviewMeetingLink 
 FROM DriverApplications 
@@ -925,6 +928,12 @@ WHERE Id = 2
 Select * from man ;
 
 Select * from Drivers;
+
+Select * from Driverapplications;
+
+SELECT Id,FullName , ImageUrl FROM Drivers;
+
+UPDATE Drivers SET ImageUrl = '/Content/Images/Drivers/thabo.jpg' WHERE FullName = 'Thabo Mkhize';
 
 DELETE FROM Drivers
 WHERE Id IN (1, 5, 6);
@@ -991,3 +1000,26 @@ FROM sys.tables t
 INNER JOIN sys.columns c ON t.object_id = c.object_id
 INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
 ORDER BY t.name, c.column_id;
+
+
+SELECT Id, VehicleNumber, ImageUrl FROM Vehicles;
+Select * from Vehicles;
+delete from Vehicles where Id in (2,3);
+
+-- Toyota Quantum (GP 123 456) – already done, but here for completeness
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/quantum1.jpg' WHERE VehicleNumber = 'GP 123 456';
+
+-- Ford Transit (GP 345 678)
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/ford1.jpg' WHERE VehicleNumber = 'GP 345 678';
+
+-- Hyundai H1 (GP 789 012)
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/hyundai1.jpg' WHERE VehicleNumber = 'GP 789 012';
+
+-- Mercedes Sprinter (GP 901 234)
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber = 'GP 901 234';
+
+-- Nissan NP200 (GP 456 789)
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE VehicleNumber = 'GP 456 789';
+
+-- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
+UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');

@@ -116,8 +116,8 @@
     <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
       <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
     </Reference>
-    <Reference Include="Stripe.net, Version=50.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.50.4.1\lib\net462\Stripe.net.dll</HintPath>
+    <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -224,11 +224,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605131652431_initialcreate.cs" />
-    <Compile Include="Migrations\202605131652431_initialcreate.Designer.cs">
-      <DependentUpon>202605131652431_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605140105161_initialcreate.cs" />
+    <Compile Include="Migrations\202605140105161_initialcreate.Designer.cs">
+      <DependentUpon>202605140105161_initialcreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -237,6 +236,7 @@
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Driver.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
@@ -273,7 +273,6 @@
     <Compile Include="Models\AppUser.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Assessment.cs" />
-    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
@@ -350,6 +349,8 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
+    <Content Include="Misc\Driver.pdf" />
+    <Content Include="Misc\ID.pdf" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\html5-qrcode.min.js" />
@@ -368,6 +369,10 @@
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
     <Content Include="Views\Driver\TripManifest.cshtml" />
+    <Content Include="Views\TransportManager\Details.cshtml" />
+    <Content Include="Views\TransportManager\Index.cshtml" />
+    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
     <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
@@ -576,8 +581,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605131652431_initialcreate.resx">
-      <DependentUpon>202605131652431_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605140105161_initialcreate.resx">
+      <DependentUpon>202605140105161_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
