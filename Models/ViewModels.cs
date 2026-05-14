@@ -195,4 +195,14 @@ namespace Michaelhouse.Models.ViewModels
         [Display(Name = "Notes (Optional)")]
         public string Notes { get; set; } = string.Empty;
     }
+    public class QRCodeViewModel
+    {
+        public string StudentName { get; set; }
+        public int StudentId { get; set; }
+        public string BeforeToken { get; set; }
+        public string AfterToken { get; set; }
+        public string BeforeQR { get; set; }
+        public string AfterQR { get; set; }
+    }
+
 }

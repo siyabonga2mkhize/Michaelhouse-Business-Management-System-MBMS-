@@ -1,0 +1,68 @@
+0000000000000000000000000000000000000000 34db096178b8523d3af1c24ffa7e2761578c1991 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774466881 +0200	commit (initial): This is the Beginning
+34db096178b8523d3af1c24ffa7e2761578c1991 c1f1ecaf6767f5ed2134140b30a0ebf16b63fd94 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774467047 +0200	pull origin main --rebase (start): checkout c1f1ecaf6767f5ed2134140b30a0ebf16b63fd94
+c1f1ecaf6767f5ed2134140b30a0ebf16b63fd94 05b3c15e2775ad06cd38410a9fdbc9316b23ba59 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774467050 +0200	pull origin main --rebase (pick): This is the Beginning
+05b3c15e2775ad06cd38410a9fdbc9316b23ba59 05b3c15e2775ad06cd38410a9fdbc9316b23ba59 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774467050 +0200	pull origin main --rebase (finish): returning to refs/heads/main
+05b3c15e2775ad06cd38410a9fdbc9316b23ba59 deed66f5d74de3e7c99922eb065b46e911d84e5f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774946085 +0200	pull origin main: Fast-forward
+deed66f5d74de3e7c99922eb065b46e911d84e5f deed66f5d74de3e7c99922eb065b46e911d84e5f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774946107 +0200	checkout: moving from main to Siya
+deed66f5d74de3e7c99922eb065b46e911d84e5f 4d0e14a8c90b04b6168315cb5d522cc4b29e3b94 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1774951731 +0200	commit: Models done and Database
+4d0e14a8c90b04b6168315cb5d522cc4b29e3b94 a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775044364 +0200	commit: Student Attendance finally
+a79d0386ae8c267d9797ae1c8dd3359ea817381e deed66f5d74de3e7c99922eb065b46e911d84e5f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775044375 +0200	checkout: moving from Siya to main
+deed66f5d74de3e7c99922eb065b46e911d84e5f 81708fff1a377212203386e3b858bfb9b51e7f25 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775044406 +0200	pull origin main: Fast-forward
+81708fff1a377212203386e3b858bfb9b51e7f25 81708fff1a377212203386e3b858bfb9b51e7f25 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775048933 +0200	reset: moving to HEAD
+81708fff1a377212203386e3b858bfb9b51e7f25 a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775048948 +0200	checkout: moving from main to siya
+a79d0386ae8c267d9797ae1c8dd3359ea817381e 81708fff1a377212203386e3b858bfb9b51e7f25 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775049022 +0200	checkout: moving from siya to main
+81708fff1a377212203386e3b858bfb9b51e7f25 2aaf029baa7675be0273676afa65ab1905ae1bb0 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775065265 +0200	commit: Solved Conflict
+2aaf029baa7675be0273676afa65ab1905ae1bb0 2aaf029baa7675be0273676afa65ab1905ae1bb0 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775065672 +0200	checkout: moving from main to push-main
+2aaf029baa7675be0273676afa65ab1905ae1bb0 a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775079515 +0200	checkout: moving from push-main to siya
+a79d0386ae8c267d9797ae1c8dd3359ea817381e a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775243933 +0200	reset: moving to HEAD
+a79d0386ae8c267d9797ae1c8dd3359ea817381e a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775251888 +0200	reset: moving to HEAD
+a79d0386ae8c267d9797ae1c8dd3359ea817381e 2aaf029baa7675be0273676afa65ab1905ae1bb0 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775252004 +0200	checkout: moving from siya to main
+2aaf029baa7675be0273676afa65ab1905ae1bb0 1e945d676bf9e10324715ec3675b82c4788f671d siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775252039 +0200	pull origin main: Fast-forward
+1e945d676bf9e10324715ec3675b82c4788f671d a79d0386ae8c267d9797ae1c8dd3359ea817381e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775252689 +0200	checkout: moving from main to siya
+a79d0386ae8c267d9797ae1c8dd3359ea817381e eb5360f36d335ca7a0e6dee0abccd4686f0c8626 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775431418 +0200	commit (merge): added all models, controller but not running
+eb5360f36d335ca7a0e6dee0abccd4686f0c8626 c39c7da68534f69e971cc7afa5a7e91a9cc2d1aa siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775435104 +0200	commit: Resolved Conflict:
+c39c7da68534f69e971cc7afa5a7e91a9cc2d1aa 760ea6cb04eca0071116bd3b0229170050edcd90 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775495196 +0200	commit: Wasn't working
+760ea6cb04eca0071116bd3b0229170050edcd90 998ce727a68e5c31c6e14b662580cd4a5618da1e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775497655 +0200	commit (merge): Resolved Conflict
+998ce727a68e5c31c6e14b662580cd4a5618da1e bdab7c95dd21b94cedf71f798d596de833613d44 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775502261 +0200	commit: Pause Deep seek v1
+bdab7c95dd21b94cedf71f798d596de833613d44 1e945d676bf9e10324715ec3675b82c4788f671d siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775502277 +0200	checkout: moving from siya to main
+1e945d676bf9e10324715ec3675b82c4788f671d 5133b8160eb5d3e909116c85dcafbdf2c55e4a7f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775502298 +0200	pull origin main: Fast-forward
+5133b8160eb5d3e909116c85dcafbdf2c55e4a7f bdab7c95dd21b94cedf71f798d596de833613d44 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775503136 +0200	checkout: moving from main to siya
+bdab7c95dd21b94cedf71f798d596de833613d44 79b58711ed8249477c781ec8476100d0c3aeb527 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775519962 +0200	commit: Done Teacher & Student Attendance Fully Working
+79b58711ed8249477c781ec8476100d0c3aeb527 cca32e347f3420d52bd8be2b8b6a897b7632fa31 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1775521326 +0200	commit (merge): Resolved Conflict
+cca32e347f3420d52bd8be2b8b6a897b7632fa31 7309b0e73d3243af520d556ddcfa9eaef3f29083 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1776279816 +0200	commit: bug Fix
+7309b0e73d3243af520d556ddcfa9eaef3f29083 93edd629ae1eea15125114ae3aeeb02aac4b8c5c siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1776279948 +0200	commit (merge): fixed conflict
+93edd629ae1eea15125114ae3aeeb02aac4b8c5c 4459d05b49cc277f52198d9280313c0f2aea2251 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1776281365 +0200	pull origin main: Fast-forward
+4459d05b49cc277f52198d9280313c0f2aea2251 4459d05b49cc277f52198d9280313c0f2aea2251 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1777651714 +0200	reset: moving to HEAD
+4459d05b49cc277f52198d9280313c0f2aea2251 5133b8160eb5d3e909116c85dcafbdf2c55e4a7f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1777651717 +0200	checkout: moving from siya to main
+5133b8160eb5d3e909116c85dcafbdf2c55e4a7f 22e7a32d6064f9fdc278eeeabae05c1a767086b5 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1777651728 +0200	pull origin main: Fast-forward
+22e7a32d6064f9fdc278eeeabae05c1a767086b5 22c97a675ab51d49147b94164cc27f83c6c42952 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778116509 +0200	commit: Teacher Side Okay
+22c97a675ab51d49147b94164cc27f83c6c42952 9b37910a4842aea160028e4746e3bfb1fbcdb316 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778147076 +0200	commit: Transport Manager is not almost fully functional
+9b37910a4842aea160028e4746e3bfb1fbcdb316 d93fb7253cc04371944496e7d7378df419511afb siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778147693 +0200	commit (merge): conflict fix
+d93fb7253cc04371944496e7d7378df419511afb 4459d05b49cc277f52198d9280313c0f2aea2251 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778147791 +0200	checkout: moving from main to siya
+4459d05b49cc277f52198d9280313c0f2aea2251 d93fb7253cc04371944496e7d7378df419511afb siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778147852 +0200	pull origin main: Fast-forward
+d93fb7253cc04371944496e7d7378df419511afb c479717b9e432090b308686ca49aebebb0a7f6d8 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778149415 +0200	commit: Migratation Fix
+c479717b9e432090b308686ca49aebebb0a7f6d8 3c5f4d09e414833aa22f3389ae09d055bf8a15f0 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778238394 +0200	commit: UI Matching
+3c5f4d09e414833aa22f3389ae09d055bf8a15f0 a971bc8d18434a753a721616f520525545ad9a68 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778240205 +0200	commit (merge): Conflict Fixed
+a971bc8d18434a753a721616f520525545ad9a68 42654d5971f94c422d4a822792847f151a1ea93c siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778240454 +0200	commit: Mirgratation Conflict Fixed
+42654d5971f94c422d4a822792847f151a1ea93c fe96c50b572c785960fa494bfa84dd9e28eb0b10 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778244484 +0200	pull origin main: Fast-forward
+fe96c50b572c785960fa494bfa84dd9e28eb0b10 d93fb7253cc04371944496e7d7378df419511afb siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778244762 +0200	checkout: moving from siya to main
+d93fb7253cc04371944496e7d7378df419511afb fe96c50b572c785960fa494bfa84dd9e28eb0b10 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778244779 +0200	pull origin main: Fast-forward
+fe96c50b572c785960fa494bfa84dd9e28eb0b10 cf16df981d414de387d2f3c49fb870954a941939 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778487177 +0200	commit: moving to PC
+cf16df981d414de387d2f3c49fb870954a941939 555ae4ce0fd4d3820dd08b5842b7272709cb56ed siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778490574 +0200	commit: moving to PC
+555ae4ce0fd4d3820dd08b5842b7272709cb56ed 71e81aa3f1581ba1c07fdc48d3565d73d6a80907 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778523061 +0200	pull origin main: Fast-forward
+71e81aa3f1581ba1c07fdc48d3565d73d6a80907 344bff27da0de3bb06628bc6be9ce0010f1017a6 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778570306 +0200	commit: moving to Computer
+344bff27da0de3bb06628bc6be9ce0010f1017a6 fb4e685db5bda8deeabea8cca36013c22ff93ed7 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778571533 +0200	commit (merge): Conflits Solved
+fb4e685db5bda8deeabea8cca36013c22ff93ed7 f5807a2974f8d3940db31c2b8c9cd85addb6142e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580244 +0200	commit: to siya
+f5807a2974f8d3940db31c2b8c9cd85addb6142e fe96c50b572c785960fa494bfa84dd9e28eb0b10 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580259 +0200	checkout: moving from main to siya
+fe96c50b572c785960fa494bfa84dd9e28eb0b10 f5807a2974f8d3940db31c2b8c9cd85addb6142e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580264 +0200	merge main: Fast-forward
+f5807a2974f8d3940db31c2b8c9cd85addb6142e f5807a2974f8d3940db31c2b8c9cd85addb6142e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580284 +0200	checkout: moving from siya to main
+f5807a2974f8d3940db31c2b8c9cd85addb6142e fb4e685db5bda8deeabea8cca36013c22ff93ed7 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580293 +0200	reset: moving to HEAD~1
+fb4e685db5bda8deeabea8cca36013c22ff93ed7 f5807a2974f8d3940db31c2b8c9cd85addb6142e siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778580305 +0200	checkout: moving from main to siya
+                                                                                                                                                                                ebd05e6ccb9750efe142d8732a511258ab943d5d fb4e685db5bda8deeabea8cca36013c22ff93ed7 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778586006 +0200	checkout: moving from siya to main
+fb4e685db5bda8deeabea8cca36013c22ff93ed7 ebd05e6ccb9750efe142d8732a511258ab943d5d siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778586024 +0200	pull origin main: Fast-forward
+ebd05e6ccb9750efe142d8732a511258ab943d5d 3fb2bd6c0a3ee6f7557d031cbc74cc5982b02c9f siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778588952 +0200	commit: heckit one yohh
+3fb2bd6c0a3ee6f7557d031cbc74cc5982b02c9f ebd05e6ccb9750efe142d8732a511258ab943d5d siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778588969 +0200	checkout: moving from main to siya
+ebd05e6ccb9750efe142d8732a511258ab943d5d 06e239242637bf88c78b675521ccf34cbe4e59bb siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778618449 +0200	commit: Seed TM
+06e239242637bf88c78b675521ccf34cbe4e59bb 153fa13f22e66be1951f0ddeff102359012e7429 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778666091 +0200	commit: Deploying
+153fa13f22e66be1951f0ddeff102359012e7429 d22841215b0e596fa555351db313b3368c2b2421 siyabonga2mkhize <siyabonga2mkhize@gmail.com> 1778678166 +0200	commit: Wokring QRCODE
+                                                                                                                                                                              

@@ -111,6 +111,11 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
     <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
@@ -198,6 +203,7 @@
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -218,11 +224,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605132015374_addAdminReview.cs" />
-    <Compile Include="Migrations\202605132015374_addAdminReview.Designer.cs">
-      <DependentUpon>202605132015374_addAdminReview.cs</DependentUpon>
+    <Compile Include="Migrations\202605140202101_initialcreate.cs" />
+    <Compile Include="Migrations\202605140202101_initialcreate.Designer.cs">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -342,10 +347,10 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Misc\Driver.pdf" />
-    <Content Include="Misc\ID.pdf" />
+    <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <Content Include="Scripts\html5-qrcode.min.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -365,11 +370,24 @@
     <Content Include="Views\TransportManager\Index.cshtml" />
     <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
     <WebConfigFile Include="Web.config" />
+    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
+    <Content Include="Views\Trip\AttendanceError.cshtml" />
+    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
+    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
+    <Content Include="Views\Trip\TripQRCodes.cshtml" />
+    <Content Include="Views\Students\ScanQRCode.cshtml" />
+    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
+    <Content Include="Views\Shared\SingleQRCode.cshtml" />
+    <WebConfigFile Include="Web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </WebConfigFile>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -560,8 +578,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605132015374_addAdminReview.resx">
-      <DependentUpon>202605132015374_addAdminReview.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605140202101_initialcreate.resx">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

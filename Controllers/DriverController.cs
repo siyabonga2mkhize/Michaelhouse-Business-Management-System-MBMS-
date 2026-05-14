@@ -1,6 +1,7 @@
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
+using QRCoder;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -38,13 +39,23 @@ namespace Michaelhouse.Controllers
         public ActionResult MyTrips()
         {
             int driverId = (int)Session["DriverId"];
-            var trips = db.TripSchedules
+
+            var directTrips = db.TripSchedules
                 .Include(ts => ts.TripRequest)
                 .Include(ts => ts.TripStudents)
-                .Where(ts => ts.DriverId == driverId && ts.Status != "Completed")
-                .OrderBy(ts => ts.ScheduledDate)
-                .ToList();
-            return View(trips);
+                .Where(ts => ts.DriverId == driverId && ts.Status != "Completed");
+
+            var indirectTrips = db.TripVehicleAssignments
+                .Include(tva => tva.TripSchedule)
+                .Include(tva => tva.TripSchedule.TripRequest)
+                .Include(tva => tva.TripSchedule.TripStudents)
+                .Where(tva => tva.DriverId == driverId && tva.TripSchedule.Status != "Completed")
+                .Select(tva => tva.TripSchedule)
+                .Distinct();
+
+            var allTrips = directTrips.Union(indirectTrips).OrderBy(t => t.ScheduledDate).ToList();
+
+            return View(allTrips);
         }
 
         // ─────────────────────────────────────────────────────────────────
@@ -193,11 +204,27 @@ namespace Michaelhouse.Controllers
 
             int driverId = (int)Session["DriverId"];
 
+            // Try direct assignment first
             var schedule = db.TripSchedules
                 .Include("TripRequest")
                 .Include("TripStudents.Student.Parent")
+                .Include("Vehicle")
                 .FirstOrDefault(s => s.Id == scheduleId.Value && s.DriverId == driverId);
-            // ... rest stays the same
+
+            bool isIndirect = false;
+            if (schedule == null)
+            {
+                isIndirect = db.TripVehicleAssignments
+                    .Any(tva => tva.TripScheduleId == scheduleId.Value && tva.DriverId == driverId);
+                if (isIndirect)
+                {
+                    schedule = db.TripSchedules
+                        .Include("TripRequest")
+                        .Include("TripStudents.Student.Parent")
+                        .Include("Vehicle")
+                        .FirstOrDefault(s => s.Id == scheduleId.Value);
+                }
+            }
 
             if (schedule == null)
             {
@@ -205,20 +232,86 @@ namespace Michaelhouse.Controllers
                 return RedirectToAction("MyTrips");
             }
 
-            var students = schedule.TripStudents.Select(ts => new ManifestStudentViewModel
+            // Determine vehicle display
+            string vehicleDisplay = "—";
+            if (schedule.Vehicle != null)
+                vehicleDisplay = schedule.Vehicle.VehicleNumber;
+            else if (isIndirect)
             {
-                StudentId = ts.StudentId,
-                StudentName = ts.Student.FirstName + " " + ts.Student.LastName,
-                ParentName = ts.Student.Parent?.Name ?? "N/A",
-                EmergencyContactName = ts.Student.Parent?.EmergencyContactName ?? "Not provided",
-                EmergencyContactPhone = ts.Student.Parent?.EmergencyContactPhone ?? "",
-                AlreadyPresentBefore = ts.IsPresentBefore,
-                AlreadyPresentAfter = ts.IsPresentAfter,
-                IsPresentBefore = ts.IsPresentBefore ?? false,
-                IsPresentAfter = ts.IsPresentAfter ?? false
-            }).ToList();
+                var assignedVehicles = db.TripVehicleAssignments
+                    .Where(tva => tva.TripScheduleId == scheduleId.Value && tva.DriverId == driverId)
+                    .Select(tva => tva.Vehicle)
+                    .ToList();
+                if (assignedVehicles.Any())
+                    vehicleDisplay = string.Join(", ", assignedVehicles.Select(v => v.VehicleNumber));
+            }
+
+            // --- Generate QR codes for each student (same as teacher's Manifest) ---
+            var students = new List<ManifestStudentViewModel>();
+            foreach (var tripStudent in schedule.TripStudents)
+            {
+                int studentId = tripStudent.StudentId;
+                var student = tripStudent.Student;
+
+                // Departure token (Before)
+                var beforeToken = db.StudentAttendanceTokens
+                    .FirstOrDefault(t => t.TripScheduleId == schedule.Id && t.StudentId == studentId && t.Type == "Before");
+                if (beforeToken == null)
+                {
+                    beforeToken = new StudentAttendanceToken
+                    {
+                        StudentId = studentId,
+                        TripScheduleId = schedule.Id,
+                        Token = Guid.NewGuid().ToString("N"),
+                        Type = "Before",
+                        IsUsed = false,
+                        CreatedAt = DateTime.Now,
+                        ExpiryDate = schedule.ScheduledDate.AddDays(1)
+                    };
+                    db.StudentAttendanceTokens.Add(beforeToken);
+                }
+
+                // Return token (After)
+                var afterToken = db.StudentAttendanceTokens
+                    .FirstOrDefault(t => t.TripScheduleId == schedule.Id && t.StudentId == studentId && t.Type == "After");
+                if (afterToken == null)
+                {
+                    afterToken = new StudentAttendanceToken
+                    {
+                        StudentId = studentId,
+                        TripScheduleId = schedule.Id,
+                        Token = Guid.NewGuid().ToString("N"),
+                        Type = "After",
+                        IsUsed = false,
+                        CreatedAt = DateTime.Now,
+                        ExpiryDate = schedule.ScheduledDate.AddDays(1)
+                    };
+                    db.StudentAttendanceTokens.Add(afterToken);
+                }
+                db.SaveChanges();
+
+                // Generate QR code data URLs
+                string beforeUrl = Url.Action("MarkAttendance", "Trip", new { token = beforeToken.Token }, Request.Url.Scheme);
+                string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, Request.Url.Scheme);
+
+                students.Add(new ManifestStudentViewModel
+            {
+                    StudentId = studentId,
+                    StudentName = student.FirstName + " " + student.LastName,
+                    ParentName = student.Parent?.Name ?? "N/A",
+                    EmergencyContactName = student.Parent?.EmergencyContactName ?? "Not provided",
+                    EmergencyContactPhone = student.Parent?.EmergencyContactPhone ?? "",
+                    AlreadyPresentBefore = tripStudent.IsPresentBefore ?? false,
+                    AlreadyPresentAfter = tripStudent.IsPresentAfter ?? false,
+                    IsPresentBefore = tripStudent.IsPresentBefore ?? false,
+                    IsPresentAfter = tripStudent.IsPresentAfter ?? false,
+                    BeforeQR = GenerateQRCodeDataUrl(beforeUrl),
+                    AfterQR = GenerateQRCodeDataUrl(afterUrl)
+                });
+            }
 
             ViewBag.Schedule = schedule;
+            ViewBag.VehicleDisplay = vehicleDisplay;
             return View(students);
         }
 
@@ -315,6 +408,56 @@ namespace Michaelhouse.Controllers
             }
 
             return RedirectToAction("MyTrips");
+        }
+        // GET: Trip/DepartureQRCode/5
+        //[AdminOrTransportManagerOnly]
+        public ActionResult DepartureQRCode(int scheduleId)
+        {
+            var schedule = db.TripSchedules.Find(scheduleId);
+            if (schedule == null) return HttpNotFound();
+
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "before" }, Request.Url.Scheme);
+            string qrImage = GenerateQRCodeDataUrl(qrUrl);
+
+            ViewBag.Schedule = schedule;
+            ViewBag.QRCodeImage = qrImage;
+            ViewBag.Type = "Departure";
+            ViewBag.Instruction = "Scan to mark your departure";
+            return View("SingleQRCode");
+        }
+
+        // GET: Trip/ReturnQRCode/5
+        //[AdminOrTransportManagerOnly]
+        public ActionResult ReturnQRCode(int scheduleId)
+        {
+            var schedule = db.TripSchedules.Find(scheduleId);
+            if (schedule == null) return HttpNotFound();
+
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "after" }, Request.Url.Scheme);
+            string qrImage = GenerateQRCodeDataUrl(qrUrl);
+
+            ViewBag.Schedule = schedule;
+            ViewBag.QRCodeImage = qrImage;
+            ViewBag.Type = "Return";
+            ViewBag.Instruction = "Scan after the trip to mark your return";
+            return View("SingleQRCode");
+        }
+
+        // Add this helper inside DriverController (copy from TripController)
+        private string GenerateQRCodeDataUrl(string url)
+        {
+            using (var qrGenerator = new QRCodeGenerator())
+            using (var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q))
+            using (var qrCode = new QRCode(qrCodeData))
+            {
+                using (var bitmap = qrCode.GetGraphic(20))
+                using (var stream = new System.IO.MemoryStream())
+                {
+                    bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                    byte[] bytes = stream.ToArray();
+                    return "data:image/png;base64," + Convert.ToBase64String(bytes);
+                }
+            }
         }
 
         protected override void Dispose(bool disposing)

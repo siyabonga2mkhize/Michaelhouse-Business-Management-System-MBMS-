@@ -166,6 +166,19 @@
 
             </div>
         }
+    @{
+        var existingSchedule = ViewBag.ExistingSchedule as Michaelhouse.Models.TripSchedule;
+    }
+
+    @if (existingSchedule != null)
+    {
+        <div class="mt-6 text-center">
+            <a href="@Url.Action("GenerateQRCodes", "Trip", new { scheduleId = existingSchedule.Id })"
+               class="inline-block bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-gray-900 transition-all shadow-xl">
+                <i class="bi bi-qr-code me-2"></i> Generate Student QR Codes
+            </a>
+        </div>
+    }
     </div>
 </div>
 

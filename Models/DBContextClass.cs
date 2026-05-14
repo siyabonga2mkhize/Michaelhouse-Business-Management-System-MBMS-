@@ -5,7 +5,7 @@ namespace Michaelhouse.Models
 {
     public class DBContextClass : DbContext
     {
-        public DBContextClass() : base("name=MichaelHouse")
+        public DBContextClass() : base("name=schooldb")
         {
             Database.CommandTimeout = 60;
         }
@@ -70,6 +70,8 @@ namespace Michaelhouse.Models
         public DbSet<TripStudent> TripStudents { get; set; }
         public DbSet<TripVehicleAssignment> TripVehicleAssignments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+
+        public DbSet<StudentAttendanceToken> StudentAttendanceTokens { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

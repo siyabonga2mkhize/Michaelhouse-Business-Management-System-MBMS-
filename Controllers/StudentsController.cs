@@ -255,6 +255,11 @@ namespace Michaelhouse.Controllers
                 return PartialView("_SubjectAttendanceDetails", records);
             }
         }
+        [RequireLogin]
+        public ActionResult ScanQRCode()
+        {
+            return View();
+        }
 
     }
 }
