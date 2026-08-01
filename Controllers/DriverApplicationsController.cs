@@ -131,20 +131,27 @@ namespace Michaelhouse
             db.SaveChanges();
 
             // Save uploaded files
+            // Save uploaded files
             Action<HttpPostedFileBase, string> saveDoc = (file, docType) =>
             {
                 if (file == null || file.ContentLength == 0) return;
+
                 string fileName = Guid.NewGuid() + System.IO.Path.GetExtension(file.FileName);
-                var uploadsDir = Server.MapPath("~/Uploads");
+
+                // 1. Fetch the exact same folder path that the AI Review Service uses
+                string relativePath = System.Configuration.ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads";
+                string uploadsDir = Server.MapPath(relativePath);
+
                 if (!System.IO.Directory.Exists(uploadsDir))
                     System.IO.Directory.CreateDirectory(uploadsDir);
+
                 string path = System.IO.Path.Combine(uploadsDir, fileName);
                 file.SaveAs(path);
 
                 var doc = new DriverDocument
                 {
                     DriverApplicationId = driverApplication.Id,
-                    FilePath = "/Uploads/" + fileName,
+                    FilePath = fileName, // 2. Store ONLY the filename (not "/Uploads/") so the AI can combine it properly
                     DocumentType = docType,
                     OtherDocumentType = docType == "Other" ? otherDescription : null
                 };
