@@ -1,0 +1,60 @@
+@{
+    ViewBag.Title = "Residence Dashboard";
+}
+
+<h2>Residence Predictions</h2>
+
+<h3>Residences Likely to Become Full</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Residence</th>
+            <th>Current Occupied</th>
+            <th>Capacity</th>
+            <th>Likelihood</th>
+            <th>Explanation</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach(var p in (List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>)ViewBag.ResidencePredictions ?? new List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>()){
+    <tr>
+        <td>@p.ResidenceName</td>
+        <td>@p.CurrentOccupied</td>
+        <td>@p.Capacity</td>
+        <td>@String.Format("{0:P0}", p.LikelihoodFull)</td>
+        <td>@p.Explanation</td>
+    </tr>
+}
+    </tbody>
+</table>
+
+<h3>Rooms Likely to Become Empty</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Room</th>
+            <th>Occupied</th>
+            <th>Capacity</th>
+            <th>Likelihood</th>
+            <th>Explanation</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach(var r in (List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>)ViewBag.RoomPredictions ?? new List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>()){
+    <tr>
+        <td>@r.RoomNumber</td>
+        <td>@r.CurrentOccupied</td>
+        <td>@r.Capacity</td>
+        <td>@String.Format("{0:P0}", r.LikelihoodEmpty)</td>
+        <td>@r.Explanation</td>
+    </tr>
+}
+    </tbody>
+</table>
+
+<h3>Recommendations</h3>
+<ul>
+@foreach(var rec in (List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>)ViewBag.PredictionRecommendations ?? new List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>()){
+    <li>@rec.Text</li>
+}
+</ul>

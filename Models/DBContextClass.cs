@@ -15,7 +15,6 @@ namespace Michaelhouse.Models
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
-
         // ─── Application & Registration ──────────────────────────────────
         public DbSet<Application> Applications { get; set; }
         public DbSet<Document> Documents { get; set; }
@@ -72,6 +71,25 @@ namespace Michaelhouse.Models
         public DbSet<Notification> Notifications { get; set; }
 
         public DbSet<StudentAttendanceToken> StudentAttendanceTokens { get; set; }
+        public DbSet<StudentQRCode> StudentQRCodes { get; set; }
+
+        // Boarding/residence allocation entities
+        public DbSet<Residence> Residences { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Bed> Beds { get; set; }
+        public DbSet<ResidenceAssignment> ResidenceAssignments { get; set; }
+        public DbSet<DisciplinaryConflict> DisciplinaryConflicts { get; set; }
+        public DbSet<StudentProfile> StudentProfiles { get; set; }
+        public DbSet<RoomScoreAudit> RoomScoreAudits { get; set; }
+        public DbSet<AIResidenceRecommendation> AIResidenceRecommendations { get; set; }
+        public DbSet<AIAllocationHistory> AIAllocationHistories { get; set; }
+        public DbSet<ResidenceMovement> ResidenceMovements { get; set; }
+        public DbSet<AIWaitingList> AIWaitingLists { get; set; }
+        public DbSet<HouseMaster> HouseMasters { get; set; }
+        public DbSet<AIAlert> AIAlerts { get; set; }
+        public DbSet<AIRecommendationOverride> AIRecommendationOverrides { get; set; }
+        public DbSet<QRScanRecord> QRScanRecords { get; set; }
+        public DbSet<ResidenceAllocation> ResidenceAllocations { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
