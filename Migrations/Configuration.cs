@@ -212,11 +212,11 @@ namespace Michaelhouse.Migrations
 
                         var sampleStudents = new[]
                         {
-                            new Student { FirstName = "Amina", LastName = "Khan", DOB = DateTime.Today.AddYears(-14), CurrentGrade = "Grade 8", ParentId = parentsList[0].ParentId, StudentNumber = "S0001", Gender = "F", GradeLevel = 8, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Thabo", LastName = "Ntuli", DOB = DateTime.Today.AddYears(-15), CurrentGrade = "Grade 9", ParentId = parentsList[1].ParentId, StudentNumber = "S0002", Gender = "M", GradeLevel = 9, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Lindiwe", LastName = "Mthembu", DOB = DateTime.Today.AddYears(-16), CurrentGrade = "Grade 10", ParentId = parentsList[2].ParentId, StudentNumber = "S0003", Gender = "F", GradeLevel = 10, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Sipho", LastName = "Zulu", DOB = DateTime.Today.AddYears(-13), CurrentGrade = "Grade 8", ParentId = parentsList[3].ParentId, StudentNumber = "S0004", Gender = "M", GradeLevel = 8, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Nomsa", LastName = "Dlamini", DOB = DateTime.Today.AddYears(-17), CurrentGrade = "Grade 11", ParentId = parentsList[4].ParentId, StudentNumber = "S0005", Gender = "F", GradeLevel = 11, EnrollmentDate = DateTime.Now }
+                            new Student { FirstName = "Amina", LastName = "Khan", DOB = DateTime.Today.AddYears(-14), CurrentGrade = "Grade 8", ParentId = parentsList[0].ParentId, StudentNumber = "S0001", GradeLevel = 8, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Thabo", LastName = "Ntuli", DOB = DateTime.Today.AddYears(-15), CurrentGrade = "Grade 9", ParentId = parentsList[1].ParentId, StudentNumber = "S0002", GradeLevel = 9, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Lindiwe", LastName = "Mthembu", DOB = DateTime.Today.AddYears(-16), CurrentGrade = "Grade 10", ParentId = parentsList[2].ParentId, StudentNumber = "S0003", GradeLevel = 10, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Sipho", LastName = "Zulu", DOB = DateTime.Today.AddYears(-13), CurrentGrade = "Grade 8", ParentId = parentsList[3].ParentId, StudentNumber = "S0004", GradeLevel = 8, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Nomsa", LastName = "Dlamini", DOB = DateTime.Today.AddYears(-17), CurrentGrade = "Grade 11", ParentId = parentsList[4].ParentId, StudentNumber = "S0005", GradeLevel = 11, EnrollmentDate = DateTime.Now }
                         };
                         context.Students.AddRange(sampleStudents);
                         context.SaveChanges();
