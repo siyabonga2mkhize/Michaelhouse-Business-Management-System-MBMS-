@@ -177,8 +177,28 @@
                     errorMessageDiv.classList.add("hidden");
                     successMessageDiv.classList.remove("hidden");
 
-                    // Redirect
-                    window.location.href = decodedText;
+                    // Send the scanned value to server for AI verification
+                    fetch('@Url.Action("VerifyScan", "Students")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
+                        },
+                        body: JSON.stringify({ qrValue: decodedText })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.approved) {
+                            window.location.href = data.redirectUrl || window.location.href;
+                        } else {
+                            html5QrcodeScanner.pause(true);
+                            errorMessageDiv.innerHTML = '<i class="bi bi-x-octagon-fill me-1"></i> ' + (data.reason || 'Scan denied.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        errorMessageDiv.innerHTML = '<i class="bi bi-x-octagon-fill me-1"></i> Scan failed.';
+                    });
                 } else {
                     // Invalid QR Code Format
                     html5QrcodeScanner.pause(true);
@@ -196,6 +216,7 @@
                 console.warn(errorMessage);
             }
 
+// No-op to ensure file saved before integration - scanner callback will be extended by server endpoint.
             var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {
                 fps: 10,
                 qrbox: 250,

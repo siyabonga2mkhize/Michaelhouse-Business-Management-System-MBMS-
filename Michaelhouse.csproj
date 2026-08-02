@@ -113,11 +113,11 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
-      <HintPath>packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+    <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
     </Reference>
-    <Reference Include="Stripe.net, Version=52.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.52.2.0\lib\net462\Stripe.net.dll</HintPath>
+    <Reference Include="Stripe.net, Version=50.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.50.4.1\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -209,13 +209,18 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\ResidenceAllocationController.cs" />
+    <Compile Include="Controllers\ResidenceController.cs" />
+    <Compile Include="Controllers\StudentQRCodeController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
@@ -228,6 +233,7 @@
     <Compile Include="Migrations\202605140202101_initialcreate.Designer.cs">
       <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202606011745000_boardinghousemanagement.cs" />
     <Compile Include="Migrations\202608021134179_StuModelUpdate.cs" />
     <Compile Include="Migrations\202608021134179_StuModelUpdate.Designer.cs">
       <DependentUpon>202608021134179_StuModelUpdate.cs</DependentUpon>
@@ -241,6 +247,11 @@
       <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AIAlert.cs" />
+    <Compile Include="Models\AIAllocationHistory.cs" />
+    <Compile Include="Models\AIRecommendationOverride.cs" />
+    <Compile Include="Models\AIResidenceRecommendation.cs" />
+    <Compile Include="Models\AIWaitingList.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
@@ -254,6 +265,7 @@
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
+    <Compile Include="Models\HouseMaster.cs" />
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Inventorymodels.cs" />
     <Compile Include="Models\InventoryService.cs" />
@@ -297,9 +309,12 @@
     <Compile Include="Models\ParentAttendanceViewModel.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
+    <Compile Include="Models\QRScanRecord.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\ResidenceAllocation.cs" />
+    <Compile Include="Models\ResidenceMovement.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
@@ -307,6 +322,8 @@
     <Compile Include="Models\StudentAccountService.cs" />
     <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\StudentMark.cs" />
+    <Compile Include="Models\StudentProfile.cs" />
+    <Compile Include="Models\StudentQRCode.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\Teacher.cs" />
@@ -327,6 +344,15 @@
     <Compile Include="Controllers\TripController.cs" />
     <Compile Include="Controllers\VehicleIssuesController.cs" />
     <Compile Include="Controllers\VehiclesController.cs" />
+    <Compile Include="Services\AIQRCodeVerificationService.cs" />
+    <Compile Include="Services\AIResidenceAllocationService.cs" />
+    <Compile Include="Services\AIResidencePredictionService.cs" />
+    <Compile Include="Services\AllocationRuleService.cs" />
+    <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\ExplanationGenerator.cs" />
+    <Compile Include="Services\ResidenceAllocationEngine.cs" />
+    <Compile Include="Services\ResidenceAvailabilityService.cs" />
+    <Compile Include="StudentQRCodeService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\academic.css" />
@@ -397,6 +423,27 @@
     <Content Include="Views\TransportManager\Details.cshtml" />
     <Content Include="Views\TransportManager\Index.cshtml" />
     <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <Content Include="Views\StudentQRCode\Details.cshtml" />
+    <Content Include="Views\StudentQRCode\_QRCodeCard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Dashboard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\AIDashboard.cshtml" />
+    <Content Include="Views\Residence\Index.cshtml" />
+    <Content Include="Views\Residence\Details.cshtml" />
+    <Content Include="Views\Residence\Create.cshtml" />
+    <Content Include="Views\Residence\Edit.cshtml" />
+    <Content Include="Views\Residence\Archive.cshtml" />
+    <Content Include="Views\Room\Index.cshtml" />
+    <Content Include="Views\Room\Details.cshtml" />
+    <Content Include="Views\Bed\Index.cshtml" />
+    <Content Include="Views\HouseMaster\Dashboard.cshtml" />
+    <Content Include="Views\Shared\_ResidenceActions.cshtml" />
+    <Content Include="Views\HouseMaster\ResidenceSummary.cshtml" />
+    <Content Include="Views\HouseMaster\CurrentStudents.cshtml" />
+    <Content Include="Views\HouseMaster\StudentsOutsideResidence.cshtml" />
+    <Content Include="Views\HouseMaster\RecentMovements.cshtml" />
+    <Content Include="Views\HouseMaster\EmergencyRollCall.cshtml" />
+    <Content Include="Views\HouseMaster\VisitorRegister.cshtml" />
+    <Content Include="Views\HouseMaster\Notifications.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />

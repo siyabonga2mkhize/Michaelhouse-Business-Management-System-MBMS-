@@ -224,11 +224,43 @@ namespace Michaelhouse.Controllers
                     }
                 }
 
+                // Allocate boarding house space and generate the permanent student QR identity.
+                var aiService = new AIResidenceAllocationService();
+                var assignment = aiService.AllocateStudent(reg.StudentId);
+                var qr = new StudentQRCodeService().GetActiveQRCode(reg.StudentId);
+
+                // Send registration success email including QR, allocation details, and house master
+                using (var db = new DBContextClass())
+                {
+                    var student = db.Students.Find(reg.StudentId);
+                    var residence = db.Residences.Find(assignment.ResidenceId);
+                    var room = db.Rooms.Find(assignment.RoomId);
+                    var bed = db.Beds.Find(assignment.BedId);
+
+                    // Compose email body (simple) and embed QR as base64
+                    string qrBase64 = qr?.QRImage != null ? Convert.ToBase64String(qr.QRImage) : null;
+                    string qrImgTag = qrBase64 != null ? $"<img src=\"data:image/png;base64,{qrBase64}\" alt=\"QR\" style=\"width:150px;\"/>" : "";
+
+                    string houseMasterName = residence.HouseMaster?.FullName ?? "To be confirmed";
+                    string body = $@"<p>Dear parent,</p>
+<p>Student {student.FirstName} {student.LastName} has been allocated to <strong>{residence.Name}</strong>, Room <strong>{room.RoomNumber}</strong>, Bed <strong>{bed.BedNumber}</strong>.</p>
+<p>House Master: {houseMasterName}</p>
+{qrImgTag}
+";
+
+                    var parent = db.Parents.Find(GetCurrentParentId());
+                    if (parent != null)
+                    {
+                        var emailSvc = new EmailService();
+                        emailSvc.SendPlain(parent.Contact, "Registration Successful - Residence Allocation", body);
+                    }
+                }
+
                 _invoices.CreateAnnualFeeInvoices(
                     registrationId, reg.StudentId, GetCurrentParentId());
 
                 TempData["Success"] =
-                    "Registration complete! Student account created and login credentials emailed to you.";
+                    "Registration complete! Student account, residence allocation, and permanent QR identity are ready.";
             }
             catch (System.Exception ex)
             {

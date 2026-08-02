@@ -81,6 +81,7 @@ namespace Michaelhouse.Models
         public virtual AppUser User { get; set; }
         public ICollection<Application> Applications { get; set; }
         public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
+        public virtual StudentProfile StudentProfile { get; set; }
 
     }
 }

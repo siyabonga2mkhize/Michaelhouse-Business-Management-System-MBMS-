@@ -1,0 +1,34 @@
+@model List<Michaelhouse.Models.ResidenceAssignment>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Students Outside Residence";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Students Outside Residence — @ViewBag.Residence</h1>
+
+    <div class="bg-white rounded shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                    <th class="px-6 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                @foreach(var a in Model){
+                    <tr>
+                        <td class="px-6 py-4">@a.Student.Name</td>
+                        <td class="px-6 py-4">--</td>
+                        <td class="px-6 py-4">--</td>
+                        <td class="px-6 py-4 text-right">
+                            <a class="px-3 py-1 bg-[#C21E2E] text-white rounded" href="#">Check In</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

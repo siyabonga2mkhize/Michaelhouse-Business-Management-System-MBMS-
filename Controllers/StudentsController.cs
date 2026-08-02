@@ -1,5 +1,6 @@
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using System;
 using System.Data;
 using System.Data.Entity;
@@ -259,6 +260,30 @@ namespace Michaelhouse.Controllers
         public ActionResult ScanQRCode()
         {
             return View();
+        }
+
+        [HttpPost]
+        public JsonResult VerifyScan()
+        {
+            try
+            {
+                // Read raw JSON body
+                Request.InputStream.Position = 0;
+                string json = new System.IO.StreamReader(Request.InputStream).ReadToEnd();
+                if (string.IsNullOrWhiteSpace(json))
+                    return Json(new { approved = false, reason = "Empty request." });
+
+                dynamic payload = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                string qrValue = payload?.qrValue;
+
+                var verifier = new AIQRCodeVerificationService();
+                var result = verifier.VerifyByValue(qrValue, "WebScanner");
+                return Json(new { approved = result.Approved, reason = result.Reason });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { approved = false, reason = ex.Message });
+            }
         }
 
     }

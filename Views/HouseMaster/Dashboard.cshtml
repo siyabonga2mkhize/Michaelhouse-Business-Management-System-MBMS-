@@ -1,0 +1,43 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "House Master Dashboard";
+}
+
+<section class="p-8">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-4xl font-serif font-bold">House Master Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">Overview of managed residences and allocations</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Managed Residences</div>
+            <div class="mt-2 text-3xl font-bold">@ViewBag.ManagedCount ?? 0</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Current Occupancy</div>
+            <div class="mt-2 text-3xl font-bold">@ViewBag.CurrentOccupancy ?? 0</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Pending Actions</div>
+            <div class="mt-2 text-3xl font-bold text-[#C21E2E]">@ViewBag.Pending ?? 0</div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-bold mb-4">Recent Allocations</h3>
+        <ul class="space-y-3">
+            @foreach(var a in (List<dynamic>)ViewBag.RecentAllocations ?? new List<dynamic>()){
+                <li class="p-3 border rounded flex justify-between items-center">
+                    <div>
+                        <div class="font-bold">@a.StudentName</div>
+                        <div class="text-sm text-gray-500">@a.ResidenceName — Room @a.RoomNumber</div>
+                    </div>
+                    <div class="text-sm text-gray-400">@a.Date</div>
+                </li>
+            }
+        </ul>
+    </div>
+</section>
