@@ -59,12 +59,12 @@ namespace Michaelhouse.Models
 
         // --- MISSING PROPERTIES TO ADD ---
 
-        [Required]
+        
         [Display(Name = "Student Number")]
         public string StudentNumber { get; set; }
 
-        [Required]
-        public string Gender { get; set; }
+        //[Required]
+        //public string Gender { get; set; }
 
         [Required]
         [Display(Name = "Grade Level")]

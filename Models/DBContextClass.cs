@@ -5,7 +5,7 @@ namespace Michaelhouse.Models
 {
     public class DBContextClass : DbContext
     {
-        public DBContextClass() : base("name=schooldb")
+        public DBContextClass() : base("name=MichaelHouse")
         {
             Database.CommandTimeout = 60;
         }
