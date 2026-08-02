@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Michaelhouse.Models.Enums;
+using System.Data.Entity;
 
 
 namespace Michaelhouse.Services
@@ -165,18 +166,103 @@ namespace Michaelhouse.Services
         /// <summary>
         /// Admin makes the final decision. Updates status and creates an AdminReview record.
         /// </summary>
+        //        public void AdminConfirm(int appId, string adminId, string decision, string notes, bool agreedWithAi)
+        //        {
+        //            using (var db = new DBContextClass())
+        //            {
+        //                var app = db.Applications.Find(appId);
+        //                if (app == null) return;
+
+        //                switch (decision)
+        //                {
+        //                    case "Approved": app.Status = ApplicationStatus.Approved; break;
+        //                    case "Rejected": app.Status = ApplicationStatus.Rejected; break;
+        //                    case "Flagged": app.Status = ApplicationStatus.Flagged; break;
+        //                }
+
+        //                db.AdminReviews.Add(new AdminReview
+        //                {
+        //                    AppId = appId,
+        //                    AdminId = adminId,
+        //                    Decision = decision,
+        //                    AdminNotes = notes,
+        //                    AgreedWithAi = agreedWithAi,
+        //                    Date = DateTime.Now
+        //                });
+
+        //                db.SaveChanges();
+
+        //                if (decision == "Approved")
+        //                {
+        //                    try
+        //                    {
+        //                        // Create registration record (no student account yet)
+        //                        _regService.CreateRegistration(appId, app.StudentId, app.GradeApplying);
+
+        //                        // Email parent to log in and complete registration
+        //                        _email.SendApplicationApproved(
+        //                            app.Parent.Contact,
+        //                            app.Parent.Name,
+        //                            app.Student.Name,
+        //                            app.GradeApplying);
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        System.Diagnostics.Debug.WriteLine($"Post-approval setup failed: {ex.Message}");
+        //                    }
+        //                }
+
+        //                // On Flagged — email parent to resubmit
+        //                if (decision == "Flagged")
+        //                {
+        //                    try
+        //                    {
+        //                        _email.SendApplicationFlagged(
+        //                            app.Parent.Contact,
+        //                            app.Parent.Name,
+        //                            app.Student.Name,
+        //                            appId,
+        //                            notes);
+        //                    }
+        //                    catch (Exception ex)
+        //                    {
+        //                        System.Diagnostics.Debug.WriteLine($"Flagged email failed: {ex.Message}");
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        //    }
+        //}
+        /// <summary>
+        /// Admin makes the final decision. Updates status and creates an AdminReview record.
+        /// </summary>
         public void AdminConfirm(int appId, string adminId, string decision, string notes, bool agreedWithAi)
         {
             using (var db = new DBContextClass())
             {
-                var app = db.Applications.Find(appId);
-                if (app == null) return;
+                // Load related Parent and Student
+                var app = db.Applications
+                    .Include(a => a.Parent)
+                    .Include(a => a.Student)
+                    .FirstOrDefault(a => a.AppId == appId);
+
+                if (app == null)
+                    return;
 
                 switch (decision)
                 {
-                    case "Approved": app.Status = ApplicationStatus.Approved; break;
-                    case "Rejected": app.Status = ApplicationStatus.Rejected; break;
-                    case "Flagged": app.Status = ApplicationStatus.Flagged; break;
+                    case "Approved":
+                        app.Status = ApplicationStatus.Approved;
+                        break;
+
+                    case "Rejected":
+                        app.Status = ApplicationStatus.Rejected;
+                        break;
+
+                    case "Flagged":
+                        app.Status = ApplicationStatus.Flagged;
+                        break;
                 }
 
                 db.AdminReviews.Add(new AdminReview
@@ -191,14 +277,27 @@ namespace Michaelhouse.Services
 
                 db.SaveChanges();
 
+                // ===========================
+                // APPROVED
+                // ===========================
                 if (decision == "Approved")
                 {
                     try
                     {
-                        // Create registration record (no student account yet)
-                        _regService.CreateRegistration(appId, app.StudentId, app.GradeApplying);
+                        // Verify navigation properties exist
+                        if (app.Parent == null)
+                            throw new Exception("Parent record could not be loaded.");
 
-                        // Email parent to log in and complete registration
+                        if (app.Student == null)
+                            throw new Exception("Student record could not be loaded.");
+
+                        // Create registration
+                        _regService.CreateRegistration(
+                            appId,
+                            app.StudentId,
+                            app.GradeApplying);
+
+                        // Send email
                         _email.SendApplicationApproved(
                             app.Parent.Contact,
                             app.Parent.Name,
@@ -207,15 +306,24 @@ namespace Michaelhouse.Services
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Post-approval setup failed: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine(
+                            $"Post-approval setup failed: {ex}");
                     }
                 }
 
-                // On Flagged — email parent to resubmit
+                // ===========================
+                // FLAGGED
+                // ===========================
                 if (decision == "Flagged")
                 {
                     try
                     {
+                        if (app.Parent == null)
+                            throw new Exception("Parent record could not be loaded.");
+
+                        if (app.Student == null)
+                            throw new Exception("Student record could not be loaded.");
+
                         _email.SendApplicationFlagged(
                             app.Parent.Contact,
                             app.Parent.Name,
@@ -225,11 +333,11 @@ namespace Michaelhouse.Services
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Flagged email failed: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine(
+                            $"Flagged email failed: {ex}");
                     }
                 }
             }
         }
-
     }
 }
