@@ -102,20 +102,13 @@ namespace Michaelhouse
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
         public ActionResult Create(
-           DriverApplication driverApplication,
-           HttpPostedFileBase idFile,
-           HttpPostedFileBase licenceFile,
-           IEnumerable<HttpPostedFileBase> otherFiles,
-           string otherDescription)
+     DriverApplication driverApplication,
+     HttpPostedFileBase idFile,
+     HttpPostedFileBase licenceFile,
+     IEnumerable<HttpPostedFileBase> otherFiles,
+     string otherDescription)
         {
             if (!ModelState.IsValid) return View(driverApplication);
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var e in errors)
-                    System.Diagnostics.Debug.WriteLine("Model error: " + e.ErrorMessage);
-                return View(driverApplication);
-            }
 
             driverApplication.UserId = GetCurrentAppUserId();
 
@@ -167,7 +160,7 @@ namespace Michaelhouse
             db.SaveChanges();
 
             // ════════════════════════════════════════════════════════════════════
-            // Trigger AI review in background
+            // Trigger AI review in background (single, clean version)
             // ════════════════════════════════════════════════════════════════════
             try
             {
@@ -175,30 +168,20 @@ namespace Michaelhouse
                 {
                     try
                     {
-                        var ai = new AiReviewService();
-
-                        // Load application WITH documents for the review
-                        DriverApplication appWithDocs;
                         using (var db2 = new DBContextClass())
                         {
-                            appWithDocs = db2.DriverApplications
+                            var appWithDocs = db2.DriverApplications
                                 .Include(a => a.Documents)
                                 .FirstOrDefault(a => a.Id == driverApplication.Id);
-                        }
+                            if (appWithDocs == null) return;
 
-                        if (appWithDocs == null) return;
+                            var ai = new AiReviewService();
+                            var result = await ai.ReviewDriverApplicationAsync(appWithDocs);
 
-                        // Call the AI
-                        var result = await ai.ReviewDriverApplicationAsync(appWithDocs);
+                            string decision = result.Recommendation == "APPROVE" ? "Approved"
+                                            : result.Recommendation == "REJECT" ? "Rejected"
+                                            : "Waitlisted";
 
-                        // Map AI Recommendation to a formal decision string for AdminReviews
-                        string decision = result.Recommendation == "APPROVE" ? "Approved"
-                                        : result.Recommendation == "REJECT" ? "Rejected"
-                                        : "Waitlisted"; // Used for FLAG
-
-                        using (var db2 = new DBContextClass())
-                        {
-                            // 1. Save Admin Review
                             var review = new AdminReview
                             {
                                 DriverAppId = driverApplication.Id,
@@ -210,33 +193,16 @@ namespace Michaelhouse
                             };
                             db2.AdminReviews.Add(review);
 
-                            // 2. Save recommendation back to the application and update Status
                             var appToUpdate = db2.DriverApplications.Find(driverApplication.Id);
                             if (appToUpdate != null)
                             {
-                                // Optional: If you added AiReviewSummary to your model, you can save it here
-                                 appToUpdate.AiReviewSummary = result.Summary;
+                                appToUpdate.AiReviewSummary = result.Summary;
                                 appToUpdate.AiRecommendation = result.Recommendation;
-
-                                // Automatically progress the application based on the AI's review
                                 if (result.Recommendation == "APPROVE")
-                                {
-                                    // Optional: You can also change this to "Pending" if you want 
-                                    // the admin to manually approve good applications too.
                                     appToUpdate.Status = "Pending Interview";
-                                }
-                                else if (result.Recommendation == "REJECT")
-                                {
-                                    // AI thinks it's a reject, but we leave it to the Admin to decide.
-                                    // Setting it to "Flagged" keeps it in the Admin's queue.
-                                    appToUpdate.Status = "Flagged";
-                                }
                                 else
-                                {
                                     appToUpdate.Status = "Flagged";
-                                }
                             }
-
                             db2.SaveChanges();
                         }
                     }

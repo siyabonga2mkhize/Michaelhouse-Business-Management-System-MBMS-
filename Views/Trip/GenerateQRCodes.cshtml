@@ -1,0 +1,48 @@
+﻿@model List<Michaelhouse.Models.QRCodeViewModel>
+@{
+    ViewBag.Title = "Student QR Codes";
+    var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
+}
+
+<h2>QR Codes – @schedule.TripRequest.Title</h2>
+<p>Scheduled date: @schedule.ScheduledDate.ToString("dd MMM yyyy")</p>
+
+<div class="row">
+    @foreach (var student in Model)
+    {
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@student.StudentName</h5>
+                    <hr />
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Departure</strong><br />
+                            @if (!string.IsNullOrEmpty(student.BeforeQR))
+                            {
+                                <img src="@student.BeforeQR" style="width:100px; height:100px;" />
+                            }
+                            else
+                            {
+                                <span class="text-muted">No token</span>
+                            }
+                        </div>
+                        <div class="col-6">
+                            <strong>Return</strong><br />
+                            @if (!string.IsNullOrEmpty(student.AfterQR))
+                            {
+                                <img src="@student.AfterQR" style="width:100px; height:100px;" />
+                            }
+                            else
+                            {
+                                <span class="text-muted">No token</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<a href="@Url.Action("UpcomingTrips", "Trip")" class="btn btn-secondary">Back to trips</a>

@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <PropertyGroup>
     <SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
   </PropertyGroup>
   <PropertyGroup>
     <SSDTPath Condition="'$(SSDTPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB\DAC</SSDTPath>
   </PropertyGroup>
-  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -111,8 +111,13 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
+    <Reference Include="Stripe.net, Version=50.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.50.4.1\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -198,18 +203,24 @@
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\ResidenceAllocationController.cs" />
+    <Compile Include="Controllers\ResidenceController.cs" />
+    <Compile Include="Controllers\StudentQRCodeController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
@@ -218,16 +229,29 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605132213067_InitialCreate.cs" />
-    <Compile Include="Migrations\202605132213067_InitialCreate.Designer.cs">
-      <DependentUpon>202605132213067_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202605140202101_initialcreate.cs" />
+    <Compile Include="Migrations\202605140202101_initialcreate.Designer.cs">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605132241175_InitialCreate1.cs" />
-    <Compile Include="Migrations\202605132241175_InitialCreate1.Designer.cs">
-      <DependentUpon>202605132241175_InitialCreate1.cs</DependentUpon>
+    <Compile Include="Migrations\202606011745000_boardinghousemanagement.cs" />
+    <Compile Include="Migrations\202608021134179_StuModelUpdate.cs" />
+    <Compile Include="Migrations\202608021134179_StuModelUpdate.Designer.cs">
+      <DependentUpon>202608021134179_StuModelUpdate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608021140417_StuModelUpdate1.cs" />
+    <Compile Include="Migrations\202608021140417_StuModelUpdate1.Designer.cs">
+      <DependentUpon>202608021140417_StuModelUpdate1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.cs" />
+    <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.Designer.cs">
+      <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AIAlert.cs" />
+    <Compile Include="Models\AIAllocationHistory.cs" />
+    <Compile Include="Models\AIRecommendationOverride.cs" />
+    <Compile Include="Models\AIResidenceRecommendation.cs" />
+    <Compile Include="Models\AIWaitingList.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
@@ -241,6 +265,7 @@
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
+    <Compile Include="Models\HouseMaster.cs" />
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Inventorymodels.cs" />
     <Compile Include="Models\InventoryService.cs" />
@@ -284,9 +309,12 @@
     <Compile Include="Models\ParentAttendanceViewModel.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
+    <Compile Include="Models\QRScanRecord.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\ResidenceAllocation.cs" />
+    <Compile Include="Models\ResidenceMovement.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
@@ -294,6 +322,8 @@
     <Compile Include="Models\StudentAccountService.cs" />
     <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\StudentMark.cs" />
+    <Compile Include="Models\StudentProfile.cs" />
+    <Compile Include="Models\StudentQRCode.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\Teacher.cs" />
@@ -317,6 +347,15 @@
     <Compile Include="Controllers\TripController.cs" />
     <Compile Include="Controllers\VehicleIssuesController.cs" />
     <Compile Include="Controllers\VehiclesController.cs" />
+    <Compile Include="Services\AIQRCodeVerificationService.cs" />
+    <Compile Include="Services\AIResidenceAllocationService.cs" />
+    <Compile Include="Services\AIResidencePredictionService.cs" />
+    <Compile Include="Services\AllocationRuleService.cs" />
+    <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\ExplanationGenerator.cs" />
+    <Compile Include="Services\ResidenceAllocationEngine.cs" />
+    <Compile Include="Services\ResidenceAvailabilityService.cs" />
+    <Compile Include="StudentQRCodeService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\academic.css" />
@@ -343,30 +382,32 @@
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Misc\Import_all.sql" />
+    <Content Include="Content\bootstrap.rtl.min.css.map" />
+    <Content Include="Content\bootstrap.rtl.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
+    <Content Include="Content\bootstrap-utilities.min.css.map" />
+    <Content Include="Content\bootstrap-utilities.css.map" />
+    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
+    <Content Include="Content\bootstrap-reboot.min.css.map" />
+    <Content Include="Content\bootstrap-reboot.css.map" />
+    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-grid.rtl.css.map" />
+    <Content Include="Content\bootstrap-grid.min.css.map" />
+    <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="App_Data\Uploads\18f9c880-f7fd-4ece-831d-6d47a9519922.pdf" />
-    <Content Include="App_Data\Uploads\281e3a4b-5947-4a1c-bb7d-d791d971846e.pdf" />
-    <Content Include="App_Data\Uploads\2cc00c66-b313-49bf-8979-7d372ece1b65.pdf" />
-    <Content Include="App_Data\Uploads\5f138c12-df99-40e8-a52f-22e5bf5acf68.pdf" />
-    <Content Include="App_Data\Uploads\6049ac37-4e0a-4f18-81d8-503b1ea8a7cd.pdf" />
-    <Content Include="App_Data\Uploads\6191f1aa-0f9a-4353-bc63-1c8c2f847e67.pdf" />
-    <Content Include="App_Data\Uploads\6773e779-d5da-4277-993e-b52c1db7d153.pdf" />
-    <Content Include="App_Data\Uploads\6cd313f8-f0e4-4c0f-b71c-d6e22d8585a7.pdf" />
-    <Content Include="App_Data\Uploads\6e0119bd-a5e2-4230-a302-3db26834c6f0.pdf" />
-    <Content Include="App_Data\Uploads\6fec6ee4-eafe-471d-a281-10d624504f3d.pdf" />
-    <Content Include="App_Data\Uploads\9e2e1a71-c197-49cf-aebf-3bbb262f4a19.pdf" />
-    <Content Include="App_Data\Uploads\b696ec35-3fd3-4f19-8876-694011a29ecf.pdf" />
-    <Content Include="App_Data\Uploads\e3ecd5d4-b1d0-40d0-900a-4111b7038f25.pdf" />
-    <Content Include="App_Data\Uploads\f0ade790-0582-4a3c-9513-d7346ceae001.pdf" />
-    <Content Include="App_Data\Uploads\f0b06ff2-9647-4249-b87b-e560e1c81a7e.pdf" />
-    <None Include="Properties\PublishProfiles\michaelhouse - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\michaelhouse - Web Deploy1.pubxml" />
-    <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
+    <Content Include="Scripts\html5-qrcode.min.js" />
+    <Content Include="Misc\SQLQuery.sql" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -378,7 +419,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Misc\SQLQuery.sql" />
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
@@ -386,12 +426,46 @@
     <Content Include="Views\TransportManager\Details.cshtml" />
     <Content Include="Views\TransportManager\Index.cshtml" />
     <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <Content Include="Views\StudentQRCode\Details.cshtml" />
+    <Content Include="Views\StudentQRCode\_QRCodeCard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Dashboard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\AIDashboard.cshtml" />
+    <Content Include="Views\Residence\Index.cshtml" />
+    <Content Include="Views\Residence\Details.cshtml" />
+    <Content Include="Views\Residence\Create.cshtml" />
+    <Content Include="Views\Residence\Edit.cshtml" />
+    <Content Include="Views\Residence\Archive.cshtml" />
+    <Content Include="Views\Room\Index.cshtml" />
+    <Content Include="Views\Room\Details.cshtml" />
+    <Content Include="Views\Bed\Index.cshtml" />
+    <Content Include="Views\HouseMaster\Dashboard.cshtml" />
+    <Content Include="Views\Shared\_ResidenceActions.cshtml" />
+    <Content Include="Views\HouseMaster\ResidenceSummary.cshtml" />
+    <Content Include="Views\HouseMaster\CurrentStudents.cshtml" />
+    <Content Include="Views\HouseMaster\StudentsOutsideResidence.cshtml" />
+    <Content Include="Views\HouseMaster\RecentMovements.cshtml" />
+    <Content Include="Views\HouseMaster\EmergencyRollCall.cshtml" />
+    <Content Include="Views\HouseMaster\VisitorRegister.cshtml" />
+    <Content Include="Views\HouseMaster\Notifications.cshtml" />
     <WebConfigFile Include="Web.config" />
+    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
+    <Content Include="Views\Trip\AttendanceError.cshtml" />
+    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
+    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
+    <Content Include="Views\Trip\TripQRCodes.cshtml" />
+    <Content Include="Views\Students\ScanQRCode.cshtml" />
+    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
+    <Content Include="Views\Shared\SingleQRCode.cshtml" />
+    <WebConfigFile Include="Web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </WebConfigFile>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -549,23 +623,6 @@
   <ItemGroup>
     <Folder Include="Data\" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Content\bootstrap.rtl.min.css.map" />
-    <Content Include="Content\bootstrap.rtl.css.map" />
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
-    <Content Include="Content\bootstrap-utilities.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
-    <Content Include="Content\bootstrap-reboot.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.css.map" />
-    <Content Include="Content\bootstrap-grid.min.css.map" />
-  </ItemGroup>
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
     <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(SSDTPath)\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>
@@ -581,11 +638,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605132213067_InitialCreate.resx">
-      <DependentUpon>202605132213067_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605140202101_initialcreate.resx">
+      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202605132241175_InitialCreate1.resx">
-      <DependentUpon>202605132241175_InitialCreate1.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608021134179_StuModelUpdate.resx">
+      <DependentUpon>202608021134179_StuModelUpdate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608021140417_StuModelUpdate1.resx">
+      <DependentUpon>202608021140417_StuModelUpdate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608021147371_AdReviewModelUpdate.resx">
+      <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
@@ -620,16 +683,16 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
   </Target>
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
   <Import Project="packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
   <PropertyGroup>
     <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
   </PropertyGroup>
   <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
+  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
 </Project>

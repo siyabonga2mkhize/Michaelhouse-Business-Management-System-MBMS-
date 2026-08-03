@@ -208,7 +208,7 @@ namespace Michaelhouse.Controllers
         // ─── Edit Profile ─────────────────────────────────────────────────────────
 
         [RequireLogin]
-        public ActionResult Profile()
+        public new ActionResult Profile()
         {
             using (var db = new DBContextClass())
             {
@@ -240,7 +240,7 @@ namespace Michaelhouse.Controllers
         [RequireLogin]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Profile(ParentProfileViewModel vm)
+        public new ActionResult Profile(ParentProfileViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
 

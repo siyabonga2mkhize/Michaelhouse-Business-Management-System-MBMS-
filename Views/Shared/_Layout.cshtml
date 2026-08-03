@@ -241,61 +241,45 @@
 <body>
 
     @{
-
         string currentController = (ViewContext.RouteData.Values["controller"] ?? "").ToString();
-
         string currentAction = (ViewContext.RouteData.Values["action"] ?? "").ToString();
 
-        string userRole = Session["UserRole"]?.ToString() ?? "";
+        // Session values - avoid null-conditional operator
+        string userRole = "";
+        if (Session["UserRole"] != null) { userRole = Session["UserRole"].ToString(); }
 
-        string userName = Session["UserName"]?.ToString() ?? "";
+        string userName = "";
+        if (Session["UserName"] != null) { userName = Session["UserName"].ToString(); }
 
-        bool isLoggedIn = Session["UserId"] != null;
+        bool isLoggedIn = (Session["UserId"] != null);
 
         // This pulls the name of the current controller (e.g., "Inventory")
-
-        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
-
-
+        // Keep only ONE declaration of 'ctrl'
+        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 
         // 2. Define 'lowStockCount' for the notification badge
-
-        // We initialize it to 0 so the page doesn't crash if the value isn't sent
-
-        int lowStockCount = ViewBag.LowStockCount ?? 0;
-
-
-
-        // Determine if this is the home page (to hide login button on home)
-
-        bool isHomePage = (currentController == "Home" && currentAction == "Index");
-
-
-
-        // Get cart count
-
-        int cartCount = 0;
-
-        if (isLoggedIn)
-
+        int lowStockCount = 0;
+        if (ViewBag.LowStockCount != null)
         {
-
-            try
-
-            {
-
-                var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
-
-                cartCount = cartService.GetCart().TotalItems;
-
-            }
-
-            catch { }
-
+            try { lowStockCount = Convert.ToInt32(ViewBag.LowStockCount); } catch { lowStockCount = 0; }
         }
 
-    }
+        // Determine if this is the home page (to hide login button on home)
+        bool isHomePage = (currentController == "Home" && currentAction == "Index");
 
+        // Get cart count
+        int cartCount = 0;
+        if (isLoggedIn)
+        {
+            try
+            {
+                var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
+                var cart = cartService.GetCart();
+                if (cart != null) { cartCount = cart.TotalItems; }
+            }
+            catch { /* swallow for startup safety */ }
+        }
+    }
 
 
     <nav class="navbar navbar-expand-lg">
@@ -320,54 +304,54 @@
 
                 <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
 
-            <!-- Center: brand logo + text -->
-            <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
-                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
-                <span class="d-none d-sm-inline">Michaelhouse</span>
+                <!-- Center: brand logo + text -->
+                <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
+                    <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
+                    <span class="d-none d-sm-inline">Michaelhouse</span>
 
-            </a>
+                </a>
 
-            <!-- Right: notification, user pill, logout -->
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <!-- Notification bell (child action) -->
-                @Html.Action("NotificationBadge", "Notification")
+                <!-- Right: notification, user pill, logout -->
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <!-- Notification bell (child action) -->
+                    @Html.Action("NotificationBadge", "Notification")
 
-                <!-- User info pill (only when logged in) -->
-                @if (isLoggedIn)
+                    <!-- User info pill (only when logged in) -->
+                    @if (isLoggedIn)
 
-                {
+                    {
 
-                    <div class="user-pill d-none d-md-block">
+                        <div class="user-pill d-none d-md-block">
 
-                        <i class="bi bi-person-circle me-1"></i>
+                            <i class="bi bi-person-circle me-1"></i>
 
-                        <span class="fw-bold">@userName</span>
+                            <span class="fw-bold">@userName</span>
 
-                        <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
+                            <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
 
-                    </div>
-                }
+                        </div>
+                    }
 
-                <!-- Logout button (only when logged in) -->
-                @if (isLoggedIn)
-                {
-                    <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
+                    <!-- Logout button (only when logged in) -->
+                    @if (isLoggedIn)
+                    {
+                        <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
 
-                        <i class="bi bi-box-arrow-right fs-5"></i>
+                            <i class="bi bi-box-arrow-right fs-5"></i>
 
-                    </a>
+                        </a>
 
-                }
+                    }
 
-                else if (!isHomePage)
+                    else if (!isHomePage)
 
-                {
+                    {
 
-                    <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
 
-                }
+                    }
 
-            </div>
+                </div>
 
         </div>
 
@@ -671,14 +655,18 @@
                             <i class="bi bi-calendar-check"></i> My Attendance
 
                         </a>
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
+                        </a>
 
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                     }
 
                     else if (userRole == "Teacher")

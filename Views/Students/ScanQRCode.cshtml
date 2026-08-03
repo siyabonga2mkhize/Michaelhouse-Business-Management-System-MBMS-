@@ -1,0 +1,229 @@
+﻿@{
+    ViewBag.Title = "Verification Terminal";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50 relative">
+
+    @* Background Archival Pattern *@
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white relative z-10 shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Transport</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Verification Terminal</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Student Attendance Authentication</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Students")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Portal Home
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE TERMINAL SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 flex items-center justify-center relative z-10">
+
+        <div class="w-full max-w-lg">
+            @* Terminal Card *@
+            <div class="bg-white shadow-2xl border-t-4 border-[#C21E2E] overflow-hidden relative flex flex-col">
+
+                @* Terminal Header *@
+                <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center flex-shrink-0">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0"><i class="bi bi-camera-video me-2"></i> Optical Scanner</h5>
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                    </div>
+                </div>
+
+                @* Scanner Body *@
+                <div class="p-8 flex flex-col items-center">
+                    <p class="text-sm font-serif italic text-gray-600 mb-6 text-center">
+                        Position the institutional QR target within the viewfinder to authenticate your excursion manifest status.
+                    </p>
+
+                    @* Scanner Target Window *@
+                    <div id="qr-reader" class="w-full max-w-[350px] mx-auto bg-gray-50 border border-gray-200 p-2"></div>
+
+                    @* Feedback Messages *@
+                    <div id="qr-reader-results" class="mt-4 text-[10px] font-mono font-bold text-green-600 uppercase tracking-widest hidden text-center">
+                        <i class="bi bi-check-circle-fill me-1"></i> Scan Successful. Authenticating...
+                    </div>
+                    <div id="error-message" class="mt-4 text-[10px] font-mono font-bold text-[#C21E2E] uppercase tracking-widest text-center"></div>
+                </div>
+            </div>
+
+            @* Institutional Footer Note *@
+            <div class="mt-6 text-center">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-1"></i> Ensure camera permissions are granted.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* --- HTML5 QR CODE OVERRIDES --- */
+    /* Strip default borders and force institutional styling */
+    #qr-reader {
+        border: none !important;
+        border-radius: 0 !important;
+    }
+
+    #qr-reader__scan_region {
+        border: 2px solid #C21E2E !important;
+        background-color: #000;
+    }
+
+    #qr-reader__dashboard_section_csr span {
+        font-family: 'Source Code Pro', monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #666;
+    }
+
+    /* Force sharp, black buttons */
+    #qr-reader button {
+        background-color: #1a1a1a !important;
+        color: white !important;
+        font-family: 'Source Code Pro', monospace !important;
+        font-size: 9px !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+        padding: 8px 16px !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: background-color 0.2s !important;
+        margin-top: 10px !important;
+    }
+
+        #qr-reader button:hover {
+            background-color: #C21E2E !important;
+        }
+
+    /* Clean up the camera selector dropdown */
+    #qr-reader select {
+        font-family: 'Source Code Pro', monospace !important;
+        font-size: 11px !important;
+        padding: 6px !important;
+        border: 1px solid #ddd !important;
+        outline: none !important;
+        margin-bottom: 10px !important;
+        width: 100%;
+    }
+
+    /* Hide ugly default links */
+    #qr-reader a {
+        color: #C21E2E !important;
+        text-decoration: none !important;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 10px;
+    }
+</style>
+
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/html5-qrcode.min.js")"></script>
+    <script>
+        (function () {
+            const qrReaderDiv = document.getElementById("qr-reader");
+            const errorMessageDiv = document.getElementById("error-message");
+            const successMessageDiv = document.getElementById("qr-reader-results");
+
+            if (!qrReaderDiv) {
+                errorMessageDiv.innerText = "Scanner initialization failed.";
+                return;
+            }
+
+            let isScanning = true;
+
+            function onScanSuccess(decodedText, decodedResult) {
+                if (!isScanning) return; // Prevent double-scans from triggering multiple redirects
+
+                if (decodedText.indexOf(window.location.origin) === 0) {
+                    isScanning = false;
+                    html5QrcodeScanner.pause(true); // Freeze the camera frame
+
+                    // Show success feedback
+                    errorMessageDiv.classList.add("hidden");
+                    successMessageDiv.classList.remove("hidden");
+
+                    // Send the scanned value to server for AI verification
+                    fetch('@Url.Action("VerifyScan", "Students")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': $('input[name=__RequestVerificationToken]').val()
+                        },
+                        body: JSON.stringify({ qrValue: decodedText })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.approved) {
+                            window.location.href = data.redirectUrl || window.location.href;
+                        } else {
+                            html5QrcodeScanner.pause(true);
+                            errorMessageDiv.innerHTML = '<i class="bi bi-x-octagon-fill me-1"></i> ' + (data.reason || 'Scan denied.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        errorMessageDiv.innerHTML = '<i class="bi bi-x-octagon-fill me-1"></i> Scan failed.';
+                    });
+                } else {
+                    // Invalid QR Code Format
+                    html5QrcodeScanner.pause(true);
+                    errorMessageDiv.innerHTML = '<i class="bi bi-x-octagon-fill me-1"></i> Invalid QR Code: Unrecognized Protocol.';
+
+                    setTimeout(() => {
+                        errorMessageDiv.innerHTML = "";
+                        html5QrcodeScanner.resume();
+                    }, 2500);
+                }
+            }
+
+            function onScanError(errorMessage) {
+                // Background noise from the scanner (ignore mostly)
+                console.warn(errorMessage);
+            }
+
+// No-op to ensure file saved before integration - scanner callback will be extended by server endpoint.
+            var html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {
+                fps: 10,
+                qrbox: 250,
+                rememberLastUsedCamera: true,
+                showTorchButtonIfSupported: true
+            });
+            html5QrcodeScanner.render(onScanSuccess, onScanError);
+        })();
+    </script>
+}

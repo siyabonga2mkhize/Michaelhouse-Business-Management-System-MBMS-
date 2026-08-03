@@ -1,0 +1,45 @@
+@model Michaelhouse.Models.Residence
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Summary";
+}
+
+<section class="p-8 max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-serif font-bold">@Model.Name</h1>
+            <p class="text-sm text-gray-500">Grade: @Model.GradeCategory</p>
+        </div>
+        <div class="flex gap-2">
+            <a class="px-4 py-2 bg-[#C21E2E] text-white rounded" href="@Url.Action("Occupancy", "Residence", new { id = Model.ResidenceId })">Occupancy</a>
+            <a class="px-4 py-2 border rounded" href="@Url.Action("ViewRooms", "Residence", new { id = Model.ResidenceId })">Rooms</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Capacity</div>
+            <div class="mt-2 text-2xl font-bold">@Model.Capacity</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Occupied</div>
+            <div class="mt-2 text-2xl font-bold">@Model.OccupiedBeds</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Available</div>
+            <div class="mt-2 text-2xl font-bold">@Model.AvailableBeds</div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="font-bold mb-3">Rooms</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            @foreach(var r in Model.Rooms ?? new List<Michaelhouse.Models.Room>()){
+                <div class="p-4 border rounded">
+                    <div class="font-bold">@r.RoomNumber</div>
+                    <div class="text-sm text-gray-500">Capacity @r.Capacity — Occupied @r.OccupiedBeds</div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

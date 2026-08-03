@@ -1,0 +1,16 @@
+﻿@model Michaelhouse.Models.StudentQRCode
+
+@if (Model == null)
+{
+    <p class="text-muted">No QR code generated yet.</p>
+}
+else
+{
+    <div class="text-center">
+        <img src="@Url.Action("Image", "StudentQRCode", new { studentId = Model.StudentId })"
+             style="width:120px;height:120px;" />
+        <p class="small mb-0">@Model.QRCodeValue</p>
+        <a href="@Url.Action("Details", "StudentQRCode", new { studentId = Model.StudentId })"
+           class="btn btn-sm btn-outline-danger mt-2">View / Print</a>
+    </div>
+}
