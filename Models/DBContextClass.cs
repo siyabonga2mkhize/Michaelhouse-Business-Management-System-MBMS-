@@ -1,13 +1,30 @@
 ﻿using Michaelhouse.Controllers;
+using System.Configuration;
+using System.Data.Common;
 using System.Data.Entity;
 
 namespace Michaelhouse.Models
 {
     public class DBContextClass : DbContext
     {
-        public DBContextClass() : base("name=MichaelHouse")
+        public DBContextClass() : base(GetDefaultConnectionString())
         {
             Database.CommandTimeout = 60;
+        }
+
+        public DBContextClass(DbConnection existingConnection, bool contextOwnsConnection)
+            : base(existingConnection, contextOwnsConnection)
+        {
+            Database.CommandTimeout = 60;
+        }
+
+        private static string GetDefaultConnectionString()
+        {
+            var configured = ConfigurationManager.ConnectionStrings["MichaelHouse"];
+            if (configured != null && !string.IsNullOrWhiteSpace(configured.ConnectionString))
+                return configured.ConnectionString;
+
+            return @"Data Source=AZASMACBOOK\SQLEXPRESS;Initial Catalog=MichaelHouse;Integrated Security=True;Connection Timeout=120;MultipleActiveResultSets=True;";
         }
 
         // ─── Core User Entities ──────────────────────────────────────────

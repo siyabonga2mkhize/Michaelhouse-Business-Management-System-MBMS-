@@ -1,0 +1,22 @@
+@model Michaelhouse.Models.Residence
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Occupancy";
+    var percent = Model.Capacity > 0 ? Math.Round((Model.OccupiedBeds / (double)Model.Capacity) * 100, 1) : 0;
+}
+
+<section class="p-8 max-w-5xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">@Model.Name Occupancy</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded shadow"><div class="text-sm text-gray-500 uppercase">Capacity</div><div class="text-3xl font-bold">@Model.Capacity</div></div>
+        <div class="bg-white p-6 rounded shadow"><div class="text-sm text-gray-500 uppercase">Occupied</div><div class="text-3xl font-bold">@Model.OccupiedBeds</div></div>
+        <div class="bg-white p-6 rounded shadow"><div class="text-sm text-gray-500 uppercase">Available</div><div class="text-3xl font-bold">@Model.AvailableBeds</div></div>
+    </div>
+    <div class="bg-white p-6 rounded shadow mt-6">
+        <div class="text-sm text-gray-500 uppercase mb-2">Occupancy Percentage</div>
+        <div class="w-full bg-gray-100 rounded h-4">
+            <div class="bg-[#C21E2E] h-4 rounded" style="width:@percent%"></div>
+        </div>
+        <div class="mt-2 font-semibold">@percent%</div>
+    </div>
+</section>

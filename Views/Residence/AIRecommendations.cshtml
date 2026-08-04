@@ -1,0 +1,32 @@
+@model IEnumerable<Michaelhouse.Models.AIResidenceRecommendation>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Recommendations";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Recommendations - @ViewBag.ResidenceName</h1>
+    <div class="bg-white rounded shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Explanation</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach (var recommendation in Model)
+                {
+                    <tr>
+                        <td class="px-6 py-4">@recommendation.Student.Name</td>
+                        <td class="px-6 py-4">@recommendation.Room.RoomNumber</td>
+                        <td class="px-6 py-4">@recommendation.CompatibilityScore</td>
+                        <td class="px-6 py-4">@recommendation.Explanation</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

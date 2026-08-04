@@ -1,11 +1,12 @@
 ﻿using Michaelhouse.Models;
+using Michaelhouse.Filters;
 using Michaelhouse.Services;
 using System.Linq;
 using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [Authorize(Roles = "Admin,HouseMaster")]
+    [AdminOrHouseMasterOnly]
     public class StudentQRCodeController : Controller
     {
         private DBContextClass db = new DBContextClass();
@@ -70,7 +71,7 @@ namespace Michaelhouse.Controllers
         // -----------------------------------------------
         // Regenerate — Admin only
         // -----------------------------------------------
-        [Authorize(Roles = "Admin")]
+        [AdminOnly]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Regenerate(int studentId)
