@@ -24,7 +24,12 @@
                         <td class="px-6 py-4">--</td>
                         <td class="px-6 py-4">--</td>
                         <td class="px-6 py-4 text-right">
-                            <a class="px-3 py-1 bg-[#C21E2E] text-white rounded" href="#">Check In</a>
+                            @using (Html.BeginForm("CheckIn", "HouseMaster", FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="studentId" value="@a.StudentId" />
+                                <button type="submit" class="px-3 py-1 bg-[#C21E2E] text-white rounded">Check In</button>
+                            }
                         </td>
                     </tr>
                 }

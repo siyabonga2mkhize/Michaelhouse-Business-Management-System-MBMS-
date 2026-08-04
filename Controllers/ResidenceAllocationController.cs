@@ -1,4 +1,5 @@
 ﻿using Michaelhouse.Models;
+using Michaelhouse.Filters;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [Authorize(Roles = "Admin,HouseMaster")]
+    [AdminOrHouseMasterOnly]
     public class ResidenceAllocationController : Controller
     {
         private ResidenceAllocationEngine engine = new ResidenceAllocationEngine();

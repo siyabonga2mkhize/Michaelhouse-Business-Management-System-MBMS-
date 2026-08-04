@@ -1,0 +1,85 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Scan Student QR";
+}
+
+<section class="p-8 max-w-5xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-4xl font-serif font-bold">Scan Student QR</h1>
+        <p class="text-sm text-gray-500 mt-1">Process residence movement using the student's permanent QR identity.</p>
+    </div>
+
+    <div class="bg-white rounded shadow p-6">
+        <label class="block text-sm font-semibold text-gray-600 mb-2" for="studentId">Student ID</label>
+        <input id="studentId" type="number" min="1" class="w-full md:w-80 px-4 py-2 border rounded shadow-sm" placeholder="Enter or scan student ID" />
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+            @using (Html.BeginForm("CheckIn", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 bg-[#C21E2E] text-white rounded">Check In</button>
+            }
+
+            @using (Html.BeginForm("CheckOut", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 border rounded">Check Out</button>
+            }
+
+            @using (Html.BeginForm("EmergencyRollCallScan", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 border rounded">Roll Call Present</button>
+            }
+
+            @using (Html.BeginForm("HolidayDeparture", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 border rounded">Holiday Departure</button>
+            }
+
+            @using (Html.BeginForm("HolidayReturn", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 border rounded">Holiday Return</button>
+            }
+
+            @using (Html.BeginForm("VisitorReturn", "HouseMaster", FormMethod.Post, new { @class = "scan-action" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <button type="submit" class="w-full px-4 py-2 border rounded">Visitor Return</button>
+            }
+        </div>
+
+        <div class="mt-8 border-t pt-6">
+            <h2 class="text-xl font-semibold mb-3">Visitor Sign Out</h2>
+            @using (Html.BeginForm("VisitorSignOut", "HouseMaster", FormMethod.Post, new { @class = "scan-action space-y-3" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" />
+                <input name="destination" class="w-full px-4 py-2 border rounded" placeholder="Destination" />
+                <input name="expectedReturnTime" type="datetime-local" class="w-full px-4 py-2 border rounded" />
+                <input name="reason" class="w-full px-4 py-2 border rounded" placeholder="Reason" />
+                <button type="submit" class="px-4 py-2 bg-[#C21E2E] text-white rounded">Record Visitor Sign Out</button>
+            }
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var input = document.getElementById("studentId");
+        document.querySelectorAll(".scan-action").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                var hidden = form.querySelector("input[name='studentId']");
+                if (hidden) hidden.value = input.value;
+            });
+        });
+    });
+</script>
