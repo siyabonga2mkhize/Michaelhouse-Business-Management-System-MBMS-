@@ -1,5 +1,8 @@
 @{
     ViewBag.Title = "AI Residence Dashboard";
+    var residencesNearing = ViewBag.ResidencesNearing as IEnumerable<Michaelhouse.Models.Residence> ?? Enumerable.Empty<Michaelhouse.Models.Residence>();
+    var waitingList = ViewBag.WaitingList as IEnumerable<Michaelhouse.Models.AIWaitingList> ?? Enumerable.Empty<Michaelhouse.Models.AIWaitingList>();
+    var recentDecisions = ViewBag.RecentDecisions as IEnumerable<Michaelhouse.Models.AIAllocationHistory> ?? Enumerable.Empty<Michaelhouse.Models.AIAllocationHistory>();
 }
 
 <div class="p-8">
@@ -26,7 +29,7 @@
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-sm font-mono text-gray-500 uppercase">Residences Nearing Capacity</h3>
             <ul class="mt-4 space-y-2">
-                @foreach(var r in (List<dynamic>)ViewBag.ResidencesNearing ?? new List<dynamic>()){
+                @foreach(var r in residencesNearing){
                     <li class="p-3 border rounded flex justify-between items-center">
                         <div>
                             <div class="font-bold">@r.Name</div>
@@ -41,7 +44,7 @@
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-sm font-mono text-gray-500 uppercase">Students Requiring Manual Review</h3>
             <ul class="mt-4 space-y-2">
-                @foreach(var w in (List<Michaelhouse.Models.AIWaitingList>)ViewBag.WaitingList ?? new List<Michaelhouse.Models.AIWaitingList>()){
+                @foreach(var w in waitingList){
                     <li class="p-3 border rounded">
                         <div class="flex justify-between">
                             <div>
@@ -71,7 +74,7 @@
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-sm font-mono text-gray-500 uppercase">Recent AI Decisions</h3>
             <ul class="mt-4 space-y-2">
-                @foreach(var h in (List<Michaelhouse.Models.AIAllocationHistory>)ViewBag.RecentDecisions ?? new List<Michaelhouse.Models.AIAllocationHistory>()){
+                @foreach(var h in recentDecisions){
                     <li class="p-3 border rounded">
                         <div class="font-bold">@h.Student?.Name</div>
                         <div class="text-sm text-gray-500">@h.CreatedDate.ToLocalTime() — Score: @h.Score — Accepted: @(h.Accepted?"Yes":"No")</div>

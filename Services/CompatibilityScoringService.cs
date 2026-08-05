@@ -16,9 +16,116 @@ namespace Michaelhouse.Services
         public string DisqualificationReason { get; set; }
     }
 
+    public class BedScoreResult : RoomScoreResult
+    {
+        public Bed Bed { get; set; }
+    }
+
     public class CompatibilityScoringService
     {
         private DBContextClass db = new DBContextClass();
+
+        public BedScoreResult ScoreBed(StudentProfile profile, Bed bed, Room room, Residence residence, List<Student> currentOccupants)
+        {
+            var result = new BedScoreResult { Bed = bed, Room = room, Residence = residence };
+
+            if (profile == null)
+            {
+                result.IsDisqualified = true;
+                result.DisqualificationReason = "Student profile is required before residence allocation.";
+                return result;
+            }
+
+            if (bed == null || bed.IsOccupied || (bed.Status != null && bed.Status != "Available"))
+            {
+                result.IsDisqualified = true;
+                result.DisqualificationReason = "Bed is not available.";
+                return result;
+            }
+
+            if (room.OccupiedBeds >= room.Capacity || room.IsFull)
+            {
+                result.IsDisqualified = true;
+                result.DisqualificationReason = "Room is at full capacity.";
+                return result;
+            }
+
+            if (residence.OccupiedBeds >= residence.Capacity)
+            {
+                result.IsDisqualified = true;
+                result.DisqualificationReason = "Residence is at full capacity.";
+                return result;
+            }
+
+            double totalWeight = 0;
+            double weightedSum = 0;
+
+            void AddFactor(double weight, double normalizedValue, string explanation)
+            {
+                var value = Math.Max(0, Math.Min(1, normalizedValue));
+                weightedSum += weight * value;
+                totalWeight += weight;
+                result.ScoreBreakdown.Add($"{explanation} (w={weight} v={value:F2})");
+            }
+
+            var profileGrade = profile.Grade ?? profile.Student?.GradeLevel.ToString();
+            var gradeBand = GetGradeBand(profileGrade);
+            var residenceGrade = residence.GradeCategory;
+            var gender = profile.Gender;
+
+            var genderScore = string.IsNullOrWhiteSpace(residence.Gender) ||
+                              string.IsNullOrWhiteSpace(gender) ||
+                              residence.Gender.Equals("Mixed", StringComparison.OrdinalIgnoreCase) ||
+                              residence.Gender.Equals(gender, StringComparison.OrdinalIgnoreCase)
+                ? 1.0
+                : 0.0;
+            AddFactor(18, genderScore, $"GenderCompatibility: residence={residence.Gender} student={gender}");
+
+            var gradeScore = string.IsNullOrWhiteSpace(residenceGrade) ||
+                             residenceGrade.Equals(profileGrade, StringComparison.OrdinalIgnoreCase) ||
+                             residenceGrade.Equals(gradeBand, StringComparison.OrdinalIgnoreCase)
+                ? 1.0
+                : 0.25;
+            AddFactor(14, gradeScore, $"GradeCompatibility: residence={residenceGrade} student={profileGrade}");
+
+            var residenceTypeScore = ResolveResidenceTypeScore(profile, residence, room);
+            AddFactor(10, residenceTypeScore, "ResidenceTypeCompatibility");
+
+            var capacityScore = room.Capacity > 0 ? (room.Capacity - room.OccupiedBeds) / (double)room.Capacity : 0;
+            AddFactor(12, capacityScore, $"AvailableCapacity: room={room.OccupiedBeds}/{room.Capacity}");
+
+            var residenceBalance = residence.Capacity > 0 ? 1 - (residence.OccupiedBeds / (double)residence.Capacity) : 0;
+            AddFactor(10, residenceBalance, $"OccupancyBalance: residence={residence.OccupiedBeds}/{residence.Capacity}");
+
+            AddFactor(10, ResolveBehaviourScore(profile, currentOccupants), "BehaviourCompatibility");
+            AddFactor(10, ResolveMedicalScore(profile, residence, room), "MedicalCompatibility");
+            AddFactor(6, ResolvePreviousHistoryScore(profile, residence, room), "PreviousResidenceHistory");
+            AddFactor(5, ResolveFriendPreferenceScore(profile, currentOccupants), "FriendSiblingPreference");
+            AddFactor(5, ResolveSpecialBoardingRuleScore(profile, room, residence), "SpecialBoardingRules");
+
+            var normalized = totalWeight > 0 ? weightedSum / totalWeight : 0;
+            var finalScore = Math.Round(normalized * 100, 2);
+            result.TotalScore = (int)Math.Round(finalScore);
+            result.ScoreBreakdown.Add($"Bed={bed.BedNumber}");
+            result.ScoreBreakdown.Add($"FinalScore={finalScore}");
+
+            try
+            {
+                db.RoomScoreAudits.Add(new RoomScoreAudit
+                {
+                    RoomId = room.RoomId,
+                    ResidenceId = residence.ResidenceId,
+                    StudentId = profile.StudentId,
+                    Score = finalScore,
+                    CalculatedAt = DateTime.Now,
+                    Details = $"Bed {bed.BedNumber}: {string.Join(" | ", result.ScoreBreakdown)}"
+                });
+                db.SaveChanges();
+            }
+            catch { }
+
+            return result;
+        }
 
         // New intelligent scoring implementing weighted factors with audit storage
         public RoomScoreResult ScoreRoom(StudentProfile profile, Room room, Residence residence,
@@ -177,6 +284,91 @@ namespace Michaelhouse.Services
                 default:
                     return null;
             }
+        }
+
+        private double ResolveResidenceTypeScore(StudentProfile profile, Residence residence, Room room)
+        {
+            var score = 0.7;
+
+            if (profile.StudyStyle == "Quiet" && room.IsQuietStudyRoom)
+                score += 0.2;
+
+            if (profile.MedicalAccommodationRequired && (residence.NearMedicalFacility || residence.NearHouseMasterOffice))
+                score += 0.2;
+
+            if (profile.AccessibilityRequired && room.IsWheelchairAccessible)
+                score += 0.2;
+
+            return Math.Min(1, score);
+        }
+
+        private double ResolveBehaviourScore(StudentProfile profile, List<Student> currentOccupants)
+        {
+            var conflictIds = db.DisciplinaryConflicts
+                .Where(c => c.StudentAId == profile.StudentId || c.StudentBId == profile.StudentId)
+                .Select(c => c.StudentAId == profile.StudentId ? c.StudentBId : c.StudentAId)
+                .ToList();
+
+            if (conflictIds.Any() && currentOccupants.Any(o => conflictIds.Contains(o.StudentId)))
+                return 0;
+
+            var socialScores = currentOccupants
+                .Select(o => db.StudentProfiles.Find(o.StudentId)?.SocialScore ?? 50)
+                .ToList();
+
+            if (!socialScores.Any())
+                return 0.8;
+
+            var average = socialScores.Average();
+            return Math.Max(0, 1 - (Math.Abs(profile.SocialScore - average) / 100.0));
+        }
+
+        private double ResolveMedicalScore(StudentProfile profile, Residence residence, Room room)
+        {
+            if (profile.AccessibilityRequired && !room.IsWheelchairAccessible)
+                return 0;
+
+            if (profile.MedicalAccommodationRequired &&
+                !residence.NearMedicalFacility &&
+                !residence.NearHouseMasterOffice &&
+                !room.IsQuietStudyRoom)
+                return 0.25;
+
+            return 1;
+        }
+
+        private double ResolvePreviousHistoryScore(StudentProfile profile, Residence residence, Room room)
+        {
+            if (!profile.PreviousResidenceId.HasValue && !profile.PreviousRoomId.HasValue)
+                return 0.7;
+
+            if (profile.PreviousRoomId == room.RoomId)
+                return 0.2;
+
+            if (profile.PreviousResidenceId == residence.ResidenceId)
+                return 0.4;
+
+            return 1;
+        }
+
+        private double ResolveFriendPreferenceScore(StudentProfile profile, List<Student> currentOccupants)
+        {
+            var preferredIds = SplitToIntSet(profile.PreviousRoommateIds);
+            if (!preferredIds.Any())
+                return 0.7;
+
+            return currentOccupants.Any(o => preferredIds.Contains(o.StudentId)) ? 1 : 0.5;
+        }
+
+        private double ResolveSpecialBoardingRuleScore(StudentProfile profile, Room room, Residence residence)
+        {
+            if (profile.StudyStyle == "Quiet" && !room.IsQuietStudyRoom && room.OccupiedBeds > 0)
+                return 0.65;
+
+            if (profile.MorningRoutine == "Early" && residence.NearHouseMasterOffice)
+                return 0.9;
+
+            return 0.8;
         }
 
         private HashSet<string> SplitToSet(string csv)

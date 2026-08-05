@@ -1,6 +1,9 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "House Master Dashboard";
+    var recentAllocations = ViewBag.RecentAllocations as IEnumerable<Michaelhouse.Models.ResidenceAssignment> ?? Enumerable.Empty<Michaelhouse.Models.ResidenceAssignment>();
+    var residences = ViewBag.ManagedResidences as IEnumerable<Michaelhouse.Models.Residence> ?? Enumerable.Empty<Michaelhouse.Models.Residence>();
+    var recommendations = ViewBag.Recommendations as IEnumerable<Michaelhouse.Models.AIResidenceRecommendation> ?? Enumerable.Empty<Michaelhouse.Models.AIResidenceRecommendation>();
 }
 
 <section class="p-8">
@@ -9,33 +12,90 @@
             <h1 class="text-4xl font-serif font-bold">House Master Dashboard</h1>
             <p class="text-sm text-gray-500 mt-1">Overview of managed residences and allocations</p>
         </div>
+        <a href="@Url.Action("ScanQRCode", "HouseMaster")" class="px-4 py-2 bg-[#C21E2E] text-white rounded shadow">Scan QR</a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white p-6 rounded shadow">
             <div class="text-sm text-gray-500 uppercase">Managed Residences</div>
-            <div class="mt-2 text-3xl font-bold">@ViewBag.ManagedCount ?? 0</div>
+            <div class="mt-2 text-3xl font-bold">@(ViewBag.ManagedCount ?? 0)</div>
         </div>
         <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Current Occupancy</div>
-            <div class="mt-2 text-3xl font-bold">@ViewBag.CurrentOccupancy ?? 0</div>
+            <div class="text-sm text-gray-500 uppercase">Occupied Beds</div>
+            <div class="mt-2 text-3xl font-bold">@(ViewBag.OccupiedBeds ?? 0)</div>
         </div>
         <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Pending Actions</div>
-            <div class="mt-2 text-3xl font-bold text-[#C21E2E]">@ViewBag.Pending ?? 0</div>
+            <div class="text-sm text-gray-500 uppercase">Available Beds</div>
+            <div class="mt-2 text-3xl font-bold text-[#C21E2E]">@(ViewBag.AvailableBeds ?? 0)</div>
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="font-bold mb-4">Recent Allocations</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Students Outside</div>
+            <div class="mt-2 text-3xl font-bold">@(ViewBag.StudentsAway ?? 0)</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Pending Alerts</div>
+            <div class="mt-2 text-3xl font-bold">@(ViewBag.PendingAlerts ?? 0)</div>
+        </div>
+        <div class="bg-white p-6 rounded shadow">
+            <div class="text-sm text-gray-500 uppercase">Visitor Records</div>
+            <div class="mt-2 text-3xl font-bold">@(ViewBag.CurrentVisitors ?? 0)</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded shadow">
+            <h3 class="font-bold mb-4">Managed Residences</h3>
+            <ul class="space-y-3">
+                @foreach (var residence in residences)
+                {
+                    <li class="p-3 border rounded">
+                        <div>
+                            <div class="font-bold">@residence.Name</div>
+                            <div class="text-sm text-gray-500">@residence.OccupiedBeds / @residence.Capacity occupied</div>
+                        </div>
+                        <div class="flex flex-wrap gap-3 mt-3">
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("ResidenceSummary", "HouseMaster", new { id = residence.ResidenceId })">Summary</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("CurrentStudents", "HouseMaster", new { residenceId = residence.ResidenceId })">Students</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("StudentsOutsideResidence", "HouseMaster", new { residenceId = residence.ResidenceId })">Outside</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("RecentMovements", "HouseMaster", new { residenceId = residence.ResidenceId })">Movements</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("EmergencyRollCall", "HouseMaster", new { residenceId = residence.ResidenceId })">Roll Call</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("VisitorRegister", "HouseMaster", new { residenceId = residence.ResidenceId })">Visitors</a>
+                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("Notifications", "HouseMaster", new { residenceId = residence.ResidenceId })">Alerts</a>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded shadow">
+            <h3 class="font-bold mb-4">Recent Allocations</h3>
+            <ul class="space-y-3">
+                @foreach (var allocation in recentAllocations)
+                {
+                    <li class="p-3 border rounded flex justify-between items-center">
+                        <div>
+                            <div class="font-bold">@allocation.Student.Name</div>
+                            <div class="text-sm text-gray-500">@allocation.Residence.Name - Room @allocation.Room.RoomNumber</div>
+                        </div>
+                        <div class="text-sm text-gray-400">@allocation.MoveInDate.ToString("g")</div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow mt-6">
+        <h3 class="font-bold mb-4">Recent Recommendations</h3>
         <ul class="space-y-3">
-            @foreach(var a in (List<dynamic>)ViewBag.RecentAllocations ?? new List<dynamic>()){
-                <li class="p-3 border rounded flex justify-between items-center">
-                    <div>
-                        <div class="font-bold">@a.StudentName</div>
-                        <div class="text-sm text-gray-500">@a.ResidenceName — Room @a.RoomNumber</div>
-                    </div>
-                    <div class="text-sm text-gray-400">@a.Date</div>
+            @foreach (var recommendation in recommendations)
+            {
+                <li class="p-3 border rounded">
+                    <div class="font-bold">@recommendation.Student.Name</div>
+                    <div class="text-sm text-gray-500">@recommendation.GeneratedAt.ToLocalTime().ToString("g")</div>
+                    <div class="text-sm text-gray-700 mt-1">@recommendation.Explanation</div>
                 </li>
             }
         </ul>

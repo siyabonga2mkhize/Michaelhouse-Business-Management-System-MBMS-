@@ -83,7 +83,7 @@ namespace Michaelhouse.Models
         /// </summary>
         public virtual HouseMaster HouseMaster { get; set; }
         public bool IsArchived { get; internal set; }
-        public DateTime ArchivedDate { get; internal set; }
+        public DateTime? ArchivedDate { get; set; }
         public string ArchivedBy { get; internal set; }
 
         [NotMapped]
