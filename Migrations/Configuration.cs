@@ -28,6 +28,8 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
+            SeedBoardingHouseTestData(context);
+
             // ----------------------------
             // Seed additional vehicles and multiple trips for drivers
             // Creates one upcoming and one completed trip per seeded driver
@@ -556,6 +558,212 @@ namespace Michaelhouse.Migrations
                         UserId = user.UserId
                     };
                     context.Drivers.Add(driver);
+                }
+
+                context.SaveChanges();
+            }
+        }
+
+        private void SeedBoardingHouseTestData(DBContextClass context)
+        {
+            var houses = new[]
+            {
+                new
+                {
+                    ResidenceName = "Founders House",
+                    HouseMasterName = "Mr James Harrington",
+                    Email = "founders.hm@michaelhouse.co.za",
+                    Phone = "0333301001",
+                    Gender = "Male",
+                    GradeCategory = "Junior",
+                    NearMedical = true,
+                    NearOffice = true,
+                    RoomPrefix = "F",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 4, 4, 3, 3 }
+                },
+                new
+                {
+                    ResidenceName = "Baines House",
+                    HouseMasterName = "Ms Nomvula Dlamini",
+                    Email = "baines.hm@michaelhouse.co.za",
+                    Phone = "0333301002",
+                    Gender = "Male",
+                    GradeCategory = "Middle",
+                    NearMedical = false,
+                    NearOffice = true,
+                    RoomPrefix = "B",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 3, 3, 4, 4 }
+                },
+                new
+                {
+                    ResidenceName = "Tatham House",
+                    HouseMasterName = "Mr Andrew Naidoo",
+                    Email = "tatham.hm@michaelhouse.co.za",
+                    Phone = "0333301003",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = false,
+                    NearOffice = false,
+                    RoomPrefix = "T",
+                    Floors = new[] { 1, 2, 2, 3 },
+                    Capacities = new[] { 2, 3, 3, 2 }
+                },
+                new
+                {
+                    ResidenceName = "Churchill House",
+                    HouseMasterName = "Ms Sarah Mokoena",
+                    Email = "churchill.hm@michaelhouse.co.za",
+                    Phone = "0333301004",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = true,
+                    NearOffice = false,
+                    RoomPrefix = "C",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 2, 2, 3, 3 }
+                }
+            };
+
+            foreach (var house in houses)
+            {
+                var user = context.Users.FirstOrDefault(u => u.Email == house.Email);
+                if (user == null)
+                {
+                    user = new AppUser
+                    {
+                        Name = house.HouseMasterName,
+                        Email = house.Email,
+                        PasswordHash = HashPassword("HouseMaster@123"),
+                        Role = "HouseMaster"
+                    };
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                }
+
+                var houseMaster = context.HouseMasters.FirstOrDefault(h => h.ContactEmail == house.Email);
+                if (houseMaster == null)
+                {
+                    houseMaster = new HouseMaster
+                    {
+                        FullName = house.HouseMasterName,
+                        ContactEmail = house.Email,
+                        ContactPhone = house.Phone
+                    };
+                    context.HouseMasters.Add(houseMaster);
+                    context.SaveChanges();
+                }
+
+                var residence = context.Residences.FirstOrDefault(r => r.Name == house.ResidenceName);
+                if (residence == null)
+                {
+                    residence = new Residence
+                    {
+                        Name = house.ResidenceName,
+                        Gender = house.Gender,
+                        GradeCategory = house.GradeCategory,
+                        HouseMasterId = houseMaster.HouseMasterId,
+                        NearMedicalFacility = house.NearMedical,
+                        NearHouseMasterOffice = house.NearOffice,
+                        OccupiedBeds = 0,
+                        IsArchived = false,
+
+                        ArchivedDate = DateTime.Now
+                    };
+                    context.Residences.Add(residence);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    residence.Gender = house.Gender;
+                    residence.GradeCategory = house.GradeCategory;
+                    residence.HouseMasterId = houseMaster.HouseMasterId;
+                    residence.NearMedicalFacility = house.NearMedical;
+                    residence.NearHouseMasterOffice = house.NearOffice;
+                }
+
+                houseMaster.ResidenceId = residence.ResidenceId;
+                context.SaveChanges();
+
+                for (var i = 0; i < house.Capacities.Length; i++)
+                {
+                    var roomNumber = $"{house.RoomPrefix}{(i + 1):00}";
+                    var room = context.Rooms.FirstOrDefault(r => r.ResidenceId == residence.ResidenceId && r.RoomNumber == roomNumber);
+                    if (room == null)
+                    {
+                        room = new Room
+                        {
+                            ResidenceId = residence.ResidenceId,
+                            RoomNumber = roomNumber,
+                            Capacity = house.Capacities[i],
+                            OccupiedBeds = 0,
+                            IsFull = false,
+                            Floor = house.Floors[i],
+                            IsGroundFloor = house.Floors[i] == 1,
+                            IsWheelchairAccessible = house.Floors[i] == 1,
+                            NearBathroom = i % 2 == 0,
+                            IsQuietStudyRoom = i == 0 || i == 2,
+                            NeedsMaintenance = false
+                        };
+                        context.Rooms.Add(room);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        room.Capacity = house.Capacities[i];
+                        room.Floor = house.Floors[i];
+                        room.IsGroundFloor = house.Floors[i] == 1;
+                        room.IsWheelchairAccessible = house.Floors[i] == 1;
+                        room.NearBathroom = i % 2 == 0;
+                        room.IsQuietStudyRoom = i == 0 || i == 2;
+                        room.NeedsMaintenance = false;
+                    }
+
+                    for (var bedNumber = 1; bedNumber <= house.Capacities[i]; bedNumber++)
+                    {
+                        var bedLabel = $"{roomNumber}-{bedNumber}";
+                        if (!context.Beds.Any(b => b.RoomId == room.RoomId && b.BedNumber == bedLabel))
+                        {
+                            context.Beds.Add(new Bed
+                            {
+                                RoomId = room.RoomId,
+                                BedNumber = bedLabel,
+                                IsOccupied = false,
+                                Status = "Available"
+                            });
+                        }
+                    }
+                    context.SaveChanges();
+                }
+
+                residence.Capacity = context.Rooms
+                    .Where(r => r.ResidenceId == residence.ResidenceId && !r.IsArchived)
+                    .Select(r => r.Capacity)
+                    .DefaultIfEmpty(0)
+                    .Sum();
+
+                residence.OccupiedBeds = context.ResidenceAssignments
+                    .Count(a => a.ResidenceId == residence.ResidenceId && a.IsActive);
+
+                foreach (var room in context.Rooms.Where(r => r.ResidenceId == residence.ResidenceId).ToList())
+                {
+                    room.OccupiedBeds = context.ResidenceAssignments.Count(a => a.RoomId == room.RoomId && a.IsActive);
+                    room.IsFull = room.OccupiedBeds >= room.Capacity;
+
+                    var occupiedBedIds = context.ResidenceAssignments
+                        .Where(a => a.RoomId == room.RoomId && a.IsActive)
+                        .Select(a => a.BedId)
+                        .ToList();
+
+                    foreach (var bed in context.Beds.Where(b => b.RoomId == room.RoomId).ToList())
+                    {
+                        var occupied = occupiedBedIds.Contains(bed.BedId);
+                        bed.IsOccupied = occupied;
+                        bed.Status = occupied ? "Occupied" : "Available";
+                        if (!occupied)
+                            bed.OccupiedByStudentId = null;
+                    }
                 }
 
                 context.SaveChanges();

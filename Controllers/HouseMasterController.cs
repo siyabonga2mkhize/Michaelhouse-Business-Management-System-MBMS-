@@ -17,14 +17,37 @@ namespace Michaelhouse.Controllers
         // Dashboard with cards and quick actions
         public ActionResult Dashboard()
         {
-            var userId = (int?)(Session["UserId"]);
-            var houseMaster = db.HouseMasters.FirstOrDefault(h => h.HouseMasterId == (int?)Session["HouseMasterId"]);
+            if (Session == null)
+            {
+                throw new Exception("Session is null");
+            }
+            int? houseMasterId = Session["HouseMasterId"] as int?;
+
+            var role = (Session["UserRole"] as string) ?? string.Empty;
+            var isAdmin = role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+
+            HouseMaster houseMaster = null;
+
+            if (houseMasterId.HasValue)
+            {
+                houseMaster = db.HouseMasters
+                    .FirstOrDefault(h => h.HouseMasterId == houseMasterId.Value);
+            }
 
             // Basic stats
             var residencesQuery = db.Residences.Where(r => !r.IsArchived);
-            if (houseMaster != null && !User.IsInRole("Admin"))
+
+            if (!isAdmin)
             {
-                residencesQuery = residencesQuery.Where(r => r.HouseMasterId == houseMaster.HouseMasterId);
+                if (houseMaster == null)
+                {
+                    TempData["Error"] = "No house master profile is linked to this user account.";
+                    residencesQuery = residencesQuery.Where(r => false);
+                }
+                else
+                {
+                    residencesQuery = residencesQuery.Where(r => r.HouseMasterId == houseMaster.HouseMasterId);
+                }
             }
 
             var residences = residencesQuery.ToList();
@@ -48,13 +71,27 @@ namespace Michaelhouse.Controllers
             ViewBag.StudentsAway = studentsAway;
             ViewBag.PendingAlerts = pendingAlerts;
             ViewBag.CurrentVisitors = currentVisitors;
+            ViewBag.ManagedCount = residences.Count;
+            ViewBag.CurrentOccupancy = occupiedBeds;
+            ViewBag.Pending = pendingAlerts;
+            ViewBag.ManagedResidences = residences;
 
             // AI recommendations for residences managed
             var recs = db.AIResidenceRecommendations
-                .Where(r => residences.Select(rr => rr.ResidenceId).Contains(r.ResidenceId))
-                .OrderByDescending(r => r.GeneratedAt).Take(5)
-                .Include(r => r.Student).ToList();
-            ViewBag.Recommendations = recs;
+     .Where(r => residenceIds.Contains(r.ResidenceId))
+     .Include(r => r.Student)
+     .OrderByDescending(r => r.GeneratedAt)
+     .Take(5)
+     .ToList();
+
+            ViewBag.RecentAllocations = db.ResidenceAssignments
+                .Where(a => residenceIds.Contains(a.ResidenceId))
+                .Include(a => a.Student)
+                .Include(a => a.Residence)
+                .Include(a => a.Room)
+                .OrderByDescending(a => a.MoveInDate)
+                .Take(10)
+                .ToList();
 
             return View();
         }
@@ -149,6 +186,7 @@ namespace Michaelhouse.Controllers
         {
             var student = db.Students.Find(studentId);
             if (student == null) return HttpNotFound();
+            var returnResidenceId = 0;
             try
             {
                 var activeAssignment = db.ResidenceAssignments
@@ -158,6 +196,8 @@ namespace Michaelhouse.Controllers
 
                 if (activeAssignment == null)
                     throw new InvalidOperationException("Student has no active residence assignment.");
+
+                returnResidenceId = activeAssignment.ResidenceId;
 
                 var bed = db.Beds.Find(activeAssignment.BedId);
                 if (bed != null)
@@ -180,8 +220,14 @@ namespace Michaelhouse.Controllers
                 TempData["Success"] = "Student checked out.";
             }
             catch (Exception ex) { TempData["Error"] = ex.Message; }
-            var assignment = db.ResidenceAssignments.FirstOrDefault(a => a.StudentId == studentId && a.IsActive);
-            return RedirectToAction("CurrentStudents", new { residenceId = assignment?.ResidenceId ?? 0 });
+            if (returnResidenceId == 0)
+            {
+                var assignment = db.ResidenceAssignments.FirstOrDefault(a => a.StudentId == studentId && a.IsActive);
+                returnResidenceId = assignment?.ResidenceId ?? 0;
+            }
+            return returnResidenceId > 0
+                ? RedirectToAction("CurrentStudents", new { residenceId = returnResidenceId })
+                : RedirectToAction("Dashboard");
         }
 
         [HttpPost]
@@ -235,6 +281,50 @@ namespace Michaelhouse.Controllers
             return RedirectToAction("CurrentStudents", new { residenceId = assignment?.ResidenceId ?? 0 });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ScanQRCode(string qrCodeValue)
+        {
+            var value = (qrCodeValue ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                TempData["Error"] = "Scan or enter a student QR code first.";
+                return View();
+            }
+
+            var qr = db.StudentQRCodes
+                .Include(q => q.Student)
+                .FirstOrDefault(q => q.IsActive && q.QRCodeValue == value);
+
+            if (qr == null && int.TryParse(value, out var studentId))
+            {
+                qr = db.StudentQRCodes
+                    .Include(q => q.Student)
+                    .FirstOrDefault(q => q.IsActive && q.StudentId == studentId);
+            }
+
+            if (qr == null || qr.Student == null)
+            {
+                TempData["Error"] = "No active student QR identity was found for that scan.";
+                return View();
+            }
+
+            var assignment = db.ResidenceAssignments
+                .Include(a => a.Residence)
+                .Include(a => a.Room)
+                .Include(a => a.Bed)
+                .FirstOrDefault(a => a.StudentId == qr.StudentId && a.IsActive);
+
+            ViewBag.ScannedStudent = qr.Student;
+            ViewBag.ActiveAssignment = assignment;
+            ViewBag.QRCode = qr;
+
+            if (assignment == null)
+                TempData["Error"] = "This student has a valid QR identity but no active residence assignment.";
+
+            return View();
+        }
+
         private void LogResidenceAction(int studentId, string action, string notes, bool approved, int? residenceId = null, bool isHoliday = false)
         {
             var assignment = db.ResidenceAssignments.FirstOrDefault(a => a.StudentId == studentId && a.IsActive);
@@ -245,7 +335,7 @@ namespace Michaelhouse.Controllers
                 Action = action,
                 ScannedAt = DateTime.UtcNow,
                 HouseMasterId = (int?)Session["HouseMasterId"],
-                Scanner = User?.Identity?.Name ?? "HouseMaster",
+                Scanner = Session["UserName"] as string ?? "HouseMaster",
                 Approved = approved,
                 Reason = notes,
                 IsHoliday = isHoliday

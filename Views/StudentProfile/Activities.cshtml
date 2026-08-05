@@ -1,0 +1,26 @@
+@model Michaelhouse.Models.StudentProfileActivitiesViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Student Profile - Activities";
+}
+
+<section class="p-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-2">Student Profile</h1>
+    <p class="text-sm text-gray-500 mb-6">Step 3 of 5 - Activities for @Model.StudentName</p>
+
+    <div class="bg-white rounded shadow p-6">
+        @using (Html.BeginForm("Activities", "StudentProfile", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.AppId)
+            @Html.HiddenFor(m => m.StudentId)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block"><span class="text-sm font-semibold text-gray-600">Sports</span>@Html.TextAreaFor(m => m.Sports, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
+                <label class="block"><span class="text-sm font-semibold text-gray-600">Clubs</span>@Html.TextAreaFor(m => m.Clubs, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
+                <label class="block"><span class="text-sm font-semibold text-gray-600">Leadership Roles</span>@Html.TextAreaFor(m => m.LeadershipRoles, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
+                <label class="block"><span class="text-sm font-semibold text-gray-600">Cultural Activities</span>@Html.TextAreaFor(m => m.CulturalActivities, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
+            </div>
+            <div class="flex justify-between mt-6"><a href="@Url.Action("Academic", new { appId = Model.AppId })" class="px-5 py-2 border rounded">Back</a><button type="submit" class="px-5 py-2 bg-[#C21E2E] text-white rounded">Next</button></div>
+        }
+    </div>
+</section>

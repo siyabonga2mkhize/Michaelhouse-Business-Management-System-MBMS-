@@ -31,11 +31,12 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Confirm(int studentId, int roomId)
+        public ActionResult Confirm(int studentId, int roomId, int? bedId)
         {
             try
             {
-                engine.AllocateStudent(studentId, roomId);
+                var service = new AIResidenceAllocationService();
+                service.AllocateStudent(studentId, roomId, accepted: true, overrideBedId: bedId);
                 TempData["Success"] = "Student successfully allocated to residence.";
             }
             catch (InvalidOperationException ex)
@@ -48,11 +49,13 @@ namespace Michaelhouse.Controllers
 
         // Called automatically right after admission (no staff review)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AutoAllocate(int studentId)
         {
             try
             {
-                engine.AllocateStudent(studentId);
+                var service = new AIResidenceAllocationService();
+                service.AllocateStudent(studentId);
                 TempData["Success"] = "Student automatically allocated to residence.";
             }
             catch (InvalidOperationException ex)
@@ -102,7 +105,6 @@ namespace Michaelhouse.Controllers
                 // Residences nearing capacity (>85%)
                 var nearing = db.Residences
                     .Where(r => r.Capacity > 0 && (r.OccupiedBeds / (double)r.Capacity) >= 0.85)
-                    .Select(r => new { r.ResidenceId, r.Name, r.OccupiedBeds, r.Capacity })
                     .ToList();
 
                 // Students requiring manual review (waiting list)

@@ -514,9 +514,9 @@ namespace Michaelhouse.Models
             // -------------------------
             // StudentProfile
             // -------------------------
-            modelBuilder.Entity<StudentProfile>()
-                .HasRequired(sp => sp.Student)
-                .WithOptional();
+            modelBuilder.Entity<Student>()
+    .HasOptional(s => s.StudentProfile)
+    .WithRequired(sp => sp.Student);
 
             // -------------------------
             // StudentQRCode
