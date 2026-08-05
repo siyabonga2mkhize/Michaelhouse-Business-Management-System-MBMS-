@@ -334,8 +334,32 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
-    <Content Include="Content\logo.svg.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Content\Images\Drivers\andile.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Drivers\nkosi.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Drivers\thabo.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Drivers\themba.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Vehicles\ford1.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Vehicles\hyundai1.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Vehicles\mercedes1.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Vehicles\nissan1.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Images\Vehicles\quantum1.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
@@ -347,6 +371,21 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="App_Data\Uploads\18f9c880-f7fd-4ece-831d-6d47a9519922.pdf" />
+    <Content Include="App_Data\Uploads\281e3a4b-5947-4a1c-bb7d-d791d971846e.pdf" />
+    <Content Include="App_Data\Uploads\2cc00c66-b313-49bf-8979-7d372ece1b65.pdf" />
+    <Content Include="App_Data\Uploads\5f138c12-df99-40e8-a52f-22e5bf5acf68.pdf" />
+    <Content Include="App_Data\Uploads\6049ac37-4e0a-4f18-81d8-503b1ea8a7cd.pdf" />
+    <Content Include="App_Data\Uploads\6191f1aa-0f9a-4353-bc63-1c8c2f847e67.pdf" />
+    <Content Include="App_Data\Uploads\6773e779-d5da-4277-993e-b52c1db7d153.pdf" />
+    <Content Include="App_Data\Uploads\6cd313f8-f0e4-4c0f-b71c-d6e22d8585a7.pdf" />
+    <Content Include="App_Data\Uploads\6e0119bd-a5e2-4230-a302-3db26834c6f0.pdf" />
+    <Content Include="App_Data\Uploads\6fec6ee4-eafe-471d-a281-10d624504f3d.pdf" />
+    <Content Include="App_Data\Uploads\9e2e1a71-c197-49cf-aebf-3bbb262f4a19.pdf" />
+    <Content Include="App_Data\Uploads\b696ec35-3fd3-4f19-8876-694011a29ecf.pdf" />
+    <Content Include="App_Data\Uploads\e3ecd5d4-b1d0-40d0-900a-4111b7038f25.pdf" />
+    <Content Include="App_Data\Uploads\f0ade790-0582-4a3c-9513-d7346ceae001.pdf" />
+    <Content Include="App_Data\Uploads\f0b06ff2-9647-4249-b87b-e560e1c81a7e.pdf" />
     <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
@@ -543,7 +582,6 @@
     <Content Include="Views\Enrollments\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>
@@ -587,11 +625,9 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != '' And Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
-    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
-  </Target>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets')" />
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
@@ -625,5 +661,5 @@
     <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
   </PropertyGroup>
   <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="'$(VisualStudioVersion)' != '' And Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets')" />
 </Project>
