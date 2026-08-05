@@ -1,0 +1,13 @@
+@model Michaelhouse.Models.ResidenceMovement
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Edit Movement"; }
+<div class="container py-4"><h2>Edit Movement</h2>
+@using (Html.BeginForm()) { @Html.AntiForgeryToken() @Html.HiddenFor(m => m.ResidenceMovementId) @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<div class="form-group">@Html.LabelFor(m => m.StudentId) @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.FromResidenceId) @Html.DropDownListFor(m => m.FromResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.FromRoomId) @Html.DropDownListFor(m => m.FromRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ToResidenceId) @Html.DropDownListFor(m => m.ToResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ToRoomId) @Html.DropDownListFor(m => m.ToRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.PerformedAt) @Html.TextBoxFor(m => m.PerformedAt, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.Reason) @Html.TextAreaFor(m => m.Reason, new { @class = "form-control" })</div>
+<button class="btn btn-primary" type="submit">Save</button> }
+</div>

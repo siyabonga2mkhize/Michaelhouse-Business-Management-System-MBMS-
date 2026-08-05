@@ -45,6 +45,7 @@ namespace Michaelhouse.Models
         public bool IsHoliday { get; set; }
         public bool OnTrip { get; set; }
         public bool MedicalRestrictionViolated { get; set; }
+        public bool IsArchived { get; set; }
 
         [ForeignKey("StudentId")]
         public virtual Student Student { get; set; }

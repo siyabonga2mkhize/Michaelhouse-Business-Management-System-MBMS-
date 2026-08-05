@@ -1,0 +1,23 @@
+@model Michaelhouse.Models.Room
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Create Room";
+}
+<div class="container py-4">
+    <h2>Create Room</h2>
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">@Html.LabelFor(m => m.ResidenceId) @Html.DropDownListFor(m => m.ResidenceId, (SelectList)ViewBag.Residences, "Select residence", new { @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.RoomNumber) @Html.TextBoxFor(m => m.RoomNumber, new { @class = "form-control" }) @Html.ValidationMessageFor(m => m.RoomNumber, "", new { @class = "text-danger" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.Capacity) @Html.TextBoxFor(m => m.Capacity, new { @class = "form-control", type = "number", min = "1" }) @Html.ValidationMessageFor(m => m.Capacity, "", new { @class = "text-danger" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.Floor) @Html.TextBoxFor(m => m.Floor, new { @class = "form-control", type = "number" })</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.IsGroundFloor) Ground Floor</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.IsWheelchairAccessible) Wheelchair Accessible</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.NearBathroom) Near Bathroom</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.IsQuietStudyRoom) Quiet Study Room</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.NeedsMaintenance) Needs Maintenance</div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="@Url.Action("Index")" class="btn btn-default">Cancel</a>
+    }
+</div>

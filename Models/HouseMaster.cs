@@ -44,6 +44,7 @@ namespace Michaelhouse.Models
         }
 
         public int? ResidenceId { get; set; }
+        public bool IsArchived { get; set; }
 
         /// <summary>
         /// Residences managed by this house master

@@ -12,6 +12,23 @@ namespace Michaelhouse.Controllers
         private DBContextClass db = new DBContextClass();
         private StudentQRCodeService service = new StudentQRCodeService();
 
+        public ActionResult Index(string search)
+        {
+            var query = db.StudentQRCodes.Include("Student").AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(q => q.Student.FirstName.Contains(search) || q.Student.LastName.Contains(search) || q.Student.StudentNumber.Contains(search));
+            ViewBag.Search = search;
+            return View(query.OrderByDescending(q => q.IsActive).ThenBy(q => q.Student.LastName).ToList());
+        }
+
+        [AdminOnly]
+        public ActionResult Generate(int studentId)
+        {
+            service.GenerateQRCode(studentId);
+            TempData["Success"] = "QR code generated.";
+            return RedirectToAction("Details", new { studentId });
+        }
+
         // -----------------------------------------------
         // View / print card
         // -----------------------------------------------

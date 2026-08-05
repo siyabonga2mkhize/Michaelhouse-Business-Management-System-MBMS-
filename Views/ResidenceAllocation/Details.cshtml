@@ -1,0 +1,9 @@
+@model Michaelhouse.Models.ResidenceAllocation
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Allocation Details"; }
+<div class="container py-4">
+    <h2>Allocation Details</h2>
+    <dl class="dl-horizontal"><dt>Student</dt><dd>@Model.Student.Name</dd><dt>Residence</dt><dd>@Model.Residence.Name</dd><dt>Room</dt><dd>@Model.Room.RoomNumber</dd><dt>Bed</dt><dd>@Model.Bed.BedNumber</dd><dt>Allocated</dt><dd>@Model.AllocatedAt.ToString("g")</dd><dt>Released</dt><dd>@(Model.ReleasedAt?.ToString("g") ?? "Active")</dd></dl>
+    <a class="btn btn-primary" href="@Url.Action("Edit", new { id = Model.ResidenceAllocationId })">Edit</a>
+    <a class="btn btn-danger" href="@Url.Action("Archive", new { id = Model.ResidenceAllocationId })">Archive</a>
+    <a class="btn btn-default" href="@Url.Action("Index")">Back</a>
+</div>
