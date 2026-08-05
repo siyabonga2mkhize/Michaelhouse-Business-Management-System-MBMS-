@@ -401,6 +401,237 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<StockMovement>()
                 .HasRequired(sm => sm.Product).WithMany()
                 .HasForeignKey(sm => sm.ProductId).WillCascadeOnDelete(false);
+
+            // ======================================================================
+            // BOARDING HOUSE MANAGEMENT RELATIONSHIPS
+            // ======================================================================
+
+            // -------------------------
+            // Residence -> HouseMaster
+            // -------------------------
+            modelBuilder.Entity<Residence>()
+                .HasOptional(r => r.HouseMaster)
+                .WithMany()
+                .HasForeignKey(r => r.HouseMasterId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // Room -> Residence
+            // -------------------------
+            modelBuilder.Entity<Room>()
+                .HasRequired(r => r.Residence)
+                .WithMany(r => r.Rooms)
+                .HasForeignKey(r => r.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // Bed -> Room
+            // -------------------------
+            modelBuilder.Entity<Bed>()
+                .HasRequired(b => b.Room)
+                .WithMany(r => r.Beds)
+                .HasForeignKey(b => b.RoomId)
+                .WillCascadeOnDelete(false);
+
+            // Bed -> Student (optional)
+            modelBuilder.Entity<Bed>()
+                .HasOptional(b => b.OccupiedByStudent)
+                .WithMany()
+                .HasForeignKey(b => b.OccupiedByStudentId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // ResidenceAssignment
+            // -------------------------
+            modelBuilder.Entity<ResidenceAssignment>()
+                .HasRequired(r => r.Student)
+                .WithMany()
+                .HasForeignKey(r => r.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAssignment>()
+                .HasRequired(r => r.Residence)
+                .WithMany()
+                .HasForeignKey(r => r.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAssignment>()
+                .HasRequired(r => r.Room)
+                .WithMany()
+                .HasForeignKey(r => r.RoomId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAssignment>()
+                .HasRequired(r => r.Bed)
+                .WithMany()
+                .HasForeignKey(r => r.BedId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // ResidenceAllocation
+            // -------------------------
+            modelBuilder.Entity<ResidenceAllocation>()
+                .HasRequired(r => r.Student)
+                .WithMany()
+                .HasForeignKey(r => r.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAllocation>()
+                .HasRequired(r => r.Residence)
+                .WithMany()
+                .HasForeignKey(r => r.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAllocation>()
+                .HasRequired(r => r.Room)
+                .WithMany()
+                .HasForeignKey(r => r.RoomId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceAllocation>()
+                .HasRequired(r => r.Bed)
+                .WithMany()
+                .HasForeignKey(r => r.BedId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // StudentProfile
+            // -------------------------
+            modelBuilder.Entity<StudentProfile>()
+                .HasRequired(sp => sp.Student)
+                .WithOptional();
+
+            // -------------------------
+            // StudentQRCode
+            // -------------------------
+            modelBuilder.Entity<StudentQRCode>()
+                .HasRequired(q => q.Student)
+                .WithMany()
+                .HasForeignKey(q => q.StudentId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // QRScanRecord
+            // -------------------------
+            modelBuilder.Entity<QRScanRecord>()
+                .HasRequired(q => q.Student)
+                .WithMany()
+                .HasForeignKey(q => q.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<QRScanRecord>()
+                .HasOptional(q => q.Residence)
+                .WithMany()
+                .HasForeignKey(q => q.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<QRScanRecord>()
+                .HasOptional(q => q.HouseMaster)
+                .WithMany()
+                .HasForeignKey(q => q.HouseMasterId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // AI Residence Recommendation
+            // -------------------------
+            modelBuilder.Entity<AIResidenceRecommendation>()
+                .HasRequired(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<AIResidenceRecommendation>()
+                .HasRequired(a => a.Residence)
+                .WithMany()
+                .HasForeignKey(a => a.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<AIResidenceRecommendation>()
+                .HasRequired(a => a.Room)
+                .WithMany()
+                .HasForeignKey(a => a.RoomId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // AI Allocation History
+            // -------------------------
+            modelBuilder.Entity<AIAllocationHistory>()
+                .HasRequired(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<AIAllocationHistory>()
+                .HasRequired(a => a.Residence)
+                .WithMany()
+                .HasForeignKey(a => a.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<AIAllocationHistory>()
+                .HasRequired(a => a.Room)
+                .WithMany()
+                .HasForeignKey(a => a.RoomId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // AI Waiting List
+            // -------------------------
+            modelBuilder.Entity<AIWaitingList>()
+                .HasRequired(w => w.Student)
+                .WithMany()
+                .HasForeignKey(w => w.StudentId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // AI Recommendation Override
+            // -------------------------
+            modelBuilder.Entity<AIRecommendationOverride>()
+                .HasRequired(o => o.Recommendation)
+                .WithMany()
+                .HasForeignKey(o => o.RecommendationId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // AI Alert
+            // -------------------------
+            modelBuilder.Entity<AIAlert>()
+                .HasRequired(a => a.Residence)
+                .WithMany()
+                .HasForeignKey(a => a.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            // -------------------------
+            // Residence Movement
+            // -------------------------
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasRequired(r => r.Student)
+                .WithMany()
+                .HasForeignKey(r => r.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasOptional(r => r.FromResidence)
+                .WithMany()
+                .HasForeignKey(r => r.FromResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasOptional(r => r.ToResidence)
+                .WithMany()
+                .HasForeignKey(r => r.ToResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasOptional(r => r.FromRoom)
+                .WithMany()
+                .HasForeignKey(r => r.FromRoomId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasOptional(r => r.ToRoom)
+                .WithMany()
+                .HasForeignKey(r => r.ToRoomId)
+                .WillCascadeOnDelete(false);
         }
     }
 }
