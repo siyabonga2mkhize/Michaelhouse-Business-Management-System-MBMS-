@@ -1,0 +1,11 @@
+@model IEnumerable<Michaelhouse.Models.ResidenceMovement>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Residence Movements"; }
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2>Residence Movements</h2><a class="btn btn-primary" href="@Url.Action("Create")">Create</a></div>
+    @using (Html.BeginForm("Index", "ResidenceMovement", FormMethod.Get)) { <input name="search" value="@ViewBag.Search" class="form-control mb-3" placeholder="Search movements" /> }
+    <p><a href="@Url.Action("Index", new { archived = !(ViewBag.Archived ?? false) })">@((ViewBag.Archived ?? false) ? "View Active" : "View Archived")</a></p>
+    <table class="table table-striped"><thead><tr><th>Student</th><th>From</th><th>To</th><th>Date</th><th></th></tr></thead><tbody>
+    @foreach (var m in Model) { <tr><td>@m.Student.Name</td><td>@(m.FromResidence?.Name ?? "-") @(m.FromRoom?.RoomNumber)</td><td>@(m.ToResidence?.Name ?? "-") @(m.ToRoom?.RoomNumber)</td><td>@m.PerformedAt.ToString("g")</td><td><a href="@Url.Action("Details", new { id = m.ResidenceMovementId })">Details</a></td></tr> }
+    </tbody></table>
+    @if (!Model.Any()) { <div class="alert alert-info">No movement records found.</div> }
+</div>

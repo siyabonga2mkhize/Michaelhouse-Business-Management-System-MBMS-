@@ -1,0 +1,22 @@
+@model Michaelhouse.Models.ResidenceAssignment
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Edit Assignment";
+}
+<div class="container py-4">
+    <h2>Edit Residence Assignment</h2>
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.ResidenceAssignmentId)
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">@Html.LabelFor(m => m.StudentId) @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, new { @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.ResidenceId) @Html.DropDownListFor(m => m.ResidenceId, (SelectList)ViewBag.Residences, new { @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.RoomId) @Html.DropDownListFor(m => m.RoomId, (SelectList)ViewBag.Rooms, new { @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.BedId) @Html.DropDownListFor(m => m.BedId, (SelectList)ViewBag.Beds, new { @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.MoveInDate) @Html.TextBoxFor(m => m.MoveInDate, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.VacatedDate) @Html.TextBoxFor(m => m.VacatedDate, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
+        <div class="form-group">@Html.LabelFor(m => m.Status) @Html.TextBoxFor(m => m.Status, new { @class = "form-control" })</div>
+        <div class="checkbox">@Html.CheckBoxFor(m => m.IsActive) Active</div>
+        <button class="btn btn-primary" type="submit">Save</button>
+    }
+</div>

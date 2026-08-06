@@ -192,6 +192,8 @@ namespace Michaelhouse.Models
 
         [ForeignKey("OccupiedByStudentId")]
         public virtual Student OccupiedByStudent { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class RoomScoreAudit
@@ -238,6 +240,8 @@ namespace Michaelhouse.Models
         public virtual Residence Residence { get; set; }
         public virtual Room Room { get; set; }
         public virtual Bed Bed { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class DisciplinaryConflict

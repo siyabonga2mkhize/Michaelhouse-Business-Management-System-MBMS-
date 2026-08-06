@@ -1,0 +1,11 @@
+@model IEnumerable<Michaelhouse.Models.HouseMaster>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "House Masters"; }
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2>House Masters</h2><a class="btn btn-primary" href="@Url.Action("Create")">Create</a></div>
+    @using (Html.BeginForm("Index", "HouseMaster", FormMethod.Get)) { <input name="search" value="@ViewBag.Search" class="form-control mb-3" placeholder="Search house masters" /> }
+    <p><a href="@Url.Action("Index", new { archived = !(ViewBag.Archived ?? false) })">@((ViewBag.Archived ?? false) ? "View Active" : "View Archived")</a></p>
+    <table class="table table-striped"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Residences</th><th></th></tr></thead><tbody>
+    @foreach (var h in Model) { <tr><td>@h.FullName</td><td>@h.ContactEmail</td><td>@h.ContactPhone</td><td>@(h.Residences == null ? 0 : h.Residences.Count)</td><td><a href="@Url.Action("Details", new { id = h.HouseMasterId })">Details</a></td></tr> }
+    </tbody></table>
+    @if (!Model.Any()) { <div class="alert alert-info">No house masters found.</div> }
+</div>

@@ -1,0 +1,5 @@
+@model Michaelhouse.Models.HouseMaster
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Archive House Master"; }
+<div class="container py-4"><h2>Archive House Master</h2><div class="alert alert-warning">Archive @Model.FullName?</div>
+@using (Html.BeginForm("Archive", "HouseMaster", FormMethod.Post)) { @Html.AntiForgeryToken() <input type="hidden" name="id" value="@Model.HouseMasterId" /><button class="btn btn-danger" type="submit">Archive</button> <a class="btn btn-default" href="@Url.Action("Details", new { id = Model.HouseMasterId })">Cancel</a> }
+</div>

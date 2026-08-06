@@ -557,14 +557,54 @@
                             <i class="bi bi-building"></i> <span class="link-text">Residences</span>
                         </a>
 
+                        <a class="nav-link @(currentController == "Room" ? "active" : "")"
+                           href="@Url.Action("Index", "Room")">
+                            <i class="bi bi-door-open"></i> <span class="link-text">Rooms</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Bed" ? "active" : "")"
+                           href="@Url.Action("Index", "Bed")">
+                            <i class="bi bi-grid-3x3-gap"></i> <span class="link-text">Beds</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "HouseMaster" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "HouseMaster")">
+                            <i class="bi bi-people"></i> <span class="link-text">House Masters</span>
+                        </a>
+
                         <a class="nav-link @(currentController == "HouseMaster" ? "active" : "")"
                            href="@Url.Action("Dashboard", "HouseMaster")">
                             <i class="bi bi-person-workspace"></i> <span class="link-text">House Master Dashboard</span>
                         </a>
 
+                        <a class="nav-link @(currentController == "ResidenceAssignment" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAssignment")">
+                            <i class="bi bi-person-check"></i> <span class="link-text">Student Assignments</span>
+                        </a>
+
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Dashboard" ? "active" : "")"
                            href="@Url.Action("Dashboard", "ResidenceAllocation")">
                             <i class="bi bi-diagram-3"></i> <span class="link-text">Allocation Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAllocation")">
+                            <i class="bi bi-list-check"></i> <span class="link-text">Allocation Records</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceMovement" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceMovement")">
+                            <i class="bi bi-arrow-left-right"></i> <span class="link-text">Movements</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "StudentQRCode" ? "active" : "")"
+                           href="@Url.Action("Index", "StudentQRCode")">
+                            <i class="bi bi-qr-code"></i> <span class="link-text">Student QR Codes</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "QRScanRecord" ? "active" : "")"
+                           href="@Url.Action("Index", "QRScanRecord")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">QR Scan History</span>
                         </a>
 
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"
@@ -659,9 +699,34 @@
                             <i class="bi bi-building"></i> <span class="link-text">Residences</span>
                         </a>
 
+                        <a class="nav-link @(currentController == "Room" ? "active" : "")"
+                           href="@Url.Action("Index", "Room")">
+                            <i class="bi bi-door-open"></i> <span class="link-text">Rooms</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Bed" ? "active" : "")"
+                           href="@Url.Action("Index", "Bed")">
+                            <i class="bi bi-grid-3x3-gap"></i> <span class="link-text">Beds</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAssignment" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAssignment")">
+                            <i class="bi bi-person-check"></i> <span class="link-text">Assignments</span>
+                        </a>
+
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Dashboard" ? "active" : "")"
                            href="@Url.Action("Dashboard", "ResidenceAllocation")">
                             <i class="bi bi-diagram-3"></i> <span class="link-text">Allocations</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceMovement" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceMovement")">
+                            <i class="bi bi-arrow-left-right"></i> <span class="link-text">Movements</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "QRScanRecord" ? "active" : "")"
+                           href="@Url.Action("Index", "QRScanRecord")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">QR History</span>
                         </a>
 
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"

@@ -1,0 +1,11 @@
+@model IEnumerable<Michaelhouse.Models.QRScanRecord>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "QR Scan Records"; }
+<div class="container py-4">
+    <h2>QR Scan Records</h2>
+    @using (Html.BeginForm("Index", "QRScanRecord", FormMethod.Get)) { <input name="search" value="@ViewBag.Search" class="form-control mb-3" placeholder="Search student, action or scanner" /> }
+    <p><a href="@Url.Action("Index", new { archived = !(ViewBag.Archived ?? false) })">@((ViewBag.Archived ?? false) ? "View Active" : "View Archived")</a></p>
+    <table class="table table-striped"><thead><tr><th>Student</th><th>Residence</th><th>Action</th><th>Time</th><th>Scanner</th><th></th></tr></thead><tbody>
+    @foreach (var q in Model) { <tr><td>@q.Student.Name</td><td>@(q.Residence?.Name ?? "-")</td><td>@q.Action</td><td>@q.ScannedAt.ToString("g")</td><td>@q.Scanner</td><td><a href="@Url.Action("Details", new { id = q.QRScanRecordId })">Details</a></td></tr> }
+    </tbody></table>
+    @if (!Model.Any()) { <div class="alert alert-info">No QR scan records found.</div> }
+</div>

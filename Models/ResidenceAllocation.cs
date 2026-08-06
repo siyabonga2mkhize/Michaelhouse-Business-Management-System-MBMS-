@@ -47,6 +47,7 @@ namespace Michaelhouse.Models
         [StringLength(200)]
         public string UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public bool IsArchived { get; set; }
 
         // Navigation
         [ForeignKey("StudentId")]

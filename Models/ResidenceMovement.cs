@@ -24,6 +24,7 @@ namespace Michaelhouse.Models
 
         [MaxLength(1000)]
         public string Reason { get; set; }
+        public bool IsArchived { get; set; }
 
         [ForeignKey("StudentId")]
         public virtual Student Student { get; set; }
