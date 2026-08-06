@@ -94,5 +94,37 @@ namespace Michaelhouse.Models
             if (Student.DOB.Date > today.AddYears(-age)) age--;
             return age;
         }
+        [StringLength(200)]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [StringLength(20)]
+        public string PhoneNumber { get; set; }
+
+        [StringLength(500)]
+        public string ProfilePhotoUrl { get; set; }
+
+        /// <summary>
+        /// General active/inactive flag for the student (e.g. withdrawn, on extended leave).
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// One of: "Inside Residence", "Outside Residence", "On Holiday", "Weekend Leave",
+        /// "Suspended", or "Awaiting Allocation" (used for waiting-list demo students).
+        /// </summary>
+        [StringLength(30)]
+        public string BoardingStatus { get; set; }
+
+        public DateTime? LastCheckIn { get; set; }
+        public DateTime? LastCheckOut { get; set; }
+
+        public DateTime? HolidayDepartureDate { get; set; }
+        public DateTime? HolidayExpectedReturnDate { get; set; }
+
+        [StringLength(500)]
+        public string SuspensionReason { get; set; }
+        public DateTime? SuspensionDate { get; set; }
+        public DateTime? SuspensionEndDate { get; set; }
     }
 }
