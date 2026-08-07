@@ -12,6 +12,7 @@ namespace Michaelhouse.Services
         public int StudentId { get; set; }
         public List<RoomScoreResult> RankedRooms { get; set; }
         public RoomScoreResult BestMatch { get; set; }
+        public List<RoomCompatibilityResult> TopRooms { get; set; }
     }
 
     public class ResidenceAllocationEngine
@@ -19,6 +20,7 @@ namespace Michaelhouse.Services
         private DBContextClass db = new DBContextClass();
         private ResidenceAvailabilityService availabilityService = new ResidenceAvailabilityService();
         private CompatibilityScoringService scoringService = new CompatibilityScoringService();
+        private StudentRoomCompatibilityService compatibilityService = new StudentRoomCompatibilityService();
 
         // -----------------------------------------------
         // Produces ranked recommendations WITHOUT allocating.
@@ -32,23 +34,39 @@ namespace Michaelhouse.Services
                 throw new InvalidOperationException(
                     "Student has no profile — complete their profile before running allocation.");
 
-            var candidates = availabilityService.GetAvailableRoomsWithOccupants();
+            var candidates = availabilityService.GetAvailableBedsWithOccupants();
 
-            var scored = candidates
-                .Select(c => scoringService.ScoreRoom(profile, c.Room, c.Residence, c.Occupants))
-                .Where(r => !r.IsDisqualified)
-                .OrderByDescending(r => r.TotalScore)
+            var topRooms = candidates
+                .Select(c => compatibilityService.Evaluate(profile, c.Bed, c.Room, c.Residence, c.Occupants))
+                .Where(r => r.CompatibilityScore > 0)
+                .OrderBy(r => r.Warnings.Any(w => w.IndexOf("Low compatibility", StringComparison.OrdinalIgnoreCase) >= 0) ? 1 : 0)
+                .ThenByDescending(r => r.CompatibilityScore)
+                .ThenByDescending(r => r.Confidence)
+                .Take(5)
                 .ToList();
 
-            if (!scored.Any())
+            if (!topRooms.Any())
                 throw new InvalidOperationException(
                     "No eligible room found. All rooms are either full or fail a mandatory requirement (e.g. accessibility) for this student.");
+
+            var scored = topRooms
+                .Select(r => new BedScoreResult
+                {
+                    Bed = db.Beds.Find(r.BedId),
+                    Room = db.Rooms.Find(r.RoomId),
+                    Residence = db.Residences.Find(r.ResidenceId),
+                    TotalScore = (int)Math.Round(r.CompatibilityScore),
+                    ScoreBreakdown = r.ScoreDetails
+                })
+                .Cast<RoomScoreResult>()
+                .ToList();
 
             return new AllocationRecommendation
             {
                 StudentId = studentId,
                 RankedRooms = scored,
-                BestMatch = scored.First()
+                BestMatch = scored.First(),
+                TopRooms = topRooms
             };
         }
 
@@ -72,6 +90,7 @@ namespace Michaelhouse.Services
 
                     Room chosenRoom;
                     Residence chosenResidence;
+                    RoomCompatibilityResult recommended = null;
 
                     if (overrideRoomId.HasValue)
                     {
@@ -90,17 +109,22 @@ namespace Michaelhouse.Services
                     else
                     {
                         var recommendation = GetRecommendations(studentId);
+                        recommended = recommendation.TopRooms.FirstOrDefault();
                         chosenRoom = db.Rooms.Find(recommendation.BestMatch.Room.RoomId);
                         chosenResidence = db.Residences.Find(recommendation.BestMatch.Residence.ResidenceId);
                     }
 
-                    var bed = availabilityService.GetFirstAvailableBed(chosenRoom.RoomId);
+                    var bed = recommended != null
+                        ? db.Beds.FirstOrDefault(b => b.BedId == recommended.BedId && !b.IsOccupied && (b.Status == null || b.Status == "Available"))
+                        : availabilityService.GetFirstAvailableBed(chosenRoom.RoomId);
 
                     if (bed == null)
                         throw new InvalidOperationException("No available bed in the selected room.");
 
                     // ---- Reserve the bed ----
                     bed.IsOccupied = true;
+                    bed.Status = "Occupied";
+                    bed.OccupiedByStudentId = studentId;
 
                     // ---- Update room ----
                     chosenRoom.OccupiedBeds++;

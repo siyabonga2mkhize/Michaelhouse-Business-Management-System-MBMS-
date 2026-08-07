@@ -15,7 +15,7 @@ namespace Michaelhouse.Models
         [Required]
         public int StudentId { get; set; }
 
-        public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? RequestedAt { get; set; } = DateTime.UtcNow;
 
         [MaxLength(1000)]
         public string Reason { get; set; }

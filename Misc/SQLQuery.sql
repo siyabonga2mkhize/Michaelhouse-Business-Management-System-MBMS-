@@ -1022,8 +1022,37 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE Vehi
 
 -- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
 UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');
+<<<<<<< HEAD
 
 
 
 
 select * from EmergencyAlerts;
+=======
+SELECT TOP 10
+    s.StudentId,
+    s.StudentNumber,
+    s.FirstName + ' ' + s.LastName AS StudentName,
+    sp.BoardingStatus,
+    r.Name          AS Residence,
+    rm.RoomNumber,
+    b.BedNumber,
+    qr.QRCodeValue
+FROM StudentQRCodes qr
+JOIN Students s               ON s.StudentId = qr.StudentId
+JOIN StudentProfiles sp       ON sp.StudentId = s.StudentId
+LEFT JOIN ResidenceAllocations ra ON ra.StudentId = s.StudentId AND ra.IsActive = 1
+LEFT JOIN Residences r        ON r.ResidenceId = ra.ResidenceId
+LEFT JOIN Rooms rm            ON rm.RoomId = ra.RoomId
+LEFT JOIN Beds b              ON b.BedId = ra.BedId
+WHERE qr.IsActive = 1
+  AND s.StudentNumber LIKE 'BDS%'
+ORDER BY s.StudentId;
+SELECT TOP 10
+    QRCodeId,
+    StudentId,
+    QRCodeValue,
+    LEN(QRImage) AS ImageSize,
+    IsActive
+FROM StudentQRCodes;
+>>>>>>> cac0b9b007c9c6c3afa88f6e49ed8be72f2f8bc9

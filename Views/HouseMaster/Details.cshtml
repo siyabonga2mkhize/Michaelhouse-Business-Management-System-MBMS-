@@ -1,0 +1,11 @@
+@model Michaelhouse.Models.HouseMaster
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "House Master Details"; }
+<div class="container py-4">
+    <h2>@Model.FullName</h2>
+    <dl class="dl-horizontal"><dt>Email</dt><dd>@Model.ContactEmail</dd><dt>Phone</dt><dd>@Model.ContactPhone</dd><dt>Archived</dt><dd>@(Model.IsArchived ? "Yes" : "No")</dd></dl>
+    <h4>Residences</h4>
+    <ul>@foreach (var r in Model.Residences ?? new List<Michaelhouse.Models.Residence>()) { <li>@r.Name</li> }</ul>
+    <a class="btn btn-primary" href="@Url.Action("Edit", new { id = Model.HouseMasterId })">Edit</a>
+    <a class="btn btn-danger" href="@Url.Action("Archive", new { id = Model.HouseMasterId })">Archive</a>
+    <a class="btn btn-default" href="@Url.Action("Index")">Back</a>
+</div>

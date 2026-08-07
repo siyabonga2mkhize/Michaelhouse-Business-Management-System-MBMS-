@@ -55,6 +55,27 @@ namespace Michaelhouse.Controllers
                     }
                     catch { }
                 }
+                else if ((role == "HouseMaster" || role == "Housemaster") && Session["HouseMasterId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+                            if (user != null)
+                            {
+                                var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                                    h.ContactEmail == user.Email || h.FullName == user.Name);
+                                if (houseMaster != null)
+                                {
+                                    Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
 
                 return RedirectByRole(role);
             }
@@ -149,6 +170,15 @@ namespace Michaelhouse.Controllers
 
                     // IMPORTANT: store correct key (Id, not DriverId)
                     Session["DriverId"] = driver.Id;
+                }
+                else if (user.Role == "HouseMaster" || user.Role == "Housemaster")
+                {
+                    var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                        h.ContactEmail == user.Email || h.FullName == user.Name);
+                    if (houseMaster != null)
+                    {
+                        Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                    }
                 }
 
                 return RedirectByRole(user.Role);
@@ -322,6 +352,9 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
                     return RedirectToAction("Index", "Driver");
+                case "HouseMaster":
+                case "Housemaster":
+                    return RedirectToAction("Dashboard", "HouseMaster");
                 default:
                     return RedirectToAction("Index", "Home");
                 case "Transport Manager":

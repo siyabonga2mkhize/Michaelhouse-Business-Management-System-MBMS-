@@ -1,0 +1,18 @@
+@model Michaelhouse.Models.Bed
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Bed Details";
+}
+<div class="container py-4">
+    <h2>Bed @Model.BedNumber</h2>
+    <dl class="dl-horizontal">
+        <dt>Residence</dt><dd>@Model.Room.Residence.Name</dd>
+        <dt>Room</dt><dd>@Model.Room.RoomNumber</dd>
+        <dt>Status</dt><dd>@Model.Status</dd>
+        <dt>Occupied</dt><dd>@(Model.IsOccupied ? "Yes" : "No")</dd>
+        <dt>Student</dt><dd>@(Model.OccupiedByStudent?.Name ?? "None")</dd>
+    </dl>
+    <a class="btn btn-primary" href="@Url.Action("Edit", new { id = Model.BedId })">Edit</a>
+    <a class="btn btn-danger" href="@Url.Action("Archive", new { id = Model.BedId })">Archive</a>
+    <a class="btn btn-default" href="@Url.Action("Index")">Back</a>
+</div>

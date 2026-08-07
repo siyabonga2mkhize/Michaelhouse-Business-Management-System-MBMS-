@@ -83,7 +83,7 @@ namespace Michaelhouse.Models
         /// </summary>
         public virtual HouseMaster HouseMaster { get; set; }
         public bool IsArchived { get; internal set; }
-        public DateTime ArchivedDate { get; internal set; }
+        public DateTime? ArchivedDate { get; set; }
         public string ArchivedBy { get; internal set; }
 
         [NotMapped]
@@ -192,6 +192,8 @@ namespace Michaelhouse.Models
 
         [ForeignKey("OccupiedByStudentId")]
         public virtual Student OccupiedByStudent { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class RoomScoreAudit
@@ -238,6 +240,8 @@ namespace Michaelhouse.Models
         public virtual Residence Residence { get; set; }
         public virtual Room Room { get; set; }
         public virtual Bed Bed { get; set; }
+
+        public bool IsArchived { get; set; }
     }
 
     public class DisciplinaryConflict

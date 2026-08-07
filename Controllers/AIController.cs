@@ -1,4 +1,5 @@
 using Michaelhouse.Models;
+using Michaelhouse.Filters;
 using Michaelhouse.Services;
 using System;
 using System.Data.Entity;
@@ -7,7 +8,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [Authorize(Roles = "Admin,HouseMaster")]
+    [AdminOrHouseMasterOnly]
     public class AIController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();

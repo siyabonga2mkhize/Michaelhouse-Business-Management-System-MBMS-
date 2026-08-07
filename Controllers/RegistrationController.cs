@@ -46,6 +46,9 @@ namespace Michaelhouse.Controllers
                 reg.Status != RegistrationStatus.SubjectsSelected)
                 return RedirectToAction("SelectSubjects", new { appId });
 
+            if (!IsStudentProfileComplete(reg.StudentId))
+                return RedirectToAction("Start", "StudentProfile", new { appId });
+
             return RedirectToAction("Confirm", new { appId });
         }
 
@@ -162,6 +165,12 @@ namespace Michaelhouse.Controllers
                         .Where(ss => ss.StudentId == reg.StudentId).ToList();
                 }
 
+                if (!IsStudentProfileComplete(reg.StudentId, db))
+                {
+                    TempData["Info"] = "Please complete the student profile before registration is finalized.";
+                    return RedirectToAction("Start", "StudentProfile", new { appId });
+                }
+
                 bool needsSubs = reg.GradeEnrolling >= 10 &&
                                  reg.Status != RegistrationStatus.SubjectsSelected &&
                                  reg.Status != RegistrationStatus.Completed;
@@ -198,6 +207,12 @@ namespace Michaelhouse.Controllers
             {
                 TempData["Error"] = "Please select your subjects first.";
                 return RedirectToAction("SelectSubjects", new { appId });
+            }
+
+            if (!IsStudentProfileComplete(reg.StudentId))
+            {
+                TempData["Error"] = "Please complete the student profile before registration is finalized.";
+                return RedirectToAction("Start", "StudentProfile", new { appId });
             }
 
             _regService.CompleteRegistration(registrationId);
@@ -269,6 +284,18 @@ namespace Michaelhouse.Controllers
             }
 
             return RedirectToAction("Complete", new { appId });
+        }
+
+        private bool IsStudentProfileComplete(int studentId, DBContextClass existingContext = null)
+        {
+            var profileService = new BoardingProfileService();
+            if (existingContext != null)
+                return profileService.IsComplete(existingContext.StudentProfiles.Find(studentId));
+
+            using (var db = new DBContextClass())
+            {
+                return profileService.IsComplete(db.StudentProfiles.Find(studentId));
+            }
         }
 
         // ─── Complete Page ────────────────────────────────────────────────────────

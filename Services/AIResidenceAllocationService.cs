@@ -24,6 +24,7 @@ namespace Michaelhouse.Services
         private readonly DBContextClass _db;
         private readonly ResidenceAvailabilityService _availability;
         private readonly CompatibilityScoringService _scoring;
+        private readonly StudentRoomCompatibilityService _roomCompatibility;
         private readonly ExplanationGenerator _explanationGenerator;
 
         public AIResidenceAllocationService()
@@ -37,6 +38,7 @@ namespace Michaelhouse.Services
             _db = db ?? throw new ArgumentNullException(nameof(db));
             _availability = availability ?? throw new ArgumentNullException(nameof(availability));
             _scoring = scoring ?? throw new ArgumentNullException(nameof(scoring));
+            _roomCompatibility = new StudentRoomCompatibilityService(_db, _scoring);
             _explanationGenerator = new ExplanationGenerator();
         }
 
@@ -67,9 +69,11 @@ namespace Michaelhouse.Services
         {
             public Residence Residence { get; set; }
             public Room Room { get; set; }
+            public Bed Bed { get; set; }
             public double CompatibilityScore { get; set; } // 0..100
             public double ConfidenceScore { get; set; } // 0..1
             public string Explanation { get; set; }
+            public RoomCompatibilityResult CompatibilityResult { get; set; }
         }
 
         #endregion
@@ -85,6 +89,10 @@ namespace Michaelhouse.Services
             var profile = _db.StudentProfiles.Find(studentId);
             if (profile == null)
                 throw new InvalidOperationException("Student profile not found. Complete profile before running AI allocation.");
+
+            var profileService = new BoardingProfileService();
+            if (!profileService.IsComplete(profile))
+                throw new InvalidOperationException("Student profile is incomplete. Complete the student profile wizard before running AI allocation.");
 
             // Basic heuristics enrichment could be added here (e.g., derive age band)
             return new StudentAnalysis { Student = student, Profile = profile };
@@ -181,20 +189,24 @@ namespace Michaelhouse.Services
         {
             var analysis = AnalyzeStudent(studentId);
 
-            var candidates = _availability.GetAvailableRoomsWithOccupants();
+            var candidates = _availability.GetAvailableBedsWithOccupants();
             var recs = new List<AIAllocationRecommendation>();
 
             foreach (var c in candidates)
             {
-                var (compat, conf, explanation) = CalculateCompatibilityScore(analysis.Profile, c.Room, c.Residence, c.Occupants);
+                var compatibility = _roomCompatibility.Evaluate(analysis.Profile, c.Bed, c.Room, c.Residence, c.Occupants);
+                if (compatibility.CompatibilityScore <= 0)
+                    continue;
 
                 var rec = new AIAllocationRecommendation
                 {
                     Residence = c.Residence,
                     Room = c.Room,
-                    CompatibilityScore = Math.Round(compat, 2),
-                    ConfidenceScore = Math.Round(conf, 2),
-                    Explanation = explanation
+                    Bed = c.Bed,
+                    CompatibilityScore = Math.Round(compatibility.CompatibilityScore, 2),
+                    ConfidenceScore = Math.Round(compatibility.Confidence, 2),
+                    Explanation = BuildCompatibilityExplanation(compatibility),
+                    CompatibilityResult = compatibility
                 };
 
                 // Only include non-zero compatibility
@@ -202,7 +214,12 @@ namespace Michaelhouse.Services
                     recs.Add(rec);
             }
 
-            var ranked = recs.OrderByDescending(r => r.CompatibilityScore).ThenByDescending(r => r.ConfidenceScore).ToList();
+            var ranked = recs
+                .OrderBy(r => r.CompatibilityResult.Warnings.Any(w => w.IndexOf("Low compatibility", StringComparison.OrdinalIgnoreCase) >= 0) ? 1 : 0)
+                .ThenByDescending(r => r.CompatibilityScore)
+                .ThenByDescending(r => r.ConfidenceScore)
+                .Take(5)
+                .ToList();
 
             if (!ranked.Any())
             {
@@ -285,12 +302,30 @@ namespace Michaelhouse.Services
             return (ranked.First(), ranked);
         }
 
+        private string BuildCompatibilityExplanation(RoomCompatibilityResult compatibility)
+        {
+            var reasons = compatibility.Reasons.Any()
+                ? string.Join("; ", compatibility.Reasons)
+                : "No strong positive compatibility signals were found.";
+
+            var warnings = compatibility.Warnings.Any()
+                ? " Warnings: " + string.Join("; ", compatibility.Warnings)
+                : " Warnings: None";
+
+            var occupants = compatibility.OccupantBreakdown.Any()
+                ? " Occupants: " + string.Join(" | ", compatibility.OccupantBreakdown.Select(o =>
+                    $"{o.StudentName} {o.CompatibilityScore:F0}% ({string.Join(", ", o.Reasons.Take(3))})"))
+                : " Occupants: room currently empty.";
+
+            return $"Compatibility {compatibility.CompatibilityScore:F0}%, confidence {compatibility.Confidence:P0}. Reasons: {reasons}.{warnings}.{occupants}";
+        }
+
         /// <summary>
-        /// Allocate the student to the recommended room. If overrideRoomId is provided,
+        /// Allocate the student to the recommended bed. If overrideRoomId is provided,
         /// the service will attempt to allocate that room if it is still available.
         /// Returns the created ResidenceAssignment on success.
         /// </summary>
-        public ResidenceAssignment AllocateStudent(int studentId, int? overrideRoomId = null, bool accepted = true, bool overridden = false, string overrideReason = null)
+        public ResidenceAssignment AllocateStudent(int studentId, int? overrideRoomId = null, bool accepted = true, bool overridden = false, string overrideReason = null, int? overrideBedId = null)
         {
             using (var tx = _db.Database.BeginTransaction())
             {
@@ -307,9 +342,10 @@ namespace Michaelhouse.Services
 
                     Room chosenRoom = null;
                     Residence chosenResidence = null;
+                    Bed bed = null;
                     double compatScore = 0;
                     double confidenceScore = 1;
-                    string explanation = "Automatically allocated to the residence with the most available beds, then the room with the most available beds.";
+                    string explanation = "Automatically allocated using weighted bed-level compatibility scoring.";
 
                     if (overrideRoomId.HasValue)
                     {
@@ -319,36 +355,29 @@ namespace Michaelhouse.Services
                             throw new InvalidOperationException("Selected room is now full.");
 
                         chosenResidence = chosenRoom.Residence;
+                        bed = overrideBedId.HasValue
+                            ? _db.Beds.FirstOrDefault(b => b.BedId == overrideBedId.Value &&
+                                                           b.RoomId == chosenRoom.RoomId &&
+                                                           !b.IsOccupied &&
+                                                           (b.Status == null || b.Status == "Available"))
+                            : _availability.GetFirstAvailableBed(chosenRoom.RoomId);
                     }
                     else
                     {
-                        chosenRoom = _db.Rooms
-                            .Include(r => r.Residence)
-                            .Where(r => !r.IsArchived &&
-                                        !r.NeedsMaintenance &&
-                                        !r.IsFull &&
-                                        r.OccupiedBeds < r.Capacity &&
-                                        !r.Residence.IsArchived &&
-                                        r.Residence.OccupiedBeds < r.Residence.Capacity &&
-                                        _db.Beds.Any(b => b.RoomId == r.RoomId &&
-                                                         !b.IsOccupied &&
-                                                         (b.Status == null || b.Status == "Available")))
-                            .OrderByDescending(r => r.Residence.Capacity - r.Residence.OccupiedBeds)
-                            .ThenByDescending(r => r.Capacity - r.OccupiedBeds)
-                            .ThenBy(r => r.Residence.Name)
-                            .ThenBy(r => r.RoomNumber)
-                            .FirstOrDefault();
-
-                        if (chosenRoom == null)
-                            throw new InvalidOperationException("No available residence bed exists. Please add active rooms and available bed spaces before completing registration.");
-
-                        chosenResidence = chosenRoom.Residence;
+                        var recommendation = GenerateRecommendation(studentId).Best;
+                        chosenRoom = _db.Rooms.Include(r => r.Residence).FirstOrDefault(r => r.RoomId == recommendation.Room.RoomId);
+                        chosenResidence = chosenRoom?.Residence;
+                        bed = _db.Beds.FirstOrDefault(b => b.BedId == recommendation.Bed.BedId &&
+                                                           !b.IsOccupied &&
+                                                           (b.Status == null || b.Status == "Available"));
+                        compatScore = recommendation.CompatibilityScore;
+                        confidenceScore = recommendation.ConfidenceScore;
+                        explanation = recommendation.Explanation;
                     }
 
                     if (chosenResidence == null)
                         throw new InvalidOperationException("Selected room is not linked to an active residence.");
 
-                    var bed = _availability.GetFirstAvailableBed(chosenRoom.RoomId);
                     if (bed == null) throw new InvalidOperationException("No available bed in the selected room.");
 
                     // Reserve bed and update counts

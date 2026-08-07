@@ -1,0 +1,11 @@
+@model IEnumerable<Michaelhouse.Models.ResidenceAllocation>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Residence Allocations"; }
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h2>Residence Allocations</h2><a class="btn btn-primary" href="@Url.Action("Create")">Create</a></div>
+    @using (Html.BeginForm("Index", "ResidenceAllocation", FormMethod.Get)) { <input name="search" value="@ViewBag.Search" class="form-control mb-3" placeholder="Search allocations" /> }
+    <p><a href="@Url.Action("Index", new { archived = !(ViewBag.Archived ?? false) })">@((ViewBag.Archived ?? false) ? "View Active" : "View Archived")</a></p>
+    <table class="table table-striped"><thead><tr><th>Student</th><th>Residence</th><th>Room</th><th>Bed</th><th>Active</th><th></th></tr></thead><tbody>
+    @foreach (var a in Model) { <tr><td>@a.Student.Name</td><td>@a.Residence.Name</td><td>@a.Room.RoomNumber</td><td>@a.Bed.BedNumber</td><td>@(a.IsActive ? "Yes" : "No")</td><td><a href="@Url.Action("Details", new { id = a.ResidenceAllocationId })">Details</a></td></tr> }
+    </tbody></table>
+    @if (!Model.Any()) { <div class="alert alert-info">No allocation records found.</div> }
+</div>
