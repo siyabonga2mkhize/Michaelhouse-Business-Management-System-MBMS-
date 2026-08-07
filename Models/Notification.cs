@@ -11,8 +11,10 @@ namespace Michaelhouse.Models
         public DateTime CreatedAt { get; set; }
         public string RelatedEntityType { get; set; } // e.g., 'TripRequest', 'TripSchedule'
         public int RelatedEntityId { get; set; }
+        public int? ResidenceId { get; set; }
 
         // Navigation property
         public virtual AppUser User { get; set; }
+        public string Type { get; internal set; }
     }
 }

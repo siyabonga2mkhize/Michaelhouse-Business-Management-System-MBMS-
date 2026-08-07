@@ -1,0 +1,101 @@
+@model Michaelhouse.Models.EmergencyAlert
+
+@{
+    ViewBag.Title = "Trigger Emergency Alert";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>⚠ WARNING</strong> - This action will immediately notify all students to proceed to the assembly point.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🚨 Emergency Alert System</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.SuccessMessage != null)
+                    {
+                        <div class="alert alert-success">@ViewBag.SuccessMessage</div>
+                    }
+
+                    @using (Html.BeginForm("TriggerAlert", "Emergency", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        @Html.ValidationSummary(
+         true,
+         "",
+         new { @class = "alert alert-danger" }
+)
+
+                        <div class="mb-3">
+                            <label for="AlertMessage" class="form-label">Alert Message</label>
+                            @Html.TextAreaFor(m => m.AlertMessage,
+                                     new { @class = "form-control", @rows = 3, @placeholder = "Enter emergency message" })
+                            @Html.ValidationMessageFor(m => m.AlertMessage, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="AssemblyPointName" class="form-label">Assembly Point Name</label>
+                                    @Html.TextBoxFor(m => m.AssemblyPointName,
+                                             new { @class = "form-control", @placeholder = "e.g., Main Sports Field" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="GeofenceRadiusMeters" class="form-label">Geofence Radius (meters)</label>
+                                    @Html.TextBoxFor(m => m.GeofenceRadiusMeters,
+                                             new { @class = "form-control", @type = "number", @step = "10", @min = "50", @max = "500" })
+                                    <small class="text-muted">Default: 150m. Students within this radius are safe.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="AssemblyLatitude" class="form-label">Assembly Point Latitude</label>
+                                    @Html.TextBoxFor(m => m.AssemblyLatitude,
+                                             new { @class = "form-control", @step = "0.0001", @placeholder = "-29.8587" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="AssemblyLongitude" class="form-label">Assembly Point Longitude</label>
+                                    @Html.TextBoxFor(m => m.AssemblyLongitude,
+                                             new { @class = "form-control", @step = "0.0001", @placeholder = "30.8762" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 p-3 bg-light border rounded">
+                            <strong>⚠ Before proceeding:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Ensure assembly point coordinates are correct</li>
+                                <li>Verify geofence radius is appropriate for your location</li>
+                                <li>Confirm you are authorized to trigger this alert</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg" onclick="return confirm('Are you sure? This will immediately notify all students.')">
+                                <i class="bi bi-exclamation-triangle"></i> TRIGGER EMERGENCY ALERT
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

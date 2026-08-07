@@ -1,0 +1,46 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Details";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <div class="flex items-start justify-between mb-6">
+        <div>
+            <h1 class="text-4xl font-serif font-bold">Founders House</h1>
+            <p class="text-sm text-gray-500 mt-1">Residence overview and rooms</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="@Url.Action("Edit")" class="px-4 py-2 border rounded">Edit</a>
+            <a href="@Url.Action("Delete")" class="px-4 py-2 bg-red-600 text-white rounded">Delete</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Capacity</div>
+            <div class="mt-2 text-2xl font-bold">120</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Occupied</div>
+            <div class="mt-2 text-2xl font-bold">102</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Available</div>
+            <div class="mt-2 text-2xl font-bold">18</div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-bold mb-4">Rooms</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 border rounded">
+                <div class="font-bold">Room 14</div>
+                <div class="text-sm text-gray-500">Capacity 6 — Occupied 5</div>
+                <div class="mt-2 flex gap-2">
+                    <a class="text-[#C21E2E]" href="#">View</a>
+                    <a class="text-gray-600" href="#">Edit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

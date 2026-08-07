@@ -1,0 +1,517 @@
+@model Michaelhouse.Models.EmergencyAlert
+
+@{
+    ViewBag.Title = "Emergency Safety - Confirm You Are Safe";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body.emergency-active {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+        color: white;
+    }
+
+    .emergency-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .emergency-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        color: #333;
+    }
+
+    .emergency-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .emergency-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: pulse 1.5s infinite;
+        display: block;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.15); opacity: 0.9; }
+    }
+
+    .emergency-header h1 {
+        color: #ff6b6b;
+        margin: 0;
+        font-size: 36px;
+        font-weight: bold;
+    }
+
+    .emergency-header p {
+        margin-top: 10px;
+        color: #666;
+        font-size: 16px;
+    }
+
+    .alert-message-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        color: #856404;
+    }
+
+    .location-display {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .location-display.loading {
+        color: #666;
+    }
+
+    .location-display.success {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+    }
+
+    .location-display.warning {
+        background: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+    }
+
+    .location-coords {
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        margin-top: 10px;
+        word-break: break-all;
+        color: #555;
+    }
+
+    .distance-display {
+        font-size: 28px;
+        font-weight: bold;
+        color: #ff6b6b;
+        margin: 10px 0;
+    }
+
+    .accuracy-info {
+        font-size: 12px;
+        color: #999;
+        margin-top: 8px;
+    }
+
+    .btn-mark-safe {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 18px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    .btn-mark-safe:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+
+    .btn-mark-safe:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+
+    .status-badge.safe {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #28a745;
+    }
+
+    .status-badge.outside {
+        background: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffc107;
+    }
+
+    .status-badge.pending {
+        background: #cce5ff;
+        color: #004085;
+        border: 2px solid #0066cc;
+    }
+
+    .instructions {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 25px;
+        border-left: 4px solid #007bff;
+    }
+
+    .instructions h4 {
+        margin-top: 0;
+        color: #007bff;
+    }
+
+    .instructions ol {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+
+    .instructions li {
+        margin: 8px 0;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .timer {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .timer-label {
+        color: #999;
+        font-size: 12px;
+    }
+
+    .timer-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ff6b6b;
+        font-family: 'Courier New', monospace;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0,0,0,.1);
+        border-radius: 50%;
+        border-top-color: #28a745;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .confirmation-result {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .confirmation-result.success {
+        background: #d4edda;
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+
+    .confirmation-result.warning {
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        color: #856404;
+    }
+
+    .confirmation-result.error {
+        background: #f8d7da;
+        border: 2px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    .confirmation-result h3 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+    }
+
+    .confirmation-result p {
+        margin: 0;
+        font-size: 14px;
+    }
+</style>
+
+<body class="emergency-active">
+    <div class="emergency-container">
+        <div class="emergency-card">
+            <!-- Header -->
+            <div class="emergency-header">
+                <span class="emergency-icon" id="emergencyIcon">🚨</span>
+                <h1>Emergency Alert</h1>
+                <p>Mark yourself as safe</p>
+            </div>
+
+            <!-- Alert Message -->
+            <div class="alert-message-box">
+                <strong>📢 Message:</strong><br>
+                @Model.AlertMessage
+            </div>
+
+            <!-- Location Status -->
+            <div id="locationStatus" class="location-display loading">
+                <div style="margin-bottom: 10px;">📍 Getting your location...</div>
+                <div class="spinner"></div>
+                <div class="accuracy-info">Requesting access to your location</div>
+            </div>
+
+            <!-- Mark Safe Button -->
+            <button class="btn-mark-safe" id="confirmBtn" disabled>
+                <span class="spinner" style="display: inline-block; margin-right: 10px;"></span>
+                Waiting for location...
+            </button>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h4>📋 What to do:</h4>
+                <ol>
+                    <li><strong>Enable location services</strong> on your phone if prompted</li>
+                    <li><strong>Move to the assembly point</strong> as quickly and safely as possible</li>
+                    <li><strong>Tap "Mark Me Safe"</strong> once you arrive at the location</li>
+                    <li><strong>Stay at assembly point</strong> until the all-clear is given</li>
+                    <li><strong>Follow staff instructions</strong> at the assembly point</li>
+                </ol>
+            </div>
+
+            <!-- Timer -->
+            <div class="timer">
+                <div class="timer-label">Alert active for:</div>
+                <div class="timer-value" id="alertTimer">00:00</div>
+            </div>
+
+            <!-- Alert Details -->
+            <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 10px; font-size: 13px; color: #666;">
+                <strong>📍 Assembly Point:</strong> @Model.AssemblyPointName<br>
+                <strong>🎯 Safe Zone Radius:</strong> @Model.GeofenceRadiusMeters meters<br>
+                <strong>⏰ Alert Started:</strong> <span id="alertStartTime">@Model.AlertTime.ToString("HH:mm:ss")</span>
+            </div>
+
+            <!-- Confirmation Result (hidden until confirmed) -->
+            <div id="confirmationResult" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let locationWatchId = null;
+        let lastLatitude = null;
+        let lastLongitude = null;
+        let lastAccuracy = null;
+        let alertStartTime = new Date();
+        const alertId = @Model.AlertId;
+
+        // Start timer
+        updateTimer();
+        setInterval(updateTimer, 1000);
+
+        function updateTimer() {
+            const now = new Date();
+            const elapsed = Math.floor((now - alertStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('alertTimer').textContent =
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+
+        // Get location continuously
+        function startLocationTracking() {
+            if (!navigator.geolocation) {
+                showLocationError('Geolocation not supported');
+                return;
+            }
+
+            // High accuracy tracking
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            locationWatchId = navigator.geolocation.watchPosition(
+                onLocationSuccess,
+                onLocationError,
+                options
+            );
+        }
+
+        function onLocationSuccess(position) {
+            lastLatitude = position.coords.latitude;
+            lastLongitude = position.coords.longitude;
+            lastAccuracy = position.coords.accuracy;
+
+            updateLocationDisplay(lastLatitude, lastLongitude, lastAccuracy);
+            enableConfirmButton();
+        }
+
+        function onLocationError(error) {
+            let message = 'Unable to access location';
+            if (error.code === 1) {
+                message = 'Location access denied. Please enable in settings.';
+            } else if (error.code === 2) {
+                message = 'Location unavailable. Check your signal.';
+            } else if (error.code === 3) {
+                message = 'Location request timed out.';
+            }
+            showLocationError(message);
+        }
+
+        function updateLocationDisplay(lat, lng, accuracy) {
+            const status = document.getElementById('locationStatus');
+            status.innerHTML = `
+                <div style="margin-bottom: 10px;">✓ Location acquired</div>
+                <div class="location-coords">
+                    ${lat.toFixed(6)}° N<br>
+                    ${lng.toFixed(6)}° E
+                </div>
+                <div class="accuracy-info">Accuracy: ±${Math.round(accuracy)}m</div>
+                <div style="margin-top: 10px; color: #28a745; font-weight: bold;">📍 Ready to confirm</div>
+            `;
+            status.classList.remove('loading');
+            status.classList.add('success');
+        }
+
+        function enableConfirmButton() {
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = false;
+            btn.innerHTML = '✓ Mark Me Safe';
+            btn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            btn.onclick = confirmSafety;
+        }
+
+        function showLocationError(message) {
+            const status = document.getElementById('locationStatus');
+            status.innerHTML = `
+                <div style="color: #dc3545; font-weight: bold;">⚠ ${message}</div>
+                <div style="margin-top: 10px; font-size: 13px;">
+                    <button onclick="location.reload()" class="btn btn-primary" style="padding: 8px 16px;">
+                        🔄 Retry
+                    </button>
+                </div>
+            `;
+            status.classList.remove('loading', 'success');
+            status.classList.add('warning');
+        }
+
+        function confirmSafety() {
+            if (!lastLatitude || !lastLongitude) {
+                alert('Location not available. Please try again.');
+                return;
+            }
+
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="display: inline-block; margin-right: 10px;"></span>Confirming...';
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("ConfirmSafe", "Emergency")',
+                data: JSON.stringify({
+                    latitude: lastLatitude,
+                    longitude: lastLongitude
+                }),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        showSuccessResult(response);
+                    } else {
+                        showWarningResult(response);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showErrorResult('Error confirming safety. Please try again.');
+                    btn.disabled = false;
+                    btn.innerHTML = '✓ Mark Me Safe';
+                }
+            });
+        }
+
+        function showSuccessResult(response) {
+            document.getElementById('emergencyIcon').textContent = '✅';
+            document.getElementById('emergencyIcon').style.animation = 'none';
+
+            const result = document.getElementById('confirmationResult');
+            result.className = 'confirmation-result success';
+            result.innerHTML = `
+                <h3>✓ Safety Confirmed</h3>
+                <p>You have been marked as safe and accounted for.</p>
+                <p style="margin-top: 15px; font-size: 12px;">Confirmation ID: ${response.confirmationId}</p>
+                <p style="margin-top: 10px; font-size: 13px; color: #155724;">
+                    <strong>Stay at the assembly point until the all-clear signal is given.</strong>
+                </p>
+            `;
+            result.style.display = 'block';
+
+            document.getElementById('confirmBtn').style.display = 'none';
+        }
+
+        function showWarningResult(response) {
+            document.getElementById('emergencyIcon').textContent = '⚠️';
+
+            const result = document.getElementById('confirmationResult');
+            result.className = 'confirmation-result warning';
+            result.innerHTML = `
+                <h3>⚠ Outside Safe Zone</h3>
+                <p>You are <strong>${Math.round(response.distance)}m</strong> away from the assembly point.</p>
+                <p style="margin-top: 15px; color: #856404;">
+                    <strong>Move to the assembly point location immediately.</strong>
+                </p>
+                <button onclick="location.reload()" class="btn btn-warning" style="margin-top: 15px; padding: 10px 20px;">
+                    🔄 Try Again
+                </button>
+            `;
+            result.style.display = 'block';
+        }
+
+        function showErrorResult(message) {
+            const result = document.getElementById('confirmationResult');
+            result.className = 'confirmation-result error';
+            result.innerHTML = `
+                <h3>❌ Error</h3>
+                <p>${message}</p>
+                <button onclick="location.reload()" class="btn btn-danger" style="margin-top: 15px; padding: 10px 20px;">
+                    🔄 Retry
+                </button>
+            `;
+            result.style.display = 'block';
+        }
+
+        // Start tracking when page loads
+        $(function () {
+            startLocationTracking();
+        });
+
+        // Stop tracking when page unloads
+        $(window).on('beforeunload', function () {
+            if (locationWatchId) {
+                navigator.geolocation.clearWatch(locationWatchId);
+            }
+        });
+    </script>
+</body>

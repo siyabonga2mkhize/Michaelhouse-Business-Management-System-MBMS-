@@ -1,7 +1,6 @@
 ﻿select * from SchoolClasses
 
 select * from appusers
-    
 
 
 Select * from ClassSubjects
@@ -1023,3 +1022,8 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE Vehi
 
 -- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
 UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');
+
+
+
+
+select * from EmergencyAlerts;

@@ -1,0 +1,196 @@
+﻿@model Michaelhouse.Models.ViewModels.AlertAccountabilityViewModel
+
+@{
+    ViewBag.Title = "Emergency Accountability";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-outside {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .card-header {
+        font-weight: 600;
+    }
+
+    .count-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> Emergency Alert @Model.Alert.AlertId</h4>
+                    <span class="badge bg-light text-dark">@Model.Alert.Status</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Message:</strong> @Model.Alert.AlertMessage</p>
+                    <p><strong>Issued at:</strong> @Model.Alert.AlertTime.ToString("dd MMM yyyy HH:mm")</p>
+                    <p><strong>Assembly Point:</strong> @Model.Alert.AssemblyPointName</p>
+                    <p><strong>Geofence Radius:</strong> @Model.Alert.GeofenceRadiusMeters m</p>
+
+                    @if (Model.Alert.ResolvedDate.HasValue)
+                    {
+                        <p><strong>Resolved at:</strong> @Model.Alert.ResolvedDate.Value.ToString("dd MMM yyyy HH:mm")</p>
+                        <p><strong>Resolution Notes:</strong> @Model.Alert.ResolvedNotes</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Students</h6>
+                    <span class="count-number text-dark">@Model.TotalStudents</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm status-confirmed">
+                <div class="card-body">
+                    <h6 class="text-muted">Safe & Accounted</h6>
+                    <span class="count-number text-success">@Model.SafeCount</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm status-outside">
+                <div class="card-body">
+                    <h6 class="text-muted">Outside Zone</h6>
+                    <span class="count-number text-danger">@Model.OutsideCount</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm status-pending">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending</h6>
+                    <span class="count-number text-warning">@Model.PendingCount</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white">
+                    <i class="bi bi-list-ul me-2"></i> Student Confirmations
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                    <th>Distance (m)</th>
+                                    <th>Time Confirmed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Confirmations.Any())
+                                {
+                                    int index = 1;
+                                    foreach (var item in Model.Confirmations)
+                                    {
+                                        <tr>
+                                            <td>@index</td>
+                                            <td>@item.StudentName</td>
+                                            <td>
+                                                @if (item.Status == Michaelhouse.Models.SafetyStatus.Confirmed)
+                                                {
+                                                    <span class="badge bg-success">✓ Safe</span>
+                                                }
+                                                else if (item.Status == Michaelhouse.Models.SafetyStatus.OutsideZone)
+                                                {
+                                                    <span class="badge bg-danger">Outside</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                }
+                                            </td>
+                                            <td>@(item.DistanceFromAssemblyPointMeters > 0 ? item.DistanceFromAssemblyPointMeters.ToString("F0") : "-")</td>
+                                            <td>@(item.ConfirmationTime > DateTime.MinValue ? item.ConfirmationTime.ToString("HH:mm") : "-")</td>
+                                        </tr>
+                                        index++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No confirmations yet.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            @if (Model.Alert.Status != Michaelhouse.Models.AlertStatus.Resolved)
+            {
+                using (Html.BeginForm("ResolveAlert", "Emergency", FormMethod.Post, new { @class = "d-inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Alert.AlertId" />
+                    <button type="submit" class="btn btn-outline-success" onclick="return confirm('Resolve this alert?')">
+                        <i class="bi bi-check-circle"></i> Resolve Alert
+                    </button>
+                }
+            }
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Back to Dashboard</a>
+            <button class="btn btn-outline-primary" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh every 10 seconds
+        $(function () {
+            setInterval(function () {
+                $.ajax({
+                    url: '@Url.Action("GetAlertUpdate", "Emergency")',
+                    data: { alertId: @Model.Alert.AlertId },
+                    success: function (data) {
+                        // Update counts in cards
+                        $('.card:eq(1) .count-number').text(data.safe);
+                        $('.card:eq(2) .count-number').text(data.outside);
+                        $('.card:eq(3) .count-number').text(data.pending);
+                        $('#lastUpdated').text('Updated: ' + data.refreshTime);
+                    }
+                });
+            }, 10000); // 10 seconds
+
+            $('#refreshBtn').on('click', function () {
+                location.reload();
+            });
+        });
+    </script>
+}

@@ -255,7 +255,7 @@
 
         // This pulls the name of the current controller (e.g., "Inventory")
         // Keep only ONE declaration of 'ctrl'
-        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string ctrl = ViewContext.RouteData.Values["controller"].ToString() ?? "";
 
         // 2. Define 'lowStockCount' for the notification badge
         int lowStockCount = 0;
@@ -547,6 +547,25 @@
                            href="@Url.Action("Index", "DriverApplications")">
                             <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
                         </a>
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Emergency Management</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "AlertStatus" ? "active" : "")"
+                           href="@Url.Action("AlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
+                        </a>
 
                     }
                     else if (userRole == "InventoryManager")
@@ -659,14 +678,25 @@
                         <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
                         </a>
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Emergency Safety</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafe" ? "active" : "")"
+                           href="@Url.Action("ConfirmSafe", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Safety</span>
+
+                        </a>
 
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -760,6 +790,26 @@
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
                            href="@Url.Action("Profile", "Account")">
                             <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Boarding Emergency</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "AlertStatus" ? "active" : "")"
+                           href="@Url.Action("AlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
                         </a>
 
                     }

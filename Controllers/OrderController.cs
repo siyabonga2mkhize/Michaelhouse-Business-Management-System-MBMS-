@@ -194,7 +194,7 @@ namespace Michaelhouse.Controllers
                     ViewBag.CartItemCount = cart.TotalItems;
                     return View("Checkout", model);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     transaction.Rollback();
                     ModelState.AddModelError("", "An error occurred while processing your order. Please try again.");
