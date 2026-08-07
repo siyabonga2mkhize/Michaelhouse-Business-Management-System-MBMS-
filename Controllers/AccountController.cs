@@ -1,3 +1,4 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
@@ -5,12 +6,11 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Web.Mvc;
-using System.Web.Security;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         // ─── Login ────────────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ namespace Michaelhouse.Controllers
                 {
                     try
                     {
-                        using (var db = new DBContextClass())
+                        using (var db = DbContextFactory.Create())
                         {
                             int userId = (int)(Session["UserId"] ?? 0);
                             if (userId > 0)
@@ -69,7 +69,7 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var hash = HashPassword(vm.Password);
                 var user = db.Users.FirstOrDefault(u =>
@@ -85,7 +85,7 @@ namespace Michaelhouse.Controllers
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
-                FormsAuthentication.SetAuthCookie(user.Email, false);
+                // FormsAuthentication.SetAuthCookie removed - using session-based auth
 
                 // Store role-specific identifiers in session for easy access
                 if (user.Role == "Parent")
@@ -165,7 +165,7 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 if (db.Users.Any(u => u.Email == vm.Email))
                 {
@@ -203,7 +203,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Logout()
         {
-            FormsAuthentication.SignOut();
+            // FormsAuthentication.SignOut removed - using session-based auth
 
             Session.Clear();
             Session.Abandon();
@@ -216,12 +216,12 @@ namespace Michaelhouse.Controllers
         [RequireLogin]
         public new ActionResult Profile()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int userId = (int)Session["UserId"];
                 var parent = db.Parents.FirstOrDefault(p => p.UserId == userId);
 
-                if (parent == null) return HttpNotFound();
+                if (parent == null) return NotFound();
 
                 var vm = new ParentProfileViewModel
                 {
@@ -250,12 +250,12 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int userId = (int)Session["UserId"];
                 var parent = db.Parents.FirstOrDefault(p => p.UserId == userId);
 
-                if (parent == null) return HttpNotFound();
+                if (parent == null) return NotFound();
 
                 parent.Name = vm.Name;
                 parent.Contact = vm.Contact;
@@ -282,7 +282,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult SeedAdmin()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 if (db.Users.Any(u => u.Role == "Admin"))
                 {
@@ -363,7 +363,7 @@ namespace Michaelhouse.Controllers
                     StudentId = Session["StudentId"]
                 };
 
-                return Json(info, JsonRequestBehavior.AllowGet);
+                return Json(info);
             }
             catch (System.Exception ex)
             {
@@ -374,7 +374,7 @@ namespace Michaelhouse.Controllers
         // navigate to /Account/SeedTransportManager to seed 
         public ActionResult SeedTransportManager()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Check if a Transport Manager already exists
                 if (db.Users.Any(u => u.Role == "TransportManager"))

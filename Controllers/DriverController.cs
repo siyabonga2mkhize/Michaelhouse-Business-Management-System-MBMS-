@@ -1,18 +1,20 @@
+using Microsoft.AspNetCore.Http.Extensions;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
-    public class DriverController : Controller
+    public class DriverController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // ─────────────────────────────────────────────────────────────────
         // Dashboard
@@ -134,7 +136,7 @@ namespace Michaelhouse.Controllers
         {
             int driverId = (int)Session["DriverId"];
             var availability = db.DriverAvailabilities.FirstOrDefault(a => a.Id == id && a.DriverId == driverId);
-            if (availability == null) return HttpNotFound();
+            if (availability == null) return NotFound();
             return View(availability);
         }
 
@@ -144,7 +146,7 @@ namespace Michaelhouse.Controllers
         {
             int driverId = (int)Session["DriverId"];
             var availability = db.DriverAvailabilities.FirstOrDefault(a => a.Id == model.Id && a.DriverId == driverId);
-            if (availability == null) return HttpNotFound();
+            if (availability == null) return NotFound();
 
             if (model.EndDate < model.StartDate)
             {
@@ -290,8 +292,8 @@ namespace Michaelhouse.Controllers
                 db.SaveChanges();
 
                 // Generate QR code data URLs
-                string beforeUrl = Url.Action("MarkAttendance", "Trip", new { token = beforeToken.Token }, Request.Url.Scheme);
-                string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, Request.Url.Scheme);
+                string beforeUrl = Url.Action("MarkAttendance", "Trip", new { token = beforeToken.Token }, new Uri(Request.GetDisplayUrl()).Scheme);
+                string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, new Uri(Request.GetDisplayUrl()).Scheme);
 
                 students.Add(new ManifestStudentViewModel
             {
@@ -338,8 +340,8 @@ namespace Michaelhouse.Controllers
             }
 
             // Only allow marking attendance on the scheduled date
-            if (System.Data.Entity.DbFunctions.TruncateTime(schedule.ScheduledDate) !=
-                System.Data.Entity.DbFunctions.TruncateTime(DateTime.Today))
+            if (schedule.ScheduledDate.Date !=
+                DateTime.Today.Date)
             {
                 TempData["Error"] = "Attendance can only be marked on the scheduled trip date.";
                 return RedirectToAction("MyTrips");
@@ -413,9 +415,9 @@ namespace Michaelhouse.Controllers
         public ActionResult DepartureQRCode(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
-            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "before" }, Request.Url.Scheme);
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "before" }, new Uri(Request.GetDisplayUrl()).Scheme);
             string qrImage = GenerateQRCodeDataUrl(qrUrl);
 
             ViewBag.Schedule = schedule;
@@ -430,9 +432,9 @@ namespace Michaelhouse.Controllers
         public ActionResult ReturnQRCode(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
-            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "after" }, Request.Url.Scheme);
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "after" }, new Uri(Request.GetDisplayUrl()).Scheme);
             string qrImage = GenerateQRCodeDataUrl(qrUrl);
 
             ViewBag.Schedule = schedule;

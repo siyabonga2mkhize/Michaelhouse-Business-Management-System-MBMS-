@@ -1,17 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     //[Authorize(Roles = "Admin")]
-    public class EnrollmentsController : Controller
+    public class EnrollmentsController : BaseController
     {
-        private DBContextClass _context = new DBContextClass();
+        private DBContextClass _context = DbContextFactory.Create();
 
         // GET: Enrollments
         public ActionResult Index()
@@ -25,12 +28,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Enrollment enrollment = _context.Enrollments.Find(id);
             if (enrollment == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(enrollment);
         }
@@ -49,7 +52,7 @@ namespace Michaelhouse.Controllers
                 SubjectList = _context.Subjects.Select(s => new SelectListItem
                 {
                     Value = s.SubjectId.ToString(),
-                    Text = s.SubjectName + " - Grade " + s.GradeLevel
+                    Text = s.Name + " - Grade " + s.GradeLevel
                 })
             };
 
@@ -86,15 +89,15 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Enrollment enrollment = _context.Enrollments.Find(id);
             if (enrollment == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.StudentId = new SelectList(_context.Students, "StudentId", "FirstName", enrollment.StudentId);
-            ViewBag.SubjectId = new SelectList(_context.Subjects, "SubjectId", "SubjectName", enrollment.SubjectId);
+            ViewBag.SubjectId = new SelectList(_context.Subjects, "SubjectId", "Name", enrollment.SubjectId);
             return View(enrollment);
         }
 
@@ -103,7 +106,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "EnrollmentId,StudentId,SubjectId,EnrollmentDate,AcademicYear")] Enrollment enrollment)
+        public ActionResult Edit([Bind("EnrollmentId,StudentId,SubjectId,EnrollmentDate,AcademicYear")] Enrollment enrollment)
         {
             if (ModelState.IsValid)
             {
@@ -112,7 +115,7 @@ namespace Michaelhouse.Controllers
                 return RedirectToAction("Index");
             }
             ViewBag.StudentId = new SelectList(_context.Students, "StudentId", "FirstName", enrollment.StudentId);
-            ViewBag.SubjectId = new SelectList(_context.Subjects, "SubjectId", "SubjectName", enrollment.SubjectId);
+            ViewBag.SubjectId = new SelectList(_context.Subjects, "SubjectId", "Name", enrollment.SubjectId);
             return View(enrollment);
         }
 
@@ -121,12 +124,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Enrollment enrollment = _context.Enrollments.Find(id);
             if (enrollment == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(enrollment);
         }

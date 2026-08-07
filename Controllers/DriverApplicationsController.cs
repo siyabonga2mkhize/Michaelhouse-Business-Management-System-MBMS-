@@ -1,22 +1,24 @@
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Controllers;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using static Michaelhouse.Filters.TransportManagerOrAdminOnlyAttribute;
 
 namespace Michaelhouse
 {
-    public class DriverApplicationsController : Controller
+    public class DriverApplicationsController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // Helper to resolve current AppUser.Id
         private int? GetCurrentAppUserId()
@@ -38,7 +40,7 @@ namespace Michaelhouse
         public ActionResult MyApplications()
         {
             var uid = GetCurrentAppUserId();
-            if (uid == null) return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+            if (uid == null) return StatusCode(400);
             var apps = db.DriverApplications.Where(a => a.UserId == uid).ToList();
             return View(apps);
         }
@@ -47,9 +49,9 @@ namespace Michaelhouse
         [RequireLogin]
         public ActionResult Details(int? id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (id == null) return BadRequest();
             var application = db.DriverApplications.Include(d => d.Documents).FirstOrDefault(d => d.Id == id);
-            if (application == null) return HttpNotFound();
+            if (application == null) return NotFound();
 
             var currentUserId = (int)Session["UserId"];
             var currentRole = Session["UserRole"]?.ToString();
@@ -57,7 +59,7 @@ namespace Michaelhouse
             bool isOwner = (application.UserId == currentUserId);
 
             if (!isAdminOrTransport && !isOwner)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return StatusCode(400);
 
             return View(application);
         }
@@ -73,9 +75,9 @@ namespace Michaelhouse
         [AllowAnonymous]
         public ActionResult Edit(int? id, string token = null)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (id == null) return BadRequest();
             DriverApplication driverApplication = db.DriverApplications.Find(id);
-            if (driverApplication == null) return HttpNotFound();
+            if (driverApplication == null) return NotFound();
 
             var uid = GetCurrentAppUserId();
             bool tokenMatches = false;
@@ -85,14 +87,14 @@ namespace Michaelhouse
             }
 
             if (!User.IsInRole("Admin") && driverApplication.UserId != uid && !tokenMatches)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return StatusCode(400);
             var currentUserId = (int?)Session["UserId"];
             var currentRole = Session["UserRole"]?.ToString();
             bool isAdmin = currentRole == "Admin";
             bool isOwner = (driverApplication.UserId == currentUserId);
 
             if (!isAdmin && !isOwner && !tokenMatches)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return StatusCode(400);
 
             return View(driverApplication);
         }
@@ -103,9 +105,9 @@ namespace Michaelhouse
         [AllowAnonymous]
         public ActionResult Create(
      DriverApplication driverApplication,
-     HttpPostedFileBase idFile,
-     HttpPostedFileBase licenceFile,
-     IEnumerable<HttpPostedFileBase> otherFiles,
+     IFormFile idFile,
+     IFormFile licenceFile,
+     IEnumerable<IFormFile> otherFiles,
      string otherDescription)
         {
             if (!ModelState.IsValid) return View(driverApplication);
@@ -125,21 +127,21 @@ namespace Michaelhouse
 
             // Save uploaded files
             // Save uploaded files
-            Action<HttpPostedFileBase, string> saveDoc = (file, docType) =>
+            Action<IFormFile, string> saveDoc = (file, docType) =>
             {
-                if (file == null || file.ContentLength == 0) return;
+                if (file == null || file.Length == 0) return;
 
                 string fileName = Guid.NewGuid() + System.IO.Path.GetExtension(file.FileName);
 
                 // 1. Fetch the exact same folder path that the AI Review Service uses
-                string relativePath = System.Configuration.ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads";
-                string uploadsDir = Server.MapPath(relativePath);
+                string relativePath = AppConfig.AppSettings("DocumentStorage:UploadRoot") ?? "~/App_Data/Uploads";
+                string uploadsDir = MapPath(relativePath);
 
                 if (!System.IO.Directory.Exists(uploadsDir))
                     System.IO.Directory.CreateDirectory(uploadsDir);
 
                 string path = System.IO.Path.Combine(uploadsDir, fileName);
-                file.SaveAs(path);
+                using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Create)) { file.CopyTo(fs); };
 
                 var doc = new DriverDocument
                 {
@@ -168,7 +170,7 @@ namespace Michaelhouse
                 {
                     try
                     {
-                        using (var db2 = new DBContextClass())
+                        using (var db2 = DbContextFactory.Create())
                         {
                             var appWithDocs = db2.DriverApplications
                                 .Include(a => a.Documents)
@@ -222,7 +224,7 @@ namespace Michaelhouse
                 try
                 {
                     var emailSvc = new EmailService();
-                    var publicUrl = Url.Action("PublicDetails", "DriverApplications", new { id = driverApplication.Id, token = rawToken }, protocol: Request.Url.Scheme);
+                    var publicUrl = Url.Action("PublicDetails", "DriverApplications", new { id = driverApplication.Id, token = rawToken }, protocol: new Uri(Request.GetDisplayUrl()).Scheme);
                     var subject = "Driver Application Received - Michaelhouse";
                     var body = $@"
 Dear {driverApplication.FullName},
@@ -254,7 +256,7 @@ Michaelhouse Transport Team
         public ActionResult DeleteConfirmed(int id)
         {
             DriverApplication driverApplication = db.DriverApplications.Find(id);
-            if (driverApplication == null) return HttpNotFound();
+            if (driverApplication == null) return NotFound();
 
             var currentUserId = (int)Session["UserId"];
             var currentRole = Session["UserRole"]?.ToString();
@@ -262,7 +264,7 @@ Michaelhouse Transport Team
             bool isOwner = (driverApplication.UserId == currentUserId);
 
             if (!isAdmin && !isOwner)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return StatusCode(400);
 
             db.DriverApplications.Remove(driverApplication);
             db.SaveChanges();
@@ -277,7 +279,7 @@ Michaelhouse Transport Team
         public ActionResult Review(int id, string decision, string adminNotes)
         {
             var app = db.DriverApplications.Find(id);
-            if (app == null) return HttpNotFound();
+            if (app == null) return NotFound();
 
             if (app.Status == "Approved" || app.Status == "Rejected")
                 return RedirectToAction("Details", new { id = id });
@@ -290,13 +292,9 @@ Michaelhouse Transport Team
             {
                 db.SaveChanges();
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                var errorMessages = ex.EntityValidationErrors
-                    .SelectMany(x => x.ValidationErrors)
-                    .Select(x => $"Property: {x.PropertyName}, Error: {x.ErrorMessage}");
-                var fullErrorMessage = string.Join("; ", errorMessages);
-                TempData["Error"] = $"Validation failed: {fullErrorMessage}";
+                TempData["Error"] = $"Validation failed: {ex.InnerException?.Message ?? ex.Message}";
                 return RedirectToAction("Details", new { id = id });
             }
 
@@ -311,7 +309,7 @@ Michaelhouse Transport Team
         public ActionResult SendInterviewInvitation(int id)
         {
             var app = db.DriverApplications.Find(id);
-            if (app == null) return HttpNotFound();
+            if (app == null) return NotFound();
 
             // If no interview link stored yet, generate one
             if (string.IsNullOrEmpty(app.InterviewMeetingLink))
@@ -346,7 +344,7 @@ Michaelhouse Transport Team
         public ActionResult CreateDriverAccount(int id)
         {
             var app = db.DriverApplications.Find(id);
-            if (app == null) return HttpNotFound();
+            if (app == null) return NotFound();
 
             // Check if driver already exists (by ID number)
             var existingDriver = db.Drivers.FirstOrDefault(d => d.IDNumber == app.IDNumber);
@@ -425,7 +423,7 @@ Michaelhouse Transport Team
                 .Include(d => d.Documents)
                 .FirstOrDefault(d => d.Id == id);
 
-            if (application == null) return HttpNotFound();
+            if (application == null) return NotFound();
 
             bool tokenValid = false;
             if (!string.IsNullOrEmpty(token)
@@ -439,7 +437,7 @@ Michaelhouse Transport Team
             bool isOwner = uid != null && application.UserId == uid;
 
             if (!User.IsInRole("Admin") && !isOwner && !tokenValid)
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+                return StatusCode(400);
 
             ViewBag.IsPublicViewer = !User.IsInRole("Admin") && !isOwner;
 
@@ -455,7 +453,7 @@ Michaelhouse Transport Team
         public ActionResult ScheduleAndSendInterview(int id, DateTime interviewDateTime, string customMeetingLink = null)
         {
             var app = db.DriverApplications.Find(id);
-            if (app == null) return HttpNotFound();
+            if (app == null) return NotFound();
 
             // Auto-generate Jitsi link if none provided
             string meetingLink = customMeetingLink;

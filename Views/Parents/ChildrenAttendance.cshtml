@@ -36,11 +36,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">From Date</label>
-                    <input type="date" name="fromDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@Request.QueryString["fromDate"]" />
+                    <input type="date" name="fromDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@(Context.Request.Query["fromDate"].ToString())" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">To Date</label>
-                    <input type="date" name="toDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@Request.QueryString["toDate"]" />
+                    <input type="date" name="toDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@(Context.Request.Query["toDate"].ToString())" />
                 </div>
                 <div class="flex gap-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full">Filter</button>

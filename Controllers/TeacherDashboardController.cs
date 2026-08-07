@@ -1,16 +1,17 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
-    public class TeacherDashboardController : Controller
+    public class TeacherDashboardController : BaseController
     {
-        private readonly DBContextClass _context = new DBContextClass();
+        private readonly DBContextClass _context = DbContextFactory.Create();
 
         public ActionResult Index()
         {
@@ -38,7 +39,7 @@ namespace Michaelhouse.Controllers
 
             var today = DateTime.Today;
             var todayAttendance = _context.TeacherAttendances
-                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.Date.Date == today);
 
             bool isCheckedIn = todayAttendance?.SignInTime != null;
             bool isCheckedOut = todayAttendance?.SignOutTime != null;

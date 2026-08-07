@@ -1,16 +1,18 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Services;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Michaelhouse.Controllers
 {
     [TeacherOnly]
-    public class MarksController : Controller
+    public class MarksController : BaseController
     {
         private readonly MarksService _marks = new MarksService();
 
@@ -63,7 +65,7 @@ namespace Michaelhouse.Controllers
                 return View();
             }
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // ✅ CRITICAL: Validate teacher assignment WITH STREAM
                 bool valid = db.TeacherSubjectGrades.Any(tsg =>
@@ -114,18 +116,18 @@ namespace Michaelhouse.Controllers
         {
             int teacherId = GetTeacherId();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var assessment = db.Assessments
                     .Include(a => a.Subject)
                     .FirstOrDefault(a => a.AssessmentId == id);
 
                 if (assessment == null)
-                    return HttpNotFound();
+                    return NotFound();
 
                 // ✅ SECURITY: Check ownership
                 if (assessment.TeacherId != teacherId)
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 // ✅ EXTRA SECURITY: Validate assignment
                 bool valid = db.TeacherSubjectGrades.Any(tsg =>
@@ -135,7 +137,7 @@ namespace Michaelhouse.Controllers
                     tsg.Stream == assessment.Stream);
 
                 if (!valid)
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 var sheet = _marks.GetMarkSheet(id);
 
@@ -153,14 +155,14 @@ namespace Michaelhouse.Controllers
         {
             int teacherId = GetTeacherId();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var assessment = db.Assessments.Find(assessmentId);
                 if (assessment == null)
-                    return HttpNotFound();
+                    return NotFound();
 
                 if (assessment.TeacherId != teacherId)
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 if (assessment.MarksCaptureClosed)
                 {
@@ -171,7 +173,7 @@ namespace Michaelhouse.Controllers
 
             var inputs = new System.Collections.Generic.List<MarkInput>();
 
-            foreach (var key in Request.Form.AllKeys)
+            foreach (var key in Request.Form.Keys)
             {
                 if (key == null || !key.StartsWith("mark_")) continue;
 
@@ -221,7 +223,7 @@ namespace Michaelhouse.Controllers
         {
             int teacherId = GetTeacherId();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 bool owns = db.TeacherSubjectGrades.Any(tsg =>
                     tsg.TeacherId == teacherId &&
@@ -230,7 +232,7 @@ namespace Michaelhouse.Controllers
                     tsg.Stream == (AcademicStream)stream);
 
                 if (!owns)
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
             }
 
             var results = _marks.CalculateTermResults(
@@ -250,7 +252,7 @@ namespace Michaelhouse.Controllers
         // ─────────────────────────────────────────────
         private void PopulateAssignmentDropdowns(int teacherId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // If teacherId is not set in session (0), try to resolve from current AppUser
                 if (teacherId == 0 && Session["UserId"] != null)

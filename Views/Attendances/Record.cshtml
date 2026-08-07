@@ -5,7 +5,7 @@
 }
 
 <div class="container">
-    <h2 class="text-danger">Record Attendance: @ViewBag.SubjectName</h2>
+    <h2 class="text-danger">Record Attendance: @ViewBag.Name</h2>
     <p class="text-muted">Date: @DateTime.Today.ToShortDateString()</p>
 
     <form asp-action="Save" method="post">

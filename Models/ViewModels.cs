@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Web;
 
 namespace Michaelhouse.Models.ViewModels
 {
@@ -115,6 +114,15 @@ namespace Michaelhouse.Models.ViewModels
         [Required, MaxLength(200)]
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
+
+        // Computed full name for backward compat with view
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string Name
+        {
+            get => $"{FirstName} {LastName}".Trim();
+            set { var parts = (value ?? "").Split(' ', 2); FirstName = parts[0]; LastName = parts.Length > 1 ? parts[1] : ""; }
+        }
+
 
         [Required]
         [DataType(DataType.Date)]

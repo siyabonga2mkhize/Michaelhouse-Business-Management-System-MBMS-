@@ -40,7 +40,7 @@
                             <tr>
                                 <td class="ps-4 align-middle">@item.Date.ToString("dd MMM yyyy")</td>
                                 <td class="align-middle">@(item.Student?.Name ?? "Unknown")</td>
-                                <td class="align-middle">@(item.Subject?.SubjectName ?? "Unknown")</td>
+                                <td class="align-middle">@(item.Subject?.Name ?? "Unknown")</td>
                                 <td class="align-middle">
                                     <span class="badge @(item.Status == Michaelhouse.Models.AttendanceStatus.Present ? "bg-success" : item.Status == Michaelhouse.Models.AttendanceStatus.Late ? "bg-warning" : "bg-danger")">
                                         @item.Status

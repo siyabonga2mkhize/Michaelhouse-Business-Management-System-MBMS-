@@ -1,14 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 
 namespace Michaelhouse.Controllers
 {
     [InventoryManagerOnly]
-    public class SupplierController : Controller
+    public class SupplierController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
 
         // ─── List ─────────────────────────────────────────────────────────────────
 
@@ -51,7 +53,7 @@ namespace Michaelhouse.Controllers
                 .Include("PurchaseOrders")
                 .FirstOrDefault(s => s.SupplierId == id);
 
-            if (supplier == null) return HttpNotFound();
+            if (supplier == null) return NotFound();
 
             // Products not yet linked to this supplier (for the "link product" form)
             var linkedProductIds = supplier.SupplierProducts
@@ -72,7 +74,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Edit(int id)
         {
             var supplier = db.Suppliers.Find(id);
-            if (supplier == null) return HttpNotFound();
+            if (supplier == null) return NotFound();
             return View(supplier);
         }
 
@@ -83,7 +85,7 @@ namespace Michaelhouse.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var supplier = db.Suppliers.Find(model.SupplierId);
-            if (supplier == null) return HttpNotFound();
+            if (supplier == null) return NotFound();
 
             supplier.Name = model.Name;
             supplier.ContactPerson = model.ContactPerson;
@@ -172,7 +174,7 @@ namespace Michaelhouse.Controllers
         public ActionResult ToggleActive(int id)
         {
             var supplier = db.Suppliers.Find(id);
-            if (supplier == null) return HttpNotFound();
+            if (supplier == null) return NotFound();
             supplier.IsActive = !supplier.IsActive;
             db.SaveChanges();
             TempData["Success"] = $"Supplier {(supplier.IsActive ? "activated" : "deactivated")}.";

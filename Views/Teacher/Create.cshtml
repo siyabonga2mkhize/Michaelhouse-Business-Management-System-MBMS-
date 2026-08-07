@@ -86,7 +86,7 @@
                     <div class="ac-card border-l-4 border-l-[#C21E2E] relative overflow-hidden bg-white border border-gray-100 shadow-sm">
                         <i class="bi bi-1-square absolute -right-2 -bottom-2 text-black/[0.02] text-6xl"></i>
                         <div class="p-8">
-                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary {
+                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary(ViewData) {
                                { "index", 1 },
                                { "required", true }
                            })
@@ -97,7 +97,7 @@
                     <div class="ac-card relative overflow-hidden bg-white border border-gray-100 shadow-sm">
                         <i class="bi bi-2-square absolute -right-2 -bottom-2 text-black/[0.01] text-6xl"></i>
                         <div class="p-8">
-                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary {
+                            @Html.Partial("_SubjectAssignmentFields", new ViewDataDictionary(ViewData) {
                                { "index", 2 },
                                { "required", false }
                            })

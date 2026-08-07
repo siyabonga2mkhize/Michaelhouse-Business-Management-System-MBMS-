@@ -1,0 +1,8 @@
+@using Michaelhouse
+@using Michaelhouse.Models
+@using Michaelhouse.Controllers
+@using Michaelhouse.Infrastructure
+@using Microsoft.AspNetCore.Mvc.Rendering
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@* Suppress OptionTagHelper to allow @(condition) expressions in <option> attributes *@
+@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.OptionTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers

@@ -1,8 +1,9 @@
-﻿using System.Web.Mvc;
+using Michaelhouse.Infrastructure;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         public ActionResult Index()
         {

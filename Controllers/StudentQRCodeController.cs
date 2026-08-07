@@ -1,14 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [Authorize(Roles = "Admin,HouseMaster")]
-    public class StudentQRCodeController : Controller
+    public class StudentQRCodeController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
         private StudentQRCodeService service = new StudentQRCodeService();
 
         // -----------------------------------------------
@@ -18,7 +20,7 @@ namespace Michaelhouse.Controllers
         {
             var student = db.Students.Find(studentId);
             if (student == null)
-                return HttpNotFound();
+                return NotFound();
 
             var qr = service.GetActiveQRCode(studentId)
                       ?? service.GenerateQRCode(studentId); // auto-generate if missing
@@ -31,7 +33,7 @@ namespace Michaelhouse.Controllers
         {
             var student = db.Students.Find(studentId);
             if (student == null)
-                return HttpNotFound();
+                return NotFound();
 
             var qr = service.GetActiveQRCode(studentId)
                       ?? service.GenerateQRCode(studentId);

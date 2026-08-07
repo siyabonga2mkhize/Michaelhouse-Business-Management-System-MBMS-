@@ -1,27 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using Newtonsoft.Json;
 using Michaelhouse.Models;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace Michaelhouse.Services
 {
     public class SessionCartService : ICartService
     {
         private const string CartKey = "SchoolStore_Cart";
-        private readonly HttpContextBase _httpContext;
+        private readonly ISession _session;
 
-        public SessionCartService(HttpContextBase httpContext)
+        public SessionCartService(ISession session)
         {
-            _httpContext = httpContext;
+            _session = session;
         }
-
-        private HttpSessionStateBase Session => _httpContext.Session;
 
         public CartDto GetCart()
         {
-            var cartJson = Session[CartKey] as string;
+            var cartJson = _session.GetString(CartKey);
             return string.IsNullOrEmpty(cartJson)
                 ? new CartDto()
                 : JsonConvert.DeserializeObject<CartDto>(cartJson) ?? new CartDto();
@@ -92,12 +87,12 @@ namespace Michaelhouse.Services
 
         public void ClearCart()
         {
-            Session.Remove(CartKey);
+            _session.Remove(CartKey);
         }
 
         private void SaveCart(CartDto cart)
         {
-            Session[CartKey] = JsonConvert.SerializeObject(cart);
+            _session.SetString(CartKey, JsonConvert.SerializeObject(cart));
         }
     }
 }

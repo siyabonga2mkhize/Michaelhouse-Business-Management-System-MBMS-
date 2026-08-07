@@ -1,17 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Text;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [Authorize(Roles = "HouseMaster,Admin")]
-    public class HouseMasterController : Controller
+    public class HouseMasterController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
 
         // Dashboard with cards and quick actions
         public ActionResult Dashboard()
@@ -35,7 +37,7 @@ namespace Michaelhouse.Controllers
                 .Select(a => a.StudentId)
                 .ToList();
             var studentsPresent = db.QRScanRecords.Count(q => q.Approved &&
-                DbFunctions.TruncateTime(q.ScannedAt) == DbFunctions.TruncateTime(DateTime.UtcNow) &&
+                q.ScannedAt.Date == DateTime.UtcNow.Date &&
                 activeStudentIds.Contains(q.StudentId));
             var studentsAway = activeStudentIds.Count - studentsPresent;
             var pendingAlerts = db.AIAlerts.Count(a => residenceIds.Contains(a.ResidenceId) && !a.IsResolved);
@@ -62,7 +64,7 @@ namespace Michaelhouse.Controllers
         public ActionResult ResidenceSummary(int id)
         {
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.HouseMaster).FirstOrDefault(r => r.ResidenceId == id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             return View(res);
         }
 
@@ -82,7 +84,7 @@ namespace Michaelhouse.Controllers
             var assignments = db.ResidenceAssignments.Where(a => a.ResidenceId == residenceId && a.IsActive)
                 .Include(a => a.Student).ToList();
 
-            var presentStudentIds = db.QRScanRecords.Where(q => DbFunctions.TruncateTime(q.ScannedAt) == today && q.Approved)
+            var presentStudentIds = db.QRScanRecords.Where(q => q.ScannedAt.Date == today && q.Approved)
                 .Select(q => q.StudentId).Distinct().ToList();
 
             var outside = assignments.Where(a => !presentStudentIds.Contains(a.StudentId)).ToList();
@@ -130,7 +132,7 @@ namespace Michaelhouse.Controllers
         public ActionResult CheckIn(int studentId)
         {
             var student = db.Students.Find(studentId);
-            if (student == null) return HttpNotFound();
+            if (student == null) return NotFound();
             try
             {
                 LogResidenceAction(studentId, "CheckIn", "Student checked in by house master.", true);
@@ -147,7 +149,7 @@ namespace Michaelhouse.Controllers
         public ActionResult CheckOut(int studentId)
         {
             var student = db.Students.Find(studentId);
-            if (student == null) return HttpNotFound();
+            if (student == null) return NotFound();
             try
             {
                 var activeAssignment = db.ResidenceAssignments
@@ -224,7 +226,7 @@ namespace Michaelhouse.Controllers
             var assignment = db.ResidenceAssignments.FirstOrDefault(a => a.StudentId == studentId && a.IsActive);
             try
             {
-                if (db.Students.Find(studentId) == null) return HttpNotFound();
+                if (db.Students.Find(studentId) == null) return NotFound();
                 LogResidenceAction(studentId, action, notes, approved, assignment?.ResidenceId, isHoliday);
                 db.SaveChanges();
                 TempData["Success"] = action.Replace("Holiday", "Holiday ").Replace("Visitor", "Visitor ") + " recorded.";

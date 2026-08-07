@@ -1,3 +1,4 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Controllers;
 using Newtonsoft.Json;
@@ -6,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -27,13 +27,13 @@ namespace Michaelhouse.Services
 
         public AiReviewService()
         {
-            _docEndpoint = ConfigurationManager.AppSettings["AzureDocIntelligence:Endpoint"];
-            _docKey = ConfigurationManager.AppSettings["AzureDocIntelligence:Key"];
-            _openAiKey = ConfigurationManager.AppSettings["OpenAI:Key"];
+            _docEndpoint = AppConfig.AppSettings("AzureDocIntelligence:Endpoint");
+            _docKey = AppConfig.AppSettings("AzureDocIntelligence:Key");
+            _openAiKey = AppConfig.AppSettings("OpenAI:Key");
 
-            var relativePath = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads";
+            var relativePath = AppConfig.AppSettings("DocumentStorage:UploadRoot") ?? "~/App_Data/Uploads";
             _uploadRoot = relativePath.StartsWith("~")
-                ? System.Web.Hosting.HostingEnvironment.MapPath(relativePath)
+                ? PathHelper.MapPath(relativePath)
                 : relativePath;
         }
 

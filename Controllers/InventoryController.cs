@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
@@ -7,9 +9,9 @@ using Michaelhouse.Services;
 namespace Michaelhouse.Controllers
 {
     [InventoryManagerOnly]
-    public class InventoryController : Controller
+    public class InventoryController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
         private readonly InventoryService _inventoryService = new InventoryService();
 
         // ─── Dashboard ────────────────────────────────────────────────────────────
@@ -45,7 +47,7 @@ namespace Michaelhouse.Controllers
         public ActionResult StockHistory(int id)
         {
             var product = db.Products.Include("Category").FirstOrDefault(p => p.Id == id);
-            if (product == null) return HttpNotFound();
+            if (product == null) return NotFound();
 
             var history = _inventoryService.GetStockHistory(id);
             var suppliers = db.SupplierProducts

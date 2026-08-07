@@ -1,7 +1,8 @@
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 
@@ -30,7 +31,7 @@ namespace Michaelhouse.Services
             decimal weightingPercent,
             string notes)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // 1. Verify teacher owns this subject+grade assignment
                 var assignment = db.TeacherSubjectGrades.FirstOrDefault(tsg =>
@@ -87,7 +88,7 @@ namespace Michaelhouse.Services
         {
             int targetYear = year ?? DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Get all subject+grade combos this teacher teaches
                 var assignments = db.TeacherSubjectGrades
@@ -118,7 +119,7 @@ namespace Michaelhouse.Services
         /// </summary>
         /*public List<StudentMarkEntry> GetMarkSheet(int assessmentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var assessment = db.Assessments
                     .Include("Subject")
@@ -165,7 +166,7 @@ namespace Michaelhouse.Services
 
         public List<StudentMarkEntry> GetMarkSheet(int assessmentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // 1. Eager load the Subject and ensure we don't track for speed
                 var assessment = db.Assessments
@@ -237,7 +238,7 @@ namespace Michaelhouse.Services
             List<MarkInput> inputs,
             bool closeCaptrue = false)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var assessment = db.Assessments.Find(assessmentId);
                 if (assessment == null) return (false, "Assessment not found.");
@@ -299,7 +300,7 @@ namespace Michaelhouse.Services
             int subjectId, int grade, int term, int academicYear,
             AcademicStream stream = AcademicStream.None)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // All closed assessments for this subject+grade+term
                 var assessments = db.Assessments
@@ -395,7 +396,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public YearResult CalculateYearResult(int studentId, int grade, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var termResults = db.TermResults
                     .Where(tr =>
@@ -458,7 +459,7 @@ namespace Michaelhouse.Services
         public StudentProgressReport GetStudentProgress(
             int studentId, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var student = db.Students.Find(studentId);
                 if (student == null) return null;

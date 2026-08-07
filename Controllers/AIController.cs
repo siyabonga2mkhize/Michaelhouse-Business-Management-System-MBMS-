@@ -1,16 +1,18 @@
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [Authorize(Roles = "Admin,HouseMaster")]
-    public class AIController : Controller
+    public class AIController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
 
         // List recent AI recommendations with search/filter
         public ActionResult Index(string q = null, int? residenceId = null)
@@ -36,7 +38,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Details(int id)
         {
             var rec = db.AIResidenceRecommendations.Include(r => r.Student).Include(r => r.Residence).Include(r => r.Room).FirstOrDefault(r => r.RecommendationId == id);
-            if (rec == null) return HttpNotFound();
+            if (rec == null) return NotFound();
 
             // Additional alternatives: other recent recommendations for the same student
             var alternatives = db.AIResidenceRecommendations.Include(r=>r.Residence).Include(r=>r.Room)
@@ -66,7 +68,7 @@ namespace Michaelhouse.Controllers
             model.TotalBeds = db.Beds.Count();
             model.OccupiedBeds = db.Beds.Count(b => b.IsOccupied);
             model.AvailableBeds = model.TotalBeds - model.OccupiedBeds;
-            model.StudentsPresent = db.QRScanRecords.Count(q => q.Approved && DbFunctions.TruncateTime(q.ScannedAt) == DbFunctions.TruncateTime(DateTime.UtcNow));
+            model.StudentsPresent = db.QRScanRecords.Count(q => q.Approved && q.ScannedAt.Date == DateTime.UtcNow.Date);
             model.StudentsAway = db.ResidenceAssignments.Count(a => a.IsActive) - model.StudentsPresent;
             model.HouseMasters = db.HouseMasters.Count();
             model.Alerts = db.AIAlerts.Count(a => !a.IsResolved);

@@ -246,12 +246,12 @@
 
         // Session values - avoid null-conditional operator
         string userRole = "";
-        if (Session["UserRole"] != null) { userRole = Session["UserRole"].ToString(); }
+        if (Context.Session.GetString("UserRole") != null) { userRole = Context.Session.GetString("UserRole").ToString(); }
 
         string userName = "";
-        if (Session["UserName"] != null) { userName = Session["UserName"].ToString(); }
+        if (Context.Session.GetString("UserName") != null) { userName = Context.Session.GetString("UserName").ToString(); }
 
-        bool isLoggedIn = (Session["UserId"] != null);
+        bool isLoggedIn = (Context.Session.GetInt32("UserId") != null);
 
         // This pulls the name of the current controller (e.g., "Inventory")
         // Keep only ONE declaration of 'ctrl'
@@ -273,7 +273,7 @@
         {
             try
             {
-                var cartService = new Michaelhouse.Services.SessionCartService(new HttpContextWrapper(HttpContext.Current));
+                var cartService = new Michaelhouse.Services.SessionCartService(Context.Session);
                 var cart = cartService.GetCart();
                 if (cart != null) { cartCount = cart.TotalItems; }
             }
@@ -314,7 +314,7 @@
                 <!-- Right: notification, user pill, logout -->
                 <div class="ms-auto d-flex align-items-center gap-3">
                     <!-- Notification bell (child action) -->
-                    @Html.Action("NotificationBadge", "Notification")
+                    @await Html.PartialAsync("_NotificationBadge")
 
                     <!-- User info pill (only when logged in) -->
                     @if (isLoggedIn)

@@ -1,14 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Michaelhouse.Controllers
 {
     [Authorize(Roles = "Admin,HouseMaster")]
-    public class ResidenceAllocationController : Controller
+    public class ResidenceAllocationController : BaseController
     {
         private ResidenceAllocationEngine engine = new ResidenceAllocationEngine();
         private AIResidencePredictionService _predictor = new AIResidencePredictionService();
@@ -79,7 +82,7 @@ namespace Michaelhouse.Controllers
         // GET: AI Dashboard
         public ActionResult AIDashboard()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Total AI recommendations
                 var totalRecommendations = db.AIResidenceRecommendations.Count();
@@ -154,10 +157,10 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult OverrideRecommendation(int recommendationId, int newRoomId, string reason)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var rec = db.AIResidenceRecommendations.Find(recommendationId);
-                if (rec == null) return HttpNotFound();
+                if (rec == null) return NotFound();
 
                 var adminId = (int)(Session["UserId"] ?? 0);
                 var adminName = Session["UserName"] as string ?? "Admin";

@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public (AppUser User, string TempPassword) CreateStudentAccount(int studentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var student = db.Students
                     .Include("Parent")

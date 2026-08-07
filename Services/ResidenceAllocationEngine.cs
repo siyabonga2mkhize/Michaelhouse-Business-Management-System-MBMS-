@@ -1,9 +1,10 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Michaelhouse.Services
 {
@@ -16,7 +17,7 @@ namespace Michaelhouse.Services
 
     public class ResidenceAllocationEngine
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
         private ResidenceAvailabilityService availabilityService = new ResidenceAvailabilityService();
         private CompatibilityScoringService scoringService = new CompatibilityScoringService();
 

@@ -29,7 +29,7 @@
                         <td>@a.FullName</td>
                         <td>@a.Email</td>
                         <td>@a.Status</td>
-                        <td>@(a.InterviewDate.HasValue ? a.InterviewDate.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
+                        <td>@(a.InterviewDateTime.HasValue ? a.InterviewDateTime.Value.ToString("yyyy-MM-dd HH:mm") : "-")</td>
                         <td>
                             <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Details","Transport", new { id = a.Id })">Details</a>
                             <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details","Transport", new { id = a.Id })#actions">Actions</a>

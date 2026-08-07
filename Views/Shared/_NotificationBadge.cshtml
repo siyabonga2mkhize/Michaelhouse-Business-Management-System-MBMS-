@@ -29,7 +29,7 @@
             are generated inside the _NotificationList Partial View
         *@
         <div id="notificationList" class="bg-white">
-            @Html.Action("GetNotifications", "Notification")
+            @await Html.PartialAsync("_NotificationsList")
         </div>
 
         @* --- INSTITUTIONAL FOOTER LINK --- *@

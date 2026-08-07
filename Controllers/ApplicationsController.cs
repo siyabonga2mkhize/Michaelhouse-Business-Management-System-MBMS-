@@ -1,14 +1,17 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class ApplicationsController : Controller
+    public class ApplicationsController : BaseController
     {
         private readonly ApplicationService _appService = new ApplicationService();
 
@@ -29,7 +32,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Index()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int parentId = GetCurrentParentId();
 
@@ -55,7 +58,7 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int parentId = GetCurrentParentId();
 
@@ -82,7 +85,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Create()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int parentId = GetCurrentParentId();
 
@@ -121,7 +124,7 @@ namespace Michaelhouse.Controllers
         {
             if (!ModelState.IsValid)
             {
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     int parentId = GetCurrentParentId();
                     var students = db.Students.Where(s => s.ParentId == parentId).ToList();
@@ -139,7 +142,7 @@ namespace Michaelhouse.Controllers
                 return View(vm);
             }
 
-            var files = Request.Files;
+            var files = Request.Form.Files;
             if (files == null || files.Count == 0)
             {
                 ModelState.AddModelError("", "Please upload at least one document.");
@@ -168,7 +171,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Status(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var app = db.Applications
                     .Include("Student")
@@ -176,7 +179,7 @@ namespace Michaelhouse.Controllers
                     .Include("AdminReviews")
                     .FirstOrDefault(a => a.AppId == id);
 
-                if (app == null) return HttpNotFound();
+                if (app == null) return NotFound();
 
                 return View(app);
             }

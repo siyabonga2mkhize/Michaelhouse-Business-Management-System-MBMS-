@@ -8,9 +8,9 @@
     bool isPending = Model.Status == "Pending" || string.IsNullOrEmpty(Model.Status) || Model.Status == "Flagged";
     bool isApproved = Model.Status == "Approved";
     bool isRejected = Model.Status == "Rejected";
-    string token = Request.QueryString["token"];
+    string token = Context.Request.Query["token"];
 
-    var sessionRole = Session["UserRole"]?.ToString();
+    var sessionRole = Context.Session.GetString("UserRole")?.ToString();
     bool isAdminOrTransport = (sessionRole == "Admin" || sessionRole == "TransportManager");
 }
 
@@ -194,7 +194,7 @@
             <p class="text-sm text-gray-500 mb-4">Save or bookmark this link to return to your application. Valid until <strong>@(Model.PublicTokenExpiry?.ToString("dd MMMM yyyy") ?? "—")</strong>.</p>
             <div class="bg-gray-50 border border-gray-200 p-4 text-xs break-all rounded">
                 @{
-                    string fullUrl = Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = token }, protocol: Request.Url.Scheme);
+                    string fullUrl = Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = token }, protocol: Context.Request.Scheme);
                 }
                 <a class="text-[#C21E2E] font-semibold hover:underline" href="@fullUrl">@fullUrl</a>
             </div>
@@ -237,7 +237,7 @@
 
             @if (isPending)
             {
-                using (Html.BeginForm("Review", "DriverApplications", new { id = Model.Id }, FormMethod.Post, new { @class = "mb-6" }))
+                using (Html.BeginForm("Review", "DriverApplications", new { id = Model.Id }, FormMethod.Post, null, new { @class = "mb-6" }))
                 {
                     @Html.AntiForgeryToken()
                     <p class="text-xs uppercase tracking-widest text-gray-400 mb-3 font-bold">Review Decision</p>
@@ -266,7 +266,7 @@
                 </form>
                 <hr class="border-gray-600 my-6" />
 
-                using (Html.BeginForm("CreateDriverAccount", "DriverApplications", new { id = Model.Id }, FormMethod.Post, new { @class = "inline" }))
+                using (Html.BeginForm("CreateDriverAccount", "DriverApplications", new { id = Model.Id }, FormMethod.Post, null, new { @class = "inline" }))
                 {
                     @Html.AntiForgeryToken()
                     <button type="submit" class="admin-action-btn btn-create" onclick="return confirm('Create driver account and send login credentials to applicant?')"><i class="bi bi-person-plus"></i> Create Driver Account</button>

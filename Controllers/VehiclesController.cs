@@ -1,15 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
     [TransportManagerOnly]   // or [AdminOnly] if you want both to have access
-    public class VehicleController : Controller
+    public class VehicleController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: Vehicles (list all active vehicles)
         public ActionResult Index()
@@ -45,7 +47,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Edit(int id)
         {
             var vehicle = db.Vehicles.Find(id);
-            if (vehicle == null) return HttpNotFound();
+            if (vehicle == null) return NotFound();
             return View(vehicle);
         }
 
@@ -56,7 +58,7 @@ namespace Michaelhouse.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Entry(vehicle).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(vehicle).State = EntityState.Modified;
                 db.SaveChanges();
                 TempData["Success"] = "Vehicle updated.";
                 return RedirectToAction("Index");
@@ -68,7 +70,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Delete(int id)
         {
             var vehicle = db.Vehicles.Find(id);
-            if (vehicle == null) return HttpNotFound();
+            if (vehicle == null) return NotFound();
             return View(vehicle);
         }
 

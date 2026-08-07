@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using System;
@@ -133,7 +135,7 @@ namespace Michaelhouse.Services
 
         public Registration CreateRegistration(int appId, int studentId, int grade)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var existing = db.Registrations.FirstOrDefault(r => r.AppId == appId);
                 if (existing != null) return existing;
@@ -155,7 +157,7 @@ namespace Michaelhouse.Services
 
         public Registration GetRegistrationForApp(int appId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Registrations
                     .Include("Student")
@@ -166,7 +168,7 @@ namespace Michaelhouse.Services
 
         public Registration GetRegistrationById(int registrationId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Registrations
                     .Include("Student")
@@ -181,7 +183,7 @@ namespace Michaelhouse.Services
 
         public void AssignGrade8And9Subjects(int studentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var existing = db.StudentSubjects
                     .Where(ss => ss.StudentId == studentId).ToList();
@@ -243,7 +245,7 @@ namespace Michaelhouse.Services
                     return (false, $"'{sub}' is not a valid subject for the {GetStreamName(stream)} stream.");
 
             // ── Save ──────────────────────────────────────────────────────────
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Remove existing selections
                 var existing = db.StudentSubjects
@@ -308,7 +310,7 @@ namespace Michaelhouse.Services
 
         public void CompleteRegistration(int registrationId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var reg = db.Registrations.Find(registrationId);
                 if (reg == null) return;
@@ -383,7 +385,7 @@ namespace Michaelhouse.Services
         // Get all subjects assigned to a teacher (via TeacherSubjectGrade)
         public List<Subject> GetSubjectsForTeacher(int teacherId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.TeacherSubjectGrades
                     .Where(tsg => tsg.TeacherId == teacherId)

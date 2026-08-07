@@ -1,28 +1,28 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class CartController : Controller
+    public class CartController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
-        private ICartService _cartService;
+        private readonly DBContextClass db = DbContextFactory.Create();
+        private ICartService CartService => new Michaelhouse.Services.SessionCartService(HttpContext.Session);
         
 
         public CartController()
         {
-            _cartService = new SessionCartService(new HttpContextWrapper(System.Web.HttpContext.Current));
+            // CartService is lazily initialized per-action via HttpContext.Session
         }
 
         // ─── View Cart ────────────────────────────────────────────────────────────
 
         public ActionResult Index()
         {
-            var cart = _cartService.GetCart();
+            var cart = CartService.GetCart();
             ViewBag.CartItemCount = cart.TotalItems;
             return View(cart);
         }
@@ -54,7 +54,7 @@ namespace Michaelhouse.Controllers
 
             try
             {
-                _cartService.AddItem(product, quantity);
+                CartService.AddItem(product, quantity);
                 TempData["Success"] = $"'{product.Name}' added to cart.";
             }
             catch (InvalidOperationException ex)
@@ -73,7 +73,7 @@ namespace Michaelhouse.Controllers
         {
             try
             {
-                _cartService.UpdateItemQuantity(productId, quantity);
+                CartService.UpdateItemQuantity(productId, quantity);
                 TempData["Success"] = "Cart updated.";
             }
             catch (InvalidOperationException ex)
@@ -90,7 +90,7 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Remove(int productId)
         {
-            _cartService.RemoveItem(productId);
+            CartService.RemoveItem(productId);
             TempData["Success"] = "Item removed from cart.";
             return RedirectToAction("Index");
         }
@@ -101,7 +101,7 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Clear()
         {
-            _cartService.ClearCart();
+            CartService.ClearCart();
             TempData["Success"] = "Cart cleared.";
             return RedirectToAction("Index");
         }

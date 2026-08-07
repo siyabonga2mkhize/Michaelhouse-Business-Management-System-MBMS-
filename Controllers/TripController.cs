@@ -1,20 +1,23 @@
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System.Net;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using static Michaelhouse.Filters.TransportManagerOrAdminOnlyAttribute;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
-    public class TripController : Controller
+    public class TripController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         private int GetCurrentTeacherId()
         {
@@ -143,7 +146,7 @@ namespace Michaelhouse.Controllers
         {
             var oldRequest = db.TripRequests.Find(requestId);
             if (oldRequest == null || oldRequest.Status != "Rejected")
-                return HttpNotFound();
+                return NotFound();
 
             return RedirectToAction("BookTrip", new { rebookId = requestId });
         }
@@ -323,7 +326,7 @@ namespace Michaelhouse.Controllers
             var schedule = db.TripSchedules.Find(scheduleId);
             if (schedule == null || schedule.TeacherId != GetCurrentTeacherId())
             {
-                return HttpNotFound();
+                return NotFound();
             }
             schedule.Status = "Cancelled";
             db.SaveChanges();
@@ -339,14 +342,14 @@ namespace Michaelhouse.Controllers
                 .Include("TripRequest")
                 .Include("TripStudents.Student.Parent")
                 .FirstOrDefault(s => s.Id == scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             int currentTeacherId = GetCurrentTeacherId();
             int? currentDriverId = (int?)Session["DriverId"];
 
             // Security: only assigned teacher or driver
             if (schedule.TeacherId != currentTeacherId && (currentDriverId == null || schedule.DriverId != currentDriverId))
-                return new HttpUnauthorizedResult();
+                return StatusCode(403);
 
             // Generate tokens and QR codes for each student
             var students = new List<ManifestStudentViewModel>();
@@ -393,8 +396,8 @@ namespace Michaelhouse.Controllers
                 db.SaveChanges();
 
                 // Generate QR code data URLs
-                string beforeUrl = Url.Action("MarkAttendance", "Trip", new { token = beforeToken.Token }, Request.Url.Scheme);
-                string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, Request.Url.Scheme);
+                string beforeUrl = Url.Action("MarkAttendance", "Trip", new { token = beforeToken.Token }, new Uri(Request.GetDisplayUrl()).Scheme);
+                string afterUrl = Url.Action("MarkAttendance", "Trip", new { token = afterToken.Token }, new Uri(Request.GetDisplayUrl()).Scheme);
 
                 students.Add(new ManifestStudentViewModel
             {
@@ -490,7 +493,7 @@ namespace Michaelhouse.Controllers
 
         private void NotifyParentForStudent(int studentId, string message)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var student = db.Students.Include(s => s.Parent).FirstOrDefault(s => s.StudentId == studentId);
                 if (student?.Parent?.UserId != null)
@@ -550,11 +553,11 @@ namespace Michaelhouse.Controllers
                 .Include(s => s.TripStudents.Select(ts => ts.Student))
                 .FirstOrDefault(s => s.Id == scheduleId);
 
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             // Optional: ensure teacher is the one who created the schedule
             if (schedule.TeacherId != GetCurrentTeacherId() && !User.IsInRole("Admin"))
-                return new HttpUnauthorizedResult();
+                return StatusCode(403);
 
             var tokens = new List<StudentAttendanceToken>();
 
@@ -618,10 +621,10 @@ namespace Michaelhouse.Controllers
                 BeforeToken = tokens.FirstOrDefault(t => t.StudentId == ts.StudentId && t.Type == "Before")?.Token,
                 AfterToken = tokens.FirstOrDefault(t => t.StudentId == ts.StudentId && t.Type == "After")?.Token,
                 BeforeQR = tokens.FirstOrDefault(t => t.StudentId == ts.StudentId && t.Type == "Before")?.Token != null
-                    ? GenerateQRCodeDataUrl(Url.Action("MarkAttendance", "Trip", new { token = tokens.First(t => t.StudentId == ts.StudentId && t.Type == "Before").Token }, Request.Url.Scheme))
+                    ? GenerateQRCodeDataUrl(Url.Action("MarkAttendance", "Trip", new { token = tokens.First(t => t.StudentId == ts.StudentId && t.Type == "Before").Token }, new Uri(Request.GetDisplayUrl()).Scheme))
                     : null,
                 AfterQR = tokens.FirstOrDefault(t => t.StudentId == ts.StudentId && t.Type == "After")?.Token != null
-                    ? GenerateQRCodeDataUrl(Url.Action("MarkAttendance", "Trip", new { token = tokens.First(t => t.StudentId == ts.StudentId && t.Type == "After").Token }, Request.Url.Scheme))
+                    ? GenerateQRCodeDataUrl(Url.Action("MarkAttendance", "Trip", new { token = tokens.First(t => t.StudentId == ts.StudentId && t.Type == "After").Token }, new Uri(Request.GetDisplayUrl()).Scheme))
                     : null
             }).ToList();
 
@@ -702,7 +705,7 @@ namespace Michaelhouse.Controllers
         public ActionResult StudentCheckIn(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             var students = db.TripStudents
                 .Where(ts => ts.TripScheduleId == scheduleId)
@@ -811,9 +814,9 @@ namespace Michaelhouse.Controllers
         public ActionResult DepartureQRCode(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
-            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "before" }, Request.Url.Scheme);
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "before" }, new Uri(Request.GetDisplayUrl()).Scheme);
             string qrImage = GenerateQRCodeDataUrl(qrUrl);
 
             ViewBag.Schedule = schedule;
@@ -828,9 +831,9 @@ namespace Michaelhouse.Controllers
         public ActionResult ReturnQRCode(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
-            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "after" }, Request.Url.Scheme);
+            string qrUrl = Url.Action("StudentAutoCheckIn", "Trip", new { scheduleId, type = "after" }, new Uri(Request.GetDisplayUrl()).Scheme);
             string qrImage = GenerateQRCodeDataUrl(qrUrl);
 
             ViewBag.Schedule = schedule;

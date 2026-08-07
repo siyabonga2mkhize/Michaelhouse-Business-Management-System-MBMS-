@@ -1,22 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class OrderController : Controller
+    public class OrderController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
-        private ICartService _cartService;
+        private readonly DBContextClass db = DbContextFactory.Create();
+        private ICartService CartService => new Michaelhouse.Services.SessionCartService(HttpContext.Session);
         private readonly EmailService _emailService; //Added for future use in sending order confirmation emails (Second Increment)
 
         public OrderController()
         {
-            _cartService = new SessionCartService(new HttpContextWrapper(System.Web.HttpContext.Current));
+            // CartService is lazily initialized per-action via HttpContext.Session
             _emailService = new EmailService(); // Initialize email service (Second Increment)
         }
 
@@ -24,7 +25,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Checkout()
         {
-            var cart = _cartService.GetCart();
+            var cart = CartService.GetCart();
             if (cart.IsEmpty)
             {
                 TempData["Error"] = "Your cart is empty. Please add items before checking out.";
@@ -88,7 +89,7 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult PlaceOrder(CheckoutViewModel model)
         {
-            var cart = _cartService.GetCart();
+            var cart = CartService.GetCart();
             if (cart.IsEmpty)
             {
                 TempData["Error"] = "Your cart is empty.";
@@ -165,7 +166,7 @@ namespace Michaelhouse.Controllers
                     transaction.Commit();
 
                     // Clear the cart after successful order
-                    _cartService.ClearCart();
+                    CartService.ClearCart();
 
                     // Send order confirmation email (non‑blocking, log errors) (Increment 2)
                     try

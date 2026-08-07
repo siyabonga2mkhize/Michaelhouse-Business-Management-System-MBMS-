@@ -1,18 +1,20 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class StudentsController : Controller
+    public class StudentsController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
         private int GetCurrentStudentId()
         {
             if (Session["StudentId"] == null)
@@ -32,12 +34,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Student student = db.Students.Find(id);
             if (student == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(student);
         }
@@ -54,7 +56,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "StudentId,Name,DOB,ParentId")] Student student)
+        public ActionResult Create([Bind("StudentId,Name,DOB,ParentId")] Student student)
         {
             if (ModelState.IsValid)
             {
@@ -72,12 +74,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Student student = db.Students.Find(id);
             if (student == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.ParentId = new SelectList(db.Parents, "ParentId", "Name", student.ParentId);
             return View(student);
@@ -88,7 +90,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "StudentId,Name,DOB,ParentId")] Student student)
+        public ActionResult Edit([Bind("StudentId,Name,DOB,ParentId")] Student student)
         {
             if (ModelState.IsValid)
             {
@@ -105,12 +107,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Student student = db.Students.Find(id);
             if (student == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(student);
         }
@@ -137,7 +139,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Dashboard()
         {
             int userId = (int)Session["UserId"];
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // CRITICAL: .Include("Parent") ensures the Guardian data is loaded
                 var student = db.Students
@@ -172,7 +174,7 @@ namespace Michaelhouse.Controllers
             int studentId = (int)(Session["StudentId"] ?? 0);
             if (studentId == 0) return RedirectToAction("Login", "Account");
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var query = db.Attendances
                     .Where(a => a.StudentId == studentId)
@@ -235,7 +237,7 @@ namespace Michaelhouse.Controllers
             int studentId = (int)(Session["StudentId"] ?? 0);
             if (studentId == 0) return Content("<p class='text-sm text-red-500'>Not authenticated.</p>");
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var records = db.Attendances
                     .Include(a => a.Subject)
@@ -268,8 +270,8 @@ namespace Michaelhouse.Controllers
             try
             {
                 // Read raw JSON body
-                Request.InputStream.Position = 0;
-                string json = new System.IO.StreamReader(Request.InputStream).ReadToEnd();
+                
+                string json = new System.IO.StreamReader(Request.Body).ReadToEnd();
                 if (string.IsNullOrWhiteSpace(json))
                     return Json(new { approved = false, reason = "Empty request." });
 

@@ -1,18 +1,19 @@
+using Michaelhouse.Controllers;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Models;
 
 namespace Michaelhouse
 {
-    public class DriverAvailabilitiesController : Controller
+    public class DriverAvailabilitiesController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: DriverAvailabilities
         public ActionResult Index()
@@ -25,12 +26,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             DriverAvailability driverAvailability = db.DriverAvailabilities.Find(id);
             if (driverAvailability == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(driverAvailability);
         }
@@ -63,7 +64,7 @@ namespace Michaelhouse
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,DriverId,StartDate,EndDate,Reason,DateCreated")] DriverAvailability driverAvailability)
+        public ActionResult Create([Bind("Id,DriverId,StartDate,EndDate,Reason,DateCreated")] DriverAvailability driverAvailability)
         {
             // Ensure DriverId is taken from the logged-in driver (do not trust client input)
             int resolvedDriverId = 0;
@@ -130,12 +131,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             DriverAvailability driverAvailability = db.DriverAvailabilities.Find(id);
             if (driverAvailability == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(driverAvailability);
         }
@@ -145,7 +146,7 @@ namespace Michaelhouse
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,DriverId,StartDate,EndDate,Reason,DateCreated")] DriverAvailability driverAvailability)
+        public ActionResult Edit([Bind("Id,DriverId,StartDate,EndDate,Reason,DateCreated")] DriverAvailability driverAvailability)
         {
             if (ModelState.IsValid)
             {
@@ -161,12 +162,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             DriverAvailability driverAvailability = db.DriverAvailabilities.Find(id);
             if (driverAvailability == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(driverAvailability);
         }

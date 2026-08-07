@@ -1,14 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class TimetableController : Controller
+    public class TimetableController : BaseController
     {
         private readonly TimetableGenerator _generator = new TimetableGenerator();
 
@@ -19,7 +21,7 @@ namespace Michaelhouse.Controllers
         {
             ViewBag.Year = DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 ViewBag.TeacherCount = db.Teachers.Count();
                 ViewBag.AssignmentCount = db.TeacherSubjectGrades.Count();
@@ -59,7 +61,7 @@ namespace Michaelhouse.Controllers
             int academicYear = year ?? DateTime.Now.Year;
             var slots = _generator.GetTimetableForGrade(grade, academicYear);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 ViewBag.Periods = db.Periods.OrderBy(p => p.PeriodNumber).ToList();
                 ViewBag.Grade = grade;
@@ -78,7 +80,7 @@ namespace Michaelhouse.Controllers
             int academicYear = year ?? DateTime.Now.Year;
             var slots = _generator.GetTimetableForTeacher(teacherId, academicYear);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 ViewBag.Teacher = db.Teachers.Find(teacherId);
                 ViewBag.Periods = db.Periods.OrderBy(p => p.PeriodNumber).ToList();
@@ -96,10 +98,9 @@ namespace Michaelhouse.Controllers
             int userId = (int)Session["UserId"];
             int academicYear = year ?? DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Disable proxy creation for this specific query to get clean data
-                db.Configuration.ProxyCreationEnabled = false;
 
                 var teacher = db.Teachers
                     .AsNoTracking() // This prevents the DynamicProxies string
@@ -134,10 +135,9 @@ namespace Michaelhouse.Controllers
             string userRole = Session["UserRole"]?.ToString();
             int academicYear = year ?? DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // IMPORTANT: Disable Proxy to fix naming issues seen in your screenshots
-                db.Configuration.ProxyCreationEnabled = false;
 
                 Student student = null;
 
@@ -156,7 +156,7 @@ namespace Michaelhouse.Controllers
                 // 3. THE 404 CULPRIT CHECK
                 if (student == null)
                 {
-                    return HttpNotFound($"Institutional Archive Error: Record not found. " +
+                    return NotFound($"Institutional Archive Error: Record not found. " +
                                         $"(Logged in as: {userRole}, UserId: {userId}, Requested ID: {studentId})");
                 }
 

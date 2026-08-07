@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Michaelhouse.Services
             if (assignments.Count > 2)
                 return (false, "A teacher can only be assigned a maximum of 2 subjects.", null);
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // ── Check email not already used ──────────────────────────────
                 if (db.Users.Any(u => u.Email == email))
@@ -123,7 +125,7 @@ namespace Michaelhouse.Services
 
         public List<Teacher> GetAllTeachers()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Teachers
                     .Include("SubjectAssignments")
@@ -138,7 +140,7 @@ namespace Michaelhouse.Services
 
         public List<Subject> GetAvailableSubjectsForGrade(int grade)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Get all subjects applicable to this grade
                 var gradeStr = grade.ToString();
@@ -161,7 +163,7 @@ namespace Michaelhouse.Services
 
         public bool TeacherHasCapacity(int teacherId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.TeacherSubjectGrades
                     .Count(tsg => tsg.TeacherId == teacherId) < 2;

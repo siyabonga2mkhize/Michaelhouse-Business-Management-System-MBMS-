@@ -1,8 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
@@ -12,7 +13,7 @@ using Michaelhouse.Services;
 namespace Michaelhouse.Controllers
 {
     [ParentOnly]
-    public class RegistrationController : Controller
+    public class RegistrationController : BaseController
     {
         private readonly RegistrationService _regService = new RegistrationService();
         private readonly StudentAccountService _studentAccounts = new StudentAccountService();
@@ -54,7 +55,7 @@ namespace Michaelhouse.Controllers
         public ActionResult SelectSubjects(int appId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-            if (reg == null) return HttpNotFound();
+            if (reg == null) return NotFound();
 
             if (!_invoices.IsRegistrationFeePaid(reg.RegistrationId))
             {
@@ -66,7 +67,7 @@ namespace Michaelhouse.Controllers
             if (reg.GradeEnrolling <= 9)
                 return RedirectToAction("Confirm", new { appId });
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var existing = db.StudentSubjects
                     .Include("Subject")
@@ -113,7 +114,7 @@ namespace Michaelhouse.Controllers
             List<string> streamSubjects)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-            if (reg == null) return HttpNotFound();
+            if (reg == null) return NotFound();
 
             // Cast int to enum
             var academicStream = (AcademicStream)stream;
@@ -142,9 +143,9 @@ namespace Michaelhouse.Controllers
         public ActionResult Confirm(int appId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-            if (reg == null) return HttpNotFound();
+            if (reg == null) return NotFound();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var student = db.Students.Include("Parent")
                     .FirstOrDefault(s => s.StudentId == reg.StudentId);
@@ -184,7 +185,7 @@ namespace Michaelhouse.Controllers
         public ActionResult CompleteRegistration(int appId, int registrationId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-            if (reg == null) return HttpNotFound();
+            if (reg == null) return NotFound();
 
             if (!_invoices.IsRegistrationFeePaid(reg.RegistrationId))
             {
@@ -208,7 +209,7 @@ namespace Michaelhouse.Controllers
 
                 if (tempPassword != null)
                 {
-                    using (var db = new DBContextClass())
+                    using (var db = DbContextFactory.Create())
                     {
                         var parent = db.Parents.Find(GetCurrentParentId());
                         if (parent != null)
@@ -230,7 +231,7 @@ namespace Michaelhouse.Controllers
                 var qr = new StudentQRCodeService().GetActiveQRCode(reg.StudentId);
 
                 // Send registration success email including QR, allocation details, and house master
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     var student = db.Students.Find(reg.StudentId);
                     var residence = db.Residences.Find(assignment.ResidenceId);
@@ -276,9 +277,9 @@ namespace Michaelhouse.Controllers
         public ActionResult Complete(int appId)
         {
             var reg = _regService.GetRegistrationForApp(appId);
-            if (reg == null) return HttpNotFound();
+            if (reg == null) return NotFound();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 ViewBag.Reg = reg;
                 ViewBag.Student = db.Students.Find(reg.StudentId);

@@ -1,17 +1,20 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [Authorize(Roles = "Admin,HouseMaster")]
-    public class ResidenceController : Controller
+    public class ResidenceController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
         private readonly AIResidencePredictionService _predictor = new AIResidencePredictionService();
 
         // Dashboard: high-level stats and predictions
@@ -44,9 +47,9 @@ namespace Michaelhouse.Controllers
         // GET: Details
         public ActionResult Details(int? id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (id == null) return BadRequest();
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.HouseMaster).FirstOrDefault(r => r.ResidenceId == id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             return View(res);
         }
 
@@ -60,7 +63,7 @@ namespace Michaelhouse.Controllers
         // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
+        public ActionResult Create([Bind("Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
         {
             if (!ModelState.IsValid) { ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName"); return View(model); }
             model.OccupiedBeds = 0;
@@ -72,9 +75,9 @@ namespace Michaelhouse.Controllers
         // GET: Edit
         public ActionResult Edit(int? id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (id == null) return BadRequest();
             var res = db.Residences.Find(id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName", res.HouseMasterId);
             return View(res);
         }
@@ -82,11 +85,11 @@ namespace Michaelhouse.Controllers
         // POST: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ResidenceId,Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
+        public ActionResult Edit([Bind("ResidenceId,Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
         {
             if (!ModelState.IsValid) { ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName", model.HouseMasterId); return View(model); }
             var res = db.Residences.Find(model.ResidenceId);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             res.Name = model.Name; res.Capacity = model.Capacity; res.GradeCategory = model.GradeCategory; res.NearMedicalFacility = model.NearMedicalFacility; res.NearHouseMasterOffice = model.NearHouseMasterOffice; res.HouseMasterId = model.HouseMasterId;
             db.SaveChanges();
             return RedirectToAction("Details", new { id = res.ResidenceId });
@@ -95,9 +98,9 @@ namespace Michaelhouse.Controllers
         // GET: Archive
         public ActionResult Archive(int? id)
         {
-            if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            if (id == null) return BadRequest();
             var res = db.Residences.Include(r => r.Rooms).FirstOrDefault(r => r.ResidenceId == id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             return View(res);
         }
 
@@ -107,7 +110,7 @@ namespace Michaelhouse.Controllers
         public ActionResult ArchiveConfirmed(int id, string reason)
         {
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).FirstOrDefault(r => r.ResidenceId == id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             if (res.Rooms.Any(ro => ro.OccupiedBeds > 0))
             {
                 TempData["Error"] = "Cannot archive a residence that has rooms with occupied beds.";
@@ -123,7 +126,7 @@ namespace Michaelhouse.Controllers
         public ActionResult Occupancy(int id)
         {
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.Rooms.Select(ro => ro.Beds.Select(b => b.OccupiedByStudent))).FirstOrDefault(r => r.ResidenceId == id);
-            if (res == null) return HttpNotFound();
+            if (res == null) return NotFound();
             return View(res);
         }
 

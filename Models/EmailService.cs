@@ -1,11 +1,10 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Web;
 using static System.Net.WebRequestMethods;
 
 
@@ -24,13 +23,13 @@ namespace Michaelhouse.Services
 
         public EmailService()
         {
-            _smtpHost = ConfigurationManager.AppSettings["Email:SmtpHost"] ?? "";
-            _smtpPort = int.TryParse(ConfigurationManager.AppSettings["Email:SmtpPort"], out int p) ? p : 587;
-            _smtpUser = ConfigurationManager.AppSettings["Email:Username"] ?? "";
-            _smtpPass = ConfigurationManager.AppSettings["Email:Password"] ?? "";
-            _fromEmail = ConfigurationManager.AppSettings["Email:FromAddress"] ?? "";
-            _fromName = ConfigurationManager.AppSettings["Email:FromName"] ?? "Michaelhouse Admissions";
-            _baseUrl = ConfigurationManager.AppSettings["App:BaseUrl"] ?? "#";
+            _smtpHost = AppConfig.AppSettings("Email:SmtpHost") ?? "";
+            _smtpPort = int.TryParse(AppConfig.AppSettings("Email:SmtpPort"), out int p) ? p : 587;
+            _smtpUser = AppConfig.AppSettings("Email:Username") ?? "";
+            _smtpPass = AppConfig.AppSettings("Email:Password") ?? "";
+            _fromEmail = AppConfig.AppSettings("Email:FromAddress") ?? "";
+            _fromName = AppConfig.AppSettings("Email:FromName") ?? "Michaelhouse Admissions";
+            _baseUrl = AppConfig.AppSettings("App:BaseUrl") ?? "#";
             _enabled = !string.IsNullOrEmpty(_smtpHost) && !string.IsNullOrEmpty(_smtpUser);
         }
 

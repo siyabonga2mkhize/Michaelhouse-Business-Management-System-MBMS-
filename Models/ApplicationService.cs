@@ -1,13 +1,12 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using Michaelhouse.Models.Enums;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Michaelhouse.Services
@@ -23,10 +22,10 @@ namespace Michaelhouse.Services
         // ─── Upload root (resolved for both web and background threads) ───────────
         private string GetUploadRoot()
         {
-            var rel = ConfigurationManager.AppSettings["DocumentStorage:UploadRoot"]
+            var rel = AppConfig.AppSettings("DocumentStorage:UploadRoot")
                       ?? "~/App_Data/Uploads";
             return rel.StartsWith("~")
-                ? System.Web.Hosting.HostingEnvironment.MapPath(rel)
+                ? PathHelper.MapPath(rel)
                 : rel;
         }
 
@@ -42,10 +41,10 @@ namespace Michaelhouse.Services
             int year,
             int gradeApplying,
             string additionalNotes,
-            HttpFileCollectionBase files,
+            IFormFileCollection files,
             string[] docTypes)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var application = new Application
                 {
@@ -70,13 +69,13 @@ namespace Michaelhouse.Services
                 for (int i = 0; i < files.Count; i++)
                 {
                     var file = files[i];
-                    if (file == null || file.ContentLength == 0) continue;
+                    if (file == null || file.Length == 0) continue;
 
                     var docType = (docTypes != null && i < docTypes.Length) ? docTypes[i] : "Other";
                     var ext = Path.GetExtension(file.FileName);
                     var savedName = $"{Guid.NewGuid()}{ext}";
 
-                    file.SaveAs(Path.Combine(uploadRoot, savedName));
+                    using (var fs = System.IO.File.Create(Path.Combine(uploadRoot, savedName))) { file.CopyTo(fs); }
 
                     db.Documents.Add(new Document
                     {
@@ -104,7 +103,7 @@ namespace Michaelhouse.Services
         public async Task TriggerAiReviewAsync(int appId)
         {
             // Each background thread needs its own DbContext instance
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var app = db.Applications
                     .Include("Student")
@@ -147,7 +146,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public async Task RetriggerAiReviewAsync(int appId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var app = db.Applications.Find(appId);
                 if (app == null) return;
@@ -168,7 +167,7 @@ namespace Michaelhouse.Services
         /// </summary>
         //        public void AdminConfirm(int appId, string adminId, string decision, string notes, bool agreedWithAi)
         //        {
-        //            using (var db = new DBContextClass())
+        //            using (var db = DbContextFactory.Create())
         //            {
         //                var app = db.Applications.Find(appId);
         //                if (app == null) return;
@@ -239,7 +238,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public void AdminConfirm(int appId, string adminId, string decision, string notes, bool agreedWithAi)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Load related Parent and Student
                 var app = db.Applications

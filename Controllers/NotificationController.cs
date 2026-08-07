@@ -1,12 +1,13 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class NotificationController : Controller
+    public class NotificationController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // This partial view is called by the layout to render the notification dropdown
         public ActionResult GetNotifications()
@@ -61,9 +62,8 @@ namespace Michaelhouse.Controllers
         {
             int userId = (int)(Session["UserId"] ?? 0);
             int count = db.Notifications.Count(n => n.UserId == userId && !n.IsRead);
-            return Json(count, JsonRequestBehavior.AllowGet);
+            return Json(count);
         }
-        [ChildActionOnly]
         public ActionResult NotificationBadge()
         {
             int userId = (int)(Session["UserId"] ?? 0);

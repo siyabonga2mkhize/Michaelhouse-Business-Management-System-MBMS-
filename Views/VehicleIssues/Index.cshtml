@@ -68,7 +68,7 @@
                                 @item.Status
                             </span>
                         </td>
-                        @if (Session["UserRole"] != null && Session["UserRole"].ToString() == "TransportManager")
+                        @if (Context.Session.GetString("UserRole") != null && Context.Session.GetString("UserRole").ToString() == "TransportManager")
                         {
                             <td class="text-end">
 

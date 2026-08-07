@@ -19,7 +19,7 @@
                 <option value="">All Subjects</option>
                 @foreach (var s in ViewBag.Subjects as List<Michaelhouse.Models.Subject>)
                 {
-                    <option value="@s.SubjectId" @(Request.QueryString["subjectId"] == s.SubjectId.ToString() ? "selected" : "")>
+                    <option value="@s.SubjectId"  selected="@(Context.Request.Query["subjectId"] == s.SubjectId.ToString())">
                         @s.Name (Gr @s.GradeLevel)
                     </option>
                 }
@@ -31,7 +31,7 @@
                 <option value="">All Students</option>
                 @foreach (var st in ViewBag.Students as List<Michaelhouse.Models.Student>)
                 {
-                    <option value="@st.StudentId" @(Request.QueryString["studentId"] == st.StudentId.ToString() ? "selected" : "")>
+                    <option value="@st.StudentId"  selected="@(Context.Request.Query["studentId"] == st.StudentId.ToString())">
                         @st.FirstName @st.LastName (Gr @st.GradeLevel)
                     </option>
                 }
@@ -39,11 +39,11 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">From Date</label>
-            <input type="date" name="fromDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@Request.QueryString["fromDate"]" />
+            <input type="date" name="fromDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@(Context.Request.Query["fromDate"])" />
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">To Date</label>
-            <input type="date" name="toDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@Request.QueryString["toDate"]" />
+            <input type="date" name="toDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="@(Context.Request.Query["toDate"])" />
         </div>
         <div class="flex gap-2">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full">Filter</button>

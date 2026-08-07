@@ -62,7 +62,7 @@
                 </div>
             }
 
-            @using (Html.BeginForm("Pay", "Payment", new { id = Model.InvoiceId }, FormMethod.Post, new { id = "payment-form", @class = "space-y-8" }))
+            @using (Html.BeginForm("Pay", "Payment", new { id = Model.InvoiceId }, FormMethod.Post, null, new { id = "payment-form", @class = "space-y-8" }))
             {
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="stripeToken" id="stripeToken" />

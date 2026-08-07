@@ -1,19 +1,21 @@
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Helpers;
 using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class EmergencyController : Controller
+    public class EmergencyController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
         private EmergencyService _emergencyService;
 
         public EmergencyController()
@@ -146,7 +148,7 @@ namespace Michaelhouse.Controllers
             var alert = await db.EmergencyAlerts
                 .FirstOrDefaultAsync(a => a.AlertId == id);
             if (alert == null)
-                return HttpNotFound();
+                return NotFound();
 
             // Get boarding students – using IsBoarding and IsActive
             var boardingStudents = await db.Students
@@ -230,11 +232,11 @@ namespace Michaelhouse.Controllers
             {
                 var currentUser = db.Users.FirstOrDefault(u => u.Email == User.Identity.Name);
                 if (currentUser == null)
-                    return Json(new { success = false, message = "User not found" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "User not found" });
 
                 var student = db.Students.FirstOrDefault(s => s.UserId == currentUser.UserId);
                 if (student == null)
-                    return Json(new { success = false, message = "Student record not found" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Student record not found" });
 
                 var alert = db.EmergencyAlerts
                     .Where(a => a.Status == AlertStatus.Active)
@@ -242,7 +244,7 @@ namespace Michaelhouse.Controllers
                     .FirstOrDefault();
 
                 if (alert == null)
-                    return Json(new { success = false, message = "No active emergency alert" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "No active emergency alert" });
 
                 // Get or create confirmation
                 var confirmation = db.StudentSafetyConfirmations
@@ -288,11 +290,11 @@ namespace Michaelhouse.Controllers
                         ? "✓ Safety confirmed – you are accounted for"
                         : $"⚠ You are {Math.Round(distance, 0)}m outside. Move closer.",
                     confirmationId = confirmation.ConfirmationId
-                }, JsonRequestBehavior.AllowGet);
+                });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
 
@@ -362,7 +364,7 @@ namespace Michaelhouse.Controllers
             {
                 var alert = await db.EmergencyAlerts.FindAsync(id);
                 if (alert == null)
-                    return HttpNotFound();
+                    return NotFound();
 
                 alert.Status = AlertStatus.Resolved;
                 alert.ResolvedDate = DateTime.Now;
@@ -401,7 +403,7 @@ namespace Michaelhouse.Controllers
                 pending = pendingCount,
                 total = safeCount + outsideCount + pendingCount,
                 refreshTime = DateTime.Now.ToString("HH:mm:ss")
-            }, JsonRequestBehavior.AllowGet);
+            });
         }
 
         protected override void Dispose(bool disposing)

@@ -29,7 +29,7 @@
 
 <hr />
 
-@if (Session["UserRole"] != null && Session["UserRole"].ToString() == "TransportManager")
+@if (Context.Session.GetString("UserRole") != null && Context.Session.GetString("UserRole").ToString() == "TransportManager")
 {
     using (Html.BeginForm("UpdateStatus", "VehicleIssues", FormMethod.Post))
     {

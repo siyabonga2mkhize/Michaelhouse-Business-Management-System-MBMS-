@@ -1,15 +1,15 @@
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 //using QRCoder;
 using System;
 using System.Linq;
 using System.Text;
-using System.Web.Security;
 
 namespace Michaelhouse.Services
 {
     public class StudentQRCodeService
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
 
         private const string Prefix = "MH-STU";
         private const int MaxGenerationAttempts = 10;
@@ -94,7 +94,7 @@ namespace Michaelhouse.Services
             for (int attempt = 0; attempt < MaxGenerationAttempts; attempt++)
             {
                 var tokenSource = $"{student.StudentId}|{student.StudentNumber}|{Guid.NewGuid():N}|{DateTime.UtcNow.Ticks}";
-                var protectedBytes = MachineKey.Protect(Encoding.UTF8.GetBytes(tokenSource), "Michaelhouse.StudentQR");
+                var protectedBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(tokenSource));
                 var token = Convert.ToBase64String(protectedBytes)
                     .TrimEnd('=')
                     .Replace('+', '-')

@@ -17,7 +17,7 @@
                 <option value="">All Teachers</option>
                 @foreach (var t in ViewBag.Teachers as List<Michaelhouse.Models.Teacher>)
                 {
-                    <option value="@t.TeacherId" @(Request.QueryString["teacherId"] == t.TeacherId.ToString() ? "selected" : "")>
+                    <option value="@t.TeacherId"  selected="@(Context.Request.Query["teacherId"] == t.TeacherId.ToString())">
                         @t.Name
                     </option>
                 }
@@ -25,11 +25,11 @@
         </div>
         <div class="col-md-2">
             <label class="form-label small text-muted">From Date</label>
-            <input type="date" name="fromDate" class="form-control form-control-sm" value="@Request.QueryString["fromDate"]" />
+            <input type="date" name="fromDate" class="form-control form-control-sm" value="@(Context.Request.Query["fromDate"])" />
         </div>
         <div class="col-md-2">
             <label class="form-label small text-muted">To Date</label>
-            <input type="date" name="toDate" class="form-control form-control-sm" value="@Request.QueryString["toDate"]" />
+            <input type="date" name="toDate" class="form-control form-control-sm" value="@(Context.Request.Query["toDate"])" />
         </div>
         <div class="col-md-2">
             <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>

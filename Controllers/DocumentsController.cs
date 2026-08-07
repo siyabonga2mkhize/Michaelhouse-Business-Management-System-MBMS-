@@ -1,18 +1,19 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Models;
 
 namespace Michaelhouse.Controllers
 {
-    public class DocumentsController : Controller
+    public class DocumentsController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: Documents
         public ActionResult Index()
@@ -26,12 +27,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Document document = db.Documents.Find(id);
             if (document == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(document);
         }
@@ -49,7 +50,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "DId,StudentId,AppId,Type,FilePath,FileName,ContentType,UploadedAt")] Document document)
+        public ActionResult Create([Bind("DId,StudentId,AppId,Type,FilePath,FileName,ContentType,UploadedAt")] Document document)
         {
             if (ModelState.IsValid)
             {
@@ -68,12 +69,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Document document = db.Documents.Find(id);
             if (document == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.AppId = new SelectList(db.Applications, "AppId", "AiReviewSummary", document.AppId);
             ViewBag.StudentId = new SelectList(db.Students, "StudentId", "Name", document.StudentId);
@@ -85,7 +86,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "DId,StudentId,AppId,Type,FilePath,FileName,ContentType,UploadedAt")] Document document)
+        public ActionResult Edit([Bind("DId,StudentId,AppId,Type,FilePath,FileName,ContentType,UploadedAt")] Document document)
         {
             if (ModelState.IsValid)
             {
@@ -103,12 +104,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Document document = db.Documents.Find(id);
             if (document == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(document);
         }

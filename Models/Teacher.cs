@@ -36,6 +36,14 @@ namespace Michaelhouse.Models
         [DataType(DataType.Date)]
         public DateTime HireDate { get; set; }
 
+        [MaxLength(100)]
+        [Display(Name = "Department")]
+        public string? Department { get; set; }
+
+        [MaxLength(50)]
+        [Display(Name = "Employee Number")]
+        public string? EmployeeNumber { get; set; }
+
         // --- Relationships ---
 
         // Foreign Key to AppUser (Role = "Teacher")

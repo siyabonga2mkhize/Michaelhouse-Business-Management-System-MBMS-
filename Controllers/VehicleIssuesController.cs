@@ -1,18 +1,20 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Controllers;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Models;
 
 namespace Michaelhouse
 {
-    public class VehicleIssuesController : Controller
+    public class VehicleIssuesController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: VehicleIssues
         public ActionResult Index()
@@ -30,12 +32,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             VehicleIssue vehicleIssue = db.VehicleIssues.Find(id);
             if (vehicleIssue == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(vehicleIssue);
         }
@@ -62,7 +64,7 @@ namespace Michaelhouse
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
+        public ActionResult Create([Bind("Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
         {
             vehicleIssue.DriverId = (int)Session["DriverId"];
             
@@ -83,12 +85,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             VehicleIssue vehicleIssue = db.VehicleIssues.Find(id);
             if (vehicleIssue == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(vehicleIssue);
         }
@@ -98,7 +100,7 @@ namespace Michaelhouse
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
+        public ActionResult Edit([Bind("Id,DriverId,VehicleId,Description,DateReported,Status")] VehicleIssue vehicleIssue)
         {
             if (ModelState.IsValid)
             {
@@ -114,12 +116,12 @@ namespace Michaelhouse
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             VehicleIssue vehicleIssue = db.VehicleIssues.Find(id);
             if (vehicleIssue == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(vehicleIssue);
         }
@@ -142,7 +144,7 @@ namespace Michaelhouse
 
             if (issue == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
             issue.Status = status;

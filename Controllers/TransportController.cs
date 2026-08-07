@@ -1,19 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
     //[Authorize(Roles = "Admin,TransportManager")
-    public class TransportController : Controller
+    public class TransportController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         private int GetCurrentUserId()
         {
@@ -31,7 +32,7 @@ namespace Michaelhouse.Controllers
                 role == "Transport Manager";
 
             if (!isTransportManager && role != "Admin")
-                return new HttpUnauthorizedResult();
+                return StatusCode(403);
 
             // Stats
             ViewBag.PendingRequests = db.TripRequests.Count(r => r.Status == "Pending");
@@ -75,7 +76,7 @@ namespace Michaelhouse.Controllers
         public ActionResult ApproveRequest(int id, string rejectionReason = null)
         {
             var req = db.TripRequests.Find(id);
-            if (req == null) return HttpNotFound();
+            if (req == null) return NotFound();
 
             if (!string.IsNullOrEmpty(rejectionReason))
             {
@@ -114,7 +115,7 @@ namespace Michaelhouse.Controllers
                 .Include("VehicleAssignments.Driver")
                 .Include("VehicleAssignments.Vehicle")
                 .FirstOrDefault(s => s.Id == scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
             int totalAllocated = schedule.VehicleAssignments?.Sum(a => a.AllocatedSeats) ?? 0;
@@ -145,12 +146,12 @@ namespace Michaelhouse.Controllers
         public ActionResult AssignDriverVehicle(int scheduleId, int driverId, int vehicleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             // Count students already scheduled
             int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
             var vehicle = db.Vehicles.Find(vehicleId);
-            if (vehicle == null) return HttpNotFound();
+            if (vehicle == null) return NotFound();
 
             if (vehicle.Capacity < studentCount)
             {
@@ -191,10 +192,10 @@ namespace Michaelhouse.Controllers
         public ActionResult AddVehicleAssignment(int scheduleId, int driverId, int vehicleId, int allocatedSeats)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             var vehicle = db.Vehicles.Find(vehicleId);
-            if (vehicle == null) return HttpNotFound();
+            if (vehicle == null) return NotFound();
 
             if (allocatedSeats > vehicle.Capacity)
             {
@@ -233,7 +234,7 @@ namespace Michaelhouse.Controllers
         public ActionResult RemoveAssignment(int assignmentId)
         {
             var assignment = db.TripVehicleAssignments.Find(assignmentId);
-            if (assignment == null) return HttpNotFound();
+            if (assignment == null) return NotFound();
 
             int scheduleId = assignment.TripScheduleId;
             db.TripVehicleAssignments.Remove(assignment);
@@ -299,7 +300,7 @@ namespace Michaelhouse.Controllers
         public ActionResult ConfirmTripAssignment(int scheduleId)
         {
             var schedule = db.TripSchedules.Find(scheduleId);
-            if (schedule == null) return HttpNotFound();
+            if (schedule == null) return NotFound();
 
             int studentCount = db.TripStudents.Count(ts => ts.TripScheduleId == scheduleId);
             int totalAllocated = db.TripVehicleAssignments
@@ -344,7 +345,7 @@ namespace Michaelhouse.Controllers
         // POST: Create driver (create AppUser + Driver)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CreateDriver(Driver driver, HttpPostedFileBase imageFile, string password = "Driver@123")
+        public ActionResult CreateDriver(Driver driver, IFormFile imageFile, string password = "Driver@123")
         {
             if (ModelState.IsValid)
             {
@@ -373,11 +374,11 @@ namespace Michaelhouse.Controllers
                 driver.PasswordHash = user.PasswordHash;
 
                 // Handle image upload
-                if (imageFile != null && imageFile.ContentLength > 0)
+                if (imageFile != null && imageFile.Length > 0)
                 {
                     string fileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(imageFile.FileName);
-                    string path = System.IO.Path.Combine(Server.MapPath("~/Content/Images/Drivers/"), fileName);
-                    imageFile.SaveAs(path);
+                    string path = System.IO.Path.Combine(MapPath("~/Content/Images/Drivers/"), fileName);
+                    using (var fs = System.IO.File.Create(path)) { imageFile.CopyTo(fs); }
                     driver.ImageUrl = "/Content/Images/Drivers/" + fileName;
                 }
 
@@ -394,7 +395,7 @@ namespace Michaelhouse.Controllers
         public ActionResult EditDriver(int id)
         {
             var driver = db.Drivers.Find(id);
-            if (driver == null) return HttpNotFound();
+            if (driver == null) return NotFound();
             return View(driver);
         }
 
@@ -417,7 +418,7 @@ namespace Michaelhouse.Controllers
         public ActionResult DeleteDriver(int id)
         {
             var driver = db.Drivers.Find(id);
-            if (driver == null) return HttpNotFound();
+            if (driver == null) return NotFound();
             return View(driver);
         }
 
@@ -427,7 +428,7 @@ namespace Michaelhouse.Controllers
         public ActionResult DeleteDriverConfirmed(int id)
         {
             var driver = db.Drivers.Find(id);
-            if (driver == null) return HttpNotFound();
+            if (driver == null) return NotFound();
 
             // Optionally delete the linked AppUser as well
             if (driver.UserId.HasValue)

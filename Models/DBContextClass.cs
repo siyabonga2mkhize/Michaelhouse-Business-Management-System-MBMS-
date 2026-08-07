@@ -1,13 +1,11 @@
-﻿using Michaelhouse.Controllers;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Michaelhouse.Models
 {
     public class DBContextClass : DbContext
     {
-        public DBContextClass() : base("name=MichaelHouse")
+        public DBContextClass(DbContextOptions<DBContextClass> options) : base(options)
         {
-            Database.CommandTimeout = 60;
         }
 
         // ─── Core User Entities ──────────────────────────────────────────
@@ -30,6 +28,9 @@ namespace Michaelhouse.Models
         public DbSet<StudentMark> StudentMarks { get; set; }
         public DbSet<TermResult> TermResults { get; set; }
         public DbSet<YearResult> YearResults { get; set; }
+        public DbSet<ClassSubject> ClassSubjects { get; set; }
+        public DbSet<SchoolClass> SchoolClasses { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
 
         // ─── Attendance & Timetable ───────────────────────────────────────
         public DbSet<Attendance> Attendances { get; set; }
@@ -93,101 +94,96 @@ namespace Michaelhouse.Models
         public DbSet<EmergencyAlert> EmergencyAlerts { get; set; }
         public DbSet<StudentSafetyConfirmation> StudentSafetyConfirmations { get; set; }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ── Existing relationships (unchanged) ───────────────────────────
+            // ── Existing relationships ───────────────────────────
             modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Student).WithMany(s => s.Applications)
-                .HasForeignKey(a => a.StudentId).WillCascadeOnDelete(false);
+                .HasOne(a => a.Student).WithMany(s => s.Applications)
+                .HasForeignKey(a => a.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Parent).WithMany()
-                .HasForeignKey(a => a.ParentId).WillCascadeOnDelete(false);
+                .HasOne(a => a.Parent).WithMany()
+                .HasForeignKey(a => a.ParentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Application).WithMany(a => a.Documents)
-                .HasForeignKey(d => d.AppId).WillCascadeOnDelete(true);
+                .HasOne(d => d.Application).WithMany(a => a.Documents)
+                .HasForeignKey(d => d.AppId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Student).WithMany()
-                .HasForeignKey(d => d.StudentId).WillCascadeOnDelete(false);
+                .HasOne(d => d.Student).WithMany()
+                .HasForeignKey(d => d.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Parent>()
-                .HasOptional(p => p.User).WithMany()
-                .HasForeignKey(p => p.UserId);
+                .HasOne(p => p.User).WithMany()
+                .HasForeignKey(p => p.UserId).IsRequired(false);
 
             modelBuilder.Entity<Student>()
-                .HasOptional(s => s.User).WithMany()
-                .HasForeignKey(s => s.UserId);
+                .HasOne(s => s.User).WithMany()
+                .HasForeignKey(s => s.UserId).IsRequired(false);
 
             modelBuilder.Entity<Registration>()
-                .HasRequired(r => r.Application).WithMany()
-                .HasForeignKey(r => r.AppId).WillCascadeOnDelete(false);
+                .HasOne(r => r.Application).WithMany()
+                .HasForeignKey(r => r.AppId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Registration>()
-                .HasRequired(r => r.Student).WithMany()
-                .HasForeignKey(r => r.StudentId).WillCascadeOnDelete(false);
+                .HasOne(r => r.Student).WithMany()
+                .HasForeignKey(r => r.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Student).WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.StudentId).WillCascadeOnDelete(false);
+                .HasOne(ss => ss.Student).WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Subject).WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.SubjectId).WillCascadeOnDelete(false);
+                .HasOne(ss => ss.Subject).WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.SubjectId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StreamEnrolment>()
-                .HasRequired(se => se.Student).WithMany()
-                .HasForeignKey(se => se.StudentId).WillCascadeOnDelete(false);
+                .HasOne(se => se.Student).WithMany()
+                .HasForeignKey(se => se.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StreamEnrolment>()
-                .HasRequired(se => se.Registration).WithMany()
-                .HasForeignKey(se => se.RegistrationId).WillCascadeOnDelete(false);
+                .HasOne(se => se.Registration).WithMany()
+                .HasForeignKey(se => se.RegistrationId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Registration).WithMany()
-                .HasForeignKey(i => i.RegistrationId).WillCascadeOnDelete(false);
+                .HasOne(i => i.Registration).WithMany()
+                .HasForeignKey(i => i.RegistrationId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Student).WithMany()
-                .HasForeignKey(i => i.StudentId).WillCascadeOnDelete(false);
+                .HasOne(i => i.Student).WithMany()
+                .HasForeignKey(i => i.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Parent).WithMany()
-                .HasForeignKey(i => i.ParentId).WillCascadeOnDelete(false);
+                .HasOne(i => i.Parent).WithMany()
+                .HasForeignKey(i => i.ParentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Payment>()
-                .HasRequired(p => p.Invoice).WithMany(i => i.Payments)
-                .HasForeignKey(p => p.InvoiceId).WillCascadeOnDelete(false);
+                .HasOne(p => p.Invoice).WithMany(i => i.Payments)
+                .HasForeignKey(p => p.InvoiceId).OnDelete(DeleteBehavior.Restrict);
 
             // ── Teacher relationships ─────────────────────────────────────────
             modelBuilder.Entity<Teacher>()
-                .HasOptional(t => t.User).WithMany()
-                .HasForeignKey(t => t.UserId);
+                .HasOne(t => t.User).WithMany()
+                .HasForeignKey(t => t.UserId).IsRequired(false);
 
             modelBuilder.Entity<TeacherSubjectGrade>()
-                .HasRequired(tsg => tsg.Teacher)
-                .WithMany(t => t.SubjectAssignments)
-                .HasForeignKey(tsg => tsg.TeacherId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tsg => tsg.Teacher).WithMany(t => t.SubjectAssignments)
+                .HasForeignKey(tsg => tsg.TeacherId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TeacherSubjectGrade>()
-                .HasRequired(tsg => tsg.Subject).WithMany()
-                .HasForeignKey(tsg => tsg.SubjectId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tsg => tsg.Subject).WithMany()
+                .HasForeignKey(tsg => tsg.SubjectId).OnDelete(DeleteBehavior.Restrict);
 
             // ── Timetable relationships ───────────────────────────────────────
             modelBuilder.Entity<TimetableSlot>()
-                .HasRequired(ts => ts.Subject).WithMany()
-                .HasForeignKey(ts => ts.SubjectId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.Subject).WithMany()
+                .HasForeignKey(ts => ts.SubjectId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TimetableSlot>()
-                .HasRequired(ts => ts.Period).WithMany()
-                .HasForeignKey(ts => ts.PeriodId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.Period).WithMany()
+                .HasForeignKey(ts => ts.PeriodId).OnDelete(DeleteBehavior.Restrict);
 
             // ========== SCHOOL STORE CONFIGURATIONS ==========
             modelBuilder.Entity<Category>()
@@ -206,10 +202,8 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<Product>()
                 .Property(p => p.ImageUrl).HasMaxLength(500);
             modelBuilder.Entity<Product>()
-                .HasRequired(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId)
-                .WillCascadeOnDelete(false);
+                .HasOne(p => p.Category).WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
                 .HasKey(o => o.Id);
@@ -227,147 +221,92 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<OrderItem>()
                 .HasKey(oi => oi.Id);
             modelBuilder.Entity<OrderItem>()
-                .HasRequired(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(oi => oi.OrderId)
-                .WillCascadeOnDelete(true);
+                .HasOne(oi => oi.Order).WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<OrderItem>()
-                .HasRequired(oi => oi.Product)
-                .WithMany(p => p.OrderItems)
+                .HasOne(oi => oi.Product).WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId);
 
-            // ── StreamEnrolment (corrected relationships) ─────────────────────
+            // ── StreamEnrolment ─────────────────────────────────────────────────
             modelBuilder.Entity<StreamEnrolment>()
-                .HasOptional(se => se.Teacher)
-                .WithMany(t => t.StreamEnrolments)
-                .HasForeignKey(se => se.TeacherId)
-                .WillCascadeOnDelete(false);
+                .HasOne(se => se.Teacher).WithMany(t => t.StreamEnrolments)
+                .HasForeignKey(se => se.TeacherId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
             // ── Assessment & Marks ───────────────────────────────────────────
             modelBuilder.Entity<Assessment>()
-                .HasRequired(a => a.Subject)
-                .WithMany()
-                .HasForeignKey(a => a.SubjectId)
-                .WillCascadeOnDelete(false);
+                .HasOne(a => a.Subject).WithMany()
+                .HasForeignKey(a => a.SubjectId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<StudentMark>()
-                .HasRequired(sm => sm.Assessment)
-                .WithMany(a => a.StudentMarks)
-                .HasForeignKey(sm => sm.AssessmentmentId)
-                .WillCascadeOnDelete(true);
+                .HasOne(sm => sm.Assessment).WithMany(a => a.StudentMarks)
+                .HasForeignKey(sm => sm.AssessmentmentId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<StudentMark>()
-                .HasRequired(sm => sm.Student)
-                .WithMany()
-                .HasForeignKey(sm => sm.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(sm => sm.Student).WithMany()
+                .HasForeignKey(sm => sm.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TermResult>()
-                .HasRequired(tr => tr.Student)
-                .WithMany()
-                .HasForeignKey(tr => tr.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tr => tr.Student).WithMany()
+                .HasForeignKey(tr => tr.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TermResult>()
-                .HasRequired(tr => tr.Subject)
-                .WithMany()
-                .HasForeignKey(tr => tr.SubjectId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tr => tr.Subject).WithMany()
+                .HasForeignKey(tr => tr.SubjectId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<YearResult>()
-                .HasRequired(yr => yr.Student)
-                .WithMany()
+                .HasOne(yr => yr.Student).WithMany()
                 .HasForeignKey(yr => yr.StudentId);
-
-            modelBuilder.Entity<Payment>()
-                .HasRequired(p => p.Invoice)
-                .WithMany(i => i.Payments)
-                .HasForeignKey(p => p.InvoiceId)
-                .WillCascadeOnDelete(false);
 
             // ========== TRIP MANAGEMENT RELATIONSHIPS ==========
 
-            // TripRequest -> Teacher (required)
             modelBuilder.Entity<TripRequest>()
-                .HasRequired(tr => tr.Teacher)
-                .WithMany()
-                .HasForeignKey(tr => tr.TeacherId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tr => tr.Teacher).WithMany()
+                .HasForeignKey(tr => tr.TeacherId).OnDelete(DeleteBehavior.Restrict);
 
-            // TripRequest -> AppUser (optional, for approval)
             modelBuilder.Entity<TripRequest>()
-                .HasOptional(tr => tr.ApprovedBy)
-                .WithMany()
-                .HasForeignKey(tr => tr.ApprovedByAdminId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tr => tr.ApprovedBy).WithMany()
+                .HasForeignKey(tr => tr.ApprovedByAdminId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
-            // TripSchedule -> TripRequest (required)
             modelBuilder.Entity<TripSchedule>()
-                .HasRequired(ts => ts.TripRequest)
-                .WithMany()
-                .HasForeignKey(ts => ts.TripRequestId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.TripRequest).WithMany()
+                .HasForeignKey(ts => ts.TripRequestId).OnDelete(DeleteBehavior.Restrict);
 
-            // TripSchedule -> Teacher (required)
             modelBuilder.Entity<TripSchedule>()
-                .HasRequired(ts => ts.Teacher)
-                .WithMany()
-                .HasForeignKey(ts => ts.TeacherId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.Teacher).WithMany()
+                .HasForeignKey(ts => ts.TeacherId).OnDelete(DeleteBehavior.Restrict);
 
-            // TripSchedule -> Driver (optional)
             modelBuilder.Entity<TripSchedule>()
-                .HasOptional(ts => ts.Driver)
-                .WithMany()
-                .HasForeignKey(ts => ts.DriverId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.Driver).WithMany()
+                .HasForeignKey(ts => ts.DriverId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
-            // TripSchedule -> Vehicle (optional)
             modelBuilder.Entity<TripSchedule>()
-                .HasOptional(ts => ts.Vehicle)
-                .WithMany()
-                .HasForeignKey(ts => ts.VehicleId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.Vehicle).WithMany()
+                .HasForeignKey(ts => ts.VehicleId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
-            // TripStudent -> TripSchedule (required)
             modelBuilder.Entity<TripStudent>()
-                .HasRequired(ts => ts.TripSchedule)
-                .WithMany(t => t.TripStudents)   // explicitly reference the inverse collection
-                .HasForeignKey(ts => ts.TripScheduleId)
-                .WillCascadeOnDelete(false);
-            // TripStudent -> Student (required)
-            modelBuilder.Entity<TripStudent>()
-                .HasRequired(ts => ts.Student)
-                .WithMany()
-                .HasForeignKey(ts => ts.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ts => ts.TripSchedule).WithMany(t => t.TripStudents)
+                .HasForeignKey(ts => ts.TripScheduleId).OnDelete(DeleteBehavior.Restrict);
 
-            // Notification -> AppUser (required)
+            modelBuilder.Entity<TripStudent>()
+                .HasOne(ts => ts.Student).WithMany()
+                .HasForeignKey(ts => ts.StudentId).OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Notification>()
-                .HasRequired(n => n.User)
-                .WithMany()
-                .HasForeignKey(n => n.UserId)
-                .WillCascadeOnDelete(false);
+                .HasOne(n => n.User).WithMany()
+                .HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TripVehicleAssignment>()
-    .HasRequired(tva => tva.TripSchedule)
-    .WithMany(ts => ts.VehicleAssignments)
-    .HasForeignKey(tva => tva.TripScheduleId)
-    .WillCascadeOnDelete(true);
+                .HasOne(tva => tva.TripSchedule).WithMany(ts => ts.VehicleAssignments)
+                .HasForeignKey(tva => tva.TripScheduleId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TripVehicleAssignment>()
-                .HasRequired(tva => tva.Driver)
-                .WithMany()
-                .HasForeignKey(tva => tva.DriverId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tva => tva.Driver).WithMany()
+                .HasForeignKey(tva => tva.DriverId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TripVehicleAssignment>()
-                .HasRequired(tva => tva.Vehicle)
-                .WithMany()
-                .HasForeignKey(tva => tva.VehicleId)
-                .WillCascadeOnDelete(false);
+                .HasOne(tva => tva.Vehicle).WithMany()
+                .HasForeignKey(tva => tva.VehicleId).OnDelete(DeleteBehavior.Restrict);
 
-            // Optionally set string lengths for status fields
             modelBuilder.Entity<TripRequest>()
                 .Property(t => t.Status).HasMaxLength(20);
             modelBuilder.Entity<TripRequest>()
@@ -380,284 +319,138 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<TripSchedule>()
                 .Property(t => t.Notes).HasMaxLength(500);
 
-
             // ── Suppliers & PurchaseOrders ────────────────────────────────────────
             modelBuilder.Entity<SupplierProduct>()
-                .HasRequired(sp => sp.Supplier).WithMany(s => s.SupplierProducts)
-                .HasForeignKey(sp => sp.SupplierId).WillCascadeOnDelete(false);
+                .HasOne(sp => sp.Supplier).WithMany(s => s.SupplierProducts)
+                .HasForeignKey(sp => sp.SupplierId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<SupplierProduct>()
-                .HasRequired(sp => sp.Product).WithMany()
-                .HasForeignKey(sp => sp.ProductId).WillCascadeOnDelete(false);
+                .HasOne(sp => sp.Product).WithMany()
+                .HasForeignKey(sp => sp.ProductId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PurchaseOrder>()
-                .HasRequired(po => po.Supplier).WithMany(s => s.PurchaseOrders)
-                .HasForeignKey(po => po.SupplierId).WillCascadeOnDelete(false);
+                .HasOne(po => po.Supplier).WithMany(s => s.PurchaseOrders)
+                .HasForeignKey(po => po.SupplierId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<PurchaseOrderLine>()
-                .HasRequired(pol => pol.PurchaseOrder).WithMany(po => po.LineItems)
-                .HasForeignKey(pol => pol.PurchaseOrderId).WillCascadeOnDelete(true);
+                .HasOne(pol => pol.PurchaseOrder).WithMany(po => po.LineItems)
+                .HasForeignKey(pol => pol.PurchaseOrderId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<PurchaseOrderLine>()
-                .HasRequired(pol => pol.Product).WithMany()
-                .HasForeignKey(pol => pol.ProductId).WillCascadeOnDelete(false);
+                .HasOne(pol => pol.Product).WithMany()
+                .HasForeignKey(pol => pol.ProductId).OnDelete(DeleteBehavior.Restrict);
 
             // ── Stock Movements ───────────────────────────────────────────────────
             modelBuilder.Entity<StockMovement>()
-                .HasRequired(sm => sm.Product).WithMany()
-                .HasForeignKey(sm => sm.ProductId).WillCascadeOnDelete(false);
+                .HasOne(sm => sm.Product).WithMany()
+                .HasForeignKey(sm => sm.ProductId).OnDelete(DeleteBehavior.Restrict);
 
             // ======================================================================
             // BOARDING HOUSE MANAGEMENT RELATIONSHIPS
             // ======================================================================
 
-            // -------------------------
-            // Residence -> HouseMaster
-            // -------------------------
             modelBuilder.Entity<Residence>()
-                .HasOptional(r => r.HouseMaster)
-                .WithMany()
-                .HasForeignKey(r => r.HouseMasterId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.HouseMaster).WithMany()
+                .HasForeignKey(r => r.HouseMasterId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // Room -> Residence
-            // -------------------------
             modelBuilder.Entity<Room>()
-                .HasRequired(r => r.Residence)
-                .WithMany(r => r.Rooms)
-                .HasForeignKey(r => r.ResidenceId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.Residence).WithMany(res => res.Rooms)
+                .HasForeignKey(r => r.ResidenceId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // Bed -> Room
-            // -------------------------
             modelBuilder.Entity<Bed>()
-                .HasRequired(b => b.Room)
-                .WithMany(r => r.Beds)
-                .HasForeignKey(b => b.RoomId)
-                .WillCascadeOnDelete(false);
-
-            // Bed -> Student (optional)
-            modelBuilder.Entity<Bed>()
-                .HasOptional(b => b.OccupiedByStudent)
-                .WithMany()
-                .HasForeignKey(b => b.OccupiedByStudentId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // ResidenceAssignment
-            // -------------------------
-            modelBuilder.Entity<ResidenceAssignment>()
-                .HasRequired(r => r.Student)
-                .WithMany()
-                .HasForeignKey(r => r.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(b => b.Room).WithMany(r => r.Beds)
+                .HasForeignKey(b => b.RoomId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceAssignment>()
-                .HasRequired(r => r.Residence)
-                .WithMany()
-                .HasForeignKey(r => r.ResidenceId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ra => ra.Student).WithMany()
+                .HasForeignKey(ra => ra.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceAssignment>()
-                .HasRequired(r => r.Room)
-                .WithMany()
-                .HasForeignKey(r => r.RoomId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ra => ra.Residence).WithMany()
+                .HasForeignKey(ra => ra.ResidenceId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceAssignment>()
-                .HasRequired(r => r.Bed)
-                .WithMany()
-                .HasForeignKey(r => r.BedId)
-                .WillCascadeOnDelete(false);
+                .HasOne(ra => ra.Room).WithMany()
+                .HasForeignKey(ra => ra.RoomId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // ResidenceAllocation
-            // -------------------------
-            modelBuilder.Entity<ResidenceAllocation>()
-                .HasRequired(r => r.Student)
-                .WithMany()
-                .HasForeignKey(r => r.StudentId)
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<ResidenceAssignment>()
+                .HasOne(ra => ra.Bed).WithMany()
+                .HasForeignKey(ra => ra.BedId).OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ResidenceAllocation>()
-                .HasRequired(r => r.Residence)
-                .WithMany()
-                .HasForeignKey(r => r.ResidenceId)
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<DisciplinaryConflict>()
+                .HasOne<Student>().WithMany()
+                .HasForeignKey(dc => dc.StudentAId).OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ResidenceAllocation>()
-                .HasRequired(r => r.Room)
-                .WithMany()
-                .HasForeignKey(r => r.RoomId)
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<DisciplinaryConflict>()
+                .HasOne<Student>().WithMany()
+                .HasForeignKey(dc => dc.StudentBId).OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ResidenceAllocation>()
-                .HasRequired(r => r.Bed)
-                .WithMany()
-                .HasForeignKey(r => r.BedId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // StudentProfile
-            // -------------------------
             modelBuilder.Entity<StudentProfile>()
-                .HasRequired(sp => sp.Student)
-                .WithOptional();
+                .HasOne(sp => sp.Student).WithMany()
+                .HasForeignKey(sp => sp.StudentId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // StudentQRCode
-            // -------------------------
-            modelBuilder.Entity<StudentQRCode>()
-                .HasRequired(q => q.Student)
-                .WithMany()
-                .HasForeignKey(q => q.StudentId)
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<RoomScoreAudit>()
+                .HasOne<Room>().WithMany()
+                .HasForeignKey(rsa => rsa.RoomId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // QRScanRecord
-            // -------------------------
-            modelBuilder.Entity<QRScanRecord>()
-                .HasRequired(q => q.Student)
-                .WithMany()
-                .HasForeignKey(q => q.StudentId)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<QRScanRecord>()
-                .HasOptional(q => q.Residence)
-                .WithMany()
-                .HasForeignKey(q => q.ResidenceId)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<QRScanRecord>()
-                .HasOptional(q => q.HouseMaster)
-                .WithMany()
-                .HasForeignKey(q => q.HouseMasterId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // AI Residence Recommendation
-            // -------------------------
-            modelBuilder.Entity<AIResidenceRecommendation>()
-                .HasRequired(a => a.Student)
-                .WithMany()
-                .HasForeignKey(a => a.StudentId)
-                .WillCascadeOnDelete(false);
+            modelBuilder.Entity<RoomScoreAudit>()
+                .HasOne<Student>().WithMany()
+                .HasForeignKey(rsa => rsa.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AIResidenceRecommendation>()
-                .HasRequired(a => a.Residence)
-                .WithMany()
-                .HasForeignKey(a => a.ResidenceId)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<AIResidenceRecommendation>()
-                .HasRequired(a => a.Room)
-                .WithMany()
-                .HasForeignKey(a => a.RoomId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // AI Allocation History
-            // -------------------------
-            modelBuilder.Entity<AIAllocationHistory>()
-                .HasRequired(a => a.Student)
-                .WithMany()
-                .HasForeignKey(a => a.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.Student).WithMany()
+                .HasForeignKey(r => r.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AIAllocationHistory>()
-                .HasRequired(a => a.Residence)
-                .WithMany()
-                .HasForeignKey(a => a.ResidenceId)
-                .WillCascadeOnDelete(false);
+                .HasOne(h => h.Student).WithMany()
+                .HasForeignKey(h => h.StudentId).OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<AIAllocationHistory>()
-                .HasRequired(a => a.Room)
-                .WithMany()
-                .HasForeignKey(a => a.RoomId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // AI Waiting List
-            // -------------------------
             modelBuilder.Entity<AIWaitingList>()
-                .HasRequired(w => w.Student)
-                .WithMany()
-                .HasForeignKey(w => w.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(w => w.Student).WithMany()
+                .HasForeignKey(w => w.StudentId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // AI Recommendation Override
-            // -------------------------
             modelBuilder.Entity<AIRecommendationOverride>()
-                .HasRequired(o => o.Recommendation)
-                .WithMany()
-                .HasForeignKey(o => o.RecommendationId)
-                .WillCascadeOnDelete(false);
+                .HasOne(o => o.Recommendation).WithMany()
+                .HasForeignKey(o => o.RecommendationId).OnDelete(DeleteBehavior.Restrict);
 
-            // -------------------------
-            // AI Alert
-            // -------------------------
             modelBuilder.Entity<AIAlert>()
-                .HasRequired(a => a.Residence)
-                .WithMany()
-                .HasForeignKey(a => a.ResidenceId)
-                .WillCascadeOnDelete(false);
-
-            // -------------------------
-            // Residence Movement
-            // -------------------------
-            modelBuilder.Entity<ResidenceMovement>()
-                .HasRequired(r => r.Student)
-                .WithMany()
-                .HasForeignKey(r => r.StudentId)
-                .WillCascadeOnDelete(false);
+                .HasOne(a => a.Residence).WithMany()
+                .HasForeignKey(a => a.ResidenceId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceMovement>()
-                .HasOptional(r => r.FromResidence)
-                .WithMany()
-                .HasForeignKey(r => r.FromResidenceId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.Student).WithMany()
+                .HasForeignKey(r => r.StudentId).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceMovement>()
-                .HasOptional(r => r.ToResidence)
-                .WithMany()
-                .HasForeignKey(r => r.ToResidenceId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.FromResidence).WithMany()
+                .HasForeignKey(r => r.FromResidenceId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceMovement>()
-                .HasOptional(r => r.FromRoom)
-                .WithMany()
-                .HasForeignKey(r => r.FromRoomId)
-                .WillCascadeOnDelete(false);
+                .HasOne(r => r.ToResidence).WithMany()
+                .HasForeignKey(r => r.ToResidenceId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ResidenceMovement>()
-                .HasOptional(r => r.ToRoom)
-                .WithMany()
-                .HasForeignKey(r => r.ToRoomId)
-                .WillCascadeOnDelete(false);
-            // Configure EmergencyAlert
+                .HasOne(r => r.FromRoom).WithMany()
+                .HasForeignKey(r => r.FromRoomId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ResidenceMovement>()
+                .HasOne(r => r.ToRoom).WithMany()
+                .HasForeignKey(r => r.ToRoomId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<EmergencyAlert>()
                 .HasKey(e => e.AlertId);
 
             modelBuilder.Entity<EmergencyAlert>()
-                .HasMany(e => e.StudentConfirmations)
-                .WithRequired(c => c.Alert)
-                .HasForeignKey(c => c.AlertId)
-                .WillCascadeOnDelete(true);
+                .HasMany(e => e.StudentConfirmations).WithOne(c => c.Alert)
+                .HasForeignKey(c => c.AlertId).OnDelete(DeleteBehavior.Cascade);
 
-            // Configure StudentSafetyConfirmation
             modelBuilder.Entity<StudentSafetyConfirmation>()
                 .HasKey(c => c.ConfirmationId);
 
             modelBuilder.Entity<StudentSafetyConfirmation>()
-                .HasRequired(c => c.Student)
-                .WithMany()
+                .HasOne(c => c.Student).WithMany()
                 .HasForeignKey(c => c.StudentId);
 
             modelBuilder.Entity<StudentSafetyConfirmation>()
-                .HasRequired(c => c.Alert)
-                .WithMany(a => a.StudentConfirmations)
+                .HasOne(c => c.Alert).WithMany(a => a.StudentConfirmations)
                 .HasForeignKey(c => c.AlertId);
         }
-
     }
 }

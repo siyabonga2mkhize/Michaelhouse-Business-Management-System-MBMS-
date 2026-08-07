@@ -1,7 +1,8 @@
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Michaelhouse.Services
@@ -23,7 +24,7 @@ namespace Michaelhouse.Services
         private readonly DBContextClass _db;
         private readonly ResidenceAvailabilityService _availability;
 
-        public AIResidencePredictionService() : this(new DBContextClass(), new ResidenceAvailabilityService()) { }
+        public AIResidencePredictionService() : this(DbContextFactory.Create(), new ResidenceAvailabilityService()) { }
         public AIResidencePredictionService(DBContextClass db, ResidenceAvailabilityService availability)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));

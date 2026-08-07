@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public List<Product> GetLowStockProducts()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var openPoProductIds = db.PurchaseOrderLines
                     .Where(pol =>
@@ -43,7 +45,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public List<Product> GetAllLowStockProducts()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Products
                     .Include("Category")
@@ -64,7 +66,7 @@ namespace Michaelhouse.Services
             List<(int ProductId, int Quantity, decimal UnitCost)> lines,
             string notes = null)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var supplier = db.Suppliers.Find(supplierId);
                 if (supplier == null)
@@ -127,7 +129,7 @@ namespace Michaelhouse.Services
         {
             var created = new List<PurchaseOrder>();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Replicate GetLowStockProducts() logic inline so we stay in one context.
                 var openPoProductIds = db.PurchaseOrderLines
@@ -203,7 +205,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public (bool Success, string Error) ApprovePurchaseOrder(int purchaseOrderId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var po = db.PurchaseOrders
                     .Include("Supplier")
@@ -252,7 +254,7 @@ namespace Michaelhouse.Services
         public (bool Success, string Error) ReceivePurchaseOrder(
             int purchaseOrderId, string notes = null)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var po = db.PurchaseOrders
                     .Include("Supplier")           // ← was missing; caused null supplier name
@@ -309,7 +311,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public (bool Success, string Error) CancelPurchaseOrder(int purchaseOrderId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var po = db.PurchaseOrders.Find(purchaseOrderId);
                 if (po == null)
@@ -338,7 +340,7 @@ namespace Michaelhouse.Services
 
         public void AdjustStock(int productId, int newQuantity, string reason)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var product = db.Products.Find(productId);
                 if (product == null) return;
@@ -365,7 +367,7 @@ namespace Michaelhouse.Services
 
         public List<StockMovement> GetStockHistory(int productId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.StockMovements
                     .Include("Product")

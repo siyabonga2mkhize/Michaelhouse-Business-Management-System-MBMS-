@@ -100,7 +100,7 @@
                                             <option value="">-- All Academic Grades --</option>
                                             @foreach (var g in grades ?? new List<int>())
                                             {
-                                                <option value="@g" @(selectedGrade == g ? "selected" : "")>Grade @g</option>
+                                                <option value="@g" selected="@(selectedGrade == g)">Grade @g</option>
                                             }
                                         </select>
                                     </div>
@@ -109,7 +109,7 @@
                                             <option value="">-- All Subject Clusters --</option>
                                             @foreach (var sub in subjects ?? new List<Michaelhouse.Models.Subject>())
                                             {
-                                                <option value="@sub.SubjectId" @(selectedSubject == sub.SubjectId ? "selected" : "")>@sub.Name</option>
+                                                <option value="@sub.SubjectId" selected="@(selectedSubject == sub.SubjectId)">@sub.Name</option>
                                             }
                                         </select>
                                     </div>

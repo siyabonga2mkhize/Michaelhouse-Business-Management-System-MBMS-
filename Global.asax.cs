@@ -1,9 +1,10 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 
@@ -21,7 +22,7 @@ namespace Michaelhouse
 
             try
             {
-                var stripeKey = System.Configuration.ConfigurationManager.AppSettings["StripeApiKey"];
+                var stripeKey = AppConfig.AppSettings("StripeApiKey");
                 if (!string.IsNullOrWhiteSpace(stripeKey))
                 {
                     StripeConfiguration.ApiKey = stripeKey;
@@ -39,7 +40,7 @@ namespace Michaelhouse
         }
         private void SeedDrivers()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Prevent duplicate seeding
                 if (db.Drivers.Any())

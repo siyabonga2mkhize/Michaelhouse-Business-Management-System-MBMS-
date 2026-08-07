@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
@@ -7,7 +9,7 @@ using Michaelhouse.Services;
 namespace Michaelhouse.Controllers
 {
     [ParentOnly]
-    public class PaymentController : Controller
+    public class PaymentController : BaseController
     {
         private readonly InvoiceService _invoices = new InvoiceService();
         private readonly PaymentService _payments = new PaymentService();
@@ -33,7 +35,7 @@ namespace Michaelhouse.Controllers
                     _invoices.IsRegistrationFeePaid(registrationId.Value);
 
                 // Also get the appId so the "Continue Registration" button works
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     var reg = db.Registrations
                         .FirstOrDefault(r => r.RegistrationId == registrationId.Value);
@@ -49,17 +51,17 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Pay(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var invoice = db.Invoices
                     .Include("Student")
                     .Include("Payments")
                     .FirstOrDefault(i => i.InvoiceId == id);
 
-                if (invoice == null) return HttpNotFound();
+                if (invoice == null) return NotFound();
 
                 if (invoice.ParentId != GetCurrentParentId())
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 if (invoice.Status == "Paid")
                 {
@@ -82,7 +84,7 @@ namespace Michaelhouse.Controllers
         {
             int parentId = GetCurrentParentId();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // 1. Include Student and Parent so the View has the data it needs to re-render
                 var invoice = db.Invoices
@@ -90,8 +92,8 @@ namespace Michaelhouse.Controllers
                     .Include("Parent")
                     .FirstOrDefault(i => i.InvoiceId == id);
 
-                if (invoice == null) return HttpNotFound();
-                if (invoice.ParentId != parentId) return new HttpUnauthorizedResult();
+                if (invoice == null) return NotFound();
+                if (invoice.ParentId != parentId) return StatusCode(403);
 
                 var parent = db.Parents.Find(parentId);
 
@@ -124,16 +126,16 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Receipt(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var invoice = db.Invoices
                     .Include("Student")
                     .Include("Payments")
                     .FirstOrDefault(i => i.InvoiceId == id);
 
-                if (invoice == null) return HttpNotFound();
+                if (invoice == null) return NotFound();
                 if (invoice.ParentId != GetCurrentParentId())
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 return View(invoice);
             }
@@ -145,16 +147,16 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult ResendProof(int paymentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var payment = db.Payments
                     .Include("Invoice")
                     .Include("Invoice.Parent")
                     .FirstOrDefault(p => p.PaymentId == paymentId);
 
-                if (payment == null) return HttpNotFound();
+                if (payment == null) return NotFound();
                 if (payment.Invoice.ParentId != GetCurrentParentId())
-                    return new HttpUnauthorizedResult();
+                    return StatusCode(403);
 
                 var parent = db.Parents.Find(GetCurrentParentId());
 

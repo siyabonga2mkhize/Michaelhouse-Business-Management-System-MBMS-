@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +43,7 @@ namespace Michaelhouse.Services
         {
             var errors = new List<string>();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Clear existing timetable
                 var existing = db.TimetableSlots
@@ -231,7 +233,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public void SeedPeriods()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 if (db.Periods.Any()) return;
 
@@ -257,7 +259,7 @@ namespace Michaelhouse.Services
 
         public List<TimetableSlot> GetTimetableForGrade(int grade, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.TimetableSlots
                     .Include("Period")
@@ -274,7 +276,7 @@ namespace Michaelhouse.Services
 
         public List<TimetableSlot> GetTimetableForTeacher(int teacherId, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.TimetableSlots
                     .Include("Period")
@@ -290,7 +292,7 @@ namespace Michaelhouse.Services
 
         public List<TimetableSlot> GetTimetableForStudent(int studentId, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Get student's grade and stream
                 var reg = db.Registrations

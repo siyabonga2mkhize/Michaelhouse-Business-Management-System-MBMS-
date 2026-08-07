@@ -1,7 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
@@ -9,9 +11,9 @@ using Michaelhouse.Services;
 namespace Michaelhouse.Controllers
 {
     [InventoryManagerOnly]
-    public class PurchaseOrderController : Controller
+    public class PurchaseOrderController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
+        private readonly DBContextClass db = DbContextFactory.Create();
         private readonly InventoryService _inventoryService = new InventoryService();
 
         // ─── List all POs ─────────────────────────────────────────────────────────
@@ -111,7 +113,7 @@ namespace Michaelhouse.Controllers
                 .Include("LineItems.Product.Category")
                 .FirstOrDefault(p => p.PurchaseOrderId == id);
 
-            if (po == null) return HttpNotFound();
+            if (po == null) return NotFound();
             return View(po);
         }
 
@@ -188,7 +190,7 @@ namespace Michaelhouse.Controllers
                 .ThenBy(x => x.productName)
                 .ToList();
 
-            return Json(products, JsonRequestBehavior.AllowGet);
+            return Json(products);
         }
 
         protected override void Dispose(bool disposing)

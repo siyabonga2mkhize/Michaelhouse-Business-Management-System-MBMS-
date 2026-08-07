@@ -1,3 +1,4 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
@@ -5,15 +6,15 @@ using Michaelhouse.Models.ViewModels;
 using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [AdminOnly]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private readonly ApplicationService _appService = new ApplicationService();
         private readonly StudentAccountService _studentAccounts = new StudentAccountService();
@@ -26,7 +27,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Dashboard()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var apps = db.Applications
                     .Include("Student")
@@ -53,7 +54,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Review(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var app = db.Applications
                     .Include("Student")
@@ -62,7 +63,7 @@ namespace Michaelhouse.Controllers
                     .Include("AdminReviews")
                     .FirstOrDefault(a => a.AppId == id);
 
-                if (app == null) return HttpNotFound();
+                if (app == null) return NotFound();
 
                 // Show registration + invoice status for approved apps
                 if (app.Status == ApplicationStatus.Approved)
@@ -180,7 +181,7 @@ namespace Michaelhouse.Controllers
         {
             try
             {
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     var app = db.Applications
                         .Include("Student")
@@ -226,17 +227,17 @@ namespace Michaelhouse.Controllers
 
         public ActionResult ViewDocument(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var doc = db.Documents.Find(id);
-                if (doc == null) return HttpNotFound();
+                if (doc == null) return NotFound();
 
-                var uploadRoot = System.Web.Hosting.HostingEnvironment.MapPath(
+                var uploadRoot = PathHelper.MapPath(
                     System.Configuration.ConfigurationManager
                         .AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads");
 
                 var fullPath = System.IO.Path.Combine(uploadRoot, doc.FilePath);
-                if (!System.IO.File.Exists(fullPath)) return HttpNotFound();
+                if (!System.IO.File.Exists(fullPath)) return NotFound();
 
                 return File(System.IO.File.ReadAllBytes(fullPath), doc.ContentType, doc.FileName);
             }
@@ -246,7 +247,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Registrations()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var regs = db.Registrations
                     .Include("Student")
@@ -271,7 +272,7 @@ namespace Michaelhouse.Controllers
         /// </summary>
         private void EnsureRegistrationFeeInvoiceExists(int appId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var app = db.Applications
                     .Include("Student")
@@ -318,7 +319,7 @@ namespace Michaelhouse.Controllers
         {
             int currentYear = DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Eager load everything needed for the 'White Dossier' view
                 var enrolments = db.StreamEnrolments
@@ -338,7 +339,7 @@ namespace Michaelhouse.Controllers
         }
         public void AssignTeacherToSubjects(int teacherId, int subjectId, int grade, AcademicStream stream = AcademicStream.None)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 if (!db.TeacherSubjectGrades.Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId))
                 {
@@ -360,7 +361,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult TeacherAttendanceHistory(DateTime? fromDate, DateTime? toDate, int? teacherId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var query = db.TeacherAttendances
                     .Include(t => t.Teacher)
@@ -413,7 +414,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult StudentAttendanceHistory(int? subjectId, int? studentId, DateTime? fromDate, DateTime? toDate)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Base query for attendances (include navigation properties)
                 var query = db.Attendances
@@ -485,7 +486,7 @@ namespace Michaelhouse.Controllers
         }
         public ActionResult GetSubjectAttendanceDetails(int studentId, int subjectId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var records = db.Attendances
                     .Include(a => a.Student)
@@ -515,7 +516,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult FixLowerGradeTeacher()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Configuration – change these as needed
                 string teacherEmail = "teacher.lower@michaelhouse.org";

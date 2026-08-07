@@ -1,6 +1,7 @@
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Michaelhouse.Services
@@ -14,7 +15,7 @@ namespace Michaelhouse.Services
     {
         private readonly DBContextClass _db;
 
-        public AIQRCodeVerificationService() : this(new DBContextClass()) { }
+        public AIQRCodeVerificationService() : this(DbContextFactory.Create()) { }
         public AIQRCodeVerificationService(DBContextClass db)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
@@ -55,8 +56,8 @@ namespace Michaelhouse.Services
                 try
                 {
                     var uri = new Uri(qrValue);
-                    var qs = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                    var token = qs.Get("token");
+                    var qs = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                    var token = qs.TryGetValue("token", out var tokenValues) ? tokenValues.FirstOrDefault() : null;
                     if (!string.IsNullOrEmpty(token))
                     {
                         var t = _db.StudentAttendanceTokens.FirstOrDefault(x => x.Token == token);

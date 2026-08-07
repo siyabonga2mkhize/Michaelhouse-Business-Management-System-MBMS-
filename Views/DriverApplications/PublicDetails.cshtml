@@ -49,7 +49,7 @@
     </div>
 
     <!-- SECTION 2 -->
-    @if (Request.QueryString["token"] != null)
+    @if (!string.IsNullOrEmpty(Context.Request.Query["token"]))
     {
         <div class="relative pl-12 border-l-2 border-gray-100 pb-10">
 
@@ -73,8 +73,8 @@
 
                 <div class="bg-gray-50 border border-gray-200 p-4 text-xs break-all">
                     <a class="text-[#C21E2E] font-semibold hover:underline"
-                       href="@Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Request.QueryString["token"] }, protocol: Request.Url.Scheme)">
-                        @Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Request.QueryString["token"] }, protocol: Request.Url.Scheme)
+                       href="@Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Context.Request.Query["token"] }, protocol: Context.Request.Scheme)">
+                        @Url.Action("PublicDetails", "DriverApplications", new { id = Model.Id, token = Context.Request.Query["token"] }, protocol: Context.Request.Scheme)
                     </a>
                 </div>
 

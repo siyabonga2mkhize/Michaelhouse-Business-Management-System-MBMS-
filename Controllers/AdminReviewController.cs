@@ -1,18 +1,19 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Models;
 
 namespace Michaelhouse.Controllers
 {
-    public class AdminReviewController : Controller
+    public class AdminReviewController : BaseController
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: AdminReview
         public ActionResult Dashboard()
@@ -30,12 +31,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             AdminReview adminReview = db.AdminReviews.Find(id);
             if (adminReview == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(adminReview);
         }
@@ -52,7 +53,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ReviewId,AppId,AdminId,Date,Decision,AdminNotes,AgreedWithAi")] AdminReview adminReview)
+        public ActionResult Create([Bind("ReviewId,AppId,AdminId,Date,Decision,AdminNotes,AgreedWithAi")] AdminReview adminReview)
         {
             if (ModelState.IsValid)
             {
@@ -70,12 +71,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             AdminReview adminReview = db.AdminReviews.Find(id);
             if (adminReview == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.AppId = new SelectList(db.Applications, "AppId", "AiReviewSummary", adminReview.AppId);
             return View(adminReview);
@@ -86,7 +87,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ReviewId,AppId,AdminId,Date,Decision,AdminNotes,AgreedWithAi")] AdminReview adminReview)
+        public ActionResult Edit([Bind("ReviewId,AppId,AdminId,Date,Decision,AdminNotes,AgreedWithAi")] AdminReview adminReview)
         {
             if (ModelState.IsValid)
             {
@@ -103,12 +104,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             AdminReview adminReview = db.AdminReviews.Find(id);
             if (adminReview == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(adminReview);
         }

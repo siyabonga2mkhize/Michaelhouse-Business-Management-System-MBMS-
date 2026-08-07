@@ -22,6 +22,9 @@ namespace Michaelhouse.Models
         // Full name computed for display
         public string Name => $"{FirstName} {LastName}";
 
+        // Alias for backward compatibility
+        public string FullName => Name;
+
         [Required]
         [DataType(DataType.Date)]
         [Display(Name = "Date of Birth")]
@@ -72,7 +75,7 @@ namespace Michaelhouse.Models
         public string StudentNumber { get; set; }
 
         //[Required]
-        //public string Gender { get; set; }
+        public string? Gender { get; set; }
 
         [Required]
         [Display(Name = "Grade Level")]

@@ -1,19 +1,21 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class ParentsController : Controller
+    public class ParentsController : BaseController
     {
         private int GetCurrentParentId() => (int)Session["ParentId"];
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // GET: Parents
         public ActionResult Index()
@@ -27,12 +29,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Parent parent = db.Parents.Find(id);
             if (parent == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(parent);
         }
@@ -49,7 +51,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ParentId,Name,Contact,UserId")] Parent parent)
+        public ActionResult Create([Bind("ParentId,Name,Contact,UserId")] Parent parent)
         {
             if (ModelState.IsValid)
             {
@@ -67,12 +69,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Parent parent = db.Parents.Find(id);
             if (parent == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.UserId = new SelectList(db.Users, "UserId", "Name", parent.UserId);
             return View(parent);
@@ -83,7 +85,7 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ParentId,Name,Contact,UserId")] Parent parent)
+        public ActionResult Edit([Bind("ParentId,Name,Contact,UserId")] Parent parent)
         {
             if (ModelState.IsValid)
             {
@@ -100,12 +102,12 @@ namespace Michaelhouse.Controllers
         {
             if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             Parent parent = db.Parents.Find(id);
             if (parent == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(parent);
         }
@@ -131,7 +133,7 @@ namespace Michaelhouse.Controllers
         }
         public ActionResult Dashboard()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int parentId = GetCurrentParentId();
 
@@ -163,7 +165,7 @@ namespace Michaelhouse.Controllers
         [RequireLogin]
         public ActionResult ChildrenAttendance(int? studentId, int? subjectId, DateTime? fromDate, DateTime? toDate)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 int parentId = (int)Session["ParentId"];
                 var children = db.Students.Where(s => s.ParentId == parentId).ToList();
@@ -254,7 +256,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult GetChildSubjectAttendanceDetails(int studentId, int subjectId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var records = db.Attendances
                     .Include(a => a.Student)

@@ -1,12 +1,14 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class ClassSubjectsController : Controller
+    public class ClassSubjectsController : BaseController
     {
-        private DBContextClass _context = new DBContextClass();
+        private DBContextClass _context = DbContextFactory.Create();
 
         // GET: ClassSubjects/Create
         public ActionResult Create()

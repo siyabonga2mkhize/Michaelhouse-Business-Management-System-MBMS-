@@ -1,20 +1,21 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class StoreController : Controller
+    public class StoreController : BaseController
     {
-        private readonly DBContextClass db = new DBContextClass();
-        private ICartService _cartService;
+        private readonly DBContextClass db = DbContextFactory.Create();
+        private ICartService CartService => new Michaelhouse.Services.SessionCartService(HttpContext.Session);
 
         public StoreController()
         {
-            _cartService = new SessionCartService(new HttpContextWrapper(System.Web.HttpContext.Current));
+            // CartService is lazily initialized per-action via HttpContext.Session
         }
 
         public ActionResult Index(int? categoryId)
@@ -40,7 +41,7 @@ namespace Michaelhouse.Controllers
 
             ViewBag.Categories = categories;
             ViewBag.SelectedCategory = categoryId;
-            ViewBag.CartItemCount = _cartService.GetCart().TotalItems;
+            ViewBag.CartItemCount = CartService.GetCart().TotalItems;
 
             return View(products);
         }
@@ -57,7 +58,7 @@ namespace Michaelhouse.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.CartItemCount = _cartService.GetCart().TotalItems;
+            ViewBag.CartItemCount = CartService.GetCart().TotalItems;
             return View(product);
         }
 

@@ -1,13 +1,15 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 
 namespace Michaelhouse.Controllers
 {
-    public class ReportController : Controller
+    public class ReportController : BaseController
     {
         private readonly MarksService _marks = new MarksService();
 
@@ -24,7 +26,7 @@ namespace Michaelhouse.Controllers
             int year = DateTime.Now.Year;
 
             var report = _marks.GetStudentProgress(studentId, year);
-            if (report == null) return HttpNotFound();
+            if (report == null) return NotFound();
 
             return View(report);
         }
@@ -39,7 +41,7 @@ namespace Michaelhouse.Controllers
             int studentId = (int)Session["StudentId"];
             int year = DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var student = db.Students
                     .Include("Parent")
@@ -80,7 +82,7 @@ namespace Michaelhouse.Controllers
         {
             int targetYear = year ?? DateTime.Now.Year;
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var results = db.TermResults
                     .Include("Student")
@@ -121,7 +123,7 @@ namespace Michaelhouse.Controllers
             if (!string.IsNullOrEmpty(overrideStatus) &&
                 (overrideStatus == "Promoted" || overrideStatus == "Retained"))
             {
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     var yr = db.YearResults.Find(result.YearResultId);
                     if (yr != null)
@@ -136,7 +138,7 @@ namespace Michaelhouse.Controllers
             // Update student's CurrentGrade if promoted
             if (result.PromotionStatus == "Promoted")
             {
-                using (var db = new DBContextClass())
+                using (var db = DbContextFactory.Create())
                 {
                     var student = db.Students.Find(studentId);
                     if (student != null)
@@ -164,7 +166,7 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CalculateAllYearResults(int grade, int academicYear)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Students who have term results for this grade+year
                 var studentIds = db.TermResults

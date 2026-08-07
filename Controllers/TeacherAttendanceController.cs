@@ -1,19 +1,20 @@
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class TeacherAttendanceController : Controller
+    public class TeacherAttendanceController : BaseController
     {
         private readonly DBContextClass _context;
 
         public TeacherAttendanceController()
         {
-            _context = new DBContextClass();
+            _context = DbContextFactory.Create();
         }
 
         [RequireLogin]
@@ -29,7 +30,7 @@ namespace Michaelhouse.Controllers
 
             var today = DateTime.Today;
             var todayAttendance = _context.TeacherAttendances
-                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.Date.Date == today);
 
             var viewModel = new TeacherAttendanceViewModel
             {
@@ -59,7 +60,7 @@ namespace Michaelhouse.Controllers
 
             var today = DateTime.Today;
             var existingAttendance = _context.TeacherAttendances
-                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.Date.Date == today);
 
             if (existingAttendance?.SignInTime != null)
                 return Json(new { success = false, message = "Already checked in today." });
@@ -101,7 +102,7 @@ namespace Michaelhouse.Controllers
 
             var today = DateTime.Today;
             var attendance = _context.TeacherAttendances
-                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.Date.Date == today);
 
             if (attendance == null)
                 return Json(new { success = false, message = "No check-in record found for today." });

@@ -1,3 +1,4 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace Michaelhouse.Services
 
     public class CompatibilityScoringService
     {
-        private DBContextClass db = new DBContextClass();
+        private DBContextClass db = DbContextFactory.Create();
 
         // New intelligent scoring implementing weighted factors with audit storage
         public RoomScoreResult ScoreRoom(StudentProfile profile, Room room, Residence residence,

@@ -1,18 +1,19 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
 using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [RequireLogin]
-    public class AttendancesController : Controller
+    public class AttendancesController : BaseController
     {
-        private readonly DBContextClass _context = new DBContextClass();
+        private readonly DBContextClass _context = DbContextFactory.Create();
         private readonly RegistrationService _regService = new RegistrationService();
 
         // ── Index: Subjects assigned to this teacher ─────────────────────────
@@ -27,7 +28,7 @@ namespace Michaelhouse.Controllers
             // Stats
             int totalSubjects = subjects.Count();
             int markedToday = await _context.Attendances
-                .Where(a => a.RecordedBy == teacher.Email && DbFunctions.TruncateTime(a.Date) == DateTime.Today)
+                .Where(a => a.RecordedBy == teacher.Email && a.Date.Date == DateTime.Today)
                 .Select(a => a.SubjectId)
                 .Distinct()
                 .CountAsync();
@@ -47,14 +48,14 @@ namespace Michaelhouse.Controllers
         {
             int teacherId = (int)(Session["TeacherId"] ?? 0);
             var teacher = await _context.Teachers.FindAsync(teacherId);
-            if (teacher == null) return HttpNotFound();
+            if (teacher == null) return NotFound();
 
             bool isAssigned = _context.TeacherSubjectGrades
                 .Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId);
-            if (!isAssigned) return new HttpUnauthorizedResult();
+            if (!isAssigned) return StatusCode(403);
 
             var subject = await _context.Subjects.FindAsync(subjectId);
-            if (subject == null) return HttpNotFound();
+            if (subject == null) return NotFound();
 
             var students = await _context.StudentSubjects
                 .Where(ss => ss.SubjectId == subjectId)
@@ -71,7 +72,7 @@ namespace Michaelhouse.Controllers
             // Load existing attendance for today
             var today = DateTime.Today;
             var existingAttendances = await _context.Attendances
-                .Where(a => a.SubjectId == subjectId && DbFunctions.TruncateTime(a.Date) == today)
+                .Where(a => a.SubjectId == subjectId && a.Date.Date == today)
                 .ToDictionaryAsync(a => a.StudentId);
 
             var viewModel = new MarkAttendanceViewModel
@@ -106,11 +107,11 @@ namespace Michaelhouse.Controllers
 
             int teacherId = (int)(Session["TeacherId"] ?? 0);
             var teacher = await _context.Teachers.FindAsync(teacherId);
-            if (teacher == null) return HttpNotFound();
+            if (teacher == null) return NotFound();
 
             // Load existing records for this subject & date (if any)
             var existingRecords = await _context.Attendances
-                .Where(a => a.SubjectId == model.SubjectId && DbFunctions.TruncateTime(a.Date) == model.Date.Date)
+                .Where(a => a.SubjectId == model.SubjectId && a.Date.Date == model.Date.Date)
                 .ToDictionaryAsync(a => a.StudentId);
 
             bool hasInvalidChange = false;
@@ -167,10 +168,10 @@ namespace Michaelhouse.Controllers
             int teacherId = (int)(Session["TeacherId"] ?? 0);
             bool isAssigned = _context.TeacherSubjectGrades
                 .Any(tsg => tsg.TeacherId == teacherId && tsg.SubjectId == subjectId);
-            if (!isAssigned) return new HttpUnauthorizedResult();
+            if (!isAssigned) return StatusCode(403);
 
             var subject = await _context.Subjects.FindAsync(subjectId);
-            if (subject == null) return HttpNotFound();
+            if (subject == null) return NotFound();
 
             var query = _context.Attendances
                 .Include(a => a.Student)

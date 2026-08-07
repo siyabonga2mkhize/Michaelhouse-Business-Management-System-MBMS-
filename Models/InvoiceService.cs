@@ -1,7 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using Michaelhouse.Models;
 
 
@@ -24,7 +25,7 @@ namespace Michaelhouse.Services
         /// </summary>
         public Invoice CreateRegistrationFeeInvoice(int registrationId, int studentId, int parentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Don't create duplicate
                 var existing = db.Invoices.FirstOrDefault(i =>
@@ -63,7 +64,7 @@ namespace Michaelhouse.Services
         {
             var invoices = new List<Invoice>();
 
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 // Annual Fee
                 if (!db.Invoices.Any(i => i.RegistrationId == registrationId && i.InvoiceType == "AnnualFee"))
@@ -137,7 +138,7 @@ namespace Michaelhouse.Services
 
         public List<Invoice> GetInvoicesForParent(int parentId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Invoices
                     .Include("Student")
@@ -150,7 +151,7 @@ namespace Michaelhouse.Services
 
         public List<Invoice> GetInvoicesForRegistration(int registrationId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Invoices
                     .Include("Student")
@@ -165,7 +166,7 @@ namespace Michaelhouse.Services
 
         public bool IsRegistrationFeePaid(int registrationId)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 return db.Invoices.Any(i =>
                     i.RegistrationId == registrationId &&
@@ -178,7 +179,7 @@ namespace Michaelhouse.Services
 
         public void MarkInvoiceAsPaid(int invoiceId, string stripeChargeId, string reference)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var invoice = db.Invoices.Find(invoiceId);
                 if (invoice == null) return;

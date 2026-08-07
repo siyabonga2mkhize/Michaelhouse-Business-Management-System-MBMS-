@@ -1,5 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Michaelhouse.Infrastructure;
 ﻿using System;
-using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -17,9 +18,7 @@ namespace Michaelhouse.Services
 
         public PaymentService()
         {
-            //StripeConfiguration.ApiKey =
-            //  ConfigurationManager.AppSettings["Stripe:SecretKey"];
-            StripeConfiguration.ApiKey = "sk_test_51TGkmpCX1ORzTt6NEmDOc0b3JZfikEKfkgwHx2ulmuep6cuNGTAFlY3WE65A5bUy8BQ2A0HShSCBqze2A4jFGkJ300YdaTPxkN";
+            StripeConfiguration.ApiKey = AppConfig.AppSettings("Stripe:SecretKey");
         }
 
         // ─── Process Payment via Stripe ───────────────────────────────────────────
@@ -31,7 +30,7 @@ namespace Michaelhouse.Services
         public (bool Success, string Error, string ChargeId) ProcessPayment(
             int invoiceId, string stripeToken, string parentEmail, string parentName)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var invoice = db.Invoices
                     .Include("Student")
@@ -114,7 +113,7 @@ namespace Michaelhouse.Services
 
         public void SendProofOfPaymentEmail(int paymentId, string toEmail, string toName)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var payment = db.Payments
                     .Include("Invoice")
@@ -229,11 +228,11 @@ namespace Michaelhouse.Services
 
 		private void SendEmail(string toEmail, string subject, string htmlBody)
         {
-            var smtpHost = ConfigurationManager.AppSettings["Email:SmtpHost"] ?? "";
-            var smtpPort = int.TryParse(ConfigurationManager.AppSettings["Email:SmtpPort"], out int p) ? p : 587;
-            var smtpUser = ConfigurationManager.AppSettings["Email:Username"] ?? "";
-            var smtpPass = ConfigurationManager.AppSettings["Email:Password"] ?? "";
-            var fromEmail = ConfigurationManager.AppSettings["Email:FromAddress"] ?? "";
+            var smtpHost = AppConfig.AppSettings("Email:SmtpHost") ?? "";
+            var smtpPort = int.TryParse(AppConfig.AppSettings("Email:SmtpPort"), out int p) ? p : 587;
+            var smtpUser = AppConfig.AppSettings("Email:Username") ?? "";
+            var smtpPass = AppConfig.AppSettings("Email:Password") ?? "";
+            var fromEmail = AppConfig.AppSettings("Email:FromAddress") ?? "";
             var fromName = "Michaelhouse Bursary";
 
             if (string.IsNullOrEmpty(smtpHost))

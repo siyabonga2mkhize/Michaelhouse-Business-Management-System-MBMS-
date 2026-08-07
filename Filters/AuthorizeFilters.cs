@@ -1,4 +1,5 @@
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Michaelhouse.Filters
 {
@@ -10,9 +11,9 @@ namespace Michaelhouse.Filters
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             var session = filterContext.HttpContext.Session;
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
             }
         }
     }
@@ -27,15 +28,15 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            if (session["UserRole"]?.ToString() != "Parent")
+            if (session.GetString("UserRole") != "Parent")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
@@ -50,15 +51,15 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            if (session["UserRole"]?.ToString() != "Admin")
+            if (session.GetString("UserRole") != "Admin")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
@@ -73,15 +74,15 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            if (session["UserRole"]?.ToString() != "Teacher")
+            if (session.GetString("UserRole") != "Teacher")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
@@ -96,21 +97,21 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            if (session["UserRole"]?.ToString() != "Student")
+            if (session.GetString("UserRole") != "Student")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
+
     /// <summary>
-    /// Allows only Transport Managers and Admins. Redirects to login if not authenticated,
-    /// or returns 403 if wrong role.
+    /// Allows only Transport Managers and Admins.
     /// </summary>
     public class TransportManagerOnlyAttribute : ActionFilterAttribute
     {
@@ -118,22 +119,22 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            var role = session["UserRole"]?.ToString();
+            var role = session.GetString("UserRole");
             if (role != "TransportManager" && role != "Admin")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
+
     /// <summary>
-    /// Allows only Inventory Managers and Admins. Redirects to login if not authenticated,
-    /// or returns 403 if wrong role.
+    /// Allows only Inventory Managers and Admins.
     /// </summary>
     public class InventoryManagerOnlyAttribute : ActionFilterAttribute
     {
@@ -141,35 +142,34 @@ namespace Michaelhouse.Filters
         {
             var session = filterContext.HttpContext.Session;
 
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
 
-            var role = session["UserRole"]?.ToString();
-
-            // Allow access if the user is an InventoryManager OR an Admin
+            var role = session.GetString("UserRole");
             if (role != "InventoryManager" && role != "Admin")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
     }
+
     public class TransportManagerOrAdminOnlyAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             var session = filterContext.HttpContext.Session;
-            if (session["UserId"] == null)
+            if (session.GetInt32("UserId") == null)
             {
-                filterContext.Result = new RedirectResult("~/Account/Login");
+                filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                 return;
             }
-            var role = session["UserRole"]?.ToString();
+            var role = session.GetString("UserRole");
             if (role != "Admin" && role != "TransportManager")
             {
-                filterContext.Result = new HttpUnauthorizedResult();
+                filterContext.Result = new StatusCodeResult(403);
             }
         }
 
@@ -178,18 +178,17 @@ namespace Michaelhouse.Filters
             public override void OnActionExecuting(ActionExecutingContext filterContext)
             {
                 var session = filterContext.HttpContext.Session;
-                if (session["UserId"] == null)
+                if (session.GetInt32("UserId") == null)
                 {
-                    filterContext.Result = new RedirectResult("~/Account/Login");
+                    filterContext.Result = new RedirectToActionResult("Login", "Account", null);
                     return;
                 }
-                var role = session["UserRole"]?.ToString();
+                var role = session.GetString("UserRole");
                 if (role != "Admin" && role != "TransportManager")
                 {
-                    filterContext.Result = new HttpUnauthorizedResult();
+                    filterContext.Result = new StatusCodeResult(403);
                 }
             }
         }
-
     }
 }

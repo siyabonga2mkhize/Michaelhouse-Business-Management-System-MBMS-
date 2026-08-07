@@ -1,7 +1,8 @@
+using Michaelhouse.Infrastructure;
 using Michaelhouse.Models;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Michaelhouse.Services
@@ -27,7 +28,7 @@ namespace Michaelhouse.Services
         private readonly ExplanationGenerator _explanationGenerator;
 
         public AIResidenceAllocationService()
-            : this(new DBContextClass(), new ResidenceAvailabilityService(), new CompatibilityScoringService())
+            : this(DbContextFactory.Create(), new ResidenceAvailabilityService(), new CompatibilityScoringService())
         {
         }
 
@@ -242,7 +243,7 @@ namespace Michaelhouse.Services
                     try
                     {
                         var email = new EmailService();
-                        var adminContact = System.Configuration.ConfigurationManager.AppSettings["Admissions:ContactEmail"] ?? "";
+                        var adminContact = AppConfig.AppSettings("Admissions:ContactEmail") ?? "";
                         if (!string.IsNullOrEmpty(adminContact))
                         {
                             var student = _db.Students.Find(analysis.Profile.StudentId);

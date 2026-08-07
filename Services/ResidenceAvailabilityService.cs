@@ -1,6 +1,7 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Models;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Security.Policy;
 
@@ -12,12 +13,12 @@ namespace Michaelhouse.Services
 
         public ResidenceAvailabilityService()
         {
-            db = new DBContextClass();
+            db = DbContextFactory.Create();
         }
 
         public ResidenceAvailabilityService(DBContextClass context)
         {
-            db = context ?? new DBContextClass();
+            db = context ?? DbContextFactory.Create();
         }
 
         // All rooms with at least one free bed, across all residences,

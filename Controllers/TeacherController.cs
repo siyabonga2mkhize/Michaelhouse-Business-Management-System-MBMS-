@@ -1,3 +1,4 @@
+using Michaelhouse.Infrastructure;
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Models.Enums;
@@ -5,14 +6,14 @@ using Michaelhouse.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity; // CRITICAL: Required for Lambda .Include()
+using Microsoft.EntityFrameworkCore; // CRITICAL: Required for Lambda .Include()
 using System.Linq;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Michaelhouse.Controllers
 {
     [AdminOnly]
-    public class TeacherController : Controller
+    public class TeacherController : BaseController
     {
         private readonly TeacherService _teacherService = new TeacherService();
 
@@ -20,7 +21,7 @@ namespace Michaelhouse.Controllers
         // Fix: Order by actual DB columns (LastName, FirstName) to avoid LINQ error
         public ActionResult Index()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var teachers = db.Teachers
                     .Include(t => t.User)
@@ -101,14 +102,14 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Details(int id)
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
                 var teacher = db.Teachers
                     .Include(t => t.User)
                     .Include(t => t.SubjectAssignments.Select(sa => sa.Subject))
                     .FirstOrDefault(t => t.TeacherId == id);
 
-                if (teacher == null) return HttpNotFound();
+                if (teacher == null) return NotFound();
 
                 // Generate institutional timetable
                 var timetable = new TimetableGenerator().GetTimetableForTeacher(id, DateTime.Now.Year);
@@ -127,9 +128,8 @@ namespace Michaelhouse.Controllers
 
         private void PopulateSubjectsJson()
         {
-            using (var db = new DBContextClass())
+            using (var db = DbContextFactory.Create())
             {
-                db.Configuration.ProxyCreationEnabled = false;
 
                 var subjects = db.Subjects
                     .AsNoTracking()
@@ -162,7 +162,7 @@ namespace Michaelhouse.Controllers
 
             var today = System.DateTime.Today;
             var todayAttendance = db.TeacherAttendances
-                .FirstOrDefault(ta => ta.TeacherId == teacherId && DbFunctions.TruncateTime(ta.Date) == today);
+                .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.Date.Date == today);
 
             var subjectCount = db.Subjects.Count(s => s.TeacherId == teacherId);
             var recentAttendance = db.Attendances
