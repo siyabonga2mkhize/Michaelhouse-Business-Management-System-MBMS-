@@ -94,7 +94,9 @@ namespace Michaelhouse.Services
             for (int attempt = 0; attempt < MaxGenerationAttempts; attempt++)
             {
                 var tokenSource = $"{student.StudentId}|{student.StudentNumber}|{Guid.NewGuid():N}|{DateTime.UtcNow.Ticks}";
-                var protectedBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(tokenSource));
+                var secretKey = System.Text.Encoding.UTF8.GetBytes(AppConfig.AppSettings("QRCode:SecretKey") ?? "MichaelhouseQRDefault");
+                var protectedBytes = new System.Security.Cryptography.HMACSHA256(secretKey)
+                    .ComputeHash(System.Text.Encoding.UTF8.GetBytes(tokenSource));
                 var token = Convert.ToBase64String(protectedBytes)
                     .TrimEnd('=')
                     .Replace('+', '-')

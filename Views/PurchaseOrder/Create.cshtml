@@ -46,8 +46,7 @@
                         <option value="">— Choose a supplier —</option>
                         @foreach (var s in suppliers)
                         {
-                            <option value="@s.SupplierId"
-                                    selected="@(selectedSupplier != null && s.SupplierId == selectedSupplier.SupplierId)">
+                            <option value="@s.SupplierId" @((selectedSupplier != null && s.SupplierId == selectedSupplier.SupplierId) ? "selected=\"selected\"" : "")>
                                 @s.Name
                             </option>
                         }

@@ -1,4 +1,4 @@
-namespace Michaelhouse.Controllers
+namespace Michaelhouse.Models.ViewModels
 {
     /// <summary>
     /// View model for the Transport Manager dashboard.

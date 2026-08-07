@@ -20,7 +20,7 @@
                         <option value="">All Children</option>
                         @foreach (var s in ViewBag.Students as List<Student>)
                         {
-                            <option value="@s.StudentId" selected="@(ViewBag.SelectedStudentId == s.StudentId)">@s.FirstName @s.LastName</option>
+                            <option value="@s.StudentId" @((ViewBag.SelectedStudentId == s.StudentId) ? "selected=\"selected\"" : "")>@s.FirstName @s.LastName</option>
                         }
                     </select>
                 </div>
@@ -30,7 +30,7 @@
                         <option value="">All Subjects</option>
                         @foreach (var sub in ViewBag.Subjects as List<Subject>)
                         {
-                            <option value="@sub.SubjectId" selected="@(ViewBag.SelectedSubjectId == sub.SubjectId)">@sub.Name</option>
+                            <option value="@sub.SubjectId" @((ViewBag.SelectedSubjectId == sub.SubjectId) ? "selected=\"selected\"" : "")>@sub.Name</option>
                         }
                     </select>
                 </div>

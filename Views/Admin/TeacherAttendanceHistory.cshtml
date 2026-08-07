@@ -17,7 +17,7 @@
                 <option value="">All Teachers</option>
                 @foreach (var t in ViewBag.Teachers as List<Michaelhouse.Models.Teacher>)
                 {
-                    <option value="@t.TeacherId"  selected="@(Context.Request.Query["teacherId"] == t.TeacherId.ToString())">
+                    <option value="@t.TeacherId"  @((Context.Request.Query["teacherId"] == t.TeacherId.ToString()) ? "selected=\"selected\"" : "")>
                         @t.Name
                     </option>
                 }

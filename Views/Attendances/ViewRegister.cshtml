@@ -19,7 +19,7 @@
                 <option value="">All Students</option>
                 @foreach (var s in ViewBag.Students as List<Michaelhouse.Models.Student>)
                 {
-                    <option value="@s.StudentId" selected="@(ViewBag.SelectedStudentId == s.StudentId)">@s.FirstName @s.LastName</option>
+                    <option value="@s.StudentId" @((ViewBag.SelectedStudentId == s.StudentId) ? "selected=\"selected\"" : "")>@s.FirstName @s.LastName</option>
                 }
             </select>
         </div>

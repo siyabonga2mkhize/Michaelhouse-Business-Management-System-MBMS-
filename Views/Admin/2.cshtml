@@ -18,7 +18,7 @@
                 <option value="">All Subjects</option>
                 @foreach (var s in ViewBag.Subjects as List<Michaelhouse.Models.Subject>)
                 {
-                    <option value="@s.SubjectId"  selected="@(Context.Request.Query["subjectId"] == s.SubjectId.ToString())">
+                    <option value="@s.SubjectId"  @((Context.Request.Query["subjectId"] == s.SubjectId.ToString()) ? "selected=\"selected\"" : "")>
                         @s.Name (Gr @s.GradeLevel)
                     </option>
                 }
@@ -30,7 +30,7 @@
                 <option value="">All Students</option>
                 @foreach (var st in ViewBag.Students as List<Michaelhouse.Models.Student>)
                 {
-                    <option value="@st.StudentId"  selected="@(Context.Request.Query["studentId"] == st.StudentId.ToString())">
+                    <option value="@st.StudentId"  @((Context.Request.Query["studentId"] == st.StudentId.ToString()) ? "selected=\"selected\"" : "")>
                         @st.Name (Gr @st.GradeLevel)
                     </option>
                 }

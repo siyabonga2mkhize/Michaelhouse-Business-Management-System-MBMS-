@@ -233,8 +233,7 @@ namespace Michaelhouse.Controllers
                 if (doc == null) return NotFound();
 
                 var uploadRoot = PathHelper.MapPath(
-                    System.Configuration.ConfigurationManager
-                        .AppSettings["DocumentStorage:UploadRoot"] ?? "~/App_Data/Uploads");
+                    AppConfig.AppSettings("DocumentStorage:UploadRoot") ?? "~/App_Data/Uploads");
 
                 var fullPath = System.IO.Path.Combine(uploadRoot, doc.FilePath);
                 if (!System.IO.File.Exists(fullPath)) return NotFound();

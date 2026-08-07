@@ -40,7 +40,7 @@ namespace Michaelhouse
         public ActionResult MyApplications()
         {
             var uid = GetCurrentAppUserId();
-            if (uid == null) return StatusCode(400);
+            if (uid == null) return StatusCode(403);
             var apps = db.DriverApplications.Where(a => a.UserId == uid).ToList();
             return View(apps);
         }
@@ -59,7 +59,7 @@ namespace Michaelhouse
             bool isOwner = (application.UserId == currentUserId);
 
             if (!isAdminOrTransport && !isOwner)
-                return StatusCode(400);
+                return StatusCode(403);
 
             return View(application);
         }
@@ -87,14 +87,14 @@ namespace Michaelhouse
             }
 
             if (!User.IsInRole("Admin") && driverApplication.UserId != uid && !tokenMatches)
-                return StatusCode(400);
+                return StatusCode(403);
             var currentUserId = (int?)Session["UserId"];
             var currentRole = Session["UserRole"]?.ToString();
             bool isAdmin = currentRole == "Admin";
             bool isOwner = (driverApplication.UserId == currentUserId);
 
             if (!isAdmin && !isOwner && !tokenMatches)
-                return StatusCode(400);
+                return StatusCode(403);
 
             return View(driverApplication);
         }
@@ -264,7 +264,7 @@ Michaelhouse Transport Team
             bool isOwner = (driverApplication.UserId == currentUserId);
 
             if (!isAdmin && !isOwner)
-                return StatusCode(400);
+                return StatusCode(403);
 
             db.DriverApplications.Remove(driverApplication);
             db.SaveChanges();
@@ -437,7 +437,7 @@ Michaelhouse Transport Team
             bool isOwner = uid != null && application.UserId == uid;
 
             if (!User.IsInRole("Admin") && !isOwner && !tokenValid)
-                return StatusCode(400);
+                return StatusCode(403);
 
             ViewBag.IsPublicViewer = !User.IsInRole("Admin") && !isOwner;
 
