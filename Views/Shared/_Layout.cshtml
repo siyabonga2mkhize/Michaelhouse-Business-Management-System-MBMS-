@@ -32,22 +32,26 @@
             --mh-red: #C21E2E;
             --mh-dark: #1a1a1a;
             --sidebar-width: 260px;
-            --sidebar-collapsed-width: 70px;
+            /*--sidebar-collapsed-width: 70px;*/
         }
 
-        html,body {
+        html,
+        body {
+            width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: auto; /* Prevent body from scrolling */
         }
 
         body {
+            width: 100%;
+            min-width: 0;
             background: #ffffff;
             font-family: 'Montserrat', sans-serif;
             display: flex;
-            flex-direction:column;
-            overflow-x: auto;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         h1, h2, h3, .navbar-brand, .sidebar-label {
@@ -78,11 +82,21 @@
         }
 
         /* --- DYNAMIC MAIN WRAPPER --- */
+        /*.app-shell {
+            display: flex;
+            flex: 1;*/ /* Fills remaining vertical space */
+            /*height: calc(100vh - var(--nav-height));
+            overflow: hidden;
+        }*/
+
         .app-shell {
             display: flex;
-            flex: 1; /* Fills remaining vertical space */
-            height: calc(100vh - var(--nav-height));
-            overflow: hidden;
+            width: 100%;
+            max-width: none !important;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: visible;
+            box-sizing: border-box;
         }
 
         .nav-logo {
@@ -95,28 +109,32 @@
 
         #sidebar {
             background: #fdfdfd;
-            min-height: calc(100vh - 70px);
             width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             border-right: 1px solid #eee;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Smoothly disappear */
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-x: hidden;
-            overflow-y:auto;
+            overflow-y: auto;
             white-space: nowrap;
-            flex-shrink: 0;
+            flex: 0 0 var(--sidebar-width);
             height: 100%;
         }
 
-
-
+            /* COLLAPSED = COMPLETELY HIDDEN */
             #sidebar.collapsed {
-                width: var(--sidebar-collapsed-width);
+                width: 0;
+                min-width: 0;
+                flex-basis: 0;
+                border-right: none;
             }
 
-
-
+                /* Hide everything inside while collapsed */
                 #sidebar.collapsed .sidebar-label,
-                #sidebar.collapsed .link-text {
-                    display: none;
+                #sidebar.collapsed .nav-link,
+                #sidebar.collapsed .sidebar-divider {
+                    opacity: 0;
+                    pointer-events: none;
                 }
 
 
@@ -179,31 +197,57 @@
 
 
 
-        .main-content {
+        /*.main-content {
             flex: 1;
             min-width: 0;
             transition: all 0.3s;
             background: #fff;
             position: relative;
             z-index: 1;
+        }*/
+        .main-content {
+            flex: 1 1 0%;
+            width: 100%;
+            max-width: none !important;
+            min-width: 0;
+            background: #fff;
+            position: relative;
+            z-index: 1;
+            overflow-x: auto;
+            box-sizing: border-box;
         }
 
 
-
+/*
         .full-width {
             padding: 0 !important;
-        }
+        }*/
 
 
 
-        #sidebarCollapse {
+        /*#sidebarCollapse {
             background: none;
             border: none;
             color: var(--mh-red);
             font-size: 1.5rem;
             cursor: pointer;
             padding: 0 15px;
+        }*/
+        #sidebarCollapse {
+            background: none;
+            border: none;
+            color: var(--mh-red);
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
+            #sidebarCollapse:hover {
+                color: #8f1622;
+            }
 
 
 
@@ -302,7 +346,7 @@
 
             <a class="navbar-brand" href="@Url.Action("Index", "Home")">
 
-                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
+                @*<img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />*@
 
                 <!-- Center: brand logo + text -->
                 <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
@@ -359,7 +403,7 @@
 
 
 
-    <div class="d-flex">
+    <div class= "app-shell" >
 
         @if (isLoggedIn)
 
@@ -791,10 +835,10 @@
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                        </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -963,43 +1007,43 @@
 
 
 
-        <div class="main-content @(isHomePage ? "full-width" : "p-4")">
+    <div class="main-content @(isHomePage ? "full-width" : "p-4")" style="width: 100%; max-width: none;">
 
-            @if (TempData["Success"] != null)
+        @if (TempData["Success"] != null)
 
-            {
+        {
 
-                <div class="alert alert-success alert-dismissible fade show mb-4">
+            <div class="alert alert-success alert-dismissible fade show mb-4">
 
-                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
 
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-                </div>
+            </div>
 
-            }
+        }
 
-            @if (TempData["Error"] != null)
+        @if (TempData["Error"] != null)
 
-            {
+        {
 
-                <div class="alert alert-danger alert-dismissible fade show mb-4">
+            <div class="alert alert-danger alert-dismissible fade show mb-4">
 
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
 
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-                </div>
+            </div>
 
-            }
-
-
+        }
 
 
 
-            @RenderBody()
 
-        </div>
+
+        @RenderBody()
+
+    </div>
 
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1007,21 +1051,37 @@
 
     <script>
 
+        //document.addEventListener("DOMContentLoaded", function () {
+
+        //    const btn = document.getElementById('sidebarCollapse');
+
+        //    const sidebar = document.getElementById('sidebar');
+
+        //    if (btn && sidebar) {
+
+        //        btn.addEventListener('click', function () {
+
+        //            sidebar.classList.toggle('collapsed');
+
+        //        });
+
+        //    }
+        //});
         document.addEventListener("DOMContentLoaded", function () {
 
-            const btn = document.getElementById('sidebarCollapse');
+            const btn = document.getElementById("sidebarCollapse");
+            const sidebar = document.getElementById("sidebar");
 
-            const sidebar = document.getElementById('sidebar');
-
-            if (btn && sidebar) {
-
-                btn.addEventListener('click', function () {
-
-                    sidebar.classList.toggle('collapsed');
-
-                });
-
+            if (!btn || !sidebar) {
+                return;
             }
+
+            btn.addEventListener("click", function () {
+
+                sidebar.classList.toggle("collapsed");
+
+            });
+
         });
         function loadNotifications() {
     $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
