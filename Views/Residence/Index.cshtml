@@ -1,65 +1,185 @@
 @model IEnumerable<Michaelhouse.Models.Residence>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Residences";
+    ViewBag.Title = "Residences Registry";
+    bool isArchived = ViewBag.Archived ?? false;
 }
 
-<section class="p-8">
-    <header class="flex items-center justify-between mb-6">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
-            <h1 class="text-4xl font-serif font-bold">Residences</h1>
-            <p class="text-sm text-gray-500 mt-1">Manage boarding houses and availability</p>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Residences</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Manage Boarding Infrastructure & Capacity</p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="@Url.Action("Index", new { archived = !(ViewBag.Archived ?? false) })" class="px-4 py-2 border rounded shadow-sm">
-                @((ViewBag.Archived ?? false) ? "Show Active" : "Show Archived")
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", new { archived = !isArchived })" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:shadow-[0_0_15px_rgba(0,0,0,0.05)] transition-all text-gray-600">
+                <i class="bi @(isArchived ? "bi-eye" : "bi-archive") me-2"></i> @(isArchived ? "Show Active Deployments" : "Show Archived Records")
             </a>
-            <a href="@Url.Action("Create")" class="bg-[#C21E2E] text-white px-4 py-2 rounded shadow hover:opacity-95">New Residence</a>
-        </div>
-    </header>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase tracking-wider">Total Residences</div>
-            <div class="mt-2 text-3xl font-bold">@Model.Count()</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase tracking-wider">Occupied Beds</div>
-            <div class="mt-2 text-3xl font-bold">@Model.Sum(r => r.OccupiedBeds)</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase tracking-wider">Available Beds</div>
-            <div class="mt-2 text-3xl font-bold">@Model.Sum(r => r.AvailableBeds)</div>
+            <a href="@Url.Action("Create")" class="inline-block bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">
+                <i class="bi bi-plus-lg me-2"></i> Register New Residence
+            </a>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">House Master</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Occupied</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available</th>
-                    <th class="px-6 py-3"></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
-                @foreach (var residence in Model)
-                {
-                    <tr>
-                        <td class="px-6 py-4 font-semibold">@residence.Name</td>
-                        <td class="px-6 py-4">@(residence.HouseMaster != null ? residence.HouseMaster.FullName : "Unassigned")</td>
-                        <td class="px-6 py-4">@residence.Capacity</td>
-                        <td class="px-6 py-4">@residence.OccupiedBeds</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-800 rounded">@residence.AvailableBeds</span></td>
-                        <td class="px-6 py-4 text-right">
-                            <a class="text-[#C21E2E] font-bold" href="@Url.Action("Details", new { id = residence.ResidenceId })">Details</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4">
+
+        @* --- HERO METRICS TILES (With Ghost Shadows & Watermarks) --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+            <div class="bg-white border-t-4 border-gray-800 p-6 shadow-sm relative overflow-hidden flex flex-col transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(0,0,0,0.08)] group">
+                <i class="bi bi-buildings absolute -right-6 -bottom-6 text-8xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+                <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-2 relative z-10">Total Operational Units</p>
+                <h3 class="text-4xl font-mono font-bold text-gray-900 mb-0 relative z-10">@Model.Count()</h3>
+            </div>
+
+            <div class="bg-white border-t-4 border-[#f59e0b] p-6 shadow-sm relative overflow-hidden flex flex-col transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(245,158,11,0.15)] group">
+                <i class="bi bi-person-lines-fill absolute -right-6 -bottom-6 text-8xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+                <p class="text-[9px] uppercase tracking-[3px] font-bold text-[#f59e0b] mb-2 relative z-10">Total Occupied Beds</p>
+                <h3 class="text-4xl font-mono font-bold text-gray-900 mb-0 relative z-10">@Model.Sum(r => r.OccupiedBeds)</h3>
+            </div>
+
+            <div class="bg-white border-t-4 border-[#10b981] p-6 shadow-sm relative overflow-hidden flex flex-col transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)] group">
+                <i class="bi bi-check2-square absolute -right-6 -bottom-6 text-8xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+                <p class="text-[9px] uppercase tracking-[3px] font-bold text-green-600 mb-2 relative z-10">Total Available Capacity</p>
+                <h3 class="text-4xl font-mono font-bold text-[#10b981] mb-0 relative z-10">@Model.Sum(r => r.AvailableBeds)</h3>
+            </div>
+
+        </div>
+
+        @* --- ARCHIVAL LEDGER TABLE --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow min-h-0 relative">
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative overflow-hidden flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-journal-bookmark-fill me-2 text-gray-400"></i> Official Residence Ledger</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">Status: @(isArchived ? "Viewing Archived Records" : "Viewing Active Deployments")</p>
+                </div>
+            </div>
+
+            @* Table Container (Scrolls Internally) *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="sticky top-0 z-10 bg-white shadow-sm">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                            <th class="ps-8 py-5">Residence Designation</th>
+                            <th>House Master</th>
+                            <th class="text-center border-l border-gray-100">Total Cap</th>
+                            <th class="text-center">Occupied</th>
+                            <th class="text-center">Available</th>
+                            <th class="pe-8 text-end border-l border-gray-100">Administrative</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="py-20 text-center">
+                                    <i class="bi bi-building-slash text-gray-200 text-6xl d-block mb-4"></i>
+                                    <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Ledger Empty</h4>
+                                    <p class="text-[11px] font-mono text-gray-400 mt-2">No residences match the current registry filter.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var residence in Model)
+                            {
+                                <tr class="group hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-5">
+                                        <div class="font-serif font-bold text-gray-900 text-lg group-hover:text-[#C21E2E] transition-colors">@residence.Name</div>
+                                    </td>
+                                    <td>
+                                        @if (residence.HouseMaster != null)
+                                        {
+                                            <span class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">@residence.HouseMaster.FullName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono"><i class="bi bi-exclamation-triangle me-1"></i> Unassigned</span>
+                                        }
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono font-bold text-gray-500 text-sm">@residence.Capacity</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="font-mono font-bold text-gray-900 text-sm">@residence.OccupiedBeds</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (residence.AvailableBeds > 0)
+                                        {
+                                            <span class="font-mono text-[11px] font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 shadow-sm">
+                                                @residence.AvailableBeds
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="font-mono text-[10px] font-bold text-[#C21E2E] bg-red-50 border border-[#C21E2E]/30 px-3 py-1 shadow-sm uppercase tracking-widest">
+                                                Full
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="pe-8 text-end border-l border-gray-50">
+                                        <a href="@Url.Action("Details", new { id = residence.ResidenceId })" class="inline-block bg-transparent border border-gray-300 text-gray-500 px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-[#C21E2E] hover:text-[#C21E2E] hover:bg-red-50/50 hover:shadow-[0_0_15px_rgba(194,30,46,0.15)] transition-all duration-300">
+                                            View Details <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Institutional Footer *@
+            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Official Infrastructure Registry
+                </div>
+            </div>
+        </div>
+
     </div>
-</section>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
