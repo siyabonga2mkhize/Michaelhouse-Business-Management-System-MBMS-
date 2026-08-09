@@ -38,9 +38,9 @@
                     </button>
                 }
             }
-            <a href="@Url.Action("Index", "Home")" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
-                <i class="bi bi-arrow-left me-2"></i> Dashboard
-            </a>
+        <a href="@Url.Action("Dashboard", "Admin")" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Dashboard
+        </a>
         </div>
     </div>
 
@@ -138,6 +138,7 @@
                         <tr class="border-b border-gray-100 bg-gray-50/30 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">
                             <th class="py-4 px-6 w-16">#</th>
                             <th class="py-4 px-6">Student / Personnel Name</th>
+                            <th class="py-4 px-6">Emergency Contact</th>
                             <th class="py-4 px-6">Safety Verification Status</th>
                             <th class="py-4 px-6">Distance to Target</th>
                             <th class="py-4 px-6">Confirmation Timestamp</th>
@@ -154,6 +155,11 @@
                                     <td class="py-4 px-6">
                                         <div class="font-serif font-bold text-gray-900 text-sm">@item.StudentName</div>
                                     </td>
+                                    <td class="py-4 px-6 text-[10px] font-mono text-gray-600">
+                                        <div class="font-bold text-gray-800 text-xs">@item.ParentName</div>
+                                        <!-- Add a small "+27" or whatever prefix if needed, or just the number -->
+                                        <div class="text-gray-400">@item.ParentContact</div>
+                                    </td>
                                     <td class="py-4 px-6">
                                         @if (item.Status == Michaelhouse.Models.SafetyStatus.Confirmed)
                                         {
@@ -169,7 +175,23 @@
                                         }
                                     </td>
                                     <td class="py-4 px-6 text-gray-600">
-                                        @(item.DistanceFromAssemblyPointMeters > 0 ? $"{item.DistanceFromAssemblyPointMeters:F0} m" : "—")
+                                        @{
+                                            var dist = item.DistanceFromAssemblyPointMeters;
+                                            string display = "—";
+                                            if (dist > 0)
+                                            {
+                                                if (dist >= 1000)
+                                                {
+                                                    // Convert to kilometers with 1 decimal place
+                                                    display = $"{(dist / 1000.0):F1} km";
+                                                }
+                                                else
+                                                {
+                                                    display = $"{dist:F0} m";
+                                                }
+                                            }
+                                        }
+                                        @display
                                     </td>
                                     <td class="py-4 px-6 text-gray-600">
                                         @(item.ConfirmationTime > DateTime.MinValue ? item.ConfirmationTime.ToString("HH:mm:ss") : "—")

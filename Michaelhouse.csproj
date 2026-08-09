@@ -263,6 +263,10 @@
     <Compile Include="Migrations\202608091039299_initialcreate.Designer.cs">
       <DependentUpon>202608091039299_initialcreate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608091538279_initialcreate1.cs" />
+    <Compile Include="Migrations\202608091538279_initialcreate1.Designer.cs">
+      <DependentUpon>202608091538279_initialcreate1.cs</DependentUpon>
+    </Compile>
     <!-- Migrations – merged both sets -->
     <Compile Include="Migrations\Configuration.cs" />
     <!-- Models -->
@@ -498,6 +502,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202608091039299_initialcreate.resx">
       <DependentUpon>202608091039299_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608091538279_initialcreate1.resx">
+      <DependentUpon>202608091538279_initialcreate1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

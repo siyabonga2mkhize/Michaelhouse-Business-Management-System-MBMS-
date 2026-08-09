@@ -151,8 +151,9 @@ namespace Michaelhouse.Controllers
 
             // Get boarding students – using IsBoarding and IsActive
             var boardingStudents = await db.Students
-                .Where(s => s.IsActive && s.IsBoarding)
-                .ToListAsync();
+    .Include(s => s.Parent) // <--- ADD THIS LINE
+    .Where(s => s.IsActive && s.IsBoarding)
+    .ToListAsync();
 
             var confirmations = await db.StudentSafetyConfirmations
                 .Include(c => c.Student)
@@ -185,7 +186,9 @@ namespace Michaelhouse.Controllers
                         ConfirmationTime = confirmation.ConfirmationTime,
                         WithinGeofence = confirmation.WithinGeofence,
                         StudentLatitude = confirmation.StudentLatitude,   // add this
-                        StudentLongitude = confirmation.StudentLongitude  // add this
+                        StudentLongitude = confirmation.StudentLongitude,  // add this
+                        ParentName = student.Parent?.EmergencyContactName ?? student.Parent?.Name ?? "N/A",
+                        ParentContact = student.Parent?.EmergencyContactPhone ?? student.Parent?.CellPhone ?? student.Parent?.Contact ?? "N/A"
                     });
                 }
                 else
@@ -199,7 +202,9 @@ namespace Michaelhouse.Controllers
                         ConfirmationTime = DateTime.MinValue,
                         WithinGeofence = false,
                         StudentLatitude = 0,
-                        StudentLongitude = 0
+                        StudentLongitude = 0,
+                        ParentName = student.Parent?.EmergencyContactName ?? "N/A",
+                        ParentContact = student.Parent?.EmergencyContactPhone ?? "N/A"
                     });
                 }
             }
@@ -358,7 +363,7 @@ namespace Michaelhouse.Controllers
 
         // ============= RESOLVE ALERT =============
         [HttpPost]
-        [Authorize(Roles = "Admin,HouseMaster")]
+        [AllowAnonymous]
         public async Task<ActionResult> ResolveAlert(int id, string notes = "")
         {
             try

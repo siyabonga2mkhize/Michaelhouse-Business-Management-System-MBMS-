@@ -1080,3 +1080,14 @@ VALUES
 
 
 SELECT GeofenceRadiusMeters FROM EmergencyAlerts WHERE AlertId = 1;
+
+-- 1. Update Demo Parent (ParentId 2) with emergency contact details
+UPDATE Parents 
+SET EmergencyContactName = 'Mrs. Demo Parent Emergency', 
+    EmergencyContactPhone = '+27 82 123 4567'
+WHERE ParentId = 2;
+
+-- 2. Make sure the students are linked to this parent
+UPDATE Students
+SET ParentId = 2
+WHERE UserId IN (1005, 1006, 1007, 1008, 1009); -- The 5 Student UserIds

@@ -31,6 +31,9 @@ namespace Michaelhouse.Models.ViewModels
 
         public double StudentLatitude { get; set; }
         public double StudentLongitude { get; set; }
+        public string ParentName { get; set; }
+        public string ParentContact { get; set; }
+
 
     }
 }
