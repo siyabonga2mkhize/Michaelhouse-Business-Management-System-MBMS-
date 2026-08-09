@@ -1022,13 +1022,13 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE Vehi
 
 -- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
 UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');
-<<<<<<< HEAD
+
 
 
 
 
 select * from EmergencyAlerts;
-=======
+
 SELECT TOP 10
     s.StudentId,
     s.StudentNumber,
@@ -1055,4 +1055,3 @@ SELECT TOP 10
     LEN(QRImage) AS ImageSize,
     IsActive
 FROM StudentQRCodes;
->>>>>>> cac0b9b007c9c6c3afa88f6e49ed8be72f2f8bc9

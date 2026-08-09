@@ -1,795 +1,588 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
-  <PropertyGroup>
-    <SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SSDTPath Condition="'$(SSDTPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB\DAC</SSDTPath>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>
-    </ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}</ProjectGuid>
-    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Michaelhouse</RootNamespace>
-    <AssemblyName>Michaelhouse</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress />
-    <IISExpressSSLPort>44321</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
-    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
-    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
-    <UseGlobalApplicationHostFile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Antlr3.Runtime, Version=3.5.0.2, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
-      <HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Azure.AI.FormRecognizer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <HintPath>packages\Azure.AI.FormRecognizer.4.1.0\lib\netstandard2.0\Azure.AI.FormRecognizer.dll</HintPath>
-    </Reference>
-    <Reference Include="Azure.Core, Version=1.52.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <HintPath>packages\Azure.Core.1.52.0\lib\net472\Azure.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.Identity.Core.2.2.4\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.4\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.10.0.3\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.FileProviders.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Hosting.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Logging.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Options, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Options.10.0.3\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Primitives.10.0.3\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
-      <HintPath>packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Stripe.net, Version=52.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.52.2.0\lib\net462\Stripe.net.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, ...">
-    <HintPath>...</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ClientModel, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <HintPath>packages\System.ClientModel.1.10.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Diagnostics.DiagnosticSource.10.0.3\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Pipelines, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.IO.Pipelines.10.0.3\lib\net462\System.IO.Pipelines.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Memory.Data, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.Data.10.0.3\lib\net462\System.Memory.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-      <Private>True</Private>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Text.Json, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Text.Json.10.0.3\lib\net462\System.Text.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.DynamicData" />
-    <Reference Include="System.Web.Entity" />
-    <Reference Include="System.Web.ApplicationServices" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.Razor.3.2.9\lib\net45\System.Web.Razor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Abstractions" />
-    <Reference Include="System.Web.Routing" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Web.Services" />
-    <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.WebRequest" />
-    <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
-    </Reference>
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\FilterConfig.cs" />
-    <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Controllers\AIController.cs" />
-    <Compile Include="Controllers\AttendancesController.cs" />
-    <Compile Include="Controllers\DriverController.cs" />
-    <Compile Include="Controllers\DriverDocument.cs" />
-    <Compile Include="Controllers\EmergencyController.cs" />
-    <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\HouseMasterController.cs" />
-    <Compile Include="Controllers\NotificationController.cs" />
-    <Compile Include="Controllers\InventoryController.cs" />
-    <Compile Include="Controllers\PurchaseorderController.cs" />
-    <Compile Include="Controllers\ResidenceAllocationController.cs" />
-    <Compile Include="Controllers\ResidenceController.cs" />
-    <Compile Include="Controllers\BedController.cs" />
-    <Compile Include="Controllers\QRScanRecordController.cs" />
-    <Compile Include="Controllers\ResidenceAssignmentController.cs" />
-    <Compile Include="Controllers\ResidenceMovementController.cs" />
-    <Compile Include="Controllers\RoomController.cs" />
-    <Compile Include="Controllers\StudentQRCodeController.cs" />
-    <Compile Include="Controllers\StudentProfileController.cs" />
-    <Compile Include="Controllers\SupplierController.cs" />
-    <Compile Include="Controllers\TeacherAttendanceController.cs" />
-    <Compile Include="Controllers\TeacherDashboardController.cs" />
-    <Compile Include="Controllers\DriverApplicationsController.cs" />
-    <Compile Include="Controllers\TransportController.cs" />
-    <Compile Include="Global.asax.cs">
-      <DependentUpon>Global.asax</DependentUpon>
-    </Compile>
-<<<<<<< HEAD
-    <Compile Include="Migrations\202608062129413_initialcreate.cs" />
-    <Compile Include="Migrations\202608062129413_initialcreate.Designer.cs">
-      <DependentUpon>202608062129413_initialcreate.cs</DependentUpon>
-=======
-    <Compile Include="Migrations\202608051322277_InitialCreate.cs" />
-    <Compile Include="Migrations\202608051322277_InitialCreate.Designer.cs">
-      <DependentUpon>202608051322277_InitialCreate.cs</DependentUpon>
->>>>>>> cac0b9b007c9c6c3afa88f6e49ed8be72f2f8bc9
-    </Compile>
-    <Compile Include="Migrations\202608051612099_AddStudentProfileWizardFields.cs" />
-    <Compile Include="Migrations\202608051612099_AddStudentProfileWizardFields.Designer.cs">
-      <DependentUpon>202608051612099_AddStudentProfileWizardFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608052038105_CRUD.cs" />
-    <Compile Include="Migrations\202608052038105_CRUD.Designer.cs">
-      <DependentUpon>202608052038105_CRUD.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Boardingmanagementseeder.cs" />
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\AIAlert.cs" />
-    <Compile Include="Models\AIAllocationHistory.cs" />
-    <Compile Include="Models\AIRecommendationOverride.cs" />
-    <Compile Include="Models\AIResidenceRecommendation.cs" />
-    <Compile Include="Models\AIWaitingList.cs" />
-    <Compile Include="Models\Application.cs" />
-    <Compile Include="Models\Attendance.cs" />
-    <Compile Include="Models\AttendanceRecordViewModel.cs" />
-    <Compile Include="Models\AttendanceSummaryViewModel.cs" />
-    <Compile Include="Models\BoardingHouse.cs" />
-    <Compile Include="Models\Class.cs" />
-    <Compile Include="Models\ClassSubject.cs" />
-    <Compile Include="Models\DBContextClass.cs" />
-    <Compile Include="Models\Driver.cs" />
-    <Compile Include="Models\EmergencyAlert.cs" />
-    <Compile Include="Models\EmergencyService.cs" />
-    <Compile Include="Models\Enrollment.cs" />
-    <Compile Include="Models\EnrollmentViewModel.cs.cs" />
-    <Compile Include="Models\Event.cs" />
-    <Compile Include="Models\GeofencingService.cs" />
-    <Compile Include="Models\HouseMaster.cs" />
-    <Compile Include="Models\InventoryItem.cs" />
-    <Compile Include="Models\Inventorymodels.cs" />
-    <Compile Include="Models\InventoryService.cs" />
-    <Compile Include="Models\Invoice.cs" />
-    <Compile Include="Models\MaintananceRequest.cs" />
-    <Compile Include="Models\MarkAttendanceViewModel.cs" />
-    <Compile Include="Controllers\AccountController.cs" />
-    <Compile Include="Controllers\AdminController.cs" />
-    <Compile Include="Controllers\AdminReviewController.cs" />
-    <Compile Include="Controllers\ApplicationsController.cs" />
-    <Compile Include="Controllers\CartController.cs" />
-    <Compile Include="Controllers\DocumentsController.cs" />
-    <Compile Include="Controllers\MarksController.cs" />
-    <Compile Include="Controllers\OrderController.cs" />
-    <Compile Include="Controllers\ParentsController.cs" />
-    <Compile Include="Controllers\PaymentController.cs" />
-    <Compile Include="Controllers\RegistrationController.cs" />
-    <Compile Include="Controllers\ReportController.cs" />
-    <Compile Include="Controllers\StoreController.cs" />
-    <Compile Include="Controllers\StudentsController.cs" />
-    <Compile Include="Controllers\TeacherController.cs" />
-    <Compile Include="Controllers\TimetableController.cs" />
-    <Compile Include="Filters\AuthorizeFilters.cs" />
-    <Compile Include="Models\AcademicStream.cs" />
-    <Compile Include="Models\AdminReview.cs" />
-    <Compile Include="Models\AiReviewService.cs" />
-    <Compile Include="Models\ApplicationService.cs" />
-    <Compile Include="Models\ApplicationStatus.cs" />
-    <Compile Include="Models\AppUser.cs" />
-    <Compile Include="Models\Category.cs" />
-    <Compile Include="Models\Assessment.cs" />
-    <Compile Include="Models\Document.cs" />
-    <Compile Include="Models\EmailService.cs" />
-    <Compile Include="Models\ICartService.cs" />
-    <Compile Include="Models\InvoiceService.cs" />
-    <Compile Include="Models\Marksservice.cs" />
-    <Compile Include="Models\Notification.cs" />
-    <Compile Include="Models\NotificationHelper.cs" />
-    <Compile Include="Models\Parent.cs" />
-    <Compile Include="Models\ParentAttendanceSummaryViewModel.cs" />
-    <Compile Include="Models\ParentAttendanceViewModel.cs" />
-    <Compile Include="Models\Payment.cs" />
-    <Compile Include="Models\PaymentService.cs" />
-    <Compile Include="Models\QRScanRecord.cs" />
-    <Compile Include="Models\Registration.cs" />
-    <Compile Include="Models\RegistrationService.cs" />
-    <Compile Include="Models\RegistrationStatus.cs" />
-    <Compile Include="Models\ResidenceAllocation.cs" />
-    <Compile Include="Models\ResidenceMovement.cs" />
-    <Compile Include="Models\RoomCompatibilityResult.cs" />
-    <Compile Include="Models\SchoolClass.cs" />
-    <Compile Include="Models\SessionCartService.cs" />
-    <Compile Include="Models\StreamEnrolment.cs" />
-    <Compile Include="Models\Student.cs" />
-    <Compile Include="Models\StudentAccountService.cs" />
-    <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
-    <Compile Include="Models\StudentMark.cs" />
-    <Compile Include="Models\StudentProfile.cs" />
-    <Compile Include="Models\StudentProfileWizardViewModels.cs" />
-    <Compile Include="Models\StudentQRCode.cs" />
-    <Compile Include="Models\StudentSafetyConfirmation.cs" />
-    <Compile Include="Models\StudentSubject.cs" />
-    <Compile Include="Models\Subject.cs" />
-    <Compile Include="Models\Teacher.cs" />
-    <Compile Include="Models\TeacherAttendance.cs" />
-    <Compile Include="Models\TeacherAttendanceRecordViewModel.cs" />
-    <Compile Include="Models\Teacherservice.cs" />
-    <Compile Include="Models\Teachersubjectgrade.cs" />
-    <Compile Include="Models\Termresult.cs" />
-    <Compile Include="Models\Timetablegenerator .cs" />
-    <Compile Include="Models\Timetablemodels.cs" />
-    <Compile Include="Models\Transport.cs" />
-    <Compile Include="Models\Trip.cs" />
-    <Compile Include="Models\Vehicle.cs" />
-    <Compile Include="Models\VehicleIssue.cs" />
-    <Compile Include="Models\ViewModels.cs" />
-    <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
-    <Compile Include="Models\ViewModels\CreateTripVM.cs" />
-    <Compile Include="Models\ViewModels\DriverTripVM.cs" />
-    <Compile Include="Models\ViewModels\TripIndexVM.cs" />
-    <Compile Include="Models\Yearresult.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Controllers\TripController.cs" />
-    <Compile Include="Controllers\VehicleIssuesController.cs" />
-    <Compile Include="Controllers\VehiclesController.cs" />
-    <Compile Include="Services\AIQRCodeVerificationService.cs" />
-    <Compile Include="Services\AIResidenceAllocationService.cs" />
-    <Compile Include="Services\AIResidencePredictionService.cs" />
-    <Compile Include="Services\AllocationRuleService.cs" />
-    <Compile Include="Services\BoardingProfileService.cs" />
-    <Compile Include="Services\CompatibilityScoringService.cs" />
-    <Compile Include="Services\ExplanationGenerator.cs" />
-    <Compile Include="Services\IEmergencyService.cs" />
-    <Compile Include="Services\ResidenceAllocationEngine.cs" />
-    <Compile Include="Services\ResidenceAvailabilityService.cs" />
-    <Compile Include="Services\StudentRoomCompatibilityService.cs" />
-    <Compile Include="StudentQRCodeService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Content\academic.css" />
-    <Content Include="Content\bootstrap-grid.css" />
-    <Content Include="Content\bootstrap-grid.min.css" />
-    <Content Include="Content\bootstrap-grid.rtl.css" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css" />
-    <Content Include="Content\bootstrap-reboot.css" />
-    <Content Include="Content\bootstrap-reboot.min.css" />
-    <Content Include="Content\bootstrap-reboot.rtl.css" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css" />
-    <Content Include="Content\bootstrap-utilities.css" />
-    <Content Include="Content\bootstrap-utilities.min.css" />
-    <Content Include="Content\bootstrap-utilities.rtl.css" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css" />
-    <Content Include="Content\bootstrap.css" />
-    <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\bootstrap.rtl.css" />
-    <Content Include="Content\bootstrap.rtl.min.css" />
-    <Content Include="Content\Images\Drivers\andile.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Drivers\nkosi.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Drivers\thabo.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Drivers\themba.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Vehicles\ford1.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Vehicles\hyundai1.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Vehicles\mercedes1.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Vehicles\nissan1.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Images\Vehicles\quantum1.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="favicon.ico" />
-    <Content Include="Global.asax" />
-    <Content Include="Content\Site.css" />
-    <Content Include="Misc\Import_all.sql" />
-    <Content Include="Content\bootstrap.rtl.min.css.map" />
-    <Content Include="Content\bootstrap.rtl.css.map" />
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
-    <Content Include="Content\bootstrap-utilities.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
-    <Content Include="Content\bootstrap-reboot.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.css.map" />
-    <Content Include="Content\bootstrap-grid.min.css.map" />
-    <None Include="packages.config" />
-    <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
-    <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
-    <Content Include="Scripts\bootstrap.bundle.js" />
-    <Content Include="Scripts\bootstrap.bundle.min.js" />
-    <Content Include="Scripts\bootstrap.esm.js" />
-    <Content Include="Scripts\bootstrap.esm.min.js" />
-    <Content Include="Scripts\bootstrap.js" />
-    <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Scripts\html5-qrcode.min.js" />
-    <Content Include="Misc\SQLQuery.sql" />
-    <None Include="Scripts\jquery-3.7.0.intellisense.js" />
-    <Content Include="Scripts\jquery-3.7.0.js" />
-    <Content Include="Scripts\jquery-3.7.0.min.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.js" />
-    <None Include="Scripts\jquery.validate-vsdoc.js" />
-    <Content Include="Scripts\jquery.validate.js" />
-    <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Views\Transport\Drivers.cshtml" />
-    <Content Include="Views\Transport\CreateDriver.cshtml" />
-    <Content Include="Views\Transport\DeleteDriver.cshtml" />
-    <Content Include="Views\Driver\TripManifest.cshtml" />
-    <Content Include="Views\TransportManager\Details.cshtml" />
-    <Content Include="Views\TransportManager\Index.cshtml" />
-    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
-    <Content Include="Views\StudentQRCode\Details.cshtml" />
-    <Content Include="Views\StudentQRCode\_QRCodeCard.cshtml" />
-    <Content Include="Views\StudentProfile\Basic.cshtml" />
-    <Content Include="Views\StudentProfile\Academic.cshtml" />
-    <Content Include="Views\StudentProfile\Activities.cshtml" />
-    <Content Include="Views\StudentProfile\Medical.cshtml" />
-    <Content Include="Views\StudentProfile\Personality.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Dashboard.cshtml" />
-    <Content Include="Views\ResidenceAllocation\AIDashboard.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Recommend.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Index.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Details.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Create.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Edit.cshtml" />
-    <Content Include="Views\ResidenceAllocation\Archive.cshtml" />
-    <Content Include="Views\Residence\Index.cshtml" />
-    <Content Include="Views\Residence\Details.cshtml" />
-    <Content Include="Views\Residence\Create.cshtml" />
-    <Content Include="Views\Residence\Edit.cshtml" />
-    <Content Include="Views\Residence\Archive.cshtml" />
-    <Content Include="Views\Room\Index.cshtml" />
-    <Content Include="Views\Room\Details.cshtml" />
-    <Content Include="Views\Room\Create.cshtml" />
-    <Content Include="Views\Room\Edit.cshtml" />
-    <Content Include="Views\Room\Archive.cshtml" />
-    <Content Include="Views\Bed\Index.cshtml" />
-    <Content Include="Views\Bed\Details.cshtml" />
-    <Content Include="Views\Bed\Create.cshtml" />
-    <Content Include="Views\Bed\Edit.cshtml" />
-    <Content Include="Views\Bed\Archive.cshtml" />
-    <Content Include="Views\HouseMaster\Dashboard.cshtml" />
-    <Content Include="Views\HouseMaster\Index.cshtml" />
-    <Content Include="Views\HouseMaster\Details.cshtml" />
-    <Content Include="Views\HouseMaster\Create.cshtml" />
-    <Content Include="Views\HouseMaster\Edit.cshtml" />
-    <Content Include="Views\HouseMaster\Archive.cshtml" />
-    <Content Include="Views\Shared\_ResidenceActions.cshtml" />
-    <Content Include="Views\HouseMaster\ResidenceSummary.cshtml" />
-    <Content Include="Views\HouseMaster\CurrentStudents.cshtml" />
-    <Content Include="Views\HouseMaster\StudentsOutsideResidence.cshtml" />
-    <Content Include="Views\HouseMaster\RecentMovements.cshtml" />
-    <Content Include="Views\HouseMaster\EmergencyRollCall.cshtml" />
-    <Content Include="Views\HouseMaster\VisitorRegister.cshtml" />
-    <Content Include="Views\HouseMaster\Notifications.cshtml" />
-<<<<<<< HEAD
-    <Content Include="Views\Emergency\TriggerAlert.cshtml" />
-    <Content Include="Views\Emergency\StudentConfirmSafety.cshtml" />
-    <Content Include="Views\Emergency\AccountabilityDashboard.cshtml" />
-    <Content Include="Views\Emergency\AlertStatus.cshtml" />
-    <Content Include="Views\Emergency\ViewAlertStatus.cshtml" />
-    <Content Include="Views\Emergency\NoActiveAlert.cshtml" />
-=======
-    <Content Include="Views\HouseMaster\ScanQRCode.cshtml" />
-    <Content Include="Views\HouseMaster\InvalidQRCode.cshtml" />
-    <Content Include="Views\ResidenceAssignment\Index.cshtml" />
-    <Content Include="Views\ResidenceAssignment\Details.cshtml" />
-    <Content Include="Views\ResidenceAssignment\Create.cshtml" />
-    <Content Include="Views\ResidenceAssignment\Edit.cshtml" />
-    <Content Include="Views\ResidenceAssignment\Archive.cshtml" />
-    <Content Include="Views\ResidenceMovement\Index.cshtml" />
-    <Content Include="Views\ResidenceMovement\Details.cshtml" />
-    <Content Include="Views\ResidenceMovement\Create.cshtml" />
-    <Content Include="Views\ResidenceMovement\Edit.cshtml" />
-    <Content Include="Views\ResidenceMovement\Archive.cshtml" />
-    <Content Include="Views\QRScanRecord\Index.cshtml" />
-    <Content Include="Views\QRScanRecord\Details.cshtml" />
-    <Content Include="Views\QRScanRecord\Archive.cshtml" />
-    <Content Include="Views\StudentQRCode\Index.cshtml" />
->>>>>>> cac0b9b007c9c6c3afa88f6e49ed8be72f2f8bc9
-    <WebConfigFile Include="Web.config" />
-    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
-    <Content Include="Views\Trip\AttendanceError.cshtml" />
-    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
-    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
-    <Content Include="Views\Trip\TripQRCodes.cshtml" />
-    <Content Include="Views\Students\ScanQRCode.cshtml" />
-    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
-    <Content Include="Views\Shared\SingleQRCode.cshtml" />
-    <WebConfigFile Include="Web.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </WebConfigFile>
-    <Content Include="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Views\Web.config" />
-    <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Shared\Error.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Home\About.cshtml" />
-    <Content Include="Views\Home\Contact.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Attendances\Create.cshtml" />
-    <Content Include="Views\Attendances\Delete.cshtml" />
-    <Content Include="Views\Attendances\Record.cshtml" />
-    <Content Include="Views\Attendances\Edit.cshtml" />
-    <Content Include="Views\Attendances\Index.cshtml" />
-    <Content Include="Views\AdminReview\Create.cshtml" />
-    <Content Include="Views\AdminReview\Delete.cshtml" />
-    <Content Include="Views\AdminReview\Details.cshtml" />
-    <Content Include="Views\AdminReview\Edit.cshtml" />
-    <Content Include="Views\AdminReview\Index.cshtml" />
-    <Content Include="Views\Applications\Create.cshtml" />
-    <Content Include="Views\Applications\Delete.cshtml" />
-    <Content Include="Views\Applications\Details.cshtml" />
-    <Content Include="Views\Applications\Edit.cshtml" />
-    <Content Include="Views\Applications\Index.cshtml" />
-    <Content Include="Views\Students\Create.cshtml" />
-    <Content Include="Views\Students\Delete.cshtml" />
-    <Content Include="Views\Students\Details.cshtml" />
-    <Content Include="Views\Students\Edit.cshtml" />
-    <Content Include="Views\Students\Index.cshtml" />
-    <Content Include="Views\Parents\Create.cshtml" />
-    <Content Include="Views\Parents\Delete.cshtml" />
-    <Content Include="Views\Parents\Details.cshtml" />
-    <Content Include="Views\Parents\Edit.cshtml" />
-    <Content Include="Views\Parents\Index.cshtml" />
-    <Content Include="Views\Documents\Create.cshtml" />
-    <Content Include="Views\Documents\Delete.cshtml" />
-    <Content Include="Views\Documents\Details.cshtml" />
-    <Content Include="Views\Documents\Edit.cshtml" />
-    <Content Include="Views\Documents\Index.cshtml" />
-    <Content Include="Views\Applications\AddStudent.cshtml" />
-    <Content Include="Views\Applications\Status.cshtml" />
-    <Content Include="Views\Applications\_StatusBadge.cshtml" />
-    <Content Include="Views\Admin\Dashboard.cshtml" />
-    <Content Include="Views\Admin\Review.cshtml" />
-    <Content Include="Views\Admin\_StatusBadge.cshtml" />
-    <Content Include="Views\Account\Login.cshtml" />
-    <Content Include="Views\Account\Register.cshtml" />
-    <Content Include="Views\Registration\SelectSubjects.cshtml" />
-    <Content Include="Views\Registration\Confirm.cshtml" />
-    <Content Include="Views\Registration\Complete.cshtml" />
-    <Content Include="Views\Admin\Registrations.cshtml" />
-    <Content Include="Views\Payment\Index.cshtml" />
-    <Content Include="Views\Payment\Pay.cshtml" />
-    <Content Include="Views\Payment\Receipt.cshtml" />
-    <Content Include="Views\Admin\Streamgroups.cshtml" />
-    <Content Include="Views\Parents\Dashboard.cshtml" />
-    <Content Include="Views\Students\Dashboard.cshtml" />
-    <Content Include="Views\Account\Profile.cshtml" />
-    <Content Include="Views\Teacher\Create.cshtml" />
-    <Content Include="Views\Teacher\Index.cshtml" />
-    <Content Include="Views\Timetable\GradeView.cshtml" />
-    <Content Include="Views\Timetable\Generate.cshtml" />
-    <Content Include="Views\Marks\Index.cshtml" />
-    <Content Include="Views\Marks\Plan.cshtml" />
-    <Content Include="Views\Marks\Capture.cshtml" />
-    <Content Include="Views\Report\MyProgress.cshtml" />
-    <Content Include="Views\Report\GradeResults.cshtml" />
-    <Content Include="Views\Timetable\MyTimetable.cshtml" />
-    <Content Include="Views\Timetable\StudentView.cshtml" />
-    <Content Include="Views\Timetable\TeacherView.cshtml" />
-    <Content Include="Views\Teacher\_SubjectAssignmentFields.cshtml" />
-    <Content Include="Views\Attendances\MarkRegister.cshtml" />
-    <Content Include="Views\TeacherAttendance\History.cshtml" />
-    <Content Include="Views\TeacherAttendance\Index.cshtml" />
-    <Content Include="Views\Teachers\Create.cshtml" />
-    <Content Include="Views\Teachers\Dashboard.cshtml" />
-    <Content Include="Views\Teachers\Delete.cshtml" />
-    <Content Include="Views\Teachers\Details.cshtml" />
-    <Content Include="Views\Teachers\Edit.cshtml" />
-    <Content Include="Views\Teachers\Index.cshtml" />
-    <Content Include="Views\SchoolClasses\ClassList.cshtml" />
-    <Content Include="Views\SchoolClasses\Create.cshtml" />
-    <Content Include="Views\SchoolClasses\Edit.cshtml" />
-    <Content Include="Views\DriverApplications\Create.cshtml" />
-    <Content Include="Views\DriverApplications\Delete.cshtml" />
-    <Content Include="Views\DriverApplications\Details.cshtml" />
-    <Content Include="Views\DriverApplications\Edit.cshtml" />
-    <Content Include="Views\DriverApplications\Index.cshtml" />
-    <Content Include="Views\Vehicle\Create.cshtml" />
-    <Content Include="Views\Vehicle\Delete.cshtml" />
-    <Content Include="Views\Vehicle\Details.cshtml" />
-    <Content Include="Views\Vehicle\Edit.cshtml" />
-    <Content Include="Views\Vehicle\Index.cshtml" />
-    <Content Include="Views\VehicleIssues\Create.cshtml" />
-    <Content Include="Views\VehicleIssues\Delete.cshtml" />
-    <Content Include="Views\VehicleIssues\Details.cshtml" />
-    <Content Include="Views\VehicleIssues\Edit.cshtml" />
-    <Content Include="Views\VehicleIssues\Index.cshtml" />
-    <Content Include="Views\DriverAvailability.cshtml" />
-    <Content Include="Views\DriverApplications\PublicDetails.cshtml" />
-    <Content Include="Views\DriverApplications\MyApplications.cshtml" />
-    <Content Include="Views\Transport\Dashboard.cshtml" />
-    <Content Include="Views\Trip\BookTrip.cshtml" />
-    <Content Include="Views\Trip\MyRequests.cshtml" />
-    <Content Include="Views\Trip\UpcomingTrips.cshtml" />
-    <Content Include="Views\Trip\Manifest.cshtml" />
-    <Content Include="Views\Transport\PendingRequests.cshtml" />
-    <Content Include="Views\Transport\UnassignedSchedules.cshtml" />
-    <Content Include="Views\Shared\_Notifications.cshtml" />
-    <Content Include="Views\Trip\ScheduleTrip.cshtml" />
-    <Content Include="Views\Transport\AssignDriverVehicle.cshtml" />
-    <Content Include="Views\Trip\_StudentCheckboxList.cshtml" />
-    <Content Include="Views\Driver\Index.cshtml" />
-    <Content Include="Views\Driver\Create.cshtml" />
-    <Content Include="Views\Driver\Edit.cshtml" />
-    <Content Include="Views\Transport\AllTrips.cshtml" />
-    <Content Include="Views\Shared\_TripMapModal.cshtml" />
-    <Content Include="Views\Shared\_DriverDetails.cshtml" />
-    <Content Include="Views\Shared\_VehicleDetails.cshtml" />
-    <Content Include="Views\Shared\_NotificationsList.cshtml" />
-    <Content Include="Views\Shared\_NotificationBadge.cshtml" />
-    <Content Include="Views\Notification\Index.cshtml" />
-    <Content Include="Views\Driver\AddAvailability.cshtml" />
-    <Content Include="Views\Driver\Availabilities.cshtml" />
-    <Content Include="Views\Driver\EditAvailability.cshtml" />
-    <Content Include="Views\Driver\MyTrips.cshtml" />
-    <Content Include="Views\Order\Checkout.cshtml" />
-    <Content Include="Views\Order\Success.cshtml" />
-    <Content Include="Views\Store\Index.cshtml" />
-    <Content Include="Views\Cart\Index.cshtml" />
-    <Content Include="Views\Order\TrackOrder.cshtml" />
-    <Content Include="Views\Order\OrderDetails.cshtml" />
-    <Content Include="Views\SchoolClasses\Index.cshtml" />
-    <Content Include="Views\TeacherDashboard\CheckInPrompt.cshtml" />
-    <Content Include="Views\TeacherDashboard\Dashboard.cshtml" />
-    <Content Include="Views\Admin\TeacherAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\2.cshtml" />
-    <Content Include="Views\Students\MyAttendance.cshtml" />
-    <Content Include="Views\Parents\ChildrenAttendance.cshtml" />
-    <Content Include="Views\Admin\StudentAttendanceHistory.cshtml" />
-    <Content Include="Views\Admin\_SubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Parents\_ChildSubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Attendances\ViewRegister.cshtml" />
-    <Content Include="Views\Students\_SubjectAttendanceDetails.cshtml" />
-    <Content Include="Views\Inventory\Index.cshtml" />
-    <Content Include="Views\Inventory\StockHistory.cshtml" />
-    <Content Include="Views\Supplier\Index.cshtml" />
-    <Content Include="Views\Supplier\Create.cshtml" />
-    <Content Include="Views\Supplier\Details.cshtml" />
-    <Content Include="Views\PurchaseOrder\Index.cshtml" />
-    <Content Include="Views\PurchaseOrder\Create.cshtml" />
-    <Content Include="Views\PurchaseOrder\Details.cshtml" />
-    <Content Include="Views\Enrollments\Create.cshtml" />
-    <Content Include="Views\Enrollments\Index.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="Views\NewFolder1\" />
-  </ItemGroup>
-  <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTPath)\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTesting, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-<<<<<<< HEAD
-    <EmbeddedResource Include="Migrations\202608062129413_initialcreate.resx">
-      <DependentUpon>202608062129413_initialcreate.cs</DependentUpon>
-=======
-    <EmbeddedResource Include="Migrations\202608051322277_InitialCreate.resx">
-      <DependentUpon>202608051322277_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608051612099_AddStudentProfileWizardFields.resx">
-      <DependentUpon>202608051612099_AddStudentProfileWizardFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608052038105_CRUD.resx">
-      <DependentUpon>202608052038105_CRUD.cs</DependentUpon>
->>>>>>> cac0b9b007c9c6c3afa88f6e49ed8be72f2f8bc9
-    </EmbeddedResource>
-  </ItemGroup>
-  <PropertyGroup>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-  </PropertyGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != '' And Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets')" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
-        <WebProjectProperties>
-          <UseIIS>True</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>65133</DevelopmentServerPort>
-          <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://localhost:44321/</IISUrl>
-          <NTLMAuthentication>False</NTLMAuthentication>
-          <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
-          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
-        </WebProjectProperties>
-      </FlavorProperties>
-    </VisualStudio>
-  </ProjectExtensions>
-  <PropertyGroup>
-    <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
-  </PropertyGroup>
-  <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
-    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
-    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
-  </Target>
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
-  <Import Project="packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
+	<Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+	<Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
+	<PropertyGroup>
+		<SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
+	</PropertyGroup>
+	<PropertyGroup>
+		<SSDTPath Condition="'$(SSDTPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB\DAC</SSDTPath>
+	</PropertyGroup>
+	<Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+	<PropertyGroup>
+		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+		<ProductVersion>
+		</ProductVersion>
+		<SchemaVersion>2.0</SchemaVersion>
+		<ProjectGuid>{6A604A0E-45C9-4F04-9ABC-DB2A41580D90}</ProjectGuid>
+		<ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+		<OutputType>Library</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<RootNamespace>Michaelhouse</RootNamespace>
+		<AssemblyName>Michaelhouse</AssemblyName>
+		<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+		<MvcBuildViews>false</MvcBuildViews>
+		<UseIISExpress>true</UseIISExpress>
+		<Use64BitIISExpress />
+		<IISExpressSSLPort>44321</IISExpressSSLPort>
+		<IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+		<IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+		<IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
+		<UseGlobalApplicationHostFile />
+		<NuGetPackageImportStamp>
+		</NuGetPackageImportStamp>
+		<TargetFrameworkProfile />
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>full</DebugType>
+		<Optimize>false</Optimize>
+		<OutputPath>bin\</OutputPath>
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>pdbonly</DebugType>
+		<Optimize>true</Optimize>
+		<OutputPath>bin\</OutputPath>
+		<DefineConstants>TRACE</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Standard framework references -->
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System" />
+		<Reference Include="System.ComponentModel.DataAnnotations" />
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Data" />
+		<Reference Include="System.Data.DataSetExtensions" />
+		<Reference Include="System.Drawing" />
+		<Reference Include="System.EnterpriseServices" />
+		<Reference Include="System.Net.Http" />
+		<Reference Include="System.Net.Http.WebRequest" />
+		<Reference Include="System.Numerics" />
+		<Reference Include="System.Runtime.Serialization" />
+		<Reference Include="System.Security" />
+		<Reference Include="System.Web" />
+		<Reference Include="System.Web.Abstractions" />
+		<Reference Include="System.Web.ApplicationServices" />
+		<Reference Include="System.Web.DynamicData" />
+		<Reference Include="System.Web.Entity" />
+		<Reference Include="System.Web.Extensions" />
+		<Reference Include="System.Web.Routing" />
+		<Reference Include="System.Web.Services" />
+		<Reference Include="System.Xml" />
+		<Reference Include="System.Xml.Linq" />
+		<Reference Include="PresentationCore" />
+		<Reference Include="PresentationFramework" />
+		<Reference Include="WindowsBase" />
+
+		<!-- NuGet references (keep as is, they come from packages.config) -->
+		<Reference Include="Antlr3.Runtime, Version=3.5.0.2, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
+			<HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Azure.AI.FormRecognizer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+			<HintPath>packages\Azure.AI.FormRecognizer.4.1.0\lib\netstandard2.0\Azure.AI.FormRecognizer.dll</HintPath>
+		</Reference>
+		<Reference Include="Azure.Core, Version=1.52.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+			<HintPath>packages\Azure.Core.1.52.0\lib\net472\Azure.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+			<HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+		</Reference>
+		<Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+			<HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.Identity.Core.2.2.4\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.4\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Bcl.AsyncInterfaces.10.0.3\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.FileProviders.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Hosting.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Logging.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Options, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Options.10.0.3\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Extensions.Primitives.10.0.3\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+		</Reference>
+		<Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+			<HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+		</Reference>
+		<Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+			<HintPath>packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+		<Reference Include="Stripe.net, Version=52.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+			<HintPath>packages\Stripe.net.52.2.0\lib\net462\Stripe.net.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+		</Reference>
+		<Reference Include="System.ClientModel, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+			<HintPath>packages\System.ClientModel.1.10.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Diagnostics.DiagnosticSource, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Diagnostics.DiagnosticSource.10.0.3\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
+		</Reference>
+		<Reference Include="System.IO.Pipelines, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.IO.Pipelines.10.0.3\lib\net462\System.IO.Pipelines.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Memory.Data, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Memory.Data.10.0.3\lib\net462\System.Memory.Data.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+		<Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Text.Json, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Text.Json.10.0.3\lib\net462\System.Text.Json.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+			<HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.Razor.3.2.9\lib\net45\System.Web.Razor.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+		</Reference>
+		<Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+			<HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<!-- Source files (merged both sides, keeping all unique entries) -->
+	<ItemGroup>
+		<Compile Include="App_Start\BundleConfig.cs" />
+		<Compile Include="App_Start\FilterConfig.cs" />
+		<Compile Include="App_Start\RouteConfig.cs" />
+		<Compile Include="Controllers\AIController.cs" />
+		<Compile Include="Controllers\AccountController.cs" />
+		<Compile Include="Controllers\AdminController.cs" />
+		<Compile Include="Controllers\AdminReviewController.cs" />
+		<Compile Include="Controllers\ApplicationsController.cs" />
+		<Compile Include="Controllers\AttendancesController.cs" />
+		<Compile Include="Controllers\BedController.cs" />
+		<Compile Include="Controllers\CartController.cs" />
+		<Compile Include="Controllers\DocumentsController.cs" />
+		<Compile Include="Controllers\DriverApplicationsController.cs" />
+		<Compile Include="Controllers\DriverController.cs" />
+		<Compile Include="Controllers\DriverDocument.cs" />
+		<Compile Include="Controllers\EmergencyController.cs" />
+		<Compile Include="Controllers\HomeController.cs" />
+		<Compile Include="Controllers\HouseMasterController.cs" />
+		<Compile Include="Controllers\InventoryController.cs" />
+		<Compile Include="Controllers\MarksController.cs" />
+		<Compile Include="Controllers\NotificationController.cs" />
+		<Compile Include="Controllers\OrderController.cs" />
+		<Compile Include="Controllers\ParentsController.cs" />
+		<Compile Include="Controllers\PaymentController.cs" />
+		<Compile Include="Controllers\PurchaseorderController.cs" />
+		<Compile Include="Controllers\QRScanRecordController.cs" />
+		<Compile Include="Controllers\RegistrationController.cs" />
+		<Compile Include="Controllers\ReportController.cs" />
+		<Compile Include="Controllers\ResidenceAllocationController.cs" />
+		<Compile Include="Controllers\ResidenceAssignmentController.cs" />
+		<Compile Include="Controllers\ResidenceController.cs" />
+		<Compile Include="Controllers\ResidenceMovementController.cs" />
+		<Compile Include="Controllers\RoomController.cs" />
+		<Compile Include="Controllers\StoreController.cs" />
+		<Compile Include="Controllers\StudentProfileController.cs" />
+		<Compile Include="Controllers\StudentQRCodeController.cs" />
+		<Compile Include="Controllers\StudentsController.cs" />
+		<Compile Include="Controllers\SupplierController.cs" />
+		<Compile Include="Controllers\TeacherAttendanceController.cs" />
+		<Compile Include="Controllers\TeacherController.cs" />
+		<Compile Include="Controllers\TeacherDashboardController.cs" />
+		<Compile Include="Controllers\TimetableController.cs" />
+		<Compile Include="Controllers\TransportController.cs" />
+		<Compile Include="Controllers\TripController.cs" />
+		<Compile Include="Controllers\VehicleIssuesController.cs" />
+		<Compile Include="Controllers\VehiclesController.cs" />
+		<Compile Include="Global.asax.cs">
+			<DependentUpon>Global.asax</DependentUpon>
+		</Compile>
+
+		<!-- Migrations – merged both sets -->
+		<Compile Include="Migrations\202608051322277_InitialCreate.cs" />
+		<Compile Include="Migrations\202608051322277_InitialCreate.Designer.cs">
+			<DependentUpon>202608051322277_InitialCreate.cs</DependentUpon>
+		</Compile>
+		<Compile Include="Migrations\202608051612099_AddStudentProfileWizardFields.cs" />
+		<Compile Include="Migrations\202608051612099_AddStudentProfileWizardFields.Designer.cs">
+			<DependentUpon>202608051612099_AddStudentProfileWizardFields.cs</DependentUpon>
+		</Compile>
+		<Compile Include="Migrations\202608052038105_CRUD.cs" />
+		<Compile Include="Migrations\202608052038105_CRUD.Designer.cs">
+			<DependentUpon>202608052038105_CRUD.cs</DependentUpon>
+		</Compile>
+		<Compile Include="Migrations\202608062129413_initialcreate.cs" />
+		<Compile Include="Migrations\202608062129413_initialcreate.Designer.cs">
+			<DependentUpon>202608062129413_initialcreate.cs</DependentUpon>
+		</Compile>
+		<Compile Include="Migrations\Boardingmanagementseeder.cs" />
+		<Compile Include="Migrations\Configuration.cs" />
+
+		<!-- Models -->
+		<Compile Include="Models\AcademicStream.cs" />
+		<Compile Include="Models\AdminReview.cs" />
+		<Compile Include="Models\AIAlert.cs" />
+		<Compile Include="Models\AIAllocationHistory.cs" />
+		<Compile Include="Models\AIRecommendationOverride.cs" />
+		<Compile Include="Models\AIResidenceRecommendation.cs" />
+		<Compile Include="Models\AiReviewService.cs" />
+		<Compile Include="Models\AIWaitingList.cs" />
+		<Compile Include="Models\Application.cs" />
+		<Compile Include="Models\ApplicationService.cs" />
+		<Compile Include="Models\ApplicationStatus.cs" />
+		<Compile Include="Models\AppUser.cs" />
+		<Compile Include="Models\Assessment.cs" />
+		<Compile Include="Models\Attendance.cs" />
+		<Compile Include="Models\AttendanceRecordViewModel.cs" />
+		<Compile Include="Models\AttendanceSummaryViewModel.cs" />
+		<Compile Include="Models\BoardingHouse.cs" />
+		<Compile Include="Models\Category.cs" />
+		<Compile Include="Models\Class.cs" />
+		<Compile Include="Models\ClassSubject.cs" />
+		<Compile Include="Models\DBContextClass.cs" />
+		<Compile Include="Models\Document.cs" />
+		<Compile Include="Models\Driver.cs" />
+		<Compile Include="Models\EmailService.cs" />
+		<Compile Include="Models\EmergencyAlert.cs" />
+		<Compile Include="Models\EmergencyService.cs" />
+		<Compile Include="Models\Enrollment.cs" />
+		<Compile Include="Models\EnrollmentViewModel.cs.cs" />
+		<Compile Include="Models\Event.cs" />
+		<Compile Include="Models\GeofencingService.cs" />
+		<Compile Include="Models\HouseMaster.cs" />
+		<Compile Include="Models\ICartService.cs" />
+		<Compile Include="Models\InventoryItem.cs" />
+		<Compile Include="Models\Inventorymodels.cs" />
+		<Compile Include="Models\InventoryService.cs" />
+		<Compile Include="Models\Invoice.cs" />
+		<Compile Include="Models\InvoiceService.cs" />
+		<Compile Include="Models\MaintananceRequest.cs" />
+		<Compile Include="Models\MarkAttendanceViewModel.cs" />
+		<Compile Include="Models\Marksservice.cs" />
+		<Compile Include="Models\Notification.cs" />
+		<Compile Include="Models\NotificationHelper.cs" />
+		<Compile Include="Models\Parent.cs" />
+		<Compile Include="Models\ParentAttendanceSummaryViewModel.cs" />
+		<Compile Include="Models\ParentAttendanceViewModel.cs" />
+		<Compile Include="Models\Payment.cs" />
+		<Compile Include="Models\PaymentService.cs" />
+		<Compile Include="Models\QRScanRecord.cs" />
+		<Compile Include="Models\Registration.cs" />
+		<Compile Include="Models\RegistrationService.cs" />
+		<Compile Include="Models\RegistrationStatus.cs" />
+		<Compile Include="Models\ResidenceAllocation.cs" />
+		<Compile Include="Models\ResidenceMovement.cs" />
+		<Compile Include="Models\RoomCompatibilityResult.cs" />
+		<Compile Include="Models\SchoolClass.cs" />
+		<Compile Include="Models\SessionCartService.cs" />
+		<Compile Include="Models\StreamEnrolment.cs" />
+		<Compile Include="Models\Student.cs" />
+		<Compile Include="Models\StudentAccountService.cs" />
+		<Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
+		<Compile Include="Models\StudentMark.cs" />
+		<Compile Include="Models\StudentProfile.cs" />
+		<Compile Include="Models\StudentProfileWizardViewModels.cs" />
+		<Compile Include="Models\StudentQRCode.cs" />
+		<Compile Include="Models\StudentSafetyConfirmation.cs" />
+		<Compile Include="Models\StudentSubject.cs" />
+		<Compile Include="Models\Subject.cs" />
+		<Compile Include="Models\Teacher.cs" />
+		<Compile Include="Models\TeacherAttendance.cs" />
+		<Compile Include="Models\TeacherAttendanceRecordViewModel.cs" />
+		<Compile Include="Models\Teacherservice.cs" />
+		<Compile Include="Models\Teachersubjectgrade.cs" />
+		<Compile Include="Models\Termresult.cs" />
+		<Compile Include="Models\Timetablegenerator .cs" />
+		<Compile Include="Models\Timetablemodels.cs" />
+		<Compile Include="Models\Transport.cs" />
+		<Compile Include="Models\Trip.cs" />
+		<Compile Include="Models\Vehicle.cs" />
+		<Compile Include="Models\VehicleIssue.cs" />
+		<Compile Include="Models\ViewModels.cs" />
+		<Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
+		<Compile Include="Models\ViewModels\CreateTripVM.cs" />
+		<Compile Include="Models\ViewModels\DriverTripVM.cs" />
+		<Compile Include="Models\ViewModels\TripIndexVM.cs" />
+		<Compile Include="Models\Yearresult.cs" />
+
+		<!-- Filters, Properties, Services -->
+		<Compile Include="Filters\AuthorizeFilters.cs" />
+		<Compile Include="Properties\AssemblyInfo.cs" />
+		<Compile Include="Services\AIQRCodeVerificationService.cs" />
+		<Compile Include="Services\AIResidenceAllocationService.cs" />
+		<Compile Include="Services\AIResidencePredictionService.cs" />
+		<Compile Include="Services\AllocationRuleService.cs" />
+		<Compile Include="Services\BoardingProfileService.cs" />
+		<Compile Include="Services\CompatibilityScoringService.cs" />
+		<Compile Include="Services\ExplanationGenerator.cs" />
+		<Compile Include="Services\IEmergencyService.cs" />
+		<Compile Include="Services\ResidenceAllocationEngine.cs" />
+		<Compile Include="Services\ResidenceAvailabilityService.cs" />
+		<Compile Include="Services\StudentRoomCompatibilityService.cs" />
+		<Compile Include="StudentQRCodeService.cs" />
+	</ItemGroup>
+
+	<!-- Content files (merged both sides, keeping all unique views, scripts, etc.) -->
+	<ItemGroup>
+		<Content Include="Content\academic.css" />
+		<Content Include="Content\bootstrap-grid.css" />
+		<Content Include="Content\bootstrap-grid.min.css" />
+		<Content Include="Content\bootstrap-grid.rtl.css" />
+		<Content Include="Content\bootstrap-grid.rtl.min.css" />
+		<Content Include="Content\bootstrap-reboot.css" />
+		<Content Include="Content\bootstrap-reboot.min.css" />
+		<Content Include="Content\bootstrap-reboot.rtl.css" />
+		<Content Include="Content\bootstrap-reboot.rtl.min.css" />
+		<Content Include="Content\bootstrap-utilities.css" />
+		<Content Include="Content\bootstrap-utilities.min.css" />
+		<Content Include="Content\bootstrap-utilities.rtl.css" />
+		<Content Include="Content\bootstrap-utilities.rtl.min.css" />
+		<Content Include="Content\bootstrap.css" />
+		<Content Include="Content\bootstrap.min.css" />
+		<Content Include="Content\bootstrap.rtl.css" />
+		<Content Include="Content\bootstrap.rtl.min.css" />
+		<Content Include="Content\Site.css" />
+		<Content Include="favicon.ico" />
+		<Content Include="Global.asax" />
+		<Content Include="Scripts\bootstrap.bundle.js" />
+		<Content Include="Scripts\bootstrap.bundle.min.js" />
+		<Content Include="Scripts\bootstrap.esm.js" />
+		<Content Include="Scripts\bootstrap.esm.min.js" />
+		<Content Include="Scripts\bootstrap.js" />
+		<Content Include="Scripts\bootstrap.min.js" />
+		<Content Include="Scripts\html5-qrcode.min.js" />
+		<Content Include="Scripts\jquery-3.7.0.js" />
+		<Content Include="Scripts\jquery-3.7.0.min.js" />
+		<Content Include="Scripts\jquery-3.7.0.slim.js" />
+		<Content Include="Scripts\jquery-3.7.0.slim.min.js" />
+		<Content Include="Scripts\jquery.validate.js" />
+		<Content Include="Scripts\jquery.validate.min.js" />
+		<Content Include="Scripts\jquery.validate.unobtrusive.js" />
+		<Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+		<Content Include="Scripts\modernizr-2.8.3.js" />
+		<Content Include="Views\**\*.cshtml" />
+		<Content Include="Views\Web.config" />
+		<Content Include="Web.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Web.Debug.config">
+			<DependentUpon>Web.config</DependentUpon>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Web.Release.config">
+			<DependentUpon>Web.config</DependentUpon>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+
+		<!-- Image files -->
+		<Content Include="Content\Images\Drivers\andile.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Drivers\nkosi.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Drivers\thabo.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Drivers\themba.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Vehicles\ford1.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Vehicles\hyundai1.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Vehicles\mercedes1.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Vehicles\nissan1.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Content\Images\Vehicles\quantum1.jpg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+
+		<!-- Misc SQL files -->
+		<Content Include="Misc\Import_all.sql" />
+		<Content Include="Misc\SQLQuery.sql" />
+
+		<!-- Map files -->
+		<Content Include="Content\bootstrap.rtl.min.css.map" />
+		<Content Include="Content\bootstrap.rtl.css.map" />
+		<Content Include="Content\bootstrap.min.css.map" />
+		<Content Include="Content\bootstrap.css.map" />
+		<Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
+		<Content Include="Content\bootstrap-utilities.rtl.css.map" />
+		<Content Include="Content\bootstrap-utilities.min.css.map" />
+		<Content Include="Content\bootstrap-utilities.css.map" />
+		<Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
+		<Content Include="Content\bootstrap-reboot.rtl.css.map" />
+		<Content Include="Content\bootstrap-reboot.min.css.map" />
+		<Content Include="Content\bootstrap-reboot.css.map" />
+		<Content Include="Content\bootstrap-grid.rtl.min.css.map" />
+		<Content Include="Content\bootstrap-grid.rtl.css.map" />
+		<Content Include="Content\bootstrap-grid.min.css.map" />
+	</ItemGroup>
+
+	<!-- Non-content files (packages.config, publish profiles, etc.) -->
+	<ItemGroup>
+		<None Include="packages.config" />
+		<None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
+		<None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
+		<None Include="Scripts\jquery-3.7.0.intellisense.js" />
+		<None Include="Scripts\jquery.validate-vsdoc.js" />
+	</ItemGroup>
+
+	<!-- Embedded resources for migrations (merged) -->
+	<ItemGroup>
+		<EmbeddedResource Include="Migrations\202608051322277_InitialCreate.resx">
+			<DependentUpon>202608051322277_InitialCreate.cs</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Migrations\202608051612099_AddStudentProfileWizardFields.resx">
+			<DependentUpon>202608051612099_AddStudentProfileWizardFields.cs</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Migrations\202608052038105_CRUD.resx">
+			<DependentUpon>202608052038105_CRUD.cs</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Include="Migrations\202608062129413_initialcreate.resx">
+			<DependentUpon>202608062129413_initialcreate.cs</DependentUpon>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<!-- SQL Server Data Tools references (only when VS 2022 is used) -->
+	<ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
+		<Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>$(SSDTPath)\Microsoft.Data.Tools.Schema.Sql.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+		<Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTesting, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+		<Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+			<HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
+			<Private>True</Private>
+		</Reference>
+	</ItemGroup>
+
+	<!-- Empty folders (kept) -->
+	<ItemGroup>
+		<Folder Include="Data\" />
+		<Folder Include="Views\NewFolder1\" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<RuntimeIdentifiers>win</RuntimeIdentifiers>
+		<VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+		<VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+	</PropertyGroup>
+
+	<Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+	<Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != '' And Exists('$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets')" />
+	<Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+	<Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets')" />
+
+	<ProjectExtensions>
+		<VisualStudio>
+			<FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+				<WebProjectProperties>
+					<UseIIS>True</UseIIS>
+					<AutoAssignPort>True</AutoAssignPort>
+					<DevelopmentServerPort>65133</DevelopmentServerPort>
+					<DevelopmentServerVPath>/</DevelopmentServerVPath>
+					<IISUrl>https://localhost:44321/</IISUrl>
+					<NTLMAuthentication>False</NTLMAuthentication>
+					<UseCustomServer>False</UseCustomServer>
+					<CustomServerUrl></CustomServerUrl>
+					<SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+				</WebProjectProperties>
+			</FlavorProperties>
+		</VisualStudio>
+	</ProjectExtensions>
+
+	<PropertyGroup>
+		<SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
+	</PropertyGroup>
+
+	<Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
+	<Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
+
+	<Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+		<PropertyGroup>
+			<ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+		</PropertyGroup>
+		<Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
+		<Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
+		<Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+		<Error Condition="!Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
+	</Target>
+
+	<Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
+	<Import Project="packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
 </Project>
