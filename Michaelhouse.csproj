@@ -80,8 +80,8 @@
     <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
@@ -95,11 +95,11 @@
     <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Logging.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Options, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Options.9.0.18\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Options, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Options.10.0.3\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Primitives.9.0.18\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Primitives.10.0.3\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
@@ -188,8 +188,8 @@
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
-    <Reference Include="System.Text.Json, Version=9.0.0.18, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Text.Json.9.0.18\lib\net462\System.Text.Json.dll</HintPath>
+    <Reference Include="System.Text.Json, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Text.Json.10.0.3\lib\net462\System.Text.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
@@ -247,6 +247,7 @@
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
+    <Compile Include="Controllers\EmergencyController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\Leaverequestcontroller.cs" />
@@ -270,13 +271,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608081558471_Initial.cs" />
-    <Compile Include="Migrations\202608081558471_Initial.Designer.cs">
-      <DependentUpon>202608081558471_Initial.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608082145076_AddLeaveRequest.cs" />
-    <Compile Include="Migrations\202608082145076_AddLeaveRequest.Designer.cs">
-      <DependentUpon>202608082145076_AddLeaveRequest.cs</DependentUpon>
+    <Compile Include="Migrations\202608091757061_initialcreate.cs" />
+    <Compile Include="Migrations\202608091757061_initialcreate.Designer.cs">
+      <DependentUpon>202608091757061_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -379,6 +376,7 @@
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
+    <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
@@ -536,6 +534,13 @@
     <Content Include="Views\LeaveRequest\Details.cshtml" />
     <Content Include="Views\LeaveRequest\ParentPending.cshtml" />
     <Content Include="Views\LeaveRequest\HouseMasterPending.cshtml" />
+    <Content Include="Views\Emergency\AccountabilityDashboard.cshtml" />
+    <Content Include="Views\Emergency\AlertStatus.cshtml" />
+    <Content Include="Views\Emergency\ConfirmSafety.cshtml" />
+    <Content Include="Views\Emergency\NoActiveAlert.cshtml" />
+    <Content Include="Views\Emergency\StudentConfirmSafety.cshtml" />
+    <Content Include="Views\Emergency\TriggerAlert.cshtml" />
+    <Content Include="Views\Emergency\ViewAlertStatus.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -728,11 +733,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608081558471_Initial.resx">
-      <DependentUpon>202608081558471_Initial.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608082145076_AddLeaveRequest.resx">
-      <DependentUpon>202608082145076_AddLeaveRequest.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608091757061_initialcreate.resx">
+      <DependentUpon>202608091757061_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

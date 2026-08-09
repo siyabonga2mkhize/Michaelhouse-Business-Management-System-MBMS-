@@ -182,12 +182,12 @@
                                             {
                                                 if (dist >= 1000)
                                                 {
-                                                    // Convert to kilometers with 1 decimal place
-                                                    display = $"{(dist / 1000.0):F1} km";
+                                                    // Convert to kilometers with 1 decimal place using String.Format
+                                                    display = String.Format("{0:F1} km", dist / 1000.0);
                                                 }
                                                 else
                                                 {
-                                                    display = $"{dist:F0} m";
+                                                    display = String.Format("{0:F0} m", dist);
                                                 }
                                             }
                                         }

@@ -796,7 +796,7 @@
                            href="@Url.Action("Index", "QRScanRecord")">
                             <i class="bi bi-clock-history"></i> <span class="link-text">QR History</span>
                         </a>
-                        
+
                         <hr class="sidebar-divider" />
                         <a class="nav-link" href="@Url.Action("HouseMasterPending", "LeaveRequest")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Leave Requests</span>
@@ -867,15 +867,13 @@
 
                         <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafety" ? "active" : "")"
                            href="@Url.Action("ConfirmSafety", "Emergency")">
-
                             <i class="bi bi-shield-check"></i>
                             <span class="link-text">Emergency Safety</span>
-
                         </a>
 
+                        <a class="nav-link" href="@Url.Action("MyQRCode", "Students")">
                             <i class="bi bi-qr-code"></i>
                             <span class="link-text">My QR Code</span>
-
                         </a>
 
                         <hr class="sidebar-divider" />

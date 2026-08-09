@@ -10,7 +10,7 @@
     // Fixes the DynamicProxy name issue for the student
     string studentName = student != null ? student.Name : "Student Record";
     // Fixes the DynamicProxy name issue for the guardian
-    string guardianName = (student?.Parent != null) ? student.Parent.Name : "Guardian Unspecified";
+    string guardianName = (student != null && student.Parent != null) ? student.Parent.Name : "Guardian Unspecified";
 }
 
 <div class="relative mb-12 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
@@ -25,7 +25,7 @@
                 <div class="h-1 w-8 bg-[#C21E2E]"></div>
                 <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
             </div>
-            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Greetings, @(student?.FirstName ?? "Student")</h2>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Greetings, @(student != null && student.FirstName != null ? student.FirstName : "Student")</h2>
             <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
                 @if (reg != null)
                 {
@@ -39,7 +39,7 @@
         </div>
         <div class="text-end">
             <span class="px-4 py-1.5 border border-amber-200 bg-amber-50 text-amber-600 text-[9px] font-bold uppercase tracking-[2px]">
-                @(reg?.Status == RegistrationStatus.Completed ? "Formalized Enrollment" : "Registration Pending")
+                @(reg != null && reg.Status == RegistrationStatus.Completed ? "Formalized Enrollment" : "Registration Pending")
             </span>
         </div>
     </div>
@@ -60,11 +60,11 @@
                     </div>
                     <div>
                         <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Institutional ID</label>
-                        <p class="text-sm font-monospace text-gray-600 mb-0">@(student?.IdNumber ?? "—")</p>
+                        <p class="text-sm font-monospace text-gray-600 mb-0">@(student != null && student.IdNumber != null ? student.IdNumber : "—")</p>
                     </div>
                     <div>
                         <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Home Language</label>
-                        <p class="text-sm font-bold text-gray-800 mb-0">@(student?.HomeLanguage ?? "—")</p>
+                        <p class="text-sm font-bold text-gray-800 mb-0">@(student != null && student.HomeLanguage != null ? student.HomeLanguage : "—")</p>
                     </div>
                 </div>
             </div>
@@ -115,7 +115,7 @@
                             foreach (var ss in compulsory)
                             {
                                 <div class="p-4 px-8 d-flex justify-content-between align-items-center group">
-                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject?.Name ?? "Module")</span>
+                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject != null && ss.Subject.Name != null ? ss.Subject.Name : "Module")</span>
                                     <span class="text-[8px] font-bold uppercase tracking-widest text-gray-300 border border-gray-100 px-2 py-0.5">Core</span>
                                 </div>
                             }
@@ -128,9 +128,9 @@
                             </div>
                             foreach (var ss in langAndMaths)
                             {
-                                bool isMaths = RegistrationService.MathsOptions.Contains(ss.Subject?.Name);
+                                bool isMaths = ss.Subject != null && RegistrationService.MathsOptions.Contains(ss.Subject.Name);
                                 <div class="p-4 px-8 d-flex justify-content-between align-items-center group">
-                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject?.Name ?? "Module")</span>
+                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject != null && ss.Subject.Name != null ? ss.Subject.Name : "Module")</span>>>
                                     <span class="text-[8px] font-bold uppercase tracking-widest text-[#C21E2E] border border-[#C21E2E] px-2 py-0.5">@(isMaths ? "Mathematics" : "Language")</span>
                                 </div>
                             }
@@ -144,7 +144,7 @@
                             foreach (var ss in streamSubs)
                             {
                                 <div class="p-4 px-8 d-flex justify-content-between align-items-center group">
-                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject?.Name ?? "Module")</span>
+                                    <span class="text-sm font-bold text-gray-700 uppercase tracking-tight group-hover:text-[#C21E2E] transition-colors">@(ss.Subject != null && ss.Subject.Name != null ? ss.Subject.Name : "Module")</span>
                                     <span class="text-[8px] font-bold uppercase tracking-widest text-green-600 border border-green-100 px-2 py-0.5 bg-green-50/30">Elective</span>
                                 </div>
                             }
@@ -167,7 +167,7 @@
                     <p class="text-sm font-bold text-white mb-0">@guardianName</p>
                 </div>
                 <div class="text-end relative z-10">
-                    <p class="text-[10px] font-monospace text-gray-400 mb-0">@(student?.Parent?.Contact ?? "Contact Missing")</p>
+                    <p class="text-[10px] font-monospace text-gray-400 mb-0">@(student != null && student.Parent != null && student.Parent.Contact != null ? student.Parent.Contact : "Contact Missing")</p>
                 </div>
             </div>
         </div>
