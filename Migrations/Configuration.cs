@@ -3,6 +3,7 @@ using System;
 using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Data.Entity;
+using System.Collections.Generic;
 
 namespace Michaelhouse.Migrations
 {
@@ -28,13 +29,67 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
+            // ------------------------------------------------------------------
+            //  FIX: Ensure a Teacher exists before seeding trips
+            // ------------------------------------------------------------------
+            if (!context.Users.Any(u => u.Role == "Teacher"))
+            {
+                var teacherUser = new AppUser
+                {
+                    Name = "System Teacher",
+                    Email = "teacher@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Teacher@123"),
+                    Role = "Teacher"
+                };
+                context.Users.Add(teacherUser);
+                context.SaveChanges();
+
+                if (!context.Teachers.Any(t => t.UserId == teacherUser.UserId))
+                {
+                    context.Teachers.Add(new Teacher
+                    {
+                        FirstName = "System",
+                        LastName = "Teacher",
+                        Email = teacherUser.Email,
+                        HireDate = DateTime.Now,
+                        UserId = teacherUser.UserId
+                    });
+                    context.SaveChanges();
+                }
+            }
+
+            if (!context.Teachers.Any())
+            {
+                var teacherUser = context.Users.FirstOrDefault(u => u.Role == "Teacher");
+                if (teacherUser == null)
+                {
+                    teacherUser = new AppUser
+                    {
+                        Name = "Default Teacher",
+                        Email = "default.teacher@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Teacher@123"),
+                        Role = "Teacher"
+                    };
+                    context.Users.Add(teacherUser);
+                    context.SaveChanges();
+                }
+
+                context.Teachers.Add(new Teacher
+                {
+                    FirstName = "Default",
+                    LastName = "Teacher",
+                    Email = teacherUser.Email,
+                    HireDate = DateTime.Now,
+                    UserId = teacherUser.UserId
+                });
+                context.SaveChanges();
+            }
+
             // ----------------------------
-            // Seed additional vehicles and multiple trips for drivers
-            // Creates one upcoming and one completed trip per seeded driver
+            // Seed trips, vehicles, etc.
             // ----------------------------
             try
             {
-                // Ensure we have some vehicles available
                 var vehicleNumbers = new[] { "MH-TRIP-001", "MH-TRIP-002", "MH-TRIP-003" };
                 foreach (var vn in vehicleNumbers)
                 {
@@ -61,7 +116,6 @@ namespace Michaelhouse.Migrations
                 int vIndex = 0;
                 foreach (var drv in drivers)
                 {
-                    // upcoming trip (in 3..6 days)
                     var upDate = DateTime.Today.AddDays(3 + vIndex);
                     bool upExists = context.TripSchedules.Any(ts => ts.DriverId == drv.Id && DbFunctions.TruncateTime(ts.ScheduledDate) == DbFunctions.TruncateTime(upDate));
                     if (!upExists)
@@ -104,7 +158,6 @@ namespace Michaelhouse.Migrations
                         });
                         context.SaveChanges();
 
-                        // assign up to 5 students
                         foreach (var st in students.Take(5))
                         {
                             context.TripStudents.Add(new TripStudent
@@ -118,7 +171,6 @@ namespace Michaelhouse.Migrations
                         context.SaveChanges();
                     }
 
-                    // past completed trip (7..10 days ago)
                     var pastDate = DateTime.Today.AddDays(-7 - vIndex);
                     bool pastExists = context.TripSchedules.Any(ts => ts.DriverId == drv.Id && DbFunctions.TruncateTime(ts.ScheduledDate) == DbFunctions.TruncateTime(pastDate));
                     if (!pastExists)
@@ -161,7 +213,6 @@ namespace Michaelhouse.Migrations
                         });
                         context.SaveChanges();
 
-                        // assign up to 5 students and mark present before and after
                         var assigned = students.Skip(vIndex).Take(5).ToList();
                         foreach (var st in assigned)
                         {
@@ -194,7 +245,6 @@ namespace Michaelhouse.Migrations
                 var sibusiso = context.Drivers.FirstOrDefault(d => d.FullName == "Sibusiso Dlamini" || d.Email.StartsWith("sibusiso@"));
                 if (sibusiso != null)
                 {
-                    // create some sample parents + students if none exist
                     if (!context.Students.Any())
                     {
                         var sampleParents = new[]
@@ -222,13 +272,11 @@ namespace Michaelhouse.Migrations
                         context.SaveChanges();
                     }
 
-                    // pick a scheduled date 3 days from now
                     var scheduledDate = DateTime.Today.AddDays(3);
 
                     bool exists = context.TripSchedules.Any(ts => ts.DriverId == sibusiso.Id && DbFunctions.TruncateTime(ts.ScheduledDate) == DbFunctions.TruncateTime(scheduledDate));
                     if (!exists)
                     {
-                        // create a trip request
                         var tripReq = new TripRequest
                         {
                             TeacherId = context.Teachers.Select(t => t.TeacherId).FirstOrDefault(),
@@ -256,7 +304,6 @@ namespace Michaelhouse.Migrations
                         context.TripSchedules.Add(tripSchedule);
                         context.SaveChanges();
 
-                        // create or reuse a vehicle and assign it to this trip
                         var vehicle = context.Vehicles.FirstOrDefault(v => v.VehicleNumber == "MH-TRIP-001");
                         if (vehicle == null)
                         {
@@ -273,7 +320,6 @@ namespace Michaelhouse.Migrations
                             context.SaveChanges();
                         }
 
-                        // link vehicle to schedule and create vehicle assignment
                         tripSchedule.VehicleId = vehicle.Id;
                         context.Entry(tripSchedule).State = EntityState.Modified;
                         context.SaveChanges();
@@ -289,7 +335,6 @@ namespace Michaelhouse.Migrations
                         context.TripVehicleAssignments.Add(tva);
                         context.SaveChanges();
 
-                        // assign first 5 students to the trip
                         var students = context.Students.Take(5).ToList();
                         foreach (var st in students)
                         {
@@ -304,7 +349,6 @@ namespace Michaelhouse.Migrations
                         }
                         context.SaveChanges();
 
-                        // mark first 3 students as present before departure to test 'Done' badges
                         var tripStudents = context.TripStudents.Where(x => x.TripScheduleId == tripSchedule.Id).OrderBy(x => x.Id).ToList();
                         for (int i = 0; i < Math.Min(3, tripStudents.Count); i++)
                         {
@@ -321,18 +365,16 @@ namespace Michaelhouse.Migrations
 
             if (!context.Users.Any(u => u.Role == "InventoryManager"))
             {
-                context.Users.Add(new Michaelhouse.Models.AppUser
+                context.Users.Add(new AppUser
                 {
                     Name = "System Inventory Manager",
                     Email = "inventory@michaelhouse.co.za",
                     PasswordHash = HashPassword("Stock@123"),
                     Role = "InventoryManager"
                 });
-
                 context.SaveChanges();
             }
 
-            // 3. Transport Manager (NEW FIX ADDED)
             if (!context.Users.Any(u => u.Role == "Transport Manager"))
             {
                 context.Users.Add(new AppUser
@@ -342,40 +384,12 @@ namespace Michaelhouse.Migrations
                     PasswordHash = HashPassword("Transport@123"),
                     Role = "TransportManager"
                 });
-
                 context.SaveChanges();
             }
 
-            if (!context.Users.Any(u => u.Role == "Teacher"))
-            {
-                var teacherUser = new AppUser
-                {
-                    Name = "System Teacher",
-                    Email = "teacher@michaelhouse.co.za",
-                    PasswordHash = HashPassword("Teacher@123"),
-                    Role = "Teacher"
-                };
-
-                context.Users.Add(teacherUser);
-                context.SaveChanges();
-
-                // Ensure there is a corresponding Teacher record so role-based pages
-                // that rely on Session["TeacherId"] won't redirect back to Login.
-                if (!context.Teachers.Any(t => t.UserId == teacherUser.UserId))
-                {
-                    context.Teachers.Add(new Teacher
-                    {
-                        FirstName = "System",
-                        LastName = "Teacher",
-                        Email = teacherUser.Email,
-                        HireDate = DateTime.Now,
-                        UserId = teacherUser.UserId
-                    });
-                    context.SaveChanges();
-                }
-            }
-
-            // 2. Seed Categories (only if empty)
+            // ----------------------------
+            // Seed Categories & Products
+            // ----------------------------
             if (!context.Categories.Any())
             {
                 var uniforms = new Category
@@ -392,7 +406,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // 3. Seed Products (only if empty)
             if (!context.Products.Any())
             {
                 var uniformsCat = context.Categories.First(c => c.Name == "Uniforms");
@@ -411,7 +424,7 @@ namespace Michaelhouse.Migrations
                     new Product { Name = "School Blazer - Small", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Official school blazer, small size.", IsActive = true },
                     new Product { Name = "School Blazer - Medium", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Official school blazer, medium size.", IsActive = true },
                     new Product { Name = "School Sports Kit", CategoryId = uniformsCat.Id, Price = 280.00, QuantityInStock = 3, ReorderLevel = 10, Description = "Official sports kit (shirt + shorts).", IsActive = true },
-                    
+
                     // Books & Stationery
                     new Product { Name = "Grade 8 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 220.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 8.", IsActive = true },
                     new Product { Name = "Grade 9 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 235.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 9.", IsActive = true },
@@ -426,6 +439,834 @@ namespace Michaelhouse.Migrations
                 context.Products.AddOrUpdate(p => p.Name, products);
                 context.SaveChanges();
             }
+
+            // ──────────────────────────────────────────────────────────────────────────────
+            // NEW: SEED SHIFT PATTERNS
+            // ──────────────────────────────────────────────────────────────────────────────
+            if (!context.ShiftPatterns.Any())
+            {
+                context.ShiftPatterns.AddOrUpdate(sp => sp.Name,
+                    new ShiftPattern { Name = "Morning", StartTime = new TimeSpan(6, 0, 0), EndTime = new TimeSpan(14, 0, 0), Description = "06:00 – 14:00" },
+                    new ShiftPattern { Name = "Afternoon", StartTime = new TimeSpan(14, 0, 0), EndTime = new TimeSpan(22, 0, 0), Description = "14:00 – 22:00" },
+                    new ShiftPattern { Name = "Night", StartTime = new TimeSpan(22, 0, 0), EndTime = new TimeSpan(6, 0, 0), Description = "22:00 – 06:00" }
+                );
+                context.SaveChanges();
+            }
+
+            // ====================================================================
+            //  MAINTENANCE SEEDING
+            //  All entities use the same AppUser. Roles: MaintenanceManager,
+            //  MaintenanceWorker, and FaultReporter.
+            // ====================================================================
+
+            // ---- SEED MAINTENANCE STAFF ----
+            if (!context.MaintenanceStaff.Any())
+            {
+                context.MaintenanceStaff.AddOrUpdate(s => s.StaffNumber,
+                    new MaintenanceStaff
+                    {
+                        FullName = "Sipho Dlamini",
+                        StaffNumber = "MH-MAINT-001",
+                        Email = "s.dlamini@michaelhouse.org",
+                        Phone = "0731001001",
+                        SkillType = "Plumbing",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2020, 1, 15)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Bongani Nkosi",
+                        StaffNumber = "MH-MAINT-002",
+                        Email = "b.nkosi@michaelhouse.org",
+                        Phone = "0731001002",
+                        SkillType = "Plumbing",
+                        ShiftStart = new TimeSpan(14, 0, 0),
+                        ShiftEnd = new TimeSpan(22, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2019, 3, 10)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Eric Mthembu",
+                        StaffNumber = "MH-MAINT-003",
+                        Email = "e.mthembu@michaelhouse.org",
+                        Phone = "0731001003",
+                        SkillType = "Electrical",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2018, 6, 1)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Thabo Zulu",
+                        StaffNumber = "MH-MAINT-004",
+                        Email = "t.zulu@michaelhouse.org",
+                        Phone = "0731001004",
+                        SkillType = "Electrical",
+                        ShiftStart = new TimeSpan(14, 0, 0),
+                        ShiftEnd = new TimeSpan(22, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2021, 2, 20)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Lungelo Mbatha",
+                        StaffNumber = "MH-MAINT-005",
+                        Email = "l.mbatha@michaelhouse.org",
+                        Phone = "0731001005",
+                        SkillType = "HVAC",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2022, 7, 5)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Sifiso Khumalo",
+                        StaffNumber = "MH-MAINT-006",
+                        Email = "s.khumalo@michaelhouse.org",
+                        Phone = "0731001006",
+                        SkillType = "Grounds",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2017, 4, 12)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Nhlanhla Mokoena",
+                        StaffNumber = "MH-MAINT-007",
+                        Email = "n.mokoena@michaelhouse.org",
+                        Phone = "0731001007",
+                        SkillType = "Grounds",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2016, 9, 8)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Mandla Cele",
+                        StaffNumber = "MH-MAINT-008",
+                        Email = "m.cele@michaelhouse.org",
+                        Phone = "0731001008",
+                        SkillType = "Pool",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2023, 1, 16)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Sandile Ntanzi",
+                        StaffNumber = "MH-MAINT-009",
+                        Email = "s.ntanzi@michaelhouse.org",
+                        Phone = "0731001009",
+                        SkillType = "General",
+                        ShiftStart = new TimeSpan(6, 0, 0),
+                        ShiftEnd = new TimeSpan(14, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2020, 11, 3)
+                    },
+                    new MaintenanceStaff
+                    {
+                        FullName = "Phumzile Mhlongo",
+                        StaffNumber = "MH-MAINT-010",
+                        Email = "p.mhlongo@michaelhouse.org",
+                        Phone = "0731001010",
+                        SkillType = "General",
+                        ShiftStart = new TimeSpan(14, 0, 0),
+                        ShiftEnd = new TimeSpan(22, 0, 0),
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = new DateTime(2021, 8, 22)
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ── SEED MAINTENANCE USERS (AppUser) ────────────────────────────────
+            // ALL 10 workers now have explicit seed entries (same pattern as Sipho, Eric, Sifiso)
+
+            // ---- Maintenance Manager ----
+            if (!context.Users.Any(u => u.Email == "j.mokoena@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Mr. James Mokoena",
+                        Email = "j.mokoena@michaelhouse.org",
+                        PasswordHash = HashPassword("Manager@123"),
+                        Role = "MaintenanceManager"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 1: Sipho Dlamini ----
+            if (!context.Users.Any(u => u.Email == "s.dlamini@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Sipho Dlamini",
+                        Email = "s.dlamini@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 2: Bongani Nkosi (NEW) ----
+            if (!context.Users.Any(u => u.Email == "b.nkosi@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Bongani Nkosi",
+                        Email = "b.nkosi@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 3: Eric Mthembu ----
+            if (!context.Users.Any(u => u.Email == "e.mthembu@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Eric Mthembu",
+                        Email = "e.mthembu@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 4: Thabo Zulu (NEW) ----
+            if (!context.Users.Any(u => u.Email == "t.zulu@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Thabo Zulu",
+                        Email = "t.zulu@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 5: Lungelo Mbatha (NEW) ----
+            if (!context.Users.Any(u => u.Email == "l.mbatha@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Lungelo Mbatha",
+                        Email = "l.mbatha@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 6: Sifiso Khumalo ----
+            if (!context.Users.Any(u => u.Email == "s.khumalo@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Sifiso Khumalo",
+                        Email = "s.khumalo@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 7: Nhlanhla Mokoena (NEW) ----
+            if (!context.Users.Any(u => u.Email == "n.mokoena@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Nhlanhla Mokoena",
+                        Email = "n.mokoena@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 8: Mandla Cele (NEW) ----
+            if (!context.Users.Any(u => u.Email == "m.cele@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Mandla Cele",
+                        Email = "m.cele@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 9: Sandile Ntanzi (NEW - FIXED!) ----
+            if (!context.Users.Any(u => u.Email == "s.ntanzi@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Sandile Ntanzi",
+                        Email = "s.ntanzi@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Worker 10: Phumzile Mhlongo (NEW) ----
+            if (!context.Users.Any(u => u.Email == "p.mhlongo@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Phumzile Mhlongo",
+                        Email = "p.mhlongo@michaelhouse.org",
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- Fault Reporters ----
+            if (!context.Users.Any(u => u.Email == "d.hutchinson@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Mr. David Hutchinson",
+                        Email = "d.hutchinson@michaelhouse.org",
+                        PasswordHash = HashPassword("Report@123"),
+                        Role = "FaultReporter"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Email == "p.vandermerwe@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Mr. Peter van der Merwe",
+                        Email = "p.vandermerwe@michaelhouse.org",
+                        PasswordHash = HashPassword("Report@123"),
+                        Role = "FaultReporter"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Email == "s.ndlovu@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Mr. Simon Ndlovu",
+                        Email = "s.ndlovu@michaelhouse.org",
+                        PasswordHash = HashPassword("Report@123"),
+                        Role = "FaultReporter"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            if (!context.Users.Any(u => u.Email == "n.dube@michaelhouse.org"))
+            {
+                context.Users.AddOrUpdate(u => u.Email,
+                    new AppUser
+                    {
+                        Name = "Ms. Nompumelelo Dube",
+                        Email = "n.dube@michaelhouse.org",
+                        PasswordHash = HashPassword("Report@123"),
+                        Role = "FaultReporter"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ---- SEED MAINTENANCE INVENTORY ----
+            if (!context.MaintenanceInventory.Any())
+            {
+                context.MaintenanceInventory.AddOrUpdate(i => i.ItemName,
+                    // Plumbing
+                    new MaintenanceInventory
+                    {
+                        ItemName = "PVC Pipe 20mm",
+                        Category = "Plumbing",
+                        StockLevel = 50,
+                        MinimumStock = 10,
+                        Unit = "metres",
+                        UnitCost = 25.00m,
+                        Supplier = "Build It Pietermaritzburg"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Pipe Fittings Set",
+                        Category = "Plumbing",
+                        StockLevel = 30,
+                        MinimumStock = 10,
+                        Unit = "pieces",
+                        UnitCost = 45.00m,
+                        Supplier = "Build It Pietermaritzburg"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Geyser Element 3kW",
+                        Category = "Plumbing",
+                        StockLevel = 8,
+                        MinimumStock = 3,
+                        Unit = "pieces",
+                        UnitCost = 320.00m,
+                        Supplier = "Builders Warehouse PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Tap Washer Set",
+                        Category = "Plumbing",
+                        StockLevel = 60,
+                        MinimumStock = 15,
+                        Unit = "pieces",
+                        UnitCost = 12.00m,
+                        Supplier = "Build It Pietermaritzburg"
+                    },
+                    // Electrical
+                    new MaintenanceInventory
+                    {
+                        ItemName = "LED Bulb 18W",
+                        Category = "Electrical",
+                        StockLevel = 100,
+                        MinimumStock = 20,
+                        Unit = "pieces",
+                        UnitCost = 35.00m,
+                        Supplier = "Builders Warehouse PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Circuit Breaker 20A",
+                        Category = "Electrical",
+                        StockLevel = 15,
+                        MinimumStock = 5,
+                        Unit = "pieces",
+                        UnitCost = 85.00m,
+                        Supplier = "Builders Warehouse PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Electrical Cable 2.5mm",
+                        Category = "Electrical",
+                        StockLevel = 200,
+                        MinimumStock = 50,
+                        Unit = "metres",
+                        UnitCost = 18.00m,
+                        Supplier = "Builders Warehouse PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Light Switch",
+                        Category = "Electrical",
+                        StockLevel = 25,
+                        MinimumStock = 8,
+                        Unit = "pieces",
+                        UnitCost = 28.00m,
+                        Supplier = "Builders Warehouse PMB"
+                    },
+                    // HVAC
+                    new MaintenanceInventory
+                    {
+                        ItemName = "HVAC Air Filter",
+                        Category = "HVAC",
+                        StockLevel = 20,
+                        MinimumStock = 5,
+                        Unit = "pieces",
+                        UnitCost = 150.00m,
+                        Supplier = "Air Tech KZN"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Refrigerant Gas R410A",
+                        Category = "HVAC",
+                        StockLevel = 10,
+                        MinimumStock = 3,
+                        Unit = "kg",
+                        UnitCost = 280.00m,
+                        Supplier = "Air Tech KZN"
+                    },
+                    // Pool
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Pool Chlorine 25kg",
+                        Category = "Pool",
+                        StockLevel = 10,
+                        MinimumStock = 3,
+                        Unit = "bags",
+                        UnitCost = 450.00m,
+                        Supplier = "Pool Zone PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Pool pH Increaser 5kg",
+                        Category = "Pool",
+                        StockLevel = 8,
+                        MinimumStock = 2,
+                        Unit = "bags",
+                        UnitCost = 220.00m,
+                        Supplier = "Pool Zone PMB"
+                    },
+                    // Safety
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Fire Extinguisher Powder",
+                        Category = "Safety",
+                        StockLevel = 6,
+                        MinimumStock = 2,
+                        Unit = "kg",
+                        UnitCost = 180.00m,
+                        Supplier = "Fire Safety KZN"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Smoke Detector Battery",
+                        Category = "Safety",
+                        StockLevel = 40,
+                        MinimumStock = 10,
+                        Unit = "pieces",
+                        UnitCost = 25.00m,
+                        Supplier = "Fire Safety KZN"
+                    },
+                    // Grounds
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Grass Fertilizer 50kg",
+                        Category = "Grounds",
+                        StockLevel = 20,
+                        MinimumStock = 5,
+                        Unit = "bags",
+                        UnitCost = 280.00m,
+                        Supplier = "Garden World PMB"
+                    },
+                    // General
+                    new MaintenanceInventory
+                    {
+                        ItemName = "General Paint 5L White",
+                        Category = "General",
+                        StockLevel = 15,
+                        MinimumStock = 5,
+                        Unit = "tins",
+                        UnitCost = 185.00m,
+                        Supplier = "Plascon Paint PMB"
+                    },
+                    new MaintenanceInventory
+                    {
+                        ItemName = "Wood Screws Assorted Box",
+                        Category = "General",
+                        StockLevel = 20,
+                        MinimumStock = 5,
+                        Unit = "boxes",
+                        UnitCost = 45.00m,
+                        Supplier = "Build It Pietermaritzburg"
+                    }
+                );
+                context.SaveChanges();
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════
+            //  ADVANCED SEEDS – Shifts, Assets, Job Cards
+            // ═══════════════════════════════════════════════════════════════════════
+
+            // ── Seed Staff Shifts (next 7 days) ──────────────────────────────────
+            if (!context.StaffShifts.Any())
+            {
+                var shiftPatterns = context.ShiftPatterns.ToList();
+                var staffList = context.MaintenanceStaff.ToList();
+                var today = DateTime.Today;
+                for (int d = 0; d < 7; d++)
+                {
+                    var date = today.AddDays(d);
+                    foreach (var staff in staffList)
+                    {
+                        var patternIndex = (staff.Id + d) % shiftPatterns.Count;
+                        var pattern = shiftPatterns[patternIndex];
+                        context.StaffShifts.Add(new StaffShift
+                        {
+                            StaffId = staff.Id,
+                            ShiftPatternId = pattern.Id,
+                            Date = date,
+                            Notes = "Scheduled"
+                        });
+                    }
+                }
+                context.SaveChanges();
+            }
+
+            // ── Seed Assets (50+ assets) ─────────────────────────────────────────
+            if (!context.Assets.Any())
+            {
+                var assetData = new List<dynamic>();
+                // Founders House
+                assetData.AddRange(new[] {
+                    new { Name = "Lights - Founders (5)", Cat = "Electrical", Bld = "Founders House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Power Sockets - Founders (3)", Cat = "Electrical", Bld = "Founders House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Geyser - Founders", Cat = "Plumbing", Bld = "Founders House", Room = "Kitchen", Condition = "Fair" },
+                    new { Name = "Toilets - Founders (2)", Cat = "Plumbing", Bld = "Founders House", Room = "Bathrooms", Condition = "Good" },
+                    new { Name = "Kitchen Oven - Founders", Cat = "General", Bld = "Founders House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Fridge - Founders", Cat = "General", Bld = "Founders House", Room = "Kitchen", Condition = "Fair" }
+                });
+                // East House
+                assetData.AddRange(new[] {
+                    new { Name = "Lights - East (5)", Cat = "Electrical", Bld = "East House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Power Sockets - East (3)", Cat = "Electrical", Bld = "East House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Geyser - East", Cat = "Plumbing", Bld = "East House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Toilets - East (2)", Cat = "Plumbing", Bld = "East House", Room = "Bathrooms", Condition = "Fair" },
+                    new { Name = "Kitchen Oven - East", Cat = "General", Bld = "East House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Fridge - East", Cat = "General", Bld = "East House", Room = "Kitchen", Condition = "Good" }
+                });
+                // West House
+                assetData.AddRange(new[] {
+                    new { Name = "Lights - West (5)", Cat = "Electrical", Bld = "West House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Power Sockets - West (3)", Cat = "Electrical", Bld = "West House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Geyser - West", Cat = "Plumbing", Bld = "West House", Room = "Kitchen", Condition = "Fair" },
+                    new { Name = "Toilets - West (2)", Cat = "Plumbing", Bld = "West House", Room = "Bathrooms", Condition = "Good" },
+                    new { Name = "Kitchen Oven - West", Cat = "General", Bld = "West House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Fridge - West", Cat = "General", Bld = "West House", Room = "Kitchen", Condition = "Good" }
+                });
+                // Tatham House
+                assetData.AddRange(new[] {
+                    new { Name = "Lights - Tatham (5)", Cat = "Electrical", Bld = "Tatham House", Room = "All rooms", Condition = "Good" },
+                    new { Name = "Power Sockets - Tatham (3)", Cat = "Electrical", Bld = "Tatham House", Room = "All rooms", Condition = "Fair" },
+                    new { Name = "Geyser - Tatham", Cat = "Plumbing", Bld = "Tatham House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Toilets - Tatham (2)", Cat = "Plumbing", Bld = "Tatham House", Room = "Bathrooms", Condition = "Good" },
+                    new { Name = "Kitchen Oven - Tatham", Cat = "General", Bld = "Tatham House", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Fridge - Tatham", Cat = "General", Bld = "Tatham House", Room = "Kitchen", Condition = "Good" }
+                });
+                // Main Kitchen
+                assetData.AddRange(new[] {
+                    new { Name = "Industrial Oven (Main Kitchen)", Cat = "General", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Industrial Fridge (Main Kitchen)", Cat = "General", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Freezer (Main Kitchen)", Cat = "General", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Fair" },
+                    new { Name = "Dishwasher (Main Kitchen)", Cat = "General", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Ventilation System (Main Kitchen)", Cat = "HVAC", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Good" },
+                    new { Name = "Fire Extinguisher (Main Kitchen)", Cat = "Safety", Bld = "Main Kitchen", Room = "Kitchen", Condition = "Good" }
+                });
+                // Gym/Sports
+                assetData.AddRange(new[] {
+                    new { Name = "Scoreboard", Cat = "Electrical", Bld = "Gym/Sports", Room = "Main Hall", Condition = "Good" },
+                    new { Name = "Showers (Gym) (2)", Cat = "Plumbing", Bld = "Gym/Sports", Room = "Change Rooms", Condition = "Good" },
+                    new { Name = "Boiler (Gym)", Cat = "Plumbing", Bld = "Gym/Sports", Room = "Change Rooms", Condition = "Fair" },
+                    new { Name = "Lights (Gym) (4)", Cat = "Electrical", Bld = "Gym/Sports", Room = "Main Hall", Condition = "Good" },
+                    new { Name = "Sound System (Gym)", Cat = "General", Bld = "Gym/Sports", Room = "Main Hall", Condition = "Good" }
+                });
+                // Classrooms
+                for (int i = 1; i <= 5; i++)
+                {
+                    assetData.AddRange(new[] {
+                        new { Name = $"Projector - Room {i}", Cat = "Electrical", Bld = "Classrooms", Room = $"Room {i}", Condition = "Good" },
+                        new { Name = $"Air Conditioner - Room {i}", Cat = "HVAC", Bld = "Classrooms", Room = $"Room {i}", Condition = "Good" },
+                        new { Name = $"Lights - Room {i} (4)", Cat = "Electrical", Bld = "Classrooms", Room = $"Room {i}", Condition = "Good" },
+                        new { Name = $"Smart Board - Room {i}", Cat = "General", Bld = "Classrooms", Room = $"Room {i}", Condition = "Good" }
+                    });
+                }
+                // Campus-wide
+                assetData.AddRange(new[] {
+                    new { Name = "Pool Pump", Cat = "Pool", Bld = "Campus", Room = "Pool Area", Condition = "Good" },
+                    new { Name = "Pool Filter", Cat = "Pool", Bld = "Campus", Room = "Pool Area", Condition = "Fair" },
+                    new { Name = "Pool Heater", Cat = "Pool", Bld = "Campus", Room = "Pool Area", Condition = "Good" },
+                    new { Name = "Chlorinator", Cat = "Pool", Bld = "Campus", Room = "Pool Area", Condition = "Good" },
+                    new { Name = "Lawnmower (x2)", Cat = "Grounds", Bld = "Campus", Room = "Grounds Shed", Condition = "Good" },
+                    new { Name = "Tractor", Cat = "Grounds", Bld = "Campus", Room = "Grounds Shed", Condition = "Good" },
+                    new { Name = "Water Sprinkler System", Cat = "Grounds", Bld = "Campus", Room = "Grounds", Condition = "Fair" },
+                    new { Name = "CCTV Camera (x12)", Cat = "Safety", Bld = "Campus", Room = "Various", Condition = "Good" },
+                    new { Name = "Security Gates (x4)", Cat = "General", Bld = "Campus", Room = "Entrances", Condition = "Good" },
+                    new { Name = "Electric Fence", Cat = "Safety", Bld = "Campus", Room = "Perimeter", Condition = "Good" },
+                    new { Name = "Main Water Pump", Cat = "Plumbing", Bld = "Campus", Room = "Utility Room", Condition = "Good" },
+                    new { Name = "Backup Generator", Cat = "General", Bld = "Campus", Room = "Utility Room", Condition = "Good" },
+                    new { Name = "Solar System", Cat = "Electrical", Bld = "Campus", Room = "Roof", Condition = "Good" }
+                });
+
+                int index = 1;
+                foreach (var ad in assetData)
+                {
+                    var asset = new Asset
+                    {
+                        AssetName = ad.Name,
+                        Category = ad.Cat,
+                        LocationBuilding = ad.Bld,
+                        LocationRoom = ad.Room ?? "",
+                        ConditionRating = ad.Condition,
+                        Status = "Active",
+                        DateRegistered = DateTime.Now.AddDays(-new Random().Next(1, 30)),
+                        RegisteredById = 1,
+                        QrCode = string.Format("MH-ASSET-{0:D4}", index),
+                        HealthScore = ad.Condition == "Good" ? 100 : (ad.Condition == "Fair" ? 65 : 30),
+                        FaultCount = new Random().Next(0, 3),
+                        WarrantyExpiry = DateTime.Now.AddYears(2 + new Random().Next(-1, 3)),
+                        PurchaseDate = DateTime.Now.AddYears(-3 + new Random().Next(0, 4)),
+                        PurchaseCost = new Random().Next(500, 5000),
+                        ModelSerial = "MOD-" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper(),
+                        Supplier = "Build It Pietermaritzburg"
+                    };
+                    context.Assets.Add(asset);
+                    index++;
+                    if (index % 5 == 0) context.SaveChanges();
+                }
+                context.SaveChanges();
+            }
+
+            // ── Seed Job Cards (open, completed, overdue) ──────────────────────
+            if (!context.JobCards.Any())
+            {
+                var staff = context.MaintenanceStaff.ToList();
+                var assets = context.Assets.ToList();
+                var adminUser = context.Users.FirstOrDefault(u => u.Role == "Admin")?.UserId ?? 1;
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var asset = assets.Skip(i % assets.Count).First();
+                    var worker = staff.Skip(i % staff.Count).First();
+                    var job = new JobCard
+                    {
+                        JobReference = string.Format("MH-JOB-{0:D4}", i + 100),
+                        Title = $"Open Job {i + 1}: {asset.AssetName} fault",
+                        Description = $"Fault reported on {asset.AssetName} in {asset.LocationBuilding}",
+                        AssetId = asset.Id,
+                        AssignedToId = worker.Id,
+                        Priority = i == 0 ? "Emergency" : (i == 1 ? "High" : "Medium"),
+                        Status = i == 0 ? "Assigned" : "Pending",
+                        DateCreated = DateTime.Now.AddDays(-i),
+                        DateAssigned = i == 0 ? DateTime.Now.AddDays(-i + 1) : (DateTime?)null,
+                        DueDate = DateTime.Now.AddDays(1 + i),
+                        ReportedById = adminUser,
+                        PhotoBefore = "",
+                        JobType = "Reactive"
+                    };
+                    context.JobCards.Add(job);
+                }
+
+                for (int i = 0; i < 2; i++)
+                {
+                    var asset = assets.Skip((i + 3) % assets.Count).First();
+                    var worker = staff.Skip((i + 3) % staff.Count).First();
+                    var job = new JobCard
+                    {
+                        JobReference = string.Format("MH-JOB-{0:D4}", i + 200),
+                        Title = $"Completed Job {i + 1}: {asset.AssetName} fixed",
+                        Description = $"Fixed {asset.AssetName} in {asset.LocationBuilding}",
+                        AssetId = asset.Id,
+                        AssignedToId = worker.Id,
+                        Priority = "Medium",
+                        Status = "Completed",
+                        DateCreated = DateTime.Now.AddDays(-5 - i),
+                        DateAssigned = DateTime.Now.AddDays(-5 - i + 1),
+                        DateCompleted = DateTime.Now.AddDays(-1 - i),
+                        DueDate = DateTime.Now.AddDays(-2 - i),
+                        ResponseTimeMinutes = 120,
+                        ReportedById = adminUser,
+                        PhotoBefore = "",
+                        PhotoAfter = "",
+                        CompletionNotes = "Fixed successfully",
+                        FinalCondition = "Fixed"
+                    };
+                    context.JobCards.Add(job);
+                }
+
+                var overdueAsset = assets.Skip(4).First();
+                var overdueWorker = staff.Skip(4).First();
+                var overdueJob = new JobCard
+                {
+                    JobReference = "MH-JOB-0900",
+                    Title = $"OVERDUE: {overdueAsset.AssetName} urgent repair",
+                    Description = $"This job is overdue by 2 days",
+                    AssetId = overdueAsset.Id,
+                    AssignedToId = overdueWorker.Id,
+                    Priority = "High",
+                    Status = "Assigned",
+                    DateCreated = DateTime.Now.AddDays(-5),
+                    DateAssigned = DateTime.Now.AddDays(-5),
+                    DueDate = DateTime.Now.AddDays(-2),
+                    ReportedById = adminUser,
+                    JobType = "Reactive"
+                };
+                context.JobCards.Add(overdueJob);
+                context.SaveChanges();
+            }
+
+            // ═══════════════════════════════════════════════════════════════════════
+            //  SAFETY NET: Ensure any remaining staff have login accounts
+            //  (This catches any staff that might have been added manually)
+            // ═══════════════════════════════════════════════════════════════════════
+            var allStaff = context.MaintenanceStaff.ToList();
+            foreach (var staff in allStaff)
+            {
+                // Skip if staff already has a valid UserId
+                if (staff.UserId.HasValue && context.Users.Any(u => u.UserId == staff.UserId.Value))
+                    continue;
+
+                // Check if a user with this email already exists
+                var existingUser = context.Users.FirstOrDefault(u => u.Email == staff.Email);
+                if (existingUser != null)
+                {
+                    staff.UserId = existingUser.UserId;
+                    context.Entry(staff).State = EntityState.Modified;
+                    context.SaveChanges();
+                    continue;
+                }
+
+                // Create a new AppUser for this staff member
+                // Ensure email is not null
+                var email = staff.Email ?? staff.FullName.Replace(" ", ".").ToLower() + "@michaelhouse.org";
+                var newUser = new AppUser
+                {
+                    Name = staff.FullName,
+                    Email = email,
+                    PasswordHash = HashPassword("Worker@123"),
+                    Role = "MaintenanceWorker"
+                };
+                context.Users.Add(newUser);
+                context.SaveChanges();
+
+                staff.UserId = newUser.UserId;
+                context.Entry(staff).State = EntityState.Modified;
+                context.SaveChanges();
+            }
+
+            // ---- END NEW ADVANCED SEEDS ----
 
             // 4. Seed Drivers (including their AppUser accounts)
             if (!context.Users.Any(u => u.Role == "Driver"))
@@ -451,7 +1292,7 @@ namespace Michaelhouse.Migrations
                         Role = "Driver"
                     };
                     context.Users.Add(user);
-                    context.SaveChanges(); // needed to get UserId
+                    context.SaveChanges();
 
                     var driver = new Driver
                     {

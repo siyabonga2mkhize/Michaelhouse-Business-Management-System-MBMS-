@@ -1,0 +1,135 @@
+﻿@model Michaelhouse.Models.JobCard
+@{
+    ViewBag.Title = "Create Job Card";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Create Job Card</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Log a new maintenance job</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("CreateJobCard", "Maintenance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Leaking pipe in bathroom" })
+                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Asset *</label>
+                            <select name="AssetId" class="form-select">
+                                <option value="">-- Select Asset --</option>
+                                @if (ViewBag.Assets != null)
+                                {
+                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
+                                    {
+                                        <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Priority *</label>
+                            @Html.DropDownListFor(m => m.Priority,
+                                new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                                "-- Select Priority --",
+                                new { @class = "form-select", id = "prioritySelect" })
+                            @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <div id="priorityGuide" class="alert alert-secondary" style="display:none;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Assign To (optional)</label>
+                            <select name="AssignedToId" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                                @if (ViewBag.Staff != null)
+                                {
+                                    foreach (var s in (List<Michaelhouse.Models.MaintenanceStaff>)ViewBag.Staff)
+                                    {
+                                        <option value="@s.Id">@s.FullName — @s.SkillType</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Job Type</label>
+                            @Html.DropDownListFor(m => m.JobType,
+                                new SelectList(new[] { "Reactive", "Preventive" }),
+                                "-- Select Type --",
+                                new { @class = "form-select" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Description</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe the problem in detail..." })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-robot me-2"></i> If you don't assign a worker, the system will auto‑assign based on skill and availability.
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Create Job Card</button>
+                        <a href="@Url.Action("JobCards", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Priority Guide</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger"><strong>Emergency</strong> — Fix within 1 hour (burst pipe, flood)</div>
+                <div class="alert alert-warning"><strong>High</strong> — Fix same day (no hot water)</div>
+                <div class="alert alert-info"><strong>Medium</strong> — Fix within 3 days (dripping tap)</div>
+                <div class="alert alert-success"><strong>Low</strong> — Fix this week (peeling paint)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var guides = {
+            'Emergency': '🔴 EMERGENCY — Fix within 1 HOUR. SMS alert will be sent.',
+            'High': '🟡 HIGH — Must be fixed by end of today.',
+            'Medium': '🔵 MEDIUM — Will be scheduled within 3 days.',
+            'Low': '🟢 LOW — Will be completed within this week.'
+        };
+        document.getElementById('prioritySelect').addEventListener('change', function() {
+            var guide = document.getElementById('priorityGuide');
+            var val = this.value;
+            if (val && guides[val]) {
+                guide.style.display = 'block';
+                guide.textContent = guides[val];
+                guide.className = 'alert alert-' + (val === 'Emergency' ? 'danger' : val === 'High' ? 'warning' : val === 'Medium' ? 'info' : 'success');
+            } else {
+                guide.style.display = 'none';
+            }
+        });
+    </script>
+}
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

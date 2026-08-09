@@ -1,0 +1,73 @@
+﻿@model Michaelhouse.Models.StaffDetailsViewModel
+@{
+    ViewBag.Title = "Staff Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.Staff.FullName <small>@Model.Staff.StaffNumber</small></h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Profile</div>
+            <div class="card-body">
+                <p><strong>Job Title:</strong> @Model.Staff.JobTitle</p>
+                <p><strong>Skill:</strong> @Model.Staff.SkillType</p>
+                <p><strong>Status:</strong> <span class="badge @(Model.Staff.CurrentStatus == "Available" ? "bg-success" : Model.Staff.CurrentStatus == "On Job" ? "bg-warning" : "bg-secondary")">@Model.Staff.CurrentStatus</span></p>
+                <p><strong>Phone:</strong> @Model.Staff.Phone</p>
+                <p><strong>Email:</strong> @Model.Staff.Email</p>
+                <p><strong>Employee Type:</strong> @Model.Staff.EmployeeType</p>
+                <p><strong>Date Joined:</strong> @Model.Staff.DateJoined.ToString("dd MMM yyyy")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#jobs">Jobs</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#leave">Leave</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#shifts">Shifts</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#skills">Skills & Certifications</a></li>
+        </ul>
+        <div class="tab-content">
+            <div id="jobs" class="tab-pane fade show active">
+                <h4>Recent Jobs</h4>
+                <table class="table table-sm">
+                    <tr><th>Reference</th><th>Asset</th><th>Status</th><th>Completed</th></tr>
+                    @foreach (var job in Model.RecentJobs)
+                    {
+                        <tr>
+                            <td>@job.JobReference</td>
+                            <td>@job.Asset.AssetName</td>
+                            <td>@job.Status</td>
+                            <td>@(job.DateCompleted?.ToString("dd MMM") ?? "-")</td>
+                        </tr>
+                    }
+                </table>
+                <p><strong>Total Completed:</strong> @Model.TotalJobsCompleted</p>
+                <p><strong>Avg Response Time:</strong> @Model.AvgResponseTime mins</p>
+                <p><strong>On-Time Rate:</strong> @Model.OnTimeRate%</p>
+            </div>
+            <div id="leave" class="tab-pane fade">
+                <h4>Leave Requests</h4>
+                @foreach (var lv in Model.LeaveRequests)
+                {
+                    <p>@lv.Type: @lv.StartDate.ToShortDateString() - @lv.EndDate.ToShortDateString() <span class="badge bg-info">@lv.Status</span></p>
+                }
+            </div>
+            <div id="shifts" class="tab-pane fade">
+                <h4>Upcoming Shifts</h4>
+                @foreach (var sh in Model.UpcomingShifts)
+                {
+                    <p>@sh.Date.ToString("dd MMM") – @sh.ShiftPattern.Name (@sh.ShiftPattern.StartTime - @sh.ShiftPattern.EndTime)</p>
+                }
+            </div>
+            <div id="skills" class="tab-pane fade">
+                <h4>Skills & Certifications</h4>
+                <p><strong>Skills:</strong> @Model.Staff.Skills</p>
+                <p><strong>Proficiency:</strong> @Model.Staff.ProficiencyLevel</p>
+                <p><strong>Certifications:</strong> @Model.Staff.Certifications</p>
+                <p><strong>Cert Expiry:</strong> @(Model.Staff.CertificationExpiry?.ToString("dd MMM yyyy") ?? "N/A")</p>
+            </div>
+        </div>
+    </div>
+</div>

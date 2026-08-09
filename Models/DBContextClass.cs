@@ -1,4 +1,5 @@
 ﻿using Michaelhouse.Controllers;
+using Michaelhouse.Models;
 using System.Data.Entity;
 
 namespace Michaelhouse.Models
@@ -64,6 +65,7 @@ namespace Michaelhouse.Models
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
+
         // ─── Trips Management ───────────────────────────────────────────────
         public DbSet<TripRequest> TripRequests { get; set; }
         public DbSet<TripSchedule> TripSchedules { get; set; }
@@ -72,6 +74,18 @@ namespace Michaelhouse.Models
         public DbSet<Notification> Notifications { get; set; }
 
         public DbSet<StudentAttendanceToken> StudentAttendanceTokens { get; set; }
+
+        // ─── Maintenance Management ───────────────────────────────────────
+        public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }
+        public DbSet<Asset> Assets { get; set; }
+        public DbSet<JobCard> JobCards { get; set; }
+        public DbSet<MaintenanceInventory> MaintenanceInventory { get; set; }
+        public DbSet<JobCardPart> JobCardParts { get; set; }
+        public DbSet<PreventiveSchedule> PreventiveSchedules { get; set; }
+        // ─── Maintenance Management – Advanced ──────────────────────────
+        public DbSet<ShiftPattern> ShiftPatterns { get; set; }
+        public DbSet<StaffShift> StaffShifts { get; set; }
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -383,6 +397,70 @@ namespace Michaelhouse.Models
             modelBuilder.Entity<StockMovement>()
                 .HasRequired(sm => sm.Product).WithMany()
                 .HasForeignKey(sm => sm.ProductId).WillCascadeOnDelete(false);
+
+            // ── Staff Leave & Shifts ──────────────────────────────────────────
+            modelBuilder.Entity<LeaveRequest>()
+                .HasRequired(l => l.Staff)
+                .WithMany(s => s.LeaveRequests)
+                .HasForeignKey(l => l.StaffId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<LeaveRequest>()
+                .HasOptional(l => l.ApprovedBy)
+                .WithMany()
+                .HasForeignKey(l => l.ApprovedByUserId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StaffShift>()
+                .HasRequired(ss => ss.Staff)
+                .WithMany(s => s.StaffShifts)
+                .HasForeignKey(ss => ss.StaffId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StaffShift>()
+                .HasRequired(ss => ss.ShiftPattern)
+                .WithMany()
+                .HasForeignKey(ss => ss.ShiftPatternId)
+                .WillCascadeOnDelete(false);
+
+            // ── Asset extended fields – no extra relationships needed
+
+            // ── Maintenance Management relationships ──────────────────────────
+            modelBuilder.Entity<JobCard>()
+                .HasRequired(j => j.Asset)
+                .WithMany(a => a.JobCards)
+                .HasForeignKey(j => j.AssetId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<JobCard>()
+                .HasOptional(j => j.AssignedTo)
+                .WithMany(s => s.JobCards)
+                .HasForeignKey(j => j.AssignedToId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<JobCardPart>()
+                .HasRequired(p => p.JobCard)
+                .WithMany()
+                .HasForeignKey(p => p.JobCardId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<JobCardPart>()
+                .HasRequired(p => p.InventoryItem)
+                .WithMany()
+                .HasForeignKey(p => p.InventoryItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PreventiveSchedule>()
+                .HasRequired(s => s.Asset)
+                .WithMany()
+                .HasForeignKey(s => s.AssetId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<MaintenanceStaff>()
+                .HasOptional(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .WillCascadeOnDelete(false);
         }
     }
 }

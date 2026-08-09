@@ -663,10 +663,10 @@
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -824,6 +824,100 @@
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
                            href="@Url.Action("Profile", "Account")">
                             <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+
+                    else if (userRole == "MaintenanceManager")
+                    {
+                        <div class="sidebar-label">Maintenance Management</div>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Maintenance")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Staff" ? "active" : "")"
+                           href="@Url.Action("Staff", "Maintenance")">
+                            <i class="bi bi-people"></i> <span class="link-text">Staff Management</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "Assets" || currentAction == "AssetDetail" || currentAction == "RegisterAsset") ? "active" : "")"
+                           href="@Url.Action("Assets", "Maintenance")">
+                            <i class="bi bi-qr-code"></i> <span class="link-text">Asset Register</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "JobCards" || currentAction == "JobCardDetail" || currentAction == "CreateJobCard") ? "active" : "")"
+                           href="@Url.Action("JobCards", "Maintenance")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Job Cards</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Planning</div>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Schedules" ? "active" : "")"
+                           href="@Url.Action("Schedules", "Maintenance")">
+                            <i class="bi bi-calendar3"></i> <span class="link-text">Preventive Schedules</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Inventory" ? "active" : "")"
+                           href="@Url.Action("Inventory", "Maintenance")">
+                            <i class="bi bi-boxes"></i> <span class="link-text">Inventory</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Performance" ? "active" : "")"
+                           href="@Url.Action("Performance", "Maintenance")">
+                            <i class="bi bi-graph-up"></i> <span class="link-text">Performance</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+                    else if (userRole == "MaintenanceManager")
+                    {
+                        <div class="sidebar-label">Maintenance Management</div>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Maintenance")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Staff" ? "active" : "")"
+                           href="@Url.Action("Staff", "Maintenance")">
+                            <i class="bi bi-people"></i> <span class="link-text">Staff Management</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "Assets" || currentAction == "AssetDetail" || currentAction == "RegisterAsset") ? "active" : "")"
+                           href="@Url.Action("Assets", "Maintenance")">
+                            <i class="bi bi-qr-code"></i> <span class="link-text">Asset Register</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "JobCards" || currentAction == "JobCardDetail" || currentAction == "CreateJobCard") ? "active" : "")"
+                           href="@Url.Action("JobCards", "Maintenance")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Job Cards</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Planning</div>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Schedules" ? "active" : "")"
+                           href="@Url.Action("Schedules", "Maintenance")">
+                            <i class="bi bi-calendar3"></i> <span class="link-text">Preventive Schedules</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Inventory" ? "active" : "")"
+                           href="@Url.Action("Inventory", "Maintenance")">
+                            <i class="bi bi-boxes"></i> <span class="link-text">Inventory</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Performance" ? "active" : "")"
+                           href="@Url.Action("Performance", "Maintenance")">
+                            <i class="bi bi-graph-up"></i> <span class="link-text">Performance</span>
+                        </a>
+                    }
+                    else if (userRole == "MaintenanceWorker")
+                    {
+                        <div class="sidebar-label">Worker Portal</div>
+                        <a class="nav-link @(currentController == "Worker" && currentAction == "MyJobs" ? "active" : "")"
+                           href="@Url.Action("MyJobs", "Worker")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">My Jobs</span>
+                        </a>
+                    }
+                    else if (userRole == "MaintenanceReporter")
+                    {
+                        <div class="sidebar-label">Fault Reporting</div>
+                        <a class="nav-link @(currentController == "Reporter" && currentAction == "ReportFault" ? "active" : "")"
+                           href="@Url.Action("ReportFault", "Reporter")">
+                            <i class="bi bi-exclamation-triangle"></i> <span class="link-text">Report a Fault</span>
                         </a>
                     }
 

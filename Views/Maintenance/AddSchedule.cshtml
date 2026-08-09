@@ -1,0 +1,143 @@
+﻿@model Michaelhouse.Models.PreventiveSchedule
+@{
+    ViewBag.Title = "Add Preventive Schedule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Add Preventive Schedule</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Set up a recurring maintenance task</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("AddSchedule", "Maintenance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Schedule Name *</label>
+                            @Html.TextBoxFor(m => m.ScheduleName, new { @class = "form-control", placeholder = "e.g. Generator Service / Grass Cutting" })
+                            @Html.ValidationMessageFor(m => m.ScheduleName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Asset *</label>
+                            <select name="AssetId" class="form-select">
+                                <option value="">-- Select Asset --</option>
+                                @if (ViewBag.Assets != null)
+                                {
+                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
+                                    {
+                                        <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Task Description *</label>
+                            @Html.TextAreaFor(m => m.TaskDescription, new { @class = "form-control", rows = 3, placeholder = "Describe what must be done..." })
+                            @Html.ValidationMessageFor(m => m.TaskDescription, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Frequency *</label>
+                            @Html.DropDownListFor(m => m.Frequency,
+                                new SelectList(new[] { "Daily", "Weekly", "Fortnightly", "Monthly", "Every3Months", "Every6Months", "Annually" }),
+                                "-- Select Frequency --",
+                                new { @class = "form-select", id = "frequencySelect" })
+                            @Html.ValidationMessageFor(m => m.Frequency, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Skill Required *</label>
+                            @Html.DropDownListFor(m => m.SkillRequired,
+                                new SelectList(new[] { "Plumbing", "Electrical", "HVAC", "Grounds", "Pool", "IT", "General" }),
+                                "-- Select Skill --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.SkillRequired, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Start Date *</label>
+                            @Html.TextBoxFor(m => m.StartDate, new { @class = "form-control", type = "date", id = "startDate", value = DateTime.Now.ToString("yyyy-MM-dd") })
+                            @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">First Job Card Will Be Created On</label>
+                            <div id="nextDueDatePreview" class="form-control bg-light text-muted">Select frequency to preview</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-robot me-2"></i> Once saved, this schedule runs automatically. The system creates a job card on the due date and assigns it.
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Save Schedule</button>
+                        <a href="@Url.Action("Schedules", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-lightbulb me-2"></i>Real Michaelhouse Schedules</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="border-bottom py-2"><strong>Grass Cutting</strong> — Every 2 weeks (Grounds)</li>
+                    <li class="border-bottom py-2"><strong>Generator Service</strong> — Every 3 months (Electrical)</li>
+                    <li class="border-bottom py-2"><strong>Pool Chemical Check</strong> — Daily (Pool)</li>
+                    <li class="border-bottom py-2"><strong>HVAC Filter Clean</strong> — Every 6 months (HVAC)</li>
+                    <li class="border-bottom py-2"><strong>Fire Extinguisher Check</strong> — Every 6 months (Safety)</li>
+                    <li class="border-bottom py-2"><strong>Geyser Inspection</strong> — Every 6 months (Plumbing)</li>
+                    <li class="border-bottom py-2"><strong>Electrical Board Inspection</strong> — Annually (Electrical)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updatePreview() {
+            var startDate = document.getElementById('startDate').value;
+            var frequency = document.getElementById('frequencySelect').value;
+            var preview = document.getElementById('nextDueDatePreview');
+            if (!startDate || !frequency) {
+                preview.textContent = 'Select frequency to preview';
+                preview.className = 'form-control bg-light text-muted';
+                return;
+            }
+            var date = new Date(startDate);
+            switch (frequency) {
+                case 'Daily': date.setDate(date.getDate() + 1); break;
+                case 'Weekly': date.setDate(date.getDate() + 7); break;
+                case 'Fortnightly': date.setDate(date.getDate() + 14); break;
+                case 'Monthly': date.setMonth(date.getMonth() + 1); break;
+                case 'Every3Months': date.setMonth(date.getMonth() + 3); break;
+                case 'Every6Months': date.setMonth(date.getMonth() + 6); break;
+                case 'Annually': date.setFullYear(date.getFullYear() + 1); break;
+            }
+            preview.textContent = date.toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            preview.className = 'form-control text-success fw-bold';
+        }
+        document.getElementById('frequencySelect').addEventListener('change', updatePreview);
+        document.getElementById('startDate').addEventListener('change', updatePreview);
+        updatePreview();
+    </script>
+}
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

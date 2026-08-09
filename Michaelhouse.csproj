@@ -213,14 +213,18 @@
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MaintenanceController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\ReporterController.cs" />
+    <Compile Include="Controllers\ScanController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
     <Compile Include="Controllers\TransportController.cs" />
+    <Compile Include="Controllers\WorkerController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -239,6 +243,14 @@
     <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.cs" />
     <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.Designer.cs">
       <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608032136127_AddMaintenanceModule.cs" />
+    <Compile Include="Migrations\202608032136127_AddMaintenanceModule.Designer.cs">
+      <DependentUpon>202608032136127_AddMaintenanceModule.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608042309180_AddTripVehicleAssignments.cs" />
+    <Compile Include="Migrations\202608042309180_AddTripVehicleAssignments.Designer.cs">
+      <DependentUpon>202608042309180_AddTripVehicleAssignments.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -259,6 +271,7 @@
     <Compile Include="Models\InventoryService.cs" />
     <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\MaintananceRequest.cs" />
+    <Compile Include="Models\MaintenanceModels.cs" />
     <Compile Include="Models\MarkAttendanceViewModel.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
@@ -397,6 +410,32 @@
     <Content Include="Views\TransportManager\Details.cshtml" />
     <Content Include="Views\TransportManager\Index.cshtml" />
     <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <Content Include="Views\Maintenance\Index.cshtml" />
+    <Content Include="Views\Maintenance\Staff.cshtml" />
+    <Content Include="Views\Maintenance\Assets.cshtml" />
+    <Content Include="Views\Maintenance\JobCards.cshtml" />
+    <Content Include="Views\Maintenance\Inventory.cshtml" />
+    <Content Include="Views\Maintenance\Schedules.cshtml" />
+    <Content Include="Views\Maintenance\Performance.cshtml" />
+    <Content Include="Views\Worker\MyJobs.cshtml" />
+    <Content Include="Views\Maintenance\AddStaff.cshtml" />
+    <Content Include="Views\Maintenance\EditStaff.cshtml" />
+    <Content Include="Views\Maintenance\RegisterAsset.cshtml" />
+    <Content Include="Views\Maintenance\EditAsset.cshtml" />
+    <Content Include="Views\Maintenance\AssetDetail.cshtml" />
+    <Content Include="Views\Maintenance\CreateJobCard.cshtml" />
+    <Content Include="Views\Maintenance\JobCardDetail.cshtml" />
+    <Content Include="Views\Maintenance\CompleteJobCard.cshtml" />
+    <Content Include="Views\Maintenance\ReportFault.cshtml" />
+    <Content Include="Views\Maintenance\AddInventory.cshtml" />
+    <Content Include="Views\Maintenance\AddSchedule.cshtml" />
+    <Content Include="Views\Worker\JobDetail.cshtml" />
+    <Content Include="Views\Reporter\ReportFault.cshtml" />
+    <Content Include="Views\Maintenance\StaffDetails.cshtml" />
+    <Content Include="Views\Worker\Profile.cshtml" />
+    <Content Include="Views\Worker\RequestLeave.cshtml" />
+    <Content Include="Views\Maintenance\ReportFaultFromScan.cshtml" />
+    <Content Include="Views\Scan\Index.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -573,6 +612,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Data\" />
+    <Folder Include="Views\NewFolder1\" />
   </ItemGroup>
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
     <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -600,6 +640,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608021147371_AdReviewModelUpdate.resx">
       <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608032136127_AddMaintenanceModule.resx">
+      <DependentUpon>202608032136127_AddMaintenanceModule.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608042309180_AddTripVehicleAssignments.resx">
+      <DependentUpon>202608042309180_AddTripVehicleAssignments.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
