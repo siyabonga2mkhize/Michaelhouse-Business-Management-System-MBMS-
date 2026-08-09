@@ -52,9 +52,13 @@ namespace Michaelhouse.Models
         [Required, StringLength(50), Display(Name = "Relationship to Student")]
         public string RelationshipToBoy { get; set; } // Parent, Guardian, Sister, Peer, Alumni
 
-        // NEW: Added to differentiate between Parents (Auto-Approve) and Others (Queue)
         [Display(Name = "Is this visitor a parent or guardian?")]
         public bool IsParentOrGuardian { get; set; }
+
+        // ===== NEW FIELD FOR EMAIL DELIVERY =====
+        [Required, EmailAddress, StringLength(100), Display(Name = "Visitor Email Address")]
+        public string VisitorEmail { get; set; }
+        // ========================================
 
         [Required, Display(Name = "Visit Date")]
         [DataType(DataType.Date)]
@@ -71,7 +75,6 @@ namespace Michaelhouse.Models
         [Required, Display(Name = "Requested Access Zone")]
         public VisitorAccessZone RequestedZone { get; set; }
 
-        // NEW: To show where the system actually routed them (for safeguarding)
         [Display(Name = "Final Assigned Zone")]
         public VisitorAccessZone? FinalAssignedZone { get; set; }
 

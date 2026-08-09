@@ -11,7 +11,7 @@
 
     <a href="@Url.Action("Create")" class="btn btn-success mb-3">+ New Request</a>
 
-    <!-- System Notification Banner (Simulating Email/SMS) -->
+    <!-- System Notification Banner -->
     @if (TempData["StudentNotification"] != null)
     {
         <div class="alert alert-info alert-dismissible fade show mt-3 shadow-sm" role="alert" style="border-left: 5px solid #C21E2E;">
@@ -22,7 +22,6 @@
         </div>
     }
 
-    <!-- Standard Success/Error Messages -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
@@ -39,7 +38,6 @@
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
-                <th>Gate Pass</th>
             </tr>
         </thead>
         <tbody>
@@ -48,7 +46,9 @@
                 <tr>
                     <td>@item.VisitorFullName</td>
                     <td>@item.VisitDate.ToString("dd MMM yyyy")</td>
-                    <td>@item.StartTime - @item.EndTime</td>
+                    <td>
+                        @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+                    </td>
                     <td>
                         @if (item.Status == VisitorRequestStatus.AutoApprovedWeekend || item.Status == VisitorRequestStatus.Approved)
                         {
@@ -61,16 +61,6 @@
                         else
                         {
                             <span class="badge bg-danger">Rejected</span>
-                        }
-                    </td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(item.AccessGatePassCode))
-                        {
-                            <strong>@item.AccessGatePassCode</strong>
-                        }
-                        else
-                        {
-                            <span class="text-muted">N/A</span>
                         }
                     </td>
                 </tr>
