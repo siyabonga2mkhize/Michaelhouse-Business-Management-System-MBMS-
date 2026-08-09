@@ -1,5 +1,6 @@
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -12,17 +13,20 @@ namespace Michaelhouse.Controllers
     public class RoomController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();
+        private readonly BoardingAccessService boardingAccess = new BoardingAccessService();
 
         public ActionResult Index(string search, int? residenceId, bool archived = false)
         {
             var query = db.Rooms.Include(r => r.Residence).Include(r => r.Beds).AsQueryable();
             query = query.Where(r => r.IsArchived == archived);
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            query = query.Where(r => residenceIds.Contains(r.ResidenceId));
             if (residenceId.HasValue) query = query.Where(r => r.ResidenceId == residenceId.Value);
             if (!string.IsNullOrWhiteSpace(search)) query = query.Where(r => r.RoomNumber.Contains(search) || r.Residence.Name.Contains(search));
             ViewBag.Search = search;
             ViewBag.Archived = archived;
             ViewBag.ResidenceId = residenceId;
-            ViewBag.Residences = new SelectList(db.Residences.Where(r => !r.IsArchived).OrderBy(r => r.Name).ToList(), "ResidenceId", "Name", residenceId);
+            ViewBag.Residences = ResidenceList(residenceId);
             return View(query.OrderBy(r => r.Residence.Name).ThenBy(r => r.RoomNumber).ToList());
         }
 
@@ -31,12 +35,14 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var room = db.Rooms.Include(r => r.Residence).Include(r => r.Beds.Select(b => b.OccupiedByStudent)).FirstOrDefault(r => r.RoomId == id);
             if (room == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) return new HttpUnauthorizedResult();
             return View(room);
         }
 
         public ActionResult Create(int? residenceId)
         {
-            ViewBag.Residences = new SelectList(db.Residences.Where(r => !r.IsArchived).OrderBy(r => r.Name).ToList(), "ResidenceId", "Name", residenceId);
+            if (residenceId.HasValue && !boardingAccess.CanAccessResidence(this, db, residenceId.Value)) return new HttpUnauthorizedResult();
+            ViewBag.Residences = ResidenceList(residenceId);
             return View(new Room { ResidenceId = residenceId ?? 0, Capacity = 1 });
         }
 
@@ -47,7 +53,7 @@ namespace Michaelhouse.Controllers
             ValidateRoom(room);
             if (!ModelState.IsValid)
             {
-                ViewBag.Residences = new SelectList(db.Residences.Where(r => !r.IsArchived).OrderBy(r => r.Name).ToList(), "ResidenceId", "Name", room.ResidenceId);
+                ViewBag.Residences = ResidenceList(room.ResidenceId);
                 return View(room);
             }
 
@@ -63,7 +69,8 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var room = db.Rooms.Find(id);
             if (room == null) return HttpNotFound();
-            ViewBag.Residences = new SelectList(db.Residences.Where(r => !r.IsArchived).OrderBy(r => r.Name).ToList(), "ResidenceId", "Name", room.ResidenceId);
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) return new HttpUnauthorizedResult();
+            ViewBag.Residences = ResidenceList(room.ResidenceId);
             return View(room);
         }
 
@@ -74,10 +81,11 @@ namespace Michaelhouse.Controllers
             ValidateRoom(model);
             var room = db.Rooms.Find(model.RoomId);
             if (room == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) return new HttpUnauthorizedResult();
             if (model.Capacity < room.OccupiedBeds) ModelState.AddModelError("Capacity", "Capacity cannot be lower than occupied beds.");
             if (!ModelState.IsValid)
             {
-                ViewBag.Residences = new SelectList(db.Residences.Where(r => !r.IsArchived).OrderBy(r => r.Name).ToList(), "ResidenceId", "Name", model.ResidenceId);
+                ViewBag.Residences = ResidenceList(model.ResidenceId);
                 return View(model);
             }
 
@@ -104,6 +112,7 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var room = db.Rooms.Include(r => r.Residence).FirstOrDefault(r => r.RoomId == id);
             if (room == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) return new HttpUnauthorizedResult();
             return View(room);
         }
 
@@ -113,6 +122,7 @@ namespace Michaelhouse.Controllers
         {
             var room = db.Rooms.Find(id);
             if (room == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) return new HttpUnauthorizedResult();
             if (room.OccupiedBeds > 0 || db.Beds.Any(b => b.RoomId == id && b.IsOccupied))
             {
                 TempData["Error"] = "Cannot archive a room with occupied beds.";
@@ -140,6 +150,7 @@ namespace Michaelhouse.Controllers
         private void ValidateRoom(Room room)
         {
             if (room.Capacity <= 0) ModelState.AddModelError("Capacity", "Capacity must be at least 1.");
+            if (!boardingAccess.CanAccessResidence(this, db, room.ResidenceId)) ModelState.AddModelError("ResidenceId", "You can only manage rooms in your assigned residence.");
             if (db.Residences.Any(r => r.ResidenceId == room.ResidenceId && r.IsArchived)) ModelState.AddModelError("ResidenceId", "Cannot use an archived residence.");
             if (db.Rooms.Any(r => r.RoomId != room.RoomId && r.ResidenceId == room.ResidenceId && r.RoomNumber == room.RoomNumber && !r.IsArchived)) ModelState.AddModelError("RoomNumber", "Room number already exists in this residence.");
         }
@@ -152,6 +163,15 @@ namespace Michaelhouse.Controllers
             residence.Capacity = rooms.Sum(r => r.Capacity);
             residence.OccupiedBeds = rooms.Sum(r => r.OccupiedBeds);
             db.SaveChanges();
+        }
+
+        private SelectList ResidenceList(int? selected)
+        {
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            return new SelectList(db.Residences
+                .Where(r => !r.IsArchived && residenceIds.Contains(r.ResidenceId))
+                .OrderBy(r => r.Name)
+                .ToList(), "ResidenceId", "Name", selected);
         }
 
         protected override void Dispose(bool disposing)

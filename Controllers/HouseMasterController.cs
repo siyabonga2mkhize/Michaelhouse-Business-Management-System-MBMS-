@@ -13,11 +13,19 @@ namespace Michaelhouse.Controllers
     public class HouseMasterController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();
+        private readonly BoardingAccessService boardingAccess = new BoardingAccessService();
 
         public ActionResult Index(string search, bool archived = false)
         {
             var query = db.HouseMasters.Include(h => h.Residences).AsQueryable();
             query = query.Where(h => h.IsArchived == archived);
+            if (!boardingAccess.IsAdmin(this))
+            {
+                var houseMasterId = boardingAccess.GetHouseMasterId(this);
+                query = houseMasterId.HasValue
+                    ? query.Where(h => h.HouseMasterId == houseMasterId.Value)
+                    : query.Where(h => false);
+            }
             if (!string.IsNullOrWhiteSpace(search)) query = query.Where(h => h.FullName.Contains(search) || h.ContactEmail.Contains(search));
             ViewBag.Search = search;
             ViewBag.Archived = archived;
@@ -29,6 +37,8 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             var houseMaster = db.HouseMasters.Include(h => h.Residences).FirstOrDefault(h => h.HouseMasterId == id);
             if (houseMaster == null) return HttpNotFound();
+            if (!boardingAccess.IsAdmin(this) && boardingAccess.GetHouseMasterId(this) != houseMaster.HouseMasterId)
+                return new HttpUnauthorizedResult();
             return View(houseMaster);
         }
 
@@ -222,6 +232,7 @@ namespace Michaelhouse.Controllers
         // Residence summary
         public ActionResult ResidenceSummary(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.HouseMaster).FirstOrDefault(r => r.ResidenceId == id);
             if (res == null) return HttpNotFound();
             return View(res);
@@ -230,6 +241,7 @@ namespace Michaelhouse.Controllers
         // Current students in residence
         public ActionResult CurrentStudents(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var students = db.ResidenceAssignments.Where(a => a.ResidenceId == residenceId && a.IsActive)
                 .Include(a => a.Student).Include(a => a.Room).Include(a => a.Bed).ToList();
             ViewBag.Residence = db.Residences.Find(residenceId)?.Name;
@@ -239,6 +251,7 @@ namespace Michaelhouse.Controllers
         // Students outside residence (e.g., on trip or not present today)
         public ActionResult StudentsOutsideResidence(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var today = DateTime.UtcNow.Date;
             var assignments = db.ResidenceAssignments.Where(a => a.ResidenceId == residenceId && a.IsActive)
                 .Include(a => a.Student).ToList();
@@ -254,6 +267,7 @@ namespace Michaelhouse.Controllers
         // Recent movements
         public ActionResult RecentMovements(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var movements = db.ResidenceMovements.Where(m => m.FromResidenceId == residenceId || m.ToResidenceId == residenceId)
                 .Include(m => m.Student).OrderByDescending(m => m.PerformedAt).Take(50).ToList();
             ViewBag.Residence = db.Residences.Find(residenceId)?.Name;
@@ -263,6 +277,7 @@ namespace Michaelhouse.Controllers
         // Emergency roll call
         public ActionResult EmergencyRollCall(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var students = db.ResidenceAssignments.Where(a => a.ResidenceId == residenceId && a.IsActive)
                 .Include(a => a.Student).ToList();
             ViewBag.Residence = db.Residences.Find(residenceId)?.Name;
@@ -272,6 +287,7 @@ namespace Michaelhouse.Controllers
         // Visitor register (simple model from Notifications table or separate Visitor model)
         public ActionResult VisitorRegister(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var visitors = db.Notifications.Where(n => n.Type == "Visitor" && n.ResidenceId == residenceId).OrderByDescending(n => n.CreatedAt).Take(100).ToList();
             ViewBag.Residence = db.Residences.Find(residenceId)?.Name;
             return View(visitors);
@@ -280,6 +296,7 @@ namespace Michaelhouse.Controllers
         // Notifications / AI Alerts
         public ActionResult Notifications(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var alerts = db.AIAlerts.Where(a => a.ResidenceId == residenceId).OrderByDescending(a => a.CreatedAt).ToList();
             ViewBag.Residence = db.Residences.Find(residenceId)?.Name;
             return View(alerts);
@@ -502,6 +519,12 @@ namespace Michaelhouse.Controllers
                 .OrderByDescending(a => a.MoveInDate)
                 .FirstOrDefault(a => a.StudentId == qr.StudentId);
 
+            if (!boardingAccess.IsAdmin(this) && !boardingAccess.CanAccessStudentCurrentResidence(this, db, qr.StudentId))
+            {
+                ViewBag.ErrorMessage = "This student is not currently allocated to your assigned residence.";
+                return View("InvalidQRCode");
+            }
+
             ViewBag.ScannedStudent = qr.Student;
             ViewBag.ActiveAssignment = assignment;
             ViewBag.QRCode = qr;
@@ -550,10 +573,11 @@ namespace Michaelhouse.Controllers
             ViewBag.LastCheckOut = GetLastActionTime(studentId, "CheckOut");
             ViewBag.HolidayDeparture = GetLastActionTime(studentId, "HolidayDeparture");
             ViewBag.SuspensionDetails = GetLastActionReason(studentId, "SuspendStudent");
-            ViewBag.CanCheckIn = status == "Outside" || status == "WeekendLeave";
+            ViewBag.CanCheckIn = status == "Outside";
             ViewBag.CanCheckOut = status == "Inside";
-            ViewBag.CanHolidayDeparture = status == "Inside" || status == "Outside" || status == "WeekendLeave";
+            ViewBag.CanHolidayDeparture = status == "Inside";
             ViewBag.CanHolidayReturn = status == "OnHoliday";
+            ViewBag.CanVisitorReturn = status == "WeekendLeave";
             ViewBag.CanSuspend = status != "Suspended" && status != "Archived";
             ViewBag.CanReinstate = status == "Suspended";
             ViewBag.ActionsLocked = status == "Archived";
@@ -629,6 +653,9 @@ namespace Michaelhouse.Controllers
             var assignment = GetLatestAssignment(studentId);
             var status = GetCurrentBoardingStatus(studentId, assignment);
 
+            if (!boardingAccess.CanAccessStudentCurrentResidence(this, db, studentId))
+                throw new InvalidOperationException("You can only manage students currently allocated to your assigned residence.");
+
             if (status == "Archived")
                 throw new InvalidOperationException("No actions can be performed for an archived student assignment.");
 
@@ -644,8 +671,20 @@ namespace Michaelhouse.Controllers
             if (action == "CheckOut" && status == "Outside")
                 throw new InvalidOperationException("Student is already outside the residence.");
 
+            if (action == "CheckIn" && status != "Outside")
+                throw new InvalidOperationException("Check in is only available when the student is outside the residence.");
+
+            if (action == "CheckOut" && status != "Inside")
+                throw new InvalidOperationException("Check out is only available when the student is inside the residence.");
+
             if (action == "HolidayDeparture" && status == "OnHoliday")
                 throw new InvalidOperationException("Student is already on holiday.");
+
+            if (action == "HolidayDeparture" && status != "Inside")
+                throw new InvalidOperationException("Holiday departure can only be recorded while the student is inside the residence.");
+
+            if (action == "VisitorReturn" && status != "WeekendLeave")
+                throw new InvalidOperationException("Visitor return can only be recorded for a student on weekend leave.");
         }
 
         private void RecalculateOccupancy(int roomId, int residenceId)
@@ -668,6 +707,19 @@ namespace Michaelhouse.Controllers
         {
             try
             {
+                var assignment = GetLatestAssignment(studentId);
+                var targetRoom = db.Rooms.Include(r => r.Residence).FirstOrDefault(r => r.RoomId == targetRoomId);
+                if (assignment == null || targetRoom == null)
+                    throw new InvalidOperationException("Student assignment or target room could not be found.");
+
+                if (!boardingAccess.IsAdmin(this))
+                {
+                    if (!boardingAccess.CanAccessResidence(this, db, assignment.ResidenceId) ||
+                        !boardingAccess.CanAccessResidence(this, db, targetRoom.ResidenceId) ||
+                        assignment.ResidenceId != targetRoom.ResidenceId)
+                        throw new InvalidOperationException("House Masters may only move students within their assigned residence. Inter-residence transfers require an administrator.");
+                }
+
                 var userId = (int?)(Session["UserId"]) ?? 0;
                 var userName = (string)(Session["UserName"]) ?? "HouseMaster";
                 var service = new AIResidenceAllocationService();
@@ -680,6 +732,7 @@ namespace Michaelhouse.Controllers
 
         public ActionResult GenerateReport(int residenceId)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, residenceId)) return new HttpUnauthorizedResult();
             var students = db.ResidenceAssignments.Where(a => a.ResidenceId == residenceId && a.IsActive)
                 .Include(a => a.Student).Include(a => a.Bed).Include(a => a.Room).ToList();
             var sb = new StringBuilder();

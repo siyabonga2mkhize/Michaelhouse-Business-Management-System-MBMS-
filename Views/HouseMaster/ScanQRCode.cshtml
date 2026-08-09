@@ -13,6 +13,7 @@
     bool canCheckOut = ViewBag.CanCheckOut == true;
     bool canHolidayDeparture = ViewBag.CanHolidayDeparture == true;
     bool canHolidayReturn = ViewBag.CanHolidayReturn == true;
+    bool canVisitorReturn = ViewBag.CanVisitorReturn == true;
     bool canSuspend = ViewBag.CanSuspend == true;
     bool canReinstate = ViewBag.CanReinstate == true;
     bool actionsLocked = ViewBag.ActionsLocked == true;
@@ -129,68 +130,97 @@
                         {
                             <div class="border-top pt-3">
                                 <div class="row">
-                                    <div class="col-md-6 mb-2">
-                                        @using (Html.BeginForm("CheckIn", "HouseMaster", FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="studentId" value="@student.StudentId" />
-                                            <button type="submit" class="btn btn-success btn-block" @(canCheckIn ? "" : "disabled")>Check In</button>
-                                        }
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        @using (Html.BeginForm("CheckOut", "HouseMaster", FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="studentId" value="@student.StudentId" />
-                                            <button type="submit" class="btn btn-danger btn-block" @(canCheckOut ? "" : "disabled")>Check Out</button>
-                                        }
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        @using (Html.BeginForm("HolidayDeparture", "HouseMaster", FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="studentId" value="@student.StudentId" />
-                                            <button type="submit" class="btn btn-warning btn-block" @(canHolidayDeparture ? "" : "disabled")>Holiday Departure</button>
-                                        }
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        @using (Html.BeginForm("HolidayReturn", "HouseMaster", FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="studentId" value="@student.StudentId" />
-                                            <button type="submit" class="btn btn-primary btn-block" @(canHolidayReturn ? "" : "disabled")>Holiday Return</button>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="card mt-3">
-                                    <div class="card-body">
-                                        <h5>Suspend Student</h5>
-                                        @using (Html.BeginForm("SuspendStudent", "HouseMaster", FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="studentId" value="@student.StudentId" />
-                                            <div class="form-group">
-                                                <label>Reason</label>
-                                                <textarea name="suspensionReason" class="form-control" rows="2" required></textarea>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Expected Return Date</label>
-                                                <input name="expectedReturnDate" type="datetime-local" class="form-control" />
-                                            </div>
-                                            <button type="submit" class="btn btn-warning" @(canSuspend ? "" : "disabled") onclick="return confirm('Suspend this student?');">Suspend Student</button>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="mt-3">
-                                    @using (Html.BeginForm("ReinstateStudent", "HouseMaster", FormMethod.Post))
+                                    @if (canCheckIn)
                                     {
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="studentId" value="@student.StudentId" />
-                                        <button type="submit" class="btn btn-info" @(canReinstate ? "" : "disabled") onclick="return confirm('Reinstate this student?');">Reinstate Student</button>
+                                        <div class="col-md-6 mb-2">
+                                            @using (Html.BeginForm("CheckIn", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <button type="submit" class="btn btn-success btn-block">Check In</button>
+                                            }
+                                        </div>
+                                    }
+                                    @if (canCheckOut)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            @using (Html.BeginForm("CheckOut", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <button type="submit" class="btn btn-danger btn-block">Check Out</button>
+                                            }
+                                        </div>
+                                    }
+                                    @if (canHolidayDeparture)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            @using (Html.BeginForm("HolidayDeparture", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <button type="submit" class="btn btn-warning btn-block">Holiday Departure</button>
+                                            }
+                                        </div>
+                                    }
+                                    @if (canHolidayReturn)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            @using (Html.BeginForm("HolidayReturn", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <button type="submit" class="btn btn-primary btn-block">Holiday Return</button>
+                                            }
+                                        </div>
+                                    }
+                                    @if (canVisitorReturn)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            @using (Html.BeginForm("VisitorReturn", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <button type="submit" class="btn btn-primary btn-block">Visitor Return</button>
+                                            }
+                                        </div>
                                     }
                                 </div>
+
+                                @if (canSuspend)
+                                {
+                                    <div class="card mt-3">
+                                        <div class="card-body">
+                                            <h5>Suspend Student</h5>
+                                            @using (Html.BeginForm("SuspendStudent", "HouseMaster", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="studentId" value="@student.StudentId" />
+                                                <div class="form-group">
+                                                    <label>Reason</label>
+                                                    <textarea name="suspensionReason" class="form-control" rows="2" required></textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Expected Return Date</label>
+                                                    <input name="expectedReturnDate" type="datetime-local" class="form-control" />
+                                                </div>
+                                                <button type="submit" class="btn btn-warning" onclick="return confirm('Suspend this student?');">Suspend Student</button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (canReinstate)
+                                {
+                                    <div class="mt-3">
+                                        @using (Html.BeginForm("ReinstateStudent", "HouseMaster", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="studentId" value="@student.StudentId" />
+                                            <button type="submit" class="btn btn-info" onclick="return confirm('Reinstate this student?');">Reinstate Student</button>
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     </div>

@@ -84,6 +84,33 @@ namespace Michaelhouse.Controllers
 
             return File(qr.QRImage, "image/png");
         }
+        [RequireLogin]
+        public ActionResult MyQRCode()
+        {
+            if (Session["UserRole"]?.ToString() != "Student")
+                return new HttpUnauthorizedResult();
+
+            var studentId = Session["StudentId"] as int?;
+
+            if (!studentId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var student = db.Students.Find(studentId.Value);
+
+            if (student == null)
+                return HttpNotFound();
+
+            var qrService = new StudentQRCodeService();
+
+            var qr = qrService.GetActiveQRCode(student.StudentId);
+
+            if (qr == null)
+                qr = qrService.GenerateQRCode(student.StudentId);
+
+            ViewBag.Student = student;
+
+            return View("~/Views/StudentQRCode/Details.cshtml", qr);
+        }
 
         // -----------------------------------------------
         // Regenerate — Admin only
