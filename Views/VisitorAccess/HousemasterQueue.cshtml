@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Michaelhouse.Models.VisitorAccessRequest>
+@using Michaelhouse.Models
+
+@{
+    ViewBag.Title = "Housemaster Approval Queue";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="text-uppercase" style="color: #C21E2E;">Housemaster Approval Queue</h2>
+        <span class="badge bg-warning text-dark p-2">@Model.Count() Pending</span>
+    </div>
+    <hr />
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success mt-3">
+            <h4>All clear!</h4>
+            <p>There are currently no visitor requests pending your review.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light">
+                            <strong>@item.VisitorFullName</strong>
+                            <span class="badge bg-warning text-dark float-end">Pending</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Student:</div>
+                                <div class="col-8"><strong>ID #@item.StudentId</strong> (Founders)</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Relationship:</div>
+                                <div class="col-8">@item.RelationshipToBoy</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Date:</div>
+                                <div class="col-8">@item.VisitDate.ToString("dd MMM yyyy")</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Time:</div>
+                                <div class="col-8">@item.StartTime - @item.EndTime</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 text-muted">Zone:</div>
+                                <div class="col-8">@item.RequestedZone</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">Reason:</div>
+                                <div class="col-8">@item.PurposeOfVisit</div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                @using (Html.BeginForm("ReviewRequest", "VisitorAccess", FormMethod.Post))
+                                {
+                                    @Html.Hidden("id", item.RequestId)
+                                    <button type="submit" name="action" value="Approve" class="btn btn-success btn-sm">
+                                        ✅ Approve
+                                    </button>
+                                    <button type="submit" name="action" value="Reject" class="btn btn-danger btn-sm">
+                                        ❌ Reject
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            Requested: @item.CreatedAt.ToString("dd MMM HH:mm")
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
