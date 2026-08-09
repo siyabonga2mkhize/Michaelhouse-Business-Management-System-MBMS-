@@ -6,98 +6,199 @@
     var recommendations = ViewBag.Recommendations as IEnumerable<Michaelhouse.Models.AIResidenceRecommendation> ?? Enumerable.Empty<Michaelhouse.Models.AIResidenceRecommendation>();
 }
 
-<section class="p-8">
-    <div class="flex items-center justify-between mb-6">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
-            <h1 class="text-4xl font-serif font-bold">House Master Dashboard</h1>
-            <p class="text-sm text-gray-500 mt-1">Overview of managed residences and allocations</p>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">House Master Dashboard</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Overview of managed residences and allocations</p>
         </div>
-        <a href="@Url.Action("ScanQRCode", "HouseMaster")" class="px-4 py-2 bg-[#C21E2E] text-white rounded shadow">Scan QR</a>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Managed Residences</div>
-            <div class="mt-2 text-3xl font-bold">@(ViewBag.ManagedCount ?? 0)</div>
-        </div>
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Occupied Beds</div>
-            <div class="mt-2 text-3xl font-bold">@(ViewBag.OccupiedBeds ?? 0)</div>
-        </div>
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Available Beds</div>
-            <div class="mt-2 text-3xl font-bold text-[#C21E2E]">@(ViewBag.AvailableBeds ?? 0)</div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ScanQRCode", "HouseMaster")" class="inline-block bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-xl group">
+                <i class="bi bi-qr-code-scan me-2 group-hover:rotate-12 inline-block transition-transform duration-300"></i> Access Scanner
+            </a>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Students Outside</div>
-            <div class="mt-2 text-3xl font-bold">@(ViewBag.StudentsAway ?? 0)</div>
-        </div>
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Pending Alerts</div>
-            <div class="mt-2 text-3xl font-bold">@(ViewBag.PendingAlerts ?? 0)</div>
-        </div>
-        <div class="bg-white p-6 rounded shadow">
-            <div class="text-sm text-gray-500 uppercase">Visitor Records</div>
-            <div class="mt-2 text-3xl font-bold">@(ViewBag.CurrentVisitors ?? 0)</div>
-        </div>
-    </div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4">
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="font-bold mb-4">Managed Residences</h3>
-            <ul class="space-y-3">
+        @* --- HERO METRICS TILES (With Ghost Shadows & Lifts) --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            <div class="bg-white border-t-4 border-gray-800 p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.08)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Managed Units</p>
+                <h3 class="text-3xl font-mono font-bold text-gray-900 mb-0">@(ViewBag.ManagedCount ?? 0)</h3>
+            </div>
+            <div class="bg-white border-t-4 border-gray-800 p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.08)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Occupied Beds</p>
+                <h3 class="text-3xl font-mono font-bold text-gray-900 mb-0">@(ViewBag.OccupiedBeds ?? 0)</h3>
+            </div>
+            <div class="bg-white border-t-4 border-[#C21E2E] p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(194,30,46,0.15)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-2">Available Capacity</p>
+                <h3 class="text-3xl font-mono font-bold text-[#C21E2E] mb-0">@(ViewBag.AvailableBeds ?? 0)</h3>
+            </div>
+            <div class="bg-white border-t-4 border-blue-600 p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(37,99,235,0.15)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-blue-600 mb-2">Students Outside</p>
+                <h3 class="text-3xl font-mono font-bold text-gray-900 mb-0">@(ViewBag.StudentsAway ?? 0)</h3>
+            </div>
+            <div class="bg-white border-t-4 border-[#f59e0b] p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(245,158,11,0.15)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-[#f59e0b] mb-2">Pending Alerts</p>
+                <h3 class="text-3xl font-mono font-bold text-gray-900 mb-0">@(ViewBag.PendingAlerts ?? 0)</h3>
+            </div>
+            <div class="bg-white border-t-4 border-[#10b981] p-5 relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(16,185,129,0.15)]">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-green-600 mb-2">Active Visitors</p>
+                <h3 class="text-3xl font-mono font-bold text-gray-900 mb-0">@(ViewBag.CurrentVisitors ?? 0)</h3>
+            </div>
+        </div>
+
+        @* --- MANAGED RESIDENCES GRID (Rotating Watermarks) --- *@
+        <div class="mb-8">
+            <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">Active Operational Residences</h5>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 @foreach (var residence in residences)
                 {
-                    <li class="p-3 border rounded">
-                        <div>
-                            <div class="font-bold">@residence.Name</div>
-                            <div class="text-sm text-gray-500">@residence.OccupiedBeds / @residence.Capacity occupied</div>
+                    <div class="bg-white border border-gray-200 shadow-sm relative flex flex-col h-full transition-all duration-700 hover:-translate-y-2 hover:border-[#C21E2E]/50 hover:shadow-[0_15px_40px_rgba(194,30,46,0.1)] group overflow-hidden">
+
+                        @* Rotating Ghost Watermark *@
+                        <i class="bi bi-bank absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+                        @* Dossier Header *@
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-start relative z-10">
+                            <div>
+                                <h4 class="font-serif font-bold text-gray-900 text-2xl leading-tight mb-1 group-hover:text-[#C21E2E] transition-colors duration-500">@residence.Name</h4>
+                                <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-1">
+                                    <i class="bi bi-people-fill me-1"></i> Occupancy: @residence.OccupiedBeds / @residence.Capacity
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap gap-3 mt-3">
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("ResidenceSummary", "HouseMaster", new { id = residence.ResidenceId })">Summary</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("CurrentStudents", "HouseMaster", new { residenceId = residence.ResidenceId })">Students</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("StudentsOutsideResidence", "HouseMaster", new { residenceId = residence.ResidenceId })">Outside</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("RecentMovements", "HouseMaster", new { residenceId = residence.ResidenceId })">Movements</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("EmergencyRollCall", "HouseMaster", new { residenceId = residence.ResidenceId })">Roll Call</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("VisitorRegister", "HouseMaster", new { residenceId = residence.ResidenceId })">Visitors</a>
-                            <a class="text-sm text-[#C21E2E] font-semibold" href="@Url.Action("Notifications", "HouseMaster", new { residenceId = residence.ResidenceId })">Alerts</a>
+
+                        @* Control Panel Footer (Ghost Accents) *@
+                        <div class="bg-[#1a1a1a]/95 backdrop-blur p-4 flex flex-wrap gap-2 mt-auto relative z-10">
+                            <a href="@Url.Action("ResidenceSummary", "HouseMaster", new { id = residence.ResidenceId })" class="bg-transparent border border-white/10 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                Summary
+                            </a>
+                            <a href="@Url.Action("CurrentStudents", "HouseMaster", new { residenceId = residence.ResidenceId })" class="bg-transparent border border-white/10 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                Students
+                            </a>
+                            <a href="@Url.Action("StudentsOutsideResidence", "HouseMaster", new { residenceId = residence.ResidenceId })" class="bg-transparent border border-[#10b981]/20 text-[#10b981]/80 hover:text-[#10b981] hover:border-[#10b981]/60 hover:bg-[#10b981]/10 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                Outside
+                            </a>
+                            <a href="@Url.Action("RecentMovements", "HouseMaster", new { residenceId = residence.ResidenceId })" class="bg-transparent border border-white/10 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                Movements
+                            </a>
+                            <a href="@Url.Action("EmergencyRollCall", "HouseMaster", new { residenceId = residence.ResidenceId })" class="bg-transparent border border-[#C21E2E]/30 text-[#C21E2E] hover:text-[#ff3b4e] hover:border-[#C21E2E] hover:bg-[#C21E2E]/10 hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Roll Call
+                            </a>
+                            <a href="@Url.Action("VisitorRegister", "HouseMaster", new { residenceId = residence.ResidenceId })" class="bg-transparent border border-white/10 text-gray-400 hover:text-white hover:border-white/40 hover:bg-white/5 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] px-3 py-2 text-[8px] font-bold uppercase tracking-[2px] transition-all duration-300">
+                                Visitors
+                            </a>
                         </div>
-                    </li>
+                    </div>
                 }
-            </ul>
+            </div>
         </div>
 
-        <div class="bg-white p-6 rounded shadow">
-            <h3 class="font-bold mb-4">Recent Allocations</h3>
-            <ul class="space-y-3">
-                @foreach (var allocation in recentAllocations)
-                {
-                    <li class="p-3 border rounded flex justify-between items-center">
-                        <div>
-                            <div class="font-bold">@allocation.Student.Name</div>
-                            <div class="text-sm text-gray-500">@allocation.Residence.Name - Room @allocation.Room.RoomNumber</div>
+        @* --- DUAL LEDGER PANELS --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            @* Recent Allocations Ledger *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col h-full group">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden flex-shrink-0 transition-colors duration-500 group-hover:bg-gray-100/50">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-journal-arrow-right me-2"></i> Recent Allocations</h5>
+                </div>
+                <div class="p-0 flex-grow">
+                    @if (!recentAllocations.Any())
+                    {
+                        <div class="p-8 text-center">
+                            <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">No recent allocations.</p>
                         </div>
-                        <div class="text-sm text-gray-400">@allocation.MoveInDate.ToString("g")</div>
-                    </li>
-                }
-            </ul>
+                    }
+                    else
+                    {
+                        <ul class="m-0 p-0 list-none">
+                            @foreach (var allocation in recentAllocations)
+                            {
+                                <li class="p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/80 transition-all duration-300 flex justify-between items-center group/item hover:pl-6">
+                                    <div>
+                                        <div class="font-serif font-bold text-gray-900 text-sm group-hover/item:text-[#C21E2E] transition-colors">@allocation.Student.Name</div>
+                                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">@allocation.Residence.Name &middot; Room @allocation.Room.RoomNumber</div>
+                                    </div>
+                                    <div class="text-[10px] font-mono text-gray-400 bg-white border border-gray-100 px-2 py-1 shadow-sm transition-all group-hover/item:border-gray-300">
+                                        @allocation.MoveInDate.ToString("dd MMM yyyy HH:mm")
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+
+            @* AI Recommendations Ledger *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col h-full group">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 relative overflow-hidden flex-shrink-0 transition-colors duration-500 group-hover:bg-gray-100/50">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-cpu me-2"></i> AI Placement Recommendations</h5>
+                </div>
+                <div class="p-0 flex-grow">
+                    @if (!recommendations.Any())
+                    {
+                        <div class="p-8 text-center">
+                            <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">System standing by.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="m-0 p-0 list-none">
+                            @foreach (var recommendation in recommendations)
+                            {
+                                <li class="p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/80 transition-all duration-300 group/item hover:pl-6">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="font-serif font-bold text-gray-900 text-sm group-hover/item:text-blue-600 transition-colors">@recommendation.Student.Name</div>
+                                        <div class="text-[9px] font-mono text-gray-400">
+                                            @recommendation.GeneratedAt.ToLocalTime().ToString("dd MMM HH:mm")
+                                        </div>
+                                    </div>
+                                    <div class="text-xs font-serif italic text-gray-600 border-l-2 border-transparent group-hover/item:border-blue-500 pl-3 py-1 bg-transparent group-hover/item:bg-blue-50/30 transition-all duration-300">
+                                        "@recommendation.Explanation"
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
 
-    <div class="bg-white p-6 rounded shadow mt-6">
-        <h3 class="font-bold mb-4">Recent Recommendations</h3>
-        <ul class="space-y-3">
-            @foreach (var recommendation in recommendations)
-            {
-                <li class="p-3 border rounded">
-                    <div class="font-bold">@recommendation.Student.Name</div>
-                    <div class="text-sm text-gray-500">@recommendation.GeneratedAt.ToLocalTime().ToString("g")</div>
-                    <div class="text-sm text-gray-700 mt-1">@recommendation.Explanation</div>
-                </li>
-            }
-        </ul>
-    </div>
-</section>
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
