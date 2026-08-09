@@ -21,7 +21,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Admin",
+                    Name = "Linda Smith",
                     Email = "admin@michaelhouse.co.za",
                     PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
@@ -326,7 +326,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new Michaelhouse.Models.AppUser
                 {
-                    Name = "System Inventory Manager",
+                    Name = "Andre Van Kok",
                     Email = "inventory@michaelhouse.co.za",
                     PasswordHash = HashPassword("Stock@123"),
                     Role = "InventoryManager"
@@ -340,7 +340,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Transport Manager",
+                    Name = "Greg Johnson",
                     Email = "transport@michaelhouse.co.za",
                     PasswordHash = HashPassword("Transport@123"),
                     Role = "TransportManager"
