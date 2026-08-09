@@ -107,6 +107,7 @@ namespace Michaelhouse.Models
         public DbSet<AIRecommendationOverride> AIRecommendationOverrides { get; set; }
         public DbSet<QRScanRecord> QRScanRecords { get; set; }
         public DbSet<ResidenceAllocation> ResidenceAllocations { get; set; }
+        public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -648,6 +649,32 @@ namespace Michaelhouse.Models
                 .HasOptional(r => r.ToRoom)
                 .WithMany()
                 .HasForeignKey(r => r.ToRoomId)
+                .WillCascadeOnDelete(false);
+
+            // LeaveRequest  (Use Case 27 - Request Permission to Leave Residence)
+            // -------------------------
+            modelBuilder.Entity<LeaveRequest>()
+                .HasRequired(l => l.Student)
+                .WithMany()
+                .HasForeignKey(l => l.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<LeaveRequest>()
+                .HasRequired(l => l.Parent)
+                .WithMany()
+                .HasForeignKey(l => l.ParentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<LeaveRequest>()
+                .HasOptional(l => l.Residence)
+                .WithMany()
+                .HasForeignKey(l => l.ResidenceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<LeaveRequest>()
+                .HasOptional(l => l.HouseMaster)
+                .WithMany()
+                .HasForeignKey(l => l.HouseMasterId)
                 .WillCascadeOnDelete(false);
         }
     }

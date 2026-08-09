@@ -461,6 +461,11 @@
                             <i class="bi bi-people"></i> Children's Attendance
 
                         </a>
+                        <a class="nav-link" href="@Url.Action("ParentPending", "LeaveRequest")">
+
+                            <i class="bi bi-people"></i> Children's Leave Requests
+
+                        </a>
 
 
 
@@ -772,6 +777,11 @@
                            href="@Url.Action("Index", "QRScanRecord")">
                             <i class="bi bi-clock-history"></i> <span class="link-text">QR History</span>
                         </a>
+                        
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("HouseMasterPending", "LeaveRequest")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Leave Requests</span>
+                        </a>
 
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"
                            href="@Url.Action("AIDashboard", "ResidenceAllocation")">
@@ -827,18 +837,27 @@
                             <i class="bi bi-calendar-check"></i> My Attendance
 
                         </a>
+                        <div class="sidebar-label">Transport</div>
                         <hr class="sidebar-divider" />
                         <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
                         </a>
 
 
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("Create", "LeaveRequest")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Leave Request</span>
+                        </a>
+
+
+
+
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                           href="@Url.Action("Profile", "Account")">
-                            <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                        </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")

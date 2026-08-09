@@ -29,7 +29,7 @@ namespace Michaelhouse.Migrations
             }
 
             SeedBoardingHouseTestData(context);
-            BoardingManagementSeeder.Seed(context);
+            //BoardingManagementSeeder.Seed(context);
             // ----------------------------
             // Seed additional vehicles and multiple trips for drivers
             // Creates one upcoming and one completed trip per seeded driver
