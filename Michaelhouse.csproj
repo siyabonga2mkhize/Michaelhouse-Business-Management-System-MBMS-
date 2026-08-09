@@ -245,6 +245,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
@@ -541,6 +542,7 @@
     <Content Include="Views\Emergency\StudentConfirmSafety.cshtml" />
     <Content Include="Views\Emergency\TriggerAlert.cshtml" />
     <Content Include="Views\Emergency\ViewAlertStatus.cshtml" />
+    <Content Include="Views\Shared\_EmergencyLayout.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -716,6 +718,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Views\Base\" />
     <Folder Include="Views\Leaverequestcontroller\" />
   </ItemGroup>
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">

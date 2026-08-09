@@ -1,63 +1,139 @@
 ﻿@model List<Michaelhouse.Models.Notification>
 @{
     ViewBag.Title = "All Notifications";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var unreadCount = Model.Count(n => !n.IsRead);
 }
 
-<h2>All Notifications</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/50">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">No notifications found.</div>
-}
-else
-{
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Message</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var n in Model)
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 flex justify-between items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Communication & Safety Logs</h5>
+            </div>
+            <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Notifications</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1 mb-0">System Directives • Emergency Broadcasts • Activity Log</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-end font-mono">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-0.5">Unread Messages</div>
+                <div class="text-2xl font-bold text-[#C21E2E]">@unreadCount</div>
+            </div>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE CONTENT CONTAINER --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+        <div class="max-w-5xl mx-auto">
+            @if (!Model.Any())
             {
-                <tr>
-                    <td>
-                        @n.CreatedAt.ToString("dd MMM yyyy HH:mm")
-                </td>
-                <td>
-                    @n.Message
-            </td>
-            <td id="status-@n.Id">
-                @if (n.IsRead)
-                {
-                    <span class="badge bg-secondary">Read</span>
-                }
-                else
-                {
-                    <a href="#" class="badge bg-primary mark-read-link" data-id="@n.Id" style="text-decoration: none; cursor: pointer;">Mark as Read</a>
-                }
-            </td>
-        </tr>
+                @* --- EMPTY STATE CARD --- *@
+                <div class="bg-white border border-gray-100 p-12 text-center shadow-sm">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-4 text-xl">
+                        <i class="bi bi-bell-slash"></i>
+                    </div>
+                    <h4 class="font-serif font-bold text-gray-800 text-lg mb-1">No Notifications Logged</h4>
+                    <p class="text-xs font-mono text-gray-400 max-w-sm mx-auto mb-0">Your communication history is clear. Emergency broadcasts and system updates will appear here.</p>
+                </div>
+            }
+            else
+            {
+                @* --- DATA TABLE CONTAINER --- *@
+                <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center font-mono">
+                        <span class="text-[10px] uppercase tracking-[3px] font-bold text-gray-600">Activity History</span>
+                        <span class="text-[10px] text-gray-400">@Model.Count Record(s) Total</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-100 bg-gray-50/30 text-[9px] font-mono uppercase tracking-[2px] font-bold text-gray-400">
+                                    <th class="py-3.5 px-6 w-48">Timestamp</th>
+                                    <th class="py-3.5 px-6">Message Directive</th>
+                                    <th class="py-3.5 px-6 w-40 text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 font-sans text-xs">
+                                @foreach (var n in Model)
+                                {
+                                    <tr class="hover:bg-gray-50/60 transition-colors @(!n.IsRead ? "bg-red-50/20" : "")">
+                                        <td class="py-4 px-6 font-mono text-gray-500 whitespace-nowrap align-middle text-[11px]">
+                                            <i class="bi bi-clock me-1.5 text-gray-400"></i>
+                                            @n.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                        </td>
+                                        <td class="py-4 px-6 align-middle text-gray-800 font-medium leading-relaxed">
+                                            @n.Message
+                                        </td>
+                                        <td id="status-@n.Id" class="py-4 px-6 align-middle text-end whitespace-nowrap">
+                                            @if (n.IsRead)
+                                            {
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[9px] uppercase tracking-wider font-mono font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                                                    <i class="bi bi-check2-all text-gray-400"></i> Read
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <a href="#" class="mark-read-link inline-flex items-center gap-1.5 px-3 py-1 text-[9px] uppercase tracking-[1.5px] font-mono font-bold bg-[#C21E2E] hover:bg-red-800 text-white transition-all shadow-sm" data-id="@n.Id" style="text-decoration: none;">
+                                                    <i class="bi bi-envelope-open"></i> Mark as Read
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
     }
-        </tbody>
-    </table>
-}
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(function() {
             $('.mark-read-link').click(function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 var link = $(this);
+
                 $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function(response) {
                     if (response.success) {
-                        // Replace the link with a "Read" badge
-                        link.closest('td').html('<span class="badge bg-secondary">Read</span>');
-                        // Optionally update the notification badge count in the navbar
+                        // Replace link with institutionally-styled "Read" badge
+                        link.closest('td').html('<span class="inline-flex items-center gap-1 px-2.5 py-1 text-[9px] uppercase tracking-wider font-mono font-bold bg-gray-100 text-gray-500 border border-gray-200"><i class="bi bi-check2-all text-gray-400"></i> Read</span>');
+
+                        // Remove red row highlight background
+                        link.closest('tr').removeClass('bg-red-50/20');
+
+                        // Update notification badge counter in navbar
                         var badgeSpan = $('#notificationBadge');
                         var currentCount = parseInt(badgeSpan.text()) || 0;
                         if (currentCount > 0) {
@@ -69,10 +145,10 @@ else
                             }
                         }
                     } else {
-                        alert('Error marking as read');
+                        alert('Error marking notification as read.');
                     }
                 }).fail(function() {
-                    alert('Error marking as read');
+                    alert('Error communicating with system server.');
                 });
             });
         });

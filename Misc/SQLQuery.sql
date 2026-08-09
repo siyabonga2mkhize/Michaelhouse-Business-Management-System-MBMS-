@@ -1091,3 +1091,11 @@ WHERE ParentId = 2;
 UPDATE Students
 SET ParentId = 2
 WHERE UserId IN (1005, 1006, 1007, 1008, 1009); -- The 5 Student UserIds
+
+
+select * from EmergencyAlerts;
+
+
+--all 0 from status to 1
+update EmergencyAlerts
+set Status = 1 where Status = 0;
