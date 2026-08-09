@@ -1,0 +1,80 @@
+﻿@model IEnumerable<Michaelhouse.Models.VisitorAccessRequest>
+@using Michaelhouse.Models
+
+@{
+    ViewBag.Title = "My Visitor Requests";
+}
+
+<div class="container mt-4">
+    <h2 class="text-uppercase" style="color:#C21E2E;">My Visitor Requests</h2>
+    <hr />
+
+    <a href="@Url.Action("Create")" class="btn btn-success mb-3">+ New Request</a>
+
+    <!-- System Notification Banner (Simulating Email/SMS) -->
+    @if (TempData["StudentNotification"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show mt-3 shadow-sm" role="alert" style="border-left: 5px solid #C21E2E;">
+            <h5 class="alert-heading"><i class="bi bi-bell-fill"></i> System Notification</h5>
+            <p class="mb-0">@TempData["StudentNotification"]</p>
+            <p class="mb-0 small text-muted">(This would be sent via email/SMS in production).</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Standard Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Visitor</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Gate Pass</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.VisitorFullName</td>
+                    <td>@item.VisitDate.ToString("dd MMM yyyy")</td>
+                    <td>@item.StartTime - @item.EndTime</td>
+                    <td>
+                        @if (item.Status == VisitorRequestStatus.AutoApprovedWeekend || item.Status == VisitorRequestStatus.Approved)
+                        {
+                            <span class="badge bg-success">Approved</span>
+                        }
+                        else if (item.Status == VisitorRequestStatus.PendingHousemaster)
+                        {
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Rejected</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.AccessGatePassCode))
+                        {
+                            <strong>@item.AccessGatePassCode</strong>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
