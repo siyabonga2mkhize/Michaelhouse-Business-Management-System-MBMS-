@@ -1,7 +1,289 @@
-﻿
+﻿@model Michaelhouse.Models.EmergencyAlert
+
 @{
-    ViewBag.Title = "StudentConfirmSafety";
+    ViewBag.Title = "Emergency Safety – Confirm You Are Safe";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>StudentConfirmSafety</h2>
+<style>
+    .emergency-banner {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 16px rgba(220,53,69,0.35);
+    }
+
+    .emergency-banner .icon {
+        font-size: 56px;
+        display: block;
+        animation: pulse 1.4s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50%       { transform: scale(1.12); }
+    }
+
+    .emergency-banner h2 {
+        margin: 8px 0 4px;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .emergency-banner p {
+        margin: 0;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    .location-box {
+        border: 2px dashed #ced4da;
+        border-radius: 10px;
+        padding: 22px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.4s ease;
+    }
+
+    .location-box.acquiring { color: #6c757d; }
+    .location-box.ready     { border-color: #28a745; background: #f0fff4; color: #155724; }
+    .location-box.denied    { border-color: #dc3545; background: #fff5f5; color: #721c24; }
+
+    .location-coords {
+        font-family: monospace;
+        font-size: 0.82rem;
+        margin-top: 6px;
+        color: #495057;
+    }
+
+    .spinner-sm {
+        display: inline-block;
+        width: 18px; height: 18px;
+        border: 3px solid rgba(0,0,0,.12);
+        border-radius: 50%;
+        border-top-color: #28a745;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-confirm-safe {
+        padding: 16px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        width: 100%;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 16px;
+    }
+
+    .btn-confirm-safe:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40,167,69,0.35);
+    }
+
+    .btn-confirm-safe:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.75;
+    }
+
+    .result-box {
+        padding: 22px;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 18px;
+        display: none;
+    }
+
+    .result-box h4 { margin: 0 0 8px; font-size: 1.25rem; }
+    .result-box p  { margin: 0; font-size: 0.9rem; }
+
+    .result-box.confirmed { background: #d4edda; border: 2px solid #28a745; color: #155724; }
+    .result-box.outside   { background: #fff3cd; border: 2px solid #ffc107; color: #856404; }
+    .result-box.error     { background: #f8d7da; border: 2px solid #f5c6cb; color: #721c24; }
+
+    .instructions-list li { margin: 6px 0; font-size: 0.9rem; color: #555; }
+</style>
+
+<div class="container mt-4" style="max-width: 640px;">
+
+    <!-- Emergency Banner -->
+    <div class="emergency-banner">
+        <span class="icon" id="emergencyIcon">🚨</span>
+        <h2>Emergency Alert Active</h2>
+        <p>Please proceed to the assembly point and confirm your safety below</p>
+    </div>
+
+    <!-- Alert Details Card -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <p class="mb-1"><strong>📢 Message:</strong> @Model.AlertMessage</p>
+            <p class="mb-1"><strong>📍 Assembly Point:</strong> @Model.AssemblyPointName</p>
+            <p class="mb-0"><strong>🎯 Safe Zone:</strong> Within @Model.GeofenceRadiusMeters m of assembly point</p>
+        </div>
+    </div>
+
+    <!-- Location Status -->
+    <div id="locationBox" class="location-box acquiring mb-3">
+        <span class="spinner-sm"></span> Acquiring your GPS location…
+        <div class="accuracy-info" style="font-size:0.8rem; margin-top:6px; color:#888;">Please allow location access when prompted</div>
+    </div>
+
+    <!-- Confirm Button -->
+    <button id="confirmBtn" class="btn-confirm-safe" disabled>
+        <span class="spinner-sm" id="btnSpinner"></span>
+        <span id="btnText">&nbsp;Waiting for location…</span>
+    </button>
+
+    <!-- Result -->
+    <div id="resultBox" class="result-box"></div>
+
+    <!-- Instructions -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-info-circle"></i> What to do
+        </div>
+        <div class="card-body">
+            <ol class="instructions-list">
+                <li><strong>Allow location access</strong> when your browser asks</li>
+                <li><strong>Move to the assembly point</strong> as quickly and safely as possible</li>
+                <li><strong>Tap "Mark Me Safe"</strong> once you have arrived</li>
+                <li><strong>Stay at the assembly point</strong> until the all-clear is given</li>
+                <li><strong>Follow all staff instructions</strong> at the assembly point</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Timer -->
+    <p class="text-center text-muted mt-3" style="font-size:0.85rem;">
+        Alert active for: <strong id="alertTimer">00:00</strong>
+    </p>
+</div>
+
+@section Scripts {
+<script>
+    var lastLat = null, lastLng = null, watchId = null;
+    var alertStart = new Date('@Model.AlertTime.ToString("yyyy-MM-ddTHH:mm:ss")');
+
+    // Timer
+    setInterval(function () {
+        var elapsed = Math.floor((new Date() - alertStart) / 1000);
+        var m = Math.floor(elapsed / 60), s = elapsed % 60;
+        document.getElementById('alertTimer').textContent =
+            String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }, 1000);
+
+    // Geolocation
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(onSuccess, onError,
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    } else {
+        showDenied('Geolocation is not supported by this browser.');
+    }
+
+    function onSuccess(pos) {
+        lastLat = pos.coords.latitude;
+        lastLng = pos.coords.longitude;
+        var acc = Math.round(pos.coords.accuracy);
+        var box = document.getElementById('locationBox');
+        box.className = 'location-box ready mb-3';
+        box.innerHTML =
+            '<div>✅ Location acquired</div>' +
+            '<div class="location-coords">' +
+                lastLat.toFixed(6) + '° N &nbsp;|&nbsp; ' + lastLng.toFixed(6) + '° E' +
+            '</div>' +
+            '<div style="font-size:0.78rem;color:#555;margin-top:4px;">Accuracy: ±' + acc + ' m</div>';
+
+        var btn = document.getElementById('confirmBtn');
+        btn.disabled = false;
+        document.getElementById('btnSpinner').style.display = 'none';
+        document.getElementById('btnText').textContent = ' ✔ Mark Me Safe';
+        btn.onclick = confirmSafety;
+    }
+
+    function onError(err) {
+        var msg = 'Unable to get location.';
+        if (err.code === 1) msg = 'Location access denied. Please enable it in your browser settings.';
+        else if (err.code === 2) msg = 'Location unavailable. Check your GPS signal.';
+        else if (err.code === 3) msg = 'Location request timed out. Please retry.';
+        showDenied(msg);
+    }
+
+    function showDenied(msg) {
+        var box = document.getElementById('locationBox');
+        box.className = 'location-box denied mb-3';
+        box.innerHTML = '⚠ ' + msg +
+            '<br><button class="btn btn-sm btn-outline-danger mt-2" onclick="location.reload()">🔄 Retry</button>';
+    }
+
+    function confirmSafety() {
+        if (!lastLat || !lastLng) { alert('Location not available. Please wait.'); return; }
+
+        var btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        document.getElementById('btnSpinner').style.display = 'inline-block';
+        document.getElementById('btnText').textContent = ' Confirming…';
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("ConfirmSafe", "Emergency")',
+            data: JSON.stringify({ latitude: lastLat, longitude: lastLng }),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function (r) {
+                if (r.success) {
+                    if (r.withinGeofence) {
+                        showResult('confirmed',
+                            '✅ Safety Confirmed',
+                            'You are accounted for. Stay at the assembly point until the all-clear.' +
+                            '<br><small>Confirmation ID: ' + r.confirmationId + '</small>');
+                        document.getElementById('emergencyIcon').textContent = '✅';
+                        btn.style.display = 'none';
+                    } else {
+                        showResult('outside',
+                            '⚠ Outside Safe Zone',
+                            'You are <strong>' + Math.round(r.distance) + ' m</strong> from the assembly point.' +
+                            ' Move closer and try again.');
+                        btn.disabled = false;
+                        document.getElementById('btnSpinner').style.display = 'none';
+                        document.getElementById('btnText').textContent = ' ✔ Mark Me Safe';
+                    }
+                } else {
+                    showResult('error', '❌ Error', r.message || 'An error occurred.');
+                    btn.disabled = false;
+                    document.getElementById('btnSpinner').style.display = 'none';
+                    document.getElementById('btnText').textContent = ' ✔ Mark Me Safe';
+                }
+            },
+            error: function () {
+                showResult('error', '❌ Network Error', 'Could not reach the server. Please retry.');
+                btn.disabled = false;
+                document.getElementById('btnSpinner').style.display = 'none';
+                document.getElementById('btnText').textContent = ' ✔ Mark Me Safe';
+            }
+        });
+    }
+
+    function showResult(cls, title, body) {
+        var box = document.getElementById('resultBox');
+        box.className = 'result-box ' + cls;
+        box.innerHTML = '<h4>' + title + '</h4><p>' + body + '</p>';
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    $(window).on('beforeunload', function () {
+        if (watchId) navigator.geolocation.clearWatch(watchId);
+    });
+</script>
+}
 

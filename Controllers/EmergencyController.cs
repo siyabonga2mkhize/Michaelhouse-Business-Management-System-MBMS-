@@ -43,7 +43,7 @@ namespace Michaelhouse.Controllers
 
         // ============= STAFF: TRIGGER EMERGENCY =============
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin,HouseMaster")]
         public ActionResult TriggerAlert()
         {
             var model = new EmergencyAlert
@@ -60,7 +60,7 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin,HouseMaster")]
         public async Task<ActionResult> TriggerAlert(EmergencyAlert alert)
         {
             try
@@ -219,11 +219,8 @@ namespace Michaelhouse.Controllers
             if (alert == null)
                 return View("NoActiveAlert");
 
-            return View(alert);
+            return View("StudentConfirmSafety", alert);
         }
-
-        [HttpPost]
-        [AllowAnonymous]
         public async Task<ActionResult> ConfirmSafe(ConfirmSafeRequest request)
         {
             try
