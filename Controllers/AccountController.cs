@@ -77,6 +77,7 @@ namespace Michaelhouse.Controllers
                     catch { }
                 }
 
+
                 return RedirectByRole(role);
             }
 

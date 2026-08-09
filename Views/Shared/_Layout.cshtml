@@ -603,8 +603,8 @@
 
                         </a>
 
-                        <a class="nav-link @(currentController == "Emergency" && currentAction == "AlertStatus" ? "active" : "")"
-                           href="@Url.Action("AlertStatus", "Emergency")">
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "LatestAlertStatus" ? "active" : "")"
+                           href="@Url.Action("LatestAlertStatus", "Emergency")">
 
                             <i class="bi bi-shield-check"></i>
                             <span class="link-text">Emergency Accountability</span>
@@ -854,8 +854,8 @@
 
                         <div class="sidebar-label">Emergency Safety</div>
 
-                        <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafe" ? "active" : "")"
-                           href="@Url.Action("ConfirmSafe", "Emergency")">
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafety" ? "active" : "")"
+                           href="@Url.Action("ConfirmSafety", "Emergency")">
 
                             <i class="bi bi-shield-check"></i>
                             <span class="link-text">Emergency Safety</span>

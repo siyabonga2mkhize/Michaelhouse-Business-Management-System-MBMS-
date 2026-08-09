@@ -5,170 +5,218 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<style>
-    .status-pending {
-        background-color: #fff3cd;
-        color: #856404;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
 
-    .status-confirmed {
-        background-color: #d4edda;
-        color: #155724;
-    }
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Emergency & Safety Oversight</h5>
+            </div>
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Emergency Accountability</h2>
+                <span class="px-3 py-1 text-[10px] uppercase tracking-[2px] font-bold font-mono border @(Model.Alert.Status == Michaelhouse.Models.AlertStatus.Resolved ? "bg-gray-100 text-gray-700 border-gray-300" : "bg-red-50 text-[#C21E2E] border-red-200 animate-pulse")">
+                    @Model.Alert.Status
+                </span>
+            </div>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Alert Identifier: #@Model.Alert.AlertId • Real-Time Personnel Tracking</p>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" id="refreshBtn" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-clockwise me-2"></i> Refresh
+            </button>
+            @if (Model.Alert.Status != Michaelhouse.Models.AlertStatus.Resolved)
+            {
+                using (Html.BeginForm("ResolveAlert", "Emergency", FormMethod.Post, new { @class = "inline" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Alert.AlertId" />
+                    <button type="submit" class="bg-emerald-700 text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-emerald-800 transition-all shadow-sm" onclick="return confirm('Resolve this alert?')">
+                        <i class="bi bi-check-circle me-2"></i> Resolve Alert
+                    </button>
+                }
+            }
+            <a href="@Url.Action("Index", "Home")" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-arrow-left me-2"></i> Dashboard
+            </a>
+        </div>
+    </div>
 
-    .status-outside {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
+    @* --- SCROLLABLE CONTENT AREA --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 space-y-8">
 
-    .card-header {
-        font-weight: 600;
-    }
-
-    .count-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-    }
-</style>
-
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> Emergency Alert @Model.Alert.AlertId</h4>
-                    <span class="badge bg-light text-dark">@Model.Alert.Status</span>
+        @* --- KPI METRICS GRID --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Total Roster</div>
+                <div class="text-3xl font-serif font-bold text-gray-900 font-mono" id="stat-total">@Model.TotalStudents</div>
+                <div class="text-[10px] font-mono text-gray-400 mt-2 flex items-center gap-1">
+                    <i class="bi bi-people me-1"></i> Registered Personnel
                 </div>
-                <div class="card-body">
-                    <p><strong>Message:</strong> @Model.Alert.AlertMessage</p>
-                    <p><strong>Issued at:</strong> @Model.Alert.AlertTime.ToString("dd MMM yyyy HH:mm")</p>
-                    <p><strong>Assembly Point:</strong> @Model.Alert.AssemblyPointName</p>
-                    <p><strong>Geofence Radius:</strong> @Model.Alert.GeofenceRadiusMeters m</p>
+            </div>
 
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden border-l-4 border-l-emerald-600">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Safe & Accounted</div>
+                <div class="text-3xl font-serif font-bold text-emerald-600 font-mono" id="stat-safe">@Model.SafeCount</div>
+                <div class="text-[10px] font-mono text-emerald-600 mt-2 flex items-center gap-1">
+                    <i class="bi bi-shield-check me-1"></i> Confirmed Safe Radius
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden border-l-4 border-l-[#C21E2E]">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Outside Safe Zone</div>
+                <div class="text-3xl font-serif font-bold text-[#C21E2E] font-mono" id="stat-outside">@Model.OutsideCount</div>
+                <div class="text-[10px] font-mono text-[#C21E2E] mt-2 flex items-center gap-1">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Outside Geofence Limit
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden border-l-4 border-l-amber-500">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Pending Confirmation</div>
+                <div class="text-3xl font-serif font-bold text-amber-600 font-mono" id="stat-pending">@Model.PendingCount</div>
+                <div class="text-[10px] font-mono text-amber-600 mt-2 flex items-center gap-1">
+                    <i class="bi bi-clock-history me-1"></i> Awaiting Location Ping
+                </div>
+            </div>
+        </div>
+
+        @* --- ALERT DETAILS CARD --- *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">01. Emergency Parameters & Directives</h5>
+                <span class="text-[9px] font-mono text-gray-400" id="lastUpdated">Updated: @DateTime.Now.ToString("HH:mm:ss")</span>
+            </div>
+            <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 space-y-4">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-wider block mb-1">Broadcast Directive</span>
+                        <p class="text-lg font-serif italic text-gray-900 bg-red-50/30 p-4 border-l-2 border-[#C21E2E] mb-0">
+                            "@Model.Alert.AlertMessage"
+                        </p>
+                    </div>
                     @if (Model.Alert.ResolvedDate.HasValue)
                     {
-                        <p><strong>Resolved at:</strong> @Model.Alert.ResolvedDate.Value.ToString("dd MMM yyyy HH:mm")</p>
-                        <p><strong>Resolution Notes:</strong> @Model.Alert.ResolvedNotes</p>
+                        <div class="pt-4 border-t border-gray-100">
+                            <span class="text-[9px] uppercase font-bold text-gray-400 tracking-wider block mb-1">Resolution Summary</span>
+                            <p class="text-xs font-mono text-gray-700 bg-emerald-50/30 p-3 border-l-2 border-emerald-600 mb-0">
+                                Resolved at @Model.Alert.ResolvedDate.Value.ToString("dd MMM yyyy HH:mm") — @Model.Alert.ResolvedNotes
+                            </p>
+                        </div>
                     }
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Students</h6>
-                    <span class="count-number text-dark">@Model.TotalStudents</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm status-confirmed">
-                <div class="card-body">
-                    <h6 class="text-muted">Safe & Accounted</h6>
-                    <span class="count-number text-success">@Model.SafeCount</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm status-outside">
-                <div class="card-body">
-                    <h6 class="text-muted">Outside Zone</h6>
-                    <span class="count-number text-danger">@Model.OutsideCount</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-0 shadow-sm status-pending">
-                <div class="card-body">
-                    <h6 class="text-muted">Pending</h6>
-                    <span class="count-number text-warning">@Model.PendingCount</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-secondary text-white">
-                    <i class="bi bi-list-ul me-2"></i> Student Confirmations
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Student</th>
-                                    <th>Status</th>
-                                    <th>Distance (m)</th>
-                                    <th>Time Confirmed</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.Confirmations.Any())
-                                {
-                                    int index = 1;
-                                    foreach (var item in Model.Confirmations)
-                                    {
-                                        <tr>
-                                            <td>@index</td>
-                                            <td>@item.StudentName</td>
-                                            <td>
-                                                @if (item.Status == Michaelhouse.Models.SafetyStatus.Confirmed)
-                                                {
-                                                    <span class="badge bg-success">✓ Safe</span>
-                                                }
-                                                else if (item.Status == Michaelhouse.Models.SafetyStatus.OutsideZone)
-                                                {
-                                                    <span class="badge bg-danger">Outside</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-warning text-dark">Pending</span>
-                                                }
-                                            </td>
-                                            <td>@(item.DistanceFromAssemblyPointMeters > 0 ? item.DistanceFromAssemblyPointMeters.ToString("F0") : "-")</td>
-                                            <td>@(item.ConfirmationTime > DateTime.MinValue ? item.ConfirmationTime.ToString("HH:mm") : "-")</td>
-                                        </tr>
-                                        index++;
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted">No confirmations yet.</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="space-y-4 font-mono text-xs border-l border-gray-100 pl-8">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-wider block">Issued Timestamp</span>
+                        <span class="font-bold text-gray-800">@Model.Alert.AlertTime.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-wider block">Designated Assembly Point</span>
+                        <span class="font-bold text-gray-800">@Model.Alert.AssemblyPointName</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-wider block">Geofence Radius Standard</span>
+                        <span class="font-bold text-gray-800">@Model.Alert.GeofenceRadiusMeters meters</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            @if (Model.Alert.Status != Michaelhouse.Models.AlertStatus.Resolved)
-            {
-                using (Html.BeginForm("ResolveAlert", "Emergency", FormMethod.Post, new { @class = "d-inline" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.Alert.AlertId" />
-                    <button type="submit" class="btn btn-outline-success" onclick="return confirm('Resolve this alert?')">
-                        <i class="bi bi-check-circle"></i> Resolve Alert
-                    </button>
-                }
-            }
-            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Back to Dashboard</a>
-            <button class="btn btn-outline-primary" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        @* --- CONFIRMATION ROSTER TABLE --- *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">02. Personnel Location Verification Roster</h5>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/30 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">
+                            <th class="py-4 px-6 w-16">#</th>
+                            <th class="py-4 px-6">Student / Personnel Name</th>
+                            <th class="py-4 px-6">Safety Verification Status</th>
+                            <th class="py-4 px-6">Distance to Target</th>
+                            <th class="py-4 px-6">Confirmation Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-xs font-mono">
+                        @if (Model.Confirmations.Any())
+                        {
+                            int index = 1;
+                            foreach (var item in Model.Confirmations)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="py-4 px-6 text-gray-400 font-bold">@index.ToString("D2")</td>
+                                    <td class="py-4 px-6">
+                                        <div class="font-serif font-bold text-gray-900 text-sm">@item.StudentName</div>
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        @if (item.Status == Michaelhouse.Models.SafetyStatus.Confirmed)
+                                        {
+                                            <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Safe & Accounted</span>
+                                        }
+                                        else if (item.Status == Michaelhouse.Models.SafetyStatus.OutsideZone)
+                                        {
+                                            <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-red-50 text-[#C21E2E] border border-red-200">Outside Geofence</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-amber-50 text-amber-700 border border-amber-200">Pending Response</span>
+                                        }
+                                    </td>
+                                    <td class="py-4 px-6 text-gray-600">
+                                        @(item.DistanceFromAssemblyPointMeters > 0 ? $"{item.DistanceFromAssemblyPointMeters:F0} m" : "—")
+                                    </td>
+                                    <td class="py-4 px-6 text-gray-600">
+                                        @(item.ConfirmationTime > DateTime.MinValue ? item.ConfirmationTime.ToString("HH:mm:ss") : "—")
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="py-8 px-6 text-center text-gray-400 font-serif italic">
+                                    No personnel responses registered for this alert record yet.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -180,9 +228,9 @@
                     data: { alertId: @Model.Alert.AlertId },
                     success: function (data) {
                         // Update counts in cards
-                        $('.card:eq(1) .count-number').text(data.safe);
-                        $('.card:eq(2) .count-number').text(data.outside);
-                        $('.card:eq(3) .count-number').text(data.pending);
+                        $('#stat-safe').text(data.safe);
+                        $('#stat-outside').text(data.outside);
+                        $('#stat-pending').text(data.pending);
                         $('#lastUpdated').text('Updated: ' + data.refreshTime);
                     }
                 });

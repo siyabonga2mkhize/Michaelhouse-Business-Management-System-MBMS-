@@ -68,12 +68,13 @@ namespace Michaelhouse.Controllers
                 if (!ModelState.IsValid)
                     return View(alert);
 
-                var currentUser = db.Users.FirstOrDefault(u => u.Email == User.Identity.Name);
-                if (currentUser == null)
+                int? userId = Session["UserId"] as int?;
+                if (userId == null)
                 {
-                    ModelState.AddModelError("", "User not found");
+                    ModelState.AddModelError("", "User not found in session. Please log in again.");
                     return View(alert);
                 }
+                var currentUser = db.Users.Find(userId.Value);
 
                 alert.InitiatedByStaffId = currentUser.UserId;
                 alert.AlertTime = DateTime.Now;
@@ -228,9 +229,10 @@ namespace Michaelhouse.Controllers
         {
             try
             {
-                var currentUser = db.Users.FirstOrDefault(u => u.Email == User.Identity.Name);
-                if (currentUser == null)
-                    return Json(new { success = false, message = "User not found" }, JsonRequestBehavior.AllowGet);
+                int? userId = Session["UserId"] as int?;
+                if (userId == null)
+                    return Json(new { success = false, message = "User not found in session. Please log in again." }, JsonRequestBehavior.AllowGet);
+                var currentUser = db.Users.Find(userId.Value);
 
                 var student = db.Students.FirstOrDefault(s => s.UserId == currentUser.UserId);
                 if (student == null)
@@ -303,9 +305,10 @@ namespace Michaelhouse.Controllers
         {
             try
             {
-                var currentUser = db.Users.FirstOrDefault(u => u.Email == User.Identity.Name);
-                if (currentUser == null)
-                    return Content("User not found");
+                int? userId = Session["UserId"] as int?;
+                if (userId == null)
+                    return Content("User not found in session. Please log in again.");
+                var currentUser = db.Users.Find(userId.Value);
 
                 var alert = new EmergencyAlert
                 {
