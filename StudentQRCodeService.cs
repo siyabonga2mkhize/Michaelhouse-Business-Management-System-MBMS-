@@ -17,12 +17,23 @@ namespace Michaelhouse.Services
         public StudentQRCode GenerateQRCode(int studentId)
         {
             var student = db.Students.Find(studentId);
+
             if (student == null)
                 throw new InvalidOperationException("Student not found.");
 
             var existing = GetActiveQRCode(studentId);
+
             if (existing != null)
+            {
+                // Repair older QR records that have a value but no stored image.
+                if (existing.QRImage == null || existing.QRImage.Length == 0)
+                {
+                    existing.QRImage = GenerateQRImage(existing.QRCodeValue);
+                    db.SaveChanges();
+                }
+
                 return existing;
+            }
 
             string value = GenerateUniqueValue(student);
             byte[] image = GenerateQRImage(value);

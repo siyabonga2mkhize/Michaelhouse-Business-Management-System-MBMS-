@@ -53,13 +53,16 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AddStudent(AddStudentViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid)
+                return View(vm);
 
             using (var db = new DBContextClass())
             {
                 int parentId = GetCurrentParentId();
 
-                db.Students.Add(new Student
+                var studentNumberService = new StudentNumberService(db);
+
+                var student = new Student
                 {
                     FirstName = vm.FirstName,
                     LastName = vm.LastName,
@@ -69,11 +72,19 @@ namespace Michaelhouse.Controllers
                     PreviousSchool = vm.PreviousSchool,
                     CurrentGrade = vm.CurrentGrade,
                     MedicalConditions = vm.MedicalConditions,
-                    ParentId = parentId
-                });
+                    ParentId = parentId,
+
+                    // Generate automatically
+                    StudentNumber = studentNumberService.GenerateStudentNumber()
+                };
+
+                db.Students.Add(student);
                 db.SaveChanges();
 
-                TempData["Success"] = $"{vm.FirstName} {vm.LastName} has been added.";
+                TempData["Success"] =
+                    $"{student.FirstName} {student.LastName} has been added. " +
+                    $"Student Number: {student.StudentNumber}";
+
                 return RedirectToAction("Create");
             }
         }
