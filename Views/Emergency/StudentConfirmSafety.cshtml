@@ -194,12 +194,15 @@
         lastLat = pos.coords.latitude;
         lastLng = pos.coords.longitude;
         var acc = Math.round(pos.coords.accuracy);
+        var latLabel = lastLat >= 0 ? '° N' : '° S';
+        var lngLabel = lastLng >= 0 ? '° E' : '° W';
         var box = document.getElementById('locationBox');
         box.className = 'location-box ready mb-3';
         box.innerHTML =
             '<div>✅ Location acquired</div>' +
             '<div class="location-coords">' +
-                lastLat.toFixed(6) + '° N &nbsp;|&nbsp; ' + lastLng.toFixed(6) + '° E' +
+                Math.abs(lastLat).toFixed(6) + latLabel + ' &nbsp;|&nbsp; ' +
+                Math.abs(lastLng).toFixed(6) + lngLabel +
             '</div>' +
             '<div style="font-size:0.78rem;color:#555;margin-top:4px;">Accuracy: ±' + acc + ' m</div>';
 
@@ -244,15 +247,13 @@
                     if (r.withinGeofence) {
                         showResult('confirmed',
                             '✅ Safety Confirmed',
-                            'You are accounted for. Stay at the assembly point until the all-clear.' +
-                            '<br><small>Confirmation ID: ' + r.confirmationId + '</small>');
+                            'You are accounted for. Stay at the assembly point until the all-clear. (ID: ' + r.confirmationId + ')');
                         document.getElementById('emergencyIcon').textContent = '✅';
                         btn.style.display = 'none';
                     } else {
                         showResult('outside',
                             '⚠ Outside Safe Zone',
-                            'You are <strong>' + Math.round(r.distance) + ' m</strong> from the assembly point.' +
-                            ' Move closer and try again.');
+                            'You are ' + Math.round(r.distance) + ' m from the assembly point. Move closer and try again.');
                         btn.disabled = false;
                         document.getElementById('btnSpinner').style.display = 'none';
                         document.getElementById('btnText').textContent = ' ✔ Mark Me Safe';
@@ -273,10 +274,16 @@
         });
     }
 
-    function showResult(cls, title, body) {
+    function showResult(cls, title, safeMsg) {
         var box = document.getElementById('resultBox');
         box.className = 'result-box ' + cls;
-        box.innerHTML = '<h4>' + title + '</h4><p>' + body + '</p>';
+        var h4 = document.createElement('h4');
+        h4.textContent = title;
+        var p = document.createElement('p');
+        p.textContent = safeMsg;
+        box.innerHTML = '';
+        box.appendChild(h4);
+        box.appendChild(p);
         box.style.display = 'block';
         box.scrollIntoView({ behavior: 'smooth' });
     }

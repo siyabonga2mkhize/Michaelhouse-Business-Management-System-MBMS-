@@ -221,6 +221,9 @@ namespace Michaelhouse.Controllers
 
             return View("StudentConfirmSafety", alert);
         }
+
+        [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult> ConfirmSafe(ConfirmSafeRequest request)
         {
             try
