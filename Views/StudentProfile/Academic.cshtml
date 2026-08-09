@@ -15,9 +15,9 @@
             @Html.HiddenFor(m => m.AppId)
             @Html.HiddenFor(m => m.StudentId)
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Grade/Form</span>@Html.TextBoxFor(m => m.Grade, new { @class = "w-full px-4 py-2 border rounded mt-1" })@Html.ValidationMessageFor(m => m.Grade, "", new { @class = "text-sm text-red-600" })</label>
+                <label class="block"><span class="text-sm font-semibold text-gray-600">Grade/Form</span>@Html.TextBoxFor(m => m.Grade, new { @class = "w-full px-4 py-2 border rounded mt-1 bg-gray-100", @readonly = "readonly" })@Html.ValidationMessageFor(m => m.Grade, "", new { @class = "text-sm text-red-600" })</label>
                 <label class="block"><span class="text-sm font-semibold text-gray-600">Learning Style</span>@Html.DropDownListFor(m => m.LearningStyle, new SelectList(new[] { "Visual", "Practical", "Reading", "Mixed" }), "Select learning style", new { @class = "w-full px-4 py-2 border rounded mt-1" })@Html.ValidationMessageFor(m => m.LearningStyle, "", new { @class = "text-sm text-red-600" })</label>
-                <label class="block md:col-span-2"><span class="text-sm font-semibold text-gray-600">Subjects</span>@Html.TextAreaFor(m => m.Subjects, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
+                <label class="block md:col-span-2"><span class="text-sm font-semibold text-gray-600">Registered Subjects</span>@Html.TextAreaFor(m => m.Subjects, new { @class = "w-full px-4 py-2 border rounded mt-1 bg-gray-100", rows = 3, @readonly = "readonly" })</label>
                 <label class="block"><span class="text-sm font-semibold text-gray-600">Academic Interests</span>@Html.TextAreaFor(m => m.AcademicInterests, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
                 <label class="block"><span class="text-sm font-semibold text-gray-600">Academic Stream</span>@Html.TextBoxFor(m => m.AcademicStream, new { @class = "w-full px-4 py-2 border rounded mt-1" })</label>
             </div>

@@ -787,14 +787,21 @@
                         <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
                         </a>
+                        <a class="nav-link @(currentController == "Students" && currentAction == "MyQRCode" ? "active" : "")"
+                           href="@Url.Action("MyQRCode", "Students")">
+
+                            <i class="bi bi-qr-code"></i>
+                            <span class="link-text">My QR Code</span>
+
+                        </a>
 
 
 
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")

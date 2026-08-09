@@ -6,7 +6,7 @@
 
 <div class="container mt-4">
 
-    <h2>Student QR Identity</h2>
+    <h2>My QR Identity</h2>
 
     @if (TempData["Success"] != null)
     {
@@ -23,26 +23,20 @@
         <hr />
 
         <div class="text-center mb-3">
-            <img src="@Url.Action("Image", "StudentQRCode", new { studentId = student.StudentId })"
-                 alt="Student QR Code" style="width:200px;height:200px;" />
+            <img src="@Url.Action("MyQRCodeImage", "Students")"
+                 alt="Student QR Code"
+                 style="width:200px;height:200px;" />
         </div>
 
-        <p><strong>Name:</strong> @student.Name @student.Surname</p>
+        <p><strong>Name:</strong> @student.Name</p>
         <p><strong>Student Number:</strong> @student.StudentNumber</p>
-        <p><strong>QR Code:</strong> @Model.QRCodeValue</p>
-        <p><strong>Generated:</strong> @Model.DateGenerated.ToString("dd MMM yyyy HH:mm")</p>
-
         <div class="d-flex gap-2 mt-3">
             <a class="btn btn-danger"
-               href="@Url.Action("Download", "StudentQRCode", new { studentId = student.StudentId })">
+               href="@Url.Action("DownloadMyQRCode", "Students")">
                 Download
             </a>
 
-            <a class="btn btn-outline-danger"
-               href="@Url.Action("Print", "StudentQRCode", new { studentId = student.StudentId })"
-               target="_blank">
-                Print
-            </a>
+
 
             @if (User.IsInRole("Admin"))
             {
@@ -54,7 +48,12 @@
                             onclick="return confirm('This will invalidate the current QR code. Continue?');">
                         Regenerate
                     </button>
+
                 }
+                <a class="btn btn-danger"
+                   href="@Url.Action("DownloadMyQRCode", "Students")">
+                    Download
+                </a>
             }
         </div>
 
