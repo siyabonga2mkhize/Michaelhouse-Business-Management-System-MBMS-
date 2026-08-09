@@ -1099,3 +1099,6 @@ select * from EmergencyAlerts;
 --all 0 from status to 1
 update EmergencyAlerts
 set Status = 1 where Status = 0;
+
+
+DELETE FROM StudentSafetyConfirmations WHERE StudentId = 1005; -- (Use your test student's ID)
