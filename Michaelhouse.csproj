@@ -240,6 +240,10 @@
     <Compile Include="Migrations\202608090012506_AddVisitorAndTermTables.Designer.cs">
       <DependentUpon>202608090012506_AddVisitorAndTermTables.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608091958366_AddVisitorEmail.cs" />
+    <Compile Include="Migrations\202608091958366_AddVisitorEmail.Designer.cs">
+      <DependentUpon>202608091958366_AddVisitorEmail.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -491,6 +495,8 @@
     <Content Include="Views\VisitorAccess\Create.cshtml" />
     <Content Include="Views\VisitorAccess\MyRequests.cshtml" />
     <Content Include="Views\VisitorAccess\HousemasterQueue.cshtml" />
+    <Content Include="Views\VisitorAccess\ScanGate.cshtml" />
+    <Content Include="Views\VisitorAccess\VistorPass.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -685,6 +691,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202608090012506_AddVisitorAndTermTables.resx">
       <DependentUpon>202608090012506_AddVisitorAndTermTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608091958366_AddVisitorEmail.resx">
+      <DependentUpon>202608091958366_AddVisitorEmail.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

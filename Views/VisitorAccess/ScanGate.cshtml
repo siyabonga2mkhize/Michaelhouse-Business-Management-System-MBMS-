@@ -1,0 +1,105 @@
+﻿@{
+    ViewBag.Title = "Security Gate QR Scanner";
+}
+
+<div class="container text-center mt-5" style="max-width: 500px;">
+    <h2 class="text-uppercase" style="color: #C21E2E; font-family: 'Playfair Display', serif;">Michaelhouse</h2>
+    <h4>Security Gate QR Scanner</h4>
+    <hr />
+    <p class="text-muted">Point the camera at the visitor's QR code.</p>
+
+    <!-- The scanner renders inside this container -->
+    <div id="qr-reader" class="overflow-hidden rounded border" style="width: 100%; margin-top: 10px; background-color: #f8f9fa;"></div>
+
+    <!-- The result message appears here -->
+    <div id="result-area" class="mt-4"></div>
+
+    <!-- Reset button to scan again without refreshing -->
+    <button id="reset-btn" class="btn btn-outline-dark mt-3 d-none" onclick="resetScanner()">
+        Scan Next Pass
+    </button>
+</div>
+
+@section Scripts {
+    <!-- Load the QR scanner library from CDN -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <script>
+        let lastResult = "";
+        let html5QrcodeScanner = null;
+        let isProcessing = false;
+
+        function startScanner() {
+            if (typeof Html5QrcodeScanner !== "undefined") {
+                html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {
+                    fps: 10,
+                    qrbox: 250,
+                    aspectRatio: 1.0,
+                    showTorchButtonIfSupported: true
+                });
+
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            } else {
+                document.getElementById('result-area').innerHTML =
+                    `<div class="alert alert-danger">QR library failed to load. Please refresh the page.</div>`;
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isProcessing) return;
+
+            // Prevent duplicate scans of the exact same raw string unless reset
+            if (decodedText !== lastResult) {
+                isProcessing = true;
+                lastResult = decodedText;
+
+                const resultArea = document.getElementById('result-area');
+                resultArea.innerHTML = `<div class="alert alert-info fw-bold">⏳ Validating Gate Pass...</div>`;
+
+                // Pause active scanning while evaluating token
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.pause(true);
+                }
+
+                // 🔥 FIXED: Changed from "VisitorsAccess" to "VisitorAccess" (Plural to Singular)
+                const targetUrl = '@Url.Action("ValidateGatePass", "VisitorAccess")' + '?data=' + encodeURIComponent(decodedText);
+
+                fetch(targetUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let zoneInfo = data.assignedZone ? `<br/><small><b>Zone:</b> ${data.assignedZone}</small>` : '';
+                            resultArea.innerHTML = `<div class="alert alert-success fs-5">✅ ${data.message}${zoneInfo}</div>`;
+                        } else {
+                            resultArea.innerHTML = `<div class="alert alert-danger fs-5">🚫 ${data.message}</div>`;
+                        }
+                    })
+                    .catch(err => {
+                        resultArea.innerHTML = `<div class="alert alert-danger">⚠️ Server connection error. Please try again.</div>`;
+                    })
+                    .finally(() => {
+                        document.getElementById('reset-btn').classList.remove('d-none');
+                    });
+            }
+        }
+
+        function onScanFailure(err) {
+            // Frame-by-frame read attempts (safe to ignore miss events)
+        }
+
+        function resetScanner() {
+            lastResult = "";
+            isProcessing = false;
+            document.getElementById('result-area').innerHTML = "";
+            document.getElementById('reset-btn').classList.add('d-none');
+
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.resume();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            startScanner();
+        });
+    </script>
+}
