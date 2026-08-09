@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace Michaelhouse.Controllers
 {
@@ -76,9 +77,12 @@ namespace Michaelhouse.Controllers
                     catch { }
                 }
 
+
                 return RedirectByRole(role);
             }
-            return View();
+
+            // Pass an empty model to the view
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
@@ -103,6 +107,7 @@ namespace Michaelhouse.Controllers
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
+                FormsAuthentication.SetAuthCookie(user.Email, false);
 
                 // Store role-specific identifiers in session for easy access
                 if (user.Role == "Parent")
@@ -229,12 +234,14 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Logout()
         {
+            FormsAuthentication.SignOut();
+
             Session.Clear();
             Session.Abandon();
+
             TempData["Success"] = "You have been logged out.";
             return RedirectToAction("Login");
         }
-
         // ─── Edit Profile ─────────────────────────────────────────────────────────
 
         [RequireLogin]

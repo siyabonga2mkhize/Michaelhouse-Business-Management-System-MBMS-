@@ -1,0 +1,256 @@
+@model Michaelhouse.Models.ViewModels.AlertAccountabilityViewModel
+
+@{
+    ViewBag.Title = "Emergency Alert - Real-Time Accountability";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Alert Status Header -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card @(Model.Alert.Status == Michaelhouse.Models.AlertStatus.Active ? "border-danger" : "border-success")">
+                <div class="card-header @(Model.Alert.Status == Michaelhouse.Models.AlertStatus.Active ? "bg-danger" : "bg-success") text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">🚨 EMERGENCY ALERT - @Model.Alert.AlertId</h5>
+                            <small>@Model.Alert.AlertMessage</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark">Status: @Model.Alert.Status</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small class="text-muted">Alert Time</small>
+                            <p class="mb-0">@Model.Alert.AlertTime.ToString("dd MMM yyyy HH:mm:ss")</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Assembly Point</small>
+                            <p class="mb-0">@Model.Alert.AssemblyPointName<br><small>(@Model.Alert.AssemblyLatitude.ToString("F4"), @Model.Alert.AssemblyLongitude.ToString("F4"))</small></p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Geofence Radius</small>
+                            <p class="mb-0">@Model.Alert.GeofenceRadiusMeters m</p>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Initiated By</small>
+                            <p class="mb-0">Staff ID: @Model.Alert.InitiatedByStaffId</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Accountability Summary -->
+    <div class="row mb-3" id="accountabilitySummary">
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Total Students</h6>
+                    <h2 class="text-primary">@Model.TotalStudents</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">✓ Safe & Accounted</h6>
+                    <h2 class="text-success">@Model.SafeCount</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">⚠ Outside Zone</h6>
+                    <h2 class="text-warning">@Model.OutsideCount</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">⏳ Pending</h6>
+                    <h2 class="text-danger">@Model.PendingCount</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Status Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Student Confirmations</h5>
+                    <div>
+                        <button class="btn btn-sm btn-primary" onclick="autoRefreshToggle()" id="refreshBtn">
+                            <i class="bi bi-arrow-repeat"></i> Auto-Refresh (ON)
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Now
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.Confirmations.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Status</th>
+                                        <th>Confirmation Time</th>
+                                        <th>Distance (m)</th>
+                                        <th>Within Geofence</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var confirm in Model.Confirmations.OrderByDescending(c => c.ConfirmationTime))
+                                    {
+                                        <tr class="@(confirm.Status == Michaelhouse.Models.SafetyStatus.Confirmed ? "table-success" : confirm.Status == Michaelhouse.Models.SafetyStatus.OutsideZone ? "table-warning" : "table-light")">
+                                            <td><strong>@confirm.StudentName</strong></td>
+                                            <td>
+                                                @if (confirm.Status == Michaelhouse.Models.SafetyStatus.Confirmed)
+                                                {
+                                                    <span class="badge bg-success">✓ Confirmed Safe</span>
+                                                }
+                                                else if (confirm.Status == Michaelhouse.Models.SafetyStatus.OutsideZone)
+                                                {
+                                                    <span class="badge bg-warning">⚠ Outside Zone</span>
+                                                }
+                                                else if (confirm.Status == Michaelhouse.Models.SafetyStatus.Pending)
+                                                {
+                                                    <span class="badge bg-info">⏳ Pending</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (confirm.ConfirmationTime > DateTime.MinValue)
+                                                {
+                                                    @confirm.ConfirmationTime.ToString("HH:mm:ss")
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">-</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (confirm.DistanceFromAssemblyPointMeters > 0)
+                                                {
+                                                    @confirm.DistanceFromAssemblyPointMeters.ToString("F1")
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">-</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (confirm.WithinGeofence)
+                                                {
+                                                    <span class="badge bg-success">Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">No</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <small>
+                                                    @confirm.StudentLatitude.ToString("F4"),
+                                                    @confirm.StudentLongitude.ToString("F4")
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">No confirmations yet.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolve Alert Section -->
+    @if (Model.Alert.Status == Michaelhouse.Models.AlertStatus.Active)
+    {
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        Resolve Emergency Alert
+                    </div>
+                    <div class="card-body">
+                        @using (Html.BeginForm("ResolveAlert", "Emergency", FormMethod.Post))
+                        {
+                            <input type="hidden" name="id" value="@Model.Alert.AlertId" />
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Resolution Notes</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="e.g., Situation under control, all students accounted for"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this alert as resolved?')">
+                                <i class="bi bi-check-circle"></i> Resolve Emergency
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        let autoRefreshInterval = null;
+
+        function autoRefreshToggle() {
+            const btn = document.getElementById('refreshBtn');
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = '↻ Auto-Refresh (OFF)';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            } else {
+                autoRefreshInterval = setInterval(refreshAccountability, 5000);
+                btn.textContent = '↻ Auto-Refresh (ON)';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            }
+        }
+
+        function refreshAccountability() {
+            const alertId = @Model.Alert.AlertId;
+            $.get('@Url.Action("GetAlertUpdate", "Emergency")' + '?alertId=' + alertId, function (data) {
+                // Update counts in summary cards
+                $('.card:eq(1) .count-number').text(data.safe);
+                $('.card:eq(2) .count-number').text(data.outside);
+                $('.card:eq(3) .count-number').text(data.pending);
+                $('#lastUpdated').text('Updated: ' + data.refreshTime);
+            });
+        }
+
+        // Start auto-refresh by default
+        $(function () {
+            autoRefreshInterval = setInterval(refreshAccountability, 5000);
+        });
+    </script>
+}

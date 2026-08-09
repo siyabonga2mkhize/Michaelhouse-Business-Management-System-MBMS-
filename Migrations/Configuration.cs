@@ -1,8 +1,8 @@
 ﻿using Michaelhouse.Models;
 using System;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
-using System.Data.Entity;
 
 namespace Michaelhouse.Migrations
 {
@@ -11,6 +11,7 @@ namespace Michaelhouse.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
         }
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)

@@ -107,6 +107,8 @@ namespace Michaelhouse.Models
         public DbSet<AIRecommendationOverride> AIRecommendationOverrides { get; set; }
         public DbSet<QRScanRecord> QRScanRecords { get; set; }
         public DbSet<ResidenceAllocation> ResidenceAllocations { get; set; }
+        public DbSet<EmergencyAlert> EmergencyAlerts { get; set; }
+        public DbSet<StudentSafetyConfirmation> StudentSafetyConfirmations { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -650,6 +652,29 @@ namespace Michaelhouse.Models
                 .WithMany()
                 .HasForeignKey(r => r.ToRoomId)
                 .WillCascadeOnDelete(false);
+            // Configure EmergencyAlert
+            modelBuilder.Entity<EmergencyAlert>()
+                .HasKey(e => e.AlertId);
+
+            modelBuilder.Entity<EmergencyAlert>()
+                .HasMany(e => e.StudentConfirmations)
+                .WithRequired(c => c.Alert)
+                .HasForeignKey(c => c.AlertId)
+                .WillCascadeOnDelete(true);
+
+            // Configure StudentSafetyConfirmation
+            modelBuilder.Entity<StudentSafetyConfirmation>()
+                .HasKey(c => c.ConfirmationId);
+
+            modelBuilder.Entity<StudentSafetyConfirmation>()
+                .HasRequired(c => c.Student)
+                .WithMany()
+                .HasForeignKey(c => c.StudentId);
+
+            modelBuilder.Entity<StudentSafetyConfirmation>()
+                .HasRequired(c => c.Alert)
+                .WithMany(a => a.StudentConfirmations)
+                .HasForeignKey(c => c.AlertId);
 
             // LeaveRequest  (Use Case 27 - Request Permission to Leave Residence)
             // -------------------------
@@ -677,5 +702,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(l => l.HouseMasterId)
                 .WillCascadeOnDelete(false);
         }
+
     }
 }

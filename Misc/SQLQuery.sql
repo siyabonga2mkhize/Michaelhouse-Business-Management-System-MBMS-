@@ -1,7 +1,6 @@
 ﻿select * from SchoolClasses
 
 select * from appusers
-    
 
 
 Select * from ClassSubjects
@@ -195,12 +194,12 @@ VALUES
 DECLARE @ParentId INT = SCOPE_IDENTITY();
 
 -- Insert students with Gender (and any other required fields)
-INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
+INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, IsBoarding, IsActive)
 VALUES 
-('Thabo', 'Nkosi', 8, '2012-05-10', @ParentId, 'Male'),
-('Lerato', 'Molefe', 8, '2012-08-22', @ParentId, 'Female'),
-('Sipho', 'Dlamini', 8, '2012-02-15', @ParentId, 'Male'),
-('Zanele', 'Khumalo', 8, '2012-11-30', @ParentId, 'Female');
+('Thabo', 'Nkosi', 8, '2012-05-10', @ParentId, 1, 1),
+('Lerato', 'Molefe', 8, '2012-08-22', @ParentId,1, 1),
+('Sipho', 'Dlamini', 8, '2012-02-15', @ParentId, 1, 1),
+('Zanele', 'Khumalo', 8, '2012-11-30', @ParentId, 1, 1);
 
 
 INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
@@ -1023,6 +1022,13 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE Vehi
 
 -- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
 UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');
+
+
+
+
+
+select * from EmergencyAlerts;
+
 SELECT TOP 10
     s.StudentId,
     s.StudentNumber,
@@ -1049,3 +1055,39 @@ SELECT TOP 10
     LEN(QRImage) AS ImageSize,
     IsActive
 FROM StudentQRCodes;
+
+
+
+select * from Students
+
+select * from Parents
+
+
+-- Insert the 5 students from your AppUsers table into the Students table
+-- Note: ParentId = 2 corresponds to the 'Demo Parent' in your Parents table.
+INSERT INTO Students (
+    FirstName, LastName, UserId, ParentId, 
+    DOB, IsBoarding, IsActive, GradeLevel, 
+    HomeLanguage, EnrollmentDate
+)
+VALUES 
+('Sipho', 'Nkosi', 1005, 2, '2006-01-01', 1, 1, 8, 'English', GETDATE()),
+('Thabo', 'Nkosi', 1006, 2, '2006-02-01', 1, 1, 8, 'English', GETDATE()),
+('Lerato', 'Molefe', 1007, 2, '2006-03-01', 1, 1, 8, 'English', GETDATE()),
+('Sipho', 'Dlamini', 1008, 2, '2006-04-01', 1, 1, 8, 'English', GETDATE()),
+('Zanele', 'Khumalo', 1009, 2, '2006-05-01', 1, 1, 8, 'English', GETDATE());
+
+
+
+SELECT GeofenceRadiusMeters FROM EmergencyAlerts WHERE AlertId = 1;
+
+-- 1. Update Demo Parent (ParentId 2) with emergency contact details
+UPDATE Parents 
+SET EmergencyContactName = 'Mrs. Demo Parent Emergency', 
+    EmergencyContactPhone = '+27 82 123 4567'
+WHERE ParentId = 2;
+
+-- 2. Make sure the students are linked to this parent
+UPDATE Students
+SET ParentId = 2
+WHERE UserId IN (1005, 1006, 1007, 1008, 1009); -- The 5 Student UserIds
