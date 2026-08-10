@@ -1,0 +1,196 @@
+﻿@model Michaelhouse.Models.Asset
+@{
+    ViewBag.Title = "Register Asset";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Register Asset</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Add a new asset to the maintenance system</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-plus me-2"></i>Asset Information</h5>
+                <span class="text-muted small">Fill in all required fields — a QR code will be generated automatically</span>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("RegisterAsset", "Maintenance", FormMethod.Post, new { @class = "row g-3" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <!-- Asset Name -->
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Asset Name *</label>
+                        @Html.TextBoxFor(m => m.AssetName, new { @class = "form-control", placeholder = "e.g. Geyser — Founders House Bathroom 2" })
+                        @Html.ValidationMessageFor(m => m.AssetName, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Category *</label>
+                        @Html.DropDownListFor(m => m.Category,
+                            new SelectList(new[] { "", "Electrical", "Plumbing", "HVAC", "Grounds", "Sports", "Building", "Safety", "IT", "Kitchen" }),
+                            "-- Select Category --",
+                            new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Category, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- Condition -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Current Condition *</label>
+                        @Html.DropDownListFor(m => m.ConditionRating,
+                            new SelectList(new[] { "Good", "Fair", "Poor" }),
+                            "-- Select Condition --",
+                            new { @class = "form-select", id = "conditionSelect" })
+                        @Html.ValidationMessageFor(m => m.ConditionRating, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- Location Building -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Building / Location *</label>
+                        @Html.DropDownListFor(m => m.LocationBuilding,
+                            new SelectList(new[] {
+                                "", "Founders House", "East House", "West House",
+                                "Tatham House", "Farfield House", "Pascoe House",
+                                "Baines House", "Mackenzie House", "Ralfe House",
+                                "McCormick House", "Main Classroom Block",
+                                "Administration Block", "Schlesinger Theatre",
+                                "Dining Hall", "Chapel", "Indoor Sports Centre",
+                                "Heated Swimming Pool", "Water Polo Pool",
+                                "Roy Gathorne Cricket Oval", "Athletics Track",
+                                "Gymnasium", "Golf Driving Range",
+                                "Van der Westhuyzen Dam", "Campus Grounds"
+                            }),
+                            "-- Select Building --",
+                            new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.LocationBuilding, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- Location Room -->
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Room / Area</label>
+                        @Html.TextBoxFor(m => m.LocationRoom, new { @class = "form-control", placeholder = "e.g. Bathroom 2 / Floor 1 / East Wing" })
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Description</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe the asset in more detail..." })
+                    </div>
+
+                    <!-- Condition Warning Box -->
+                    <div id="poorWarning" class="col-12" style="display:none;">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Poor Condition Warning</strong>
+                            <p class="mb-0 small">This asset will be flagged immediately. A priority inspection job card will be recommended when you save.</p>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-qr-code me-2"></i>
+                            <small>A unique <strong>Asset Code</strong> and <strong>QR Code</strong> will be automatically generated when you save. Print the QR code and attach it to the physical asset on campus.</small>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Register Asset</button>
+                        <a href="@Url.Action("Assets", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back to Assets</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side Info Panel -->
+    <div class="col-lg-4">
+
+        <!-- Asset Categories -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-tags me-2"></i>Asset Categories</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var item in new[] {
+                    ("Electrical",   "bi bi-bolt",          "Generators, lights, boards"),
+                    ("Plumbing",     "bi bi-droplet",       "Pipes, taps, geysers, toilets"),
+                    ("HVAC",         "bi bi-wind",          "Heaters, AC units, ventilation"),
+                    ("Grounds",      "bi bi-tree",          "680 hectare estate, grass, paths"),
+                    ("Sports",       "bi bi-running",       "Pools, courts, pitches, gym"),
+                    ("Building",     "bi bi-building",      "10 boarding houses, classrooms"),
+                    ("Safety",       "bi bi-fire",          "Fire systems — legal compliance"),
+                    ("IT",           "bi bi-pc-display",    "Projectors, servers, PA systems"),
+                    ("Kitchen",      "bi bi-egg-fried",     "Industrial ovens, fridges")
+                })
+                {
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div style="width:32px;height:32px;border-radius:8px;background:rgba(194,30,46,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="@item.Item2" style="color:#C21E2E;font-size:14px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:13px;font-weight:600;">@item.Item1</div>
+                            <div style="font-size:11px;color:#6c757d;">@item.Item3</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Health Score Guide -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-heart-pulse me-2"></i>Health Score Guide</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded" style="background:#d4edda;border-left:3px solid #28a745;">
+                        <strong style="color:#155724;font-size:13px;">Good Condition = 100%</strong>
+                        <div style="font-size:12px;color:#155724;">Asset is in excellent working order</div>
+                    </div>
+                    <div class="p-3 rounded" style="background:#fff3cd;border-left:3px solid #ffc107;">
+                        <strong style="color:#856404;font-size:13px;">Fair Condition = 65%</strong>
+                        <div style="font-size:12px;color:#856404;">Showing wear — monitor closely</div>
+                    </div>
+                    <div class="p-3 rounded" style="background:#f8d7da;border-left:3px solid #dc3545;">
+                        <strong style="color:#721c24;font-size:13px;">Poor Condition = 30%</strong>
+                        <div style="font-size:12px;color:#721c24;">Urgent attention required — flagged immediately</div>
+                    </div>
+                </div>
+                <div class="mt-3 p-2 rounded" style="background:rgba(194,30,46,0.05);font-size:12px;color:#6c757d;">
+                    <i class="bi bi-info-circle me-1" style="color:#C21E2E;"></i>
+                    Health score decreases each time a fault is reported and increases when repairs are completed.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Show warning if Poor condition is selected
+        document.getElementById('conditionSelect').addEventListener('change', function () {
+            var warning = document.getElementById('poorWarning');
+            warning.style.display = this.value === 'Poor' ? 'block' : 'none';
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

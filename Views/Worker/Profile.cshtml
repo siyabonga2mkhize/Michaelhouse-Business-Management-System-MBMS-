@@ -1,0 +1,135 @@
+﻿@model Michaelhouse.Models.MaintenanceStaff
+@{
+    ViewBag.Title = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">My Profile</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">@Model.FullName · @Model.StaffNumber</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <!-- ── Profile Card ────────────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center" style="width:120px;height:120px;font-size:60px;color:white;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold">@Model.FullName</h4>
+                <p class="text-muted">@Model.JobTitle · @Model.SkillType</p>
+                <span class="badge @(Model.CurrentStatus == "Available" ? "bg-success" : Model.CurrentStatus == "On Job" ? "bg-warning" : "bg-secondary")">@Model.CurrentStatus</span>
+                <hr />
+                <div class="text-start">
+                    <p><strong>Staff Number:</strong> @Model.StaffNumber</p>
+                    <p><strong>Email:</strong> @Model.Email</p>
+                    <p><strong>Phone:</strong> @Model.Phone</p>
+                    <p><strong>Employee Type:</strong> @Model.EmployeeType</p>
+                    <p><strong>Date Joined:</strong> @Model.DateJoined.ToString("dd MMM yyyy")</p>
+                    <p><strong>Leave Balance:</strong> @Model.LeaveBalance days</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- ── Edit Profile Form ──────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pencil me-2"></i>Edit Profile</h5>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("Profile", "Worker", FormMethod.Post, new { @class = "row g-3" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Full Name</label>
+                        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", @readonly = "readonly" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Email</label>
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @readonly = "readonly" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Phone Number *</label>
+                        @Html.TextBoxFor(m => m.Phone, new { @class = "form-control" })
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Job Title</label>
+                        @Html.TextBoxFor(m => m.JobTitle, new { @class = "form-control", @readonly = "readonly" })
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Emergency Contact Name</label>
+                        @Html.TextBoxFor(m => m.EmergencyContactName, new { @class = "form-control" })
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Emergency Contact Phone</label>
+                        @Html.TextBoxFor(m => m.EmergencyContactPhone, new { @class = "form-control" })
+                    </div>
+
+                    <div class="col-12">
+                        <hr />
+                        <div class="text-muted small">
+                            <p><strong>Skills:</strong> @Model.Skills</p>
+                            <p><strong>Proficiency:</strong> @Model.ProficiencyLevel</p>
+                            <p><strong>Certifications:</strong> @Model.Certifications</p>
+                            <p><strong>Cert Expiry:</strong> @(Model.CertificationExpiry?.ToString("dd MMM yyyy") ?? "N/A")</p>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Update Profile</button>
+                        <a href="@Url.Action("MyJobs", "Worker")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── Performance Stats ──────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>My Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-4 text-center border-end">
+                        <h3 class="fw-bold text-primary">@Model.JobsCompletedThisMonth</h3>
+                        <small class="text-muted">This Month</small>
+                    </div>
+                    <div class="col-4 text-center border-end">
+                        <h3 class="fw-bold text-success">@Model.OnTimeCompletionRate%</h3>
+                        <small class="text-muted">On‑Time Rate</small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h3 class="fw-bold text-warning">@Model.AvgResponseTime <small class="text-muted">mins</small></h3>
+                        <small class="text-muted">Avg Response</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

@@ -1,0 +1,160 @@
+﻿@model List<Michaelhouse.Models.JobCard>
+@{
+    ViewBag.Title = "Job Cards";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Job Cards</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">All maintenance jobs</p>
+    </div>
+    <div>
+        <a href="@Url.Action("ReportFault", "Maintenance")" class="btn btn-dark me-2">Report Fault</a>
+        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-outline-dark">+ Create Job Card</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Open Jobs</h6>
+                <h3 class="fw-bold">@ViewBag.TotalOpen</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">In Progress</h6>
+                <h3 class="fw-bold text-warning">@ViewBag.InProgress</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Emergency</h6>
+                <h3 class="fw-bold text-danger">@ViewBag.Emergency</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Done This Month</h6>
+                <h3 class="fw-bold text-success">@ViewBag.CompletedMonth</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" action="@Url.Action("JobCards", "Maintenance")" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Search</label>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Reference or title..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-uppercase text-muted">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var p in new[] { "Emergency", "High", "Medium", "Low" })
+                    {
+                        <option value="@p" @(ViewBag.Priority == p ? "selected" : "")>@p</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-uppercase text-muted">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var s in new[] { "Pending", "Assigned", "In Progress", "On Hold", "Completed", "Cancelled" })
+                    {
+                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-uppercase text-muted">Type</label>
+                <select name="jobType" class="form-select">
+                    <option value="">All</option>
+                    <option value="Reactive" @(ViewBag.JobType == "Reactive" ? "selected" : "")>Reactive</option>
+                    <option value="Preventive" @(ViewBag.JobType == "Preventive" ? "selected" : "")>Preventive</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-list me-2"></i>All Job Cards</h5>
+        <span class="text-muted small">@Model.Count job(s)</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reference</th>
+                        <th>Title</th>
+                        <th>Asset</th>
+                        <th>Type</th>
+                        <th>Priority</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var j in Model)
+                    {
+                        var isOverdue = j.DueDate.HasValue && j.DueDate.Value < DateTime.Now && j.Status != "Completed" && j.Status != "Cancelled";
+                        <tr class="@(isOverdue ? "table-danger" : "")">
+                            <td><code class="text-danger">@j.JobReference</code></td>
+                            <td><strong>@j.Title</strong></td>
+                            <td>@(j.Asset != null ? j.Asset.AssetName : "—")</td>
+                            <td><span class="badge bg-@(j.JobType=="Reactive"?"danger":"success")">@j.JobType</span></td>
+                            <td><span class="badge bg-@(j.Priority=="Emergency"?"danger":j.Priority=="High"?"warning":j.Priority=="Medium"?"info":"secondary")">@j.Priority</span></td>
+                            <td>@(j.AssignedTo != null ? j.AssignedTo.FullName : "Unassigned")</td>
+                            <td><span class="badge bg-@(j.Status=="Completed"?"success":j.Status=="In Progress"||j.Status=="Assigned"?"warning":"secondary")">@j.Status</span></td>
+                            <td>@(j.DueDate.HasValue ? j.DueDate.Value.ToString("dd MMM HH:mm") : "—")</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = j.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                                    @if (j.Status != "Completed" && j.Status != "Cancelled")
+                                    {
+                                        <a href="@Url.Action("CompleteJobCard", "Maintenance", new { id = j.Id })" class="btn btn-sm btn-outline-success"><i class="bi bi-check-lg"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
+                <p>No job cards found.</p>
+                <a href="@Url.Action("ReportFault", "Maintenance")" class="btn btn-primary btn-sm">Report First Fault</a>
+            </div>
+        }
+    </div>
+</div>
