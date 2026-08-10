@@ -18,7 +18,24 @@ namespace Michaelhouse
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            StripeConfiguration.ApiKey = "sk_test_51TGkmpCX1ORzTt6NEmDOc0b3JZfikEKfkgwHx2ulmuep6cuNGTAFlY3WE65A5bUy8BQ2A0HShSCBqze2A4jFGkJ300YdaTPxkN";
+
+            try
+            {
+                var stripeKey = System.Configuration.ConfigurationManager.AppSettings["StripeApiKey"];
+                if (!string.IsNullOrWhiteSpace(stripeKey))
+                {
+                    StripeConfiguration.ApiKey = stripeKey;
+                }
+                else
+                {
+                    System.Diagnostics.Trace.TraceWarning("StripeApiKey not found in AppSettings; Stripe calls will fail until configured.");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Stripe initialization failed: " + ex);
+                // Do not rethrow — allow the app to start so you can inspect logs and fix assemblies
+            }
         }
         private void SeedDrivers()
         {

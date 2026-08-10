@@ -1,0 +1,145 @@
+@model IEnumerable<Michaelhouse.Models.Bed>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Bed Infrastructure Registry";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Bed Infrastructure Registry</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Manage Individual Boarding Allocations & Status</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Create")" class="inline-block bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">
+                <i class="bi bi-plus-lg me-2"></i> Register New Bed
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4">
+
+        @* --- ARCHIVAL LEDGER TABLE --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow min-h-0 relative overflow-hidden group">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-grid-3x3 absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-journal-bookmark-fill me-2 text-gray-400"></i> Official Capacity Ledger</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">Status: Active Deployments</p>
+                </div>
+            </div>
+
+            @* Table Container (Scrolls Internally) *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                            <th class="ps-8 py-5">Bed Designation</th>
+                            <th class="border-l border-gray-100 ps-6">Assigned Room</th>
+                            <th class="text-center border-l border-gray-100">Occupancy Status</th>
+                            <th class="pe-8 text-end border-l border-gray-100">Administrative</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="py-20 text-center">
+                                    <i class="bi bi-layout-sidebar text-gray-200 text-6xl d-block mb-4"></i>
+                                    <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Ledger Empty</h4>
+                                    <p class="text-[11px] font-mono text-gray-400 mt-2">No bed records are currently registered in the system.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var bed in Model)
+                            {
+                                // Determine status logic based on typical application flow
+                                bool isOccupied = bed.IsOccupied; // Assuming boolean property exists
+                                string statusColor = isOccupied ? "text-gray-600 bg-gray-100 border-gray-300" : "text-green-700 bg-green-50 border-green-200";
+                                string statusText = isOccupied ? "Occupied" : "Available";
+
+                                <tr class="group/row hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-5">
+                                        <div class="font-serif font-bold text-gray-900 text-lg group-hover/row:text-[#C21E2E] transition-colors">@(bed.BedNumber ?? "Unnamed Bed")</div>
+                                    </td>
+                                    <td class="border-l border-gray-50 ps-6">
+                                        <div class="flex items-center gap-2">
+                                            <i class="bi bi-door-open text-gray-400"></i>
+                                            <span class="font-mono font-bold text-gray-800">@(bed.Room?.RoomNumber ?? "Unassigned")</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono text-[10px] font-bold uppercase tracking-widest border px-3 py-1 shadow-sm @statusColor">
+                                            @statusText
+                                        </span>
+                                    </td>
+                                    <td class="pe-8 text-end border-l border-gray-50">
+                                        <a href="@Url.Action("Details", new { id = bed.BedId })" class="inline-block bg-transparent border border-gray-300 text-gray-500 px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-[#C21E2E] hover:text-[#C21E2E] hover:bg-red-50/50 hover:shadow-[0_0_15px_rgba(194,30,46,0.15)] transition-all duration-300">
+                                            View Details <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Institutional Footer *@
+            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0 relative z-10">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Official Infrastructure Registry
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

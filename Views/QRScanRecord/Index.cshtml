@@ -1,0 +1,181 @@
+@model IEnumerable<Michaelhouse.Models.QRScanRecord>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Optical Scan Registry";
+    bool isArchived = ViewBag.Archived ?? false;
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">QR Scan Records</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Automated Identity & Access Verification Logs</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", new { archived = !isArchived })" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:shadow-[0_0_15px_rgba(0,0,0,0.05)] transition-all text-gray-600">
+                <i class="bi @(isArchived ? "bi-eye" : "bi-archive") me-2"></i> @(isArchived ? "View Active Records" : "View Archived Records")
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
+
+        @* --- REGISTRY FILTER BAR --- *@
+        <div class="bg-white border-t-4 border-gray-800 shadow-sm mb-6 p-6">
+            @using (Html.BeginForm("Index", "QRScanRecord", FormMethod.Get, new { @class = "flex items-end gap-4" }))
+            {
+                <div class="flex-grow">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Query Database</label>
+                    <div class="relative">
+                        <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input name="search" value="@ViewBag.Search" class="w-full pl-10 pr-4 py-3 border border-gray-200 bg-gray-50/50 font-mono text-sm focus:outline-none focus:border-[#C21E2E] focus:bg-white transition-colors" placeholder="Search by student name, executed action, or scanner ID..." />
+                    </div>
+                </div>
+                <button type="submit" class="bg-transparent border border-gray-300 text-gray-600 px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:border-gray-800 hover:text-gray-900 transition-all h-[46px]">
+                    Filter
+                </button>
+            }
+        </div>
+
+        @* --- ARCHIVAL LEDGER TABLE --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow min-h-0 relative overflow-hidden group">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-qr-code-scan absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-upc-scan me-2 text-gray-400"></i> Official Verification Ledger</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">Status: @(isArchived ? "Archived Logs" : "Active Optical Logs")</p>
+                </div>
+                <div class="relative z-10 text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest">
+                    Count: @Model.Count()
+                </div>
+            </div>
+
+            @* Table Container (Scrolls Internally) *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                            <th class="ps-8 py-5">Student Identity</th>
+                            <th class="border-l border-gray-100 ps-6">Associated Residence</th>
+                            <th class="text-center border-l border-gray-100">Action</th>
+                            <th class="text-center border-l border-gray-100">Scan Timestamp</th>
+                            <th class="border-l border-gray-100 ps-6">Scanner Device</th>
+                            @*<th class="pe-8 text-end border-l border-gray-100">Administrative</th>*@
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="py-20 text-center">
+                                    <i class="bi bi-camera-video-off text-gray-200 text-6xl d-block mb-4"></i>
+                                    <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">No Records Found</h4>
+                                    <p class="text-[11px] font-mono text-gray-400 mt-2">Adjust your search parameters. Ensure active scanners are synced to the network.</p>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var q in Model)
+                            {
+                                // Infer action styles based on common keywords
+                                string actionRaw = q.Action ?? "Unknown";
+                                string actionColor = actionRaw.Contains("In") || actionRaw.Contains("Return") ? "text-green-700 bg-green-50 border-green-200" :
+                                                     actionRaw.Contains("Out") || actionRaw.Contains("Departure") ? "text-[#C21E2E] bg-red-50 border-[#C21E2E]/30" :
+                                                     "text-gray-600 bg-gray-100 border-gray-300";
+
+                                <tr class="group/row hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-5">
+                                        <div class="font-serif font-bold text-gray-900 text-lg group-hover/row:text-[#C21E2E] transition-colors">@(q.Student?.Name ?? "Unknown Student")</div>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-6">
+                                        <div class="font-bold text-gray-700 uppercase tracking-tight text-xs">@(q.Residence?.Name ?? "External / Unassigned")</div>
+                                    </td>
+
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono text-[10px] font-bold uppercase tracking-widest border px-3 py-1 shadow-sm @actionColor">
+                                            @actionRaw
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono text-[10px] font-bold text-gray-800 bg-gray-50 border border-gray-200 px-3 py-1 shadow-sm">
+                                            @q.ScannedAt.ToString("dd MMM yyyy HH:mm:ss")
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-6">
+                                        <div class="font-mono text-[10px] text-gray-500 uppercase tracking-widest">
+                                            <i class="bi bi-cpu me-1 text-gray-400"></i> @(q.Scanner ?? "Unknown Device")
+                                        </div>
+                                    </td>
+
+                                    <td class="pe-8 text-end border-l border-gray-50">
+                                        <a href="@Url.Action("Details", new { id = q.QRScanRecordId })" class="inline-block bg-transparent border border-gray-300 text-gray-500 px-5 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-[#C21E2E] hover:text-[#C21E2E] hover:bg-red-50/50 hover:shadow-[0_0_15px_rgba(194,30,46,0.15)] transition-all duration-300">
+                                            View Record <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @* Institutional Footer *@
+            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0 relative z-10">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Cryptographic Audit Trail Verified
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

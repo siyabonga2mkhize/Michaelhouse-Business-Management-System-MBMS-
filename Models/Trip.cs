@@ -225,6 +225,36 @@ namespace Michaelhouse.Models
         public bool IsPresentAfter { get; set; }
         public bool? AlreadyPresentBefore { get; set; }  // from database
         public bool? AlreadyPresentAfter { get; set; }
+        // NEW: QR code images as data URLs
+        public string BeforeQR { get; set; }
+        public string AfterQR { get; set; }
+    }
+
+    public class StudentAttendanceToken
+    {
+        public int Id { get; set; }
+        public int StudentId { get; set; }
+        public int TripScheduleId { get; set; }
+        public string Token { get; set; }          // GUID string
+        public string Type { get; set; }           // "Before" or "After"
+        public bool IsUsed { get; set; }           // false initially
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ExpiryDate { get; set; }  // e.g. 7 days after generation
+
+        // Navigation properties
+        public virtual Student Student { get; set; }
+        public virtual TripSchedule TripSchedule { get; set; }
+    }
+
+
+    public class QRCodeViewModel
+    {
+        public string StudentName { get; set; }
+        public int StudentId { get; set; }
+        public string BeforeToken { get; set; }
+        public string AfterToken { get; set; }
+        public string BeforeQR { get; set; }
+        public string AfterQR { get; set; }
     }
 
 

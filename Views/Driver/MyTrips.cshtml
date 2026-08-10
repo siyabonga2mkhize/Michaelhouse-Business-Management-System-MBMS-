@@ -1,28 +1,29 @@
 ﻿@model List<Michaelhouse.Models.TripSchedule>
 @{
-    ViewBag.Title = "My Assigned Trips";
+    ViewBag.Title = "Assigned Excursions";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="driver-dashboard-header" style="margin-bottom:18px;">
-    <h2 class="mb-1"><i class="fa fa-road text-danger"></i> My Assigned Trips</h2>
-    <p class="text-muted small">Overview and manifests for your scheduled trips.</p>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <div class="dashboard-cards" style="display:flex; gap:12px; margin-top:12px;">
-        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
-            <div style="font-size:12px; color:#777;">Assigned Trips</div>
-            <div style="font-size:22px; font-weight:700; color:#c21e2e;">@ViewBag.ActiveTripsCount</div>
-            <div style="font-size:12px; color:#999;">Trips not yet completed</div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Personnel Portal</h5>
         </div>
-        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
-            <div style="font-size:12px; color:#777;">Completed Trips</div>
-            <div style="font-size:22px; font-weight:700; color:#2d862d;">@ViewBag.CompletedTripsCount</div>
-            <div style="font-size:12px; color:#999;">Trips marked completed</div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Assigned Excursions</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Driver Authorization ID: <span class="font-bold text-gray-800">@ViewBag.DriverId</span></p>
         </div>
-        <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
-            <div style="font-size:12px; color:#777;">Total Trips</div>
-            <div style="font-size:22px; font-weight:700; color:#333;">@ViewBag.TotalTripsCount</div>
-            <div style="font-size:12px; color:#999;">All assigned trips</div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "Driver")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Portal Home
+            </a>
         </div>
         <div class="card" style="padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); min-width:160px;">
             <div style="font-size:12px; color:#777;">Today</div>
@@ -32,110 +33,314 @@
     </div>
 </div>
 
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4">
+
+        @* --- ALERTS --- *@
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fa fa-check-circle"></i> @TempData["Success"]
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 mb-6 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
     </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fa fa-exclamation-circle"></i> @TempData["Error"]
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] mb-6 shadow-sm flex items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
     </div>
 }
 
+        @* --- HERO METRICS TILES --- *@
+        <div class="row g-4 mb-8">
+            <div class="col-xl-3 col-md-6">
+                <div class="bg-white border-t-4 border-[#C21E2E] p-6 shadow-sm relative overflow-hidden group h-full">
+                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-2">Pending Deployments</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-1">@ViewBag.ActiveTripsCount</h3>
+                    <p class="text-[10px] font-serif italic text-gray-400 mb-0">Awaiting completion</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="bg-white border-t-4 border-[#10b981] p-6 shadow-sm relative overflow-hidden group h-full">
+                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-green-600 mb-2">Completed Excursions</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-1">@ViewBag.CompletedTripsCount</h3>
+                    <p class="text-[10px] font-serif italic text-gray-400 mb-0">Successfully verified</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="bg-white border-t-4 border-gray-800 p-6 shadow-sm relative overflow-hidden group h-full">
+                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Total Assignments</p>
+                    <h3 class="text-4xl font-mono font-bold text-gray-900 mb-1">@ViewBag.TotalTripsCount</h3>
+                    <p class="text-[10px] font-serif italic text-gray-400 mb-0">Historical & active</p>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="bg-[#1a1a1a] border-t-4 border-blue-500 p-6 shadow-xl relative overflow-hidden group h-full">
+                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-blue-400 mb-2">Today's Schedule</p>
+                    <h3 class="text-4xl font-mono font-bold text-white mb-1">@ViewBag.TodayTripsCount</h3>
+                    <p class="text-[10px] font-serif italic text-gray-400 mb-0 text-gray-500">Immediate action required</p>
+                </div>
+            </div>
+        </div>
+
+        @* --- TRIP GRID --- *@
 @if (!Model.Any())
 {
-    <div class="alert alert-info">
-        <i class="fa fa-info-circle"></i> You have no active trips assigned to you at the moment.
+            <div class="bg-white border border-gray-200 p-12 text-center shadow-sm">
+                <i class="bi bi-calendar-check text-gray-200 text-6xl d-block mb-4"></i>
+                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Schedule Clear</h4>
+                <p class="text-[11px] font-mono text-gray-400 mt-2 mb-0">You currently have no active excursions assigned to your profile.</p>
     </div>
 }
 else
 {
-
-    <div class="row" style="display:flex; gap:18px; flex-wrap:wrap;">
+            <div class="row g-6">
         @foreach (var trip in Model)
         {
             var tripDate = trip.ScheduledDate;
             var isToday = tripDate.Date == DateTime.Today;
             var studentCount = trip.TripStudents?.Count ?? 0;
+                    var request = trip.TripRequest;
 
-            string statusClass = trip.Status == "Confirmed" ? "success"
-                               : trip.Status == "InProgress" ? "warning"
-                               : trip.Status == "Draft" ? "default"
-                               : "info";
+                    string cardBorder = isToday ? "border-[#C21E2E]" : "border-gray-200";
+                    string statusColor = trip.Status == "Confirmed" ? "#10b981" : trip.Status == "InProgress" ? "#f59e0b" : "#6b7280";
 
-            <div style="width:320px;">
-                <div class="trip-card" style="background:#fff; border-radius:10px; padding:14px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="col-xl-4 col-md-6">
+                        <div class="bg-white border @cardBorder shadow-sm relative overflow-hidden flex flex-col h-full transition-all hover:shadow-md group">
+
+                            @* DOSSIER HEADER *@
+                            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-start relative">
+                                @if (isToday)
+                                {
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-[#C21E2E]"></div>
+                                }
                         <div>
-                            <div style="font-size:14px; font-weight:700;">@(trip.TripRequest?.Title ?? "—")</div>
-                            <div style="font-size:12px; color:#777; margin-top:6px;">@(trip.TripRequest?.Description ?? "")</div>
+                                    <h4 class="font-serif font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-[#C21E2E] transition-colors">@(request?.Title ?? "Unknown Objective")</h4>
+                                    <p class="text-xs font-serif italic text-gray-500 line-clamp-1 m-0">@(request?.Description ?? "No briefing provided.")</p>
                         </div>
-                        <div style="text-align:right;">
-                            <span class="badge badge-pill" style="background:@(isToday ? "#c21e2e" : "#eee"); color:@(isToday ? "#fff" : "#333"); font-weight:700; padding:6px 8px;">@trip.Status</span>
+                                <div class="text-right flex-shrink-0 ml-4">
+                                    <span class="px-2 py-1 text-[8px] font-bold uppercase tracking-[1px] border bg-white" style="color: @statusColor; border-color: @statusColor;">
+                                        @trip.Status
+                                    </span>
                             @if (isToday)
-                            {<div style="font-size:11px; color:#c21e2e; margin-top:6px;">TODAY</div>}
+                                    {
+                                        <div class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] mt-2 animate-pulse"><i class="bi bi-exclamation-circle me-1"></i> Today</div>
+                                    }
                         </div>
                     </div>
 
-                    <hr style="margin:12px 0; border-color:#f0f0f0;" />
+                            @* DOSSIER BODY *@
+                            <div class="p-6 flex-grow">
+                                <div class="grid grid-cols-2 gap-y-4 gap-x-2">
+                                    <div class="col-span-2">
+                                        <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Destination Routing</p>
+                                        @if (request != null && !string.IsNullOrEmpty(request.Destination))
+                                        {
+                                            <a href="#" class="view-map-link inline-flex items-center gap-2 text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                                               data-lat="@(request.DestinationLat?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                               data-lng="@(request.DestinationLng?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                                               data-address="@request.Destination">
+                                                <i class="bi bi-geo-alt-fill"></i> View Map
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-[11px] text-gray-400 italic">No coordinates provided</span>
+                                        }
+                                    </div>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px; color:#444;">
-                        <div><strong>Date</strong><div style="color:#777;">@tripDate.ToString("dddd, dd MMM yyyy")</div></div>
-                        <div><strong>Vehicle</strong><div style="color:#777;">@(trip.Vehicle?.VehicleNumber ?? "Not assigned")</div></div>
+                                    <div>
+                                        <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Date</p>
+                                        <p class="text-xs font-mono font-bold text-gray-700 mb-0">@tripDate.ToString("dd MMM yyyy")</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Assigned Fleet</p>
+                                        <p class="text-xs font-mono font-bold text-gray-700 mb-0">@(trip.Vehicle?.VehicleNumber ?? "TBD")</p>
+                                    </div>
 
-                        <div><strong>Departure</strong><div style="color:#777;">@(trip.TripRequest != null ? trip.TripRequest.DepartureTime.ToString("HH:mm") : "—")</div></div>
-                        <div><strong>Return</strong><div style="color:#777;">@(trip.TripRequest != null ? trip.TripRequest.ReturnTime.ToString("HH:mm") : "—")</div></div>
+                                    <div>
+                                        <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Departure</p>
+                                        <p class="text-xs font-mono font-bold text-[#C21E2E] mb-0">@(request != null ? request.DepartureTime.ToString("HH:mm") : "—")</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Return</p>
+                                        <p class="text-xs font-mono font-bold text-[#C21E2E] mb-0">@(request != null ? request.ReturnTime.ToString("HH:mm") : "—")</p>
+                                    </div>
 
-                        <div style="grid-column:1 / -1;"><strong>Destination</strong><div style="color:#777;">@(trip.TripRequest?.Destination ?? "N/A")</div></div>
-
-                        <div><strong>Students</strong><div style="color:#777;">@studentCount</div></div>
-                        <div><strong>Seats</strong><div style="color:#777;">@((trip.Vehicle != null) ? trip.Vehicle.Capacity.ToString() : "—")</div></div>
+                                    <div class="col-span-2 pt-2 border-t border-gray-100 mt-2 flex justify-between items-center">
+                                        <div>
+                                            <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Manifest: </span>
+                                            <span class="font-mono font-bold text-gray-800 text-sm">@studentCount</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Cap: </span>
+                                            <span class="font-mono font-bold text-gray-800 text-sm">@((trip.Vehicle != null) ? trip.Vehicle.Capacity.ToString() : "—")</span>
+                                        </div>
+                                    </div>
+                                </div>
                     </div>
 
-                    <div style="margin-top:12px; display:flex; gap:8px;">
-                        <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })" class="btn btn-sm btn-primary" style="flex:1;" @(isToday ? "" : "onclick=\"return false;\"")>
-                            <i class="fa fa-list-ul"></i> View Manifest
+                            @* DOSSIER FOOTER ACTION *@
+                            <div class="bg-gray-50/80 border-t border-gray-100 p-4 mt-auto">
+                                @if (isToday)
+                                {
+                                    <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })" class="block w-full text-center bg-black text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                        <i class="bi bi-upc-scan me-2"></i> Access Registry
                         </a>
-                        <a href="@Url.Action("TripManifest", "Driver", new { scheduleId = trip.Id })" class="btn btn-sm btn-outline-primary" style="flex:1;" @(isToday ? "" : "onclick=\"return false;\"")>
-                            Mark Attendance
-                        </a>
+                                }
+                                else
+                                {
+                                    <button disabled class="w-full text-center bg-white border border-gray-200 text-gray-400 px-4 py-3 text-[10px] font-bold uppercase tracking-[3px] cursor-not-allowed opacity-60">
+                                        <i class="bi bi-lock me-2"></i> Locked (Not Today)
+                                    </button>
+                                }
                     </div>
                 </div>
             </div>
         }
     </div>
     }
+    </div>
+</div>
+
+@* --- MAP MODAL (inline) --- *@
+<div class="modal fade" id="tripMapModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Destination Overview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="mapModal" style="height: 400px; width: 100%;"></div>
+                <div class="p-4 bg-gray-50 border-t border-gray-100">
+                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Address</p>
+                    <p class="text-sm font-mono text-gray-700 mb-0" id="modalAddress"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- DRIVER DETAILS MODAL --- *@
+<div class="modal fade" id="driverDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Personnel File</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="driverDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- VEHICLE DETAILS MODAL --- *@
+<div class="modal fade" id="vehicleDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-0 shadow-2xl">
+            <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Transport Unit Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-6 bg-white" id="vehicleDetailsContent">
+                <div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <style>
-        .trip-card {
-            border-radius: 6px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-            transition: box-shadow 0.2s;
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
         }
 
-            .trip-card:hover {
-                box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
             }
 
-            .trip-card .panel-heading {
-                border-radius: 6px 6px 0 0;
-                padding: 12px 16px;
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
             }
 
-            .trip-card .panel-footer {
-                background: #f9f9f9;
-                border-radius: 0 0 6px 6px;
-                padding: 10px 16px;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
             }
 
-        .page-header {
-            border-bottom: 2px solid #e2e2e2;
-            margin-bottom: 24px;
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
         }
     </style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let currentMap = null;
+
+        // Map link click
+        $('.view-map-link').click(function(e) {
+            e.preventDefault();
+            var lat = parseFloat($(this).data('lat'));
+            var lng = parseFloat($(this).data('lng'));
+            var address = $(this).data('address');
+
+            $('#modalAddress').text(address);
+            $('#tripMapModal').modal('show');
+
+            $('#tripMapModal').on('shown.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    currentMap = L.map('mapModal').setView([lat, lng], 14);
+                } else {
+                    currentMap = L.map('mapModal').setView([-29.85, 31.01], 12);
+                }
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                }).addTo(currentMap);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    L.marker([lat, lng]).addTo(currentMap).bindPopup(address).openPopup();
+                } else {
+                    L.marker([-29.85, 31.01]).addTo(currentMap).bindPopup(address).openPopup();
+                }
+            });
+            $('#tripMapModal').on('hidden.bs.modal', function() {
+                if (currentMap) currentMap.remove();
+                currentMap = null;
+            });
+        });
+
+        // Driver details modal (optional – requires Transport/DriverDetails action)
+        $('.view-driver-details').click(function(e) {
+            e.preventDefault();
+            var driverId = $(this).data('driverid');
+            $('#driverDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+            $('#driverDetailsModal').modal('show');
+            $.get('@Url.Action("DriverDetails", "Transport")?id=' + driverId, function(data) {
+                $('#driverDetailsContent').html(data);
+            });
+        });
+
+        // Vehicle details modal (optional – requires Transport/VehicleDetails action)
+        $('.view-vehicle-details').click(function(e) {
+            e.preventDefault();
+            var vehicleId = $(this).data('vehicleid');
+            $('#vehicleDetailsContent').html('<div class="text-center py-10 text-gray-400 font-serif italic"><i class="bi bi-arrow-repeat animate-spin me-2"></i> Querying Registry...</div>');
+            $('#vehicleDetailsModal').modal('show');
+            $.get('@Url.Action("VehicleDetails", "Transport")?id=' + vehicleId, function(data) {
+                $('#vehicleDetailsContent').html(data);
+            });
+        });
+    </script>
+}

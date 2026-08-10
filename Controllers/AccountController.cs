@@ -6,10 +6,11 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace Michaelhouse.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         // ─── Login ────────────────────────────────────────────────────────────────
 
@@ -54,10 +55,35 @@ namespace Michaelhouse.Controllers
                     }
                     catch { }
                 }
+                else if ((role == "HouseMaster" || role == "Housemaster") && Session["HouseMasterId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+                            if (user != null)
+                            {
+                                var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                                    h.ContactEmail == user.Email || h.FullName == user.Name);
+                                if (houseMaster != null)
+                                {
+                                    Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+
 
                 return RedirectByRole(role);
             }
-            return View();
+
+            // Pass an empty model to the view
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
@@ -82,6 +108,7 @@ namespace Michaelhouse.Controllers
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
+                FormsAuthentication.SetAuthCookie(user.Email, false);
 
                 // Store role-specific identifiers in session for easy access
                 if (user.Role == "Parent")
@@ -146,6 +173,42 @@ namespace Michaelhouse.Controllers
                     // IMPORTANT: store correct key (Id, not DriverId)
                     Session["DriverId"] = driver.Id;
                 }
+                else if (user.Role == "HouseMaster" || user.Role == "Housemaster")
+                {
+                    var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                        h.ContactEmail == user.Email || h.FullName == user.Name);
+                    if (houseMaster != null)
+                    {
+                        Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                    }
+                }
+                // Inside [HttpPost] Login, right before "return RedirectByRole(user.Role);"
+                if (user.Role == "Student")
+                {
+                    {
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        if (activeAlert != null)
+                        {
+                            var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                            if (student != null)
+                            {
+                                // CRITICAL: Check if they confirmed for THIS specific alert ID
+                                bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                                if (!alreadyConfirmed)
+                                {
+                                    // Immediately force the redirect and stop the login flow
+                                    return RedirectToAction("ConfirmSafety", "Emergency");
+                                }
+                            }
+                        }
+                    }
+                }
 
                 return RedirectByRole(user.Role);
             }
@@ -199,16 +262,18 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Logout()
         {
+            FormsAuthentication.SignOut();
+
             Session.Clear();
             Session.Abandon();
+
             TempData["Success"] = "You have been logged out.";
             return RedirectToAction("Login");
         }
-
         // ─── Edit Profile ─────────────────────────────────────────────────────────
 
         [RequireLogin]
-        public ActionResult Profile()
+        public new ActionResult Profile()
         {
             using (var db = new DBContextClass())
             {
@@ -240,7 +305,7 @@ namespace Michaelhouse.Controllers
         [RequireLogin]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Profile(ParentProfileViewModel vm)
+        public new ActionResult Profile(ParentProfileViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
 
@@ -309,6 +374,54 @@ namespace Michaelhouse.Controllers
                 case "Parent":
                     return RedirectToAction("Dashboard", "Parents");
                 case "Student":
+                    using (var db = new DBContextClass())
+                    {
+                        int userId = (int)Session["UserId"];
+
+                        // 1. FIND OR CREATE THE STUDENT RECORD (Guaranteed success)
+                        var student = db.Students.FirstOrDefault(s => s.UserId == userId);
+                        if (student == null)
+                        {
+                            var user = db.Users.Find(userId);
+                            var names = (user?.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var first = names.Length > 0 ? names[0] : user?.Name ?? "Student";
+                            var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+
+                            student = new Student
+                            {
+                                FirstName = first,
+                                LastName = last,
+                                UserId = userId,
+                                ParentId = 2, // Make sure this ID exists in your Parents table!
+                                IsActive = true,
+                                IsBoarding = true,
+                                GradeLevel = 8
+                            };
+                            db.Students.Add(student);
+                            db.SaveChanges();
+
+                            Session["StudentId"] = student.StudentId;
+                        }
+
+                        // 2. Check for an Active Emergency Alert
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        // 3. If there is an alert, check if they already confirmed
+                        if (activeAlert != null)
+                        {
+                            bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                            // 4. If NOT confirmed, IMMEDIATELY redirect them to the red screen
+                            if (!alreadyConfirmed)
+                            {
+                                return RedirectToAction("ConfirmSafety", "Emergency");
+                            }
+                        }
+                    }
                     return RedirectToAction("Dashboard", "Students");
                 case "Teacher":
                     return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)
@@ -316,6 +429,9 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
                     return RedirectToAction("Index", "Driver");
+                case "HouseMaster":
+                case "Housemaster":
+                    return RedirectToAction("Dashboard", "HouseMaster");
                 default:
                     return RedirectToAction("Index", "Home");
                 case "Transport Manager":
@@ -363,6 +479,54 @@ namespace Michaelhouse.Controllers
             {
                 return Content("Error reading session: " + ex.Message);
             }
+        }
+
+        // navigate to /Account/SeedTransportManager to seed 
+        public ActionResult SeedTransportManager()
+        {
+            using (var db = new DBContextClass())
+            {
+                // Check if a Transport Manager already exists
+                if (db.Users.Any(u => u.Role == "TransportManager"))
+                {
+                    TempData["Info"] = "Transport Manager account already exists.";
+                    return RedirectToAction("Login");
+                }
+
+                // Password "Transport@123" hashed (use your existing HashPassword method)
+                string hashedPassword = AccountController.HashPassword("Transport@123");
+
+                // Create the Transport Manager
+                var transportManager = new AppUser
+                {
+                    Name = "Transport Manager",
+                    Email = "transport@michaelhouse.co.za",
+                    PasswordHash = hashedPassword,
+                    Role = "TransportManager"   // exact spelling as used in your app
+                };
+
+                db.Users.Add(transportManager);
+                db.SaveChanges();
+
+                // Optional: If you have a Drivers table and want to create a linked record
+                // int newUserId = transportManager.UserId;
+                // db.Drivers.Add(new Driver
+                // {
+                //     UserId = newUserId,
+                //     FullName = "Transport Manager",
+                //     Email = "transport@michaelhouse.co.za",
+                //     IsActive = true,
+                //     DateCreated = DateTime.Now,
+                //     HasPDP = true,
+                //     LicenceNumber = "MGR000"
+                // });
+                // db.SaveChanges();
+
+                TempData["Success"] = "Transport Manager created. Email: transport@michaelhouse.co.za | Password: Transport@123";
+                return RedirectToAction("Login");
+            }
+
+            // To seed everything in one go, navigate to import_all.sql and execute the SQL script in your database.
         }
     }
 }

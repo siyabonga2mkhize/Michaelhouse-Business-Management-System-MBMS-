@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <PropertyGroup>
     <SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
   </PropertyGroup>
   <PropertyGroup>
     <SSDTPath Condition="'$(SSDTPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB\DAC</SSDTPath>
   </PropertyGroup>
-  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -59,8 +58,8 @@
     <Reference Include="Azure.AI.FormRecognizer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>packages\Azure.AI.FormRecognizer.4.1.0\lib\netstandard2.0\Azure.AI.FormRecognizer.dll</HintPath>
     </Reference>
-    <Reference Include="Azure.Core, Version=1.52.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <HintPath>packages\Azure.Core.1.52.0\lib\net472\Azure.Core.dll</HintPath>
+    <Reference Include="Azure.Core, Version=1.50.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>packages\Azure.Core.1.50.0\lib\net472\Azure.Core.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
@@ -77,27 +76,24 @@
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.10.0.3\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.FileProviders.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.FileProviders.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Hosting.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Hosting.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Extensions.Logging.Abstractions.10.0.3\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=9.0.0.18, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Extensions.Logging.Abstractions.9.0.18\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Options, Version=10.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Options.10.0.3\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
@@ -111,33 +107,53 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Stripe.net, Version=51.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Stripe.net.51.0.0\lib\net462\Stripe.net.dll</HintPath>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
+    <Reference Include="Stripe.net, Version=52.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Stripe.net.52.2.0\lib\net462\Stripe.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="System.ClientModel, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <HintPath>packages\System.ClientModel.1.10.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
+    <Reference Include="System.ClientModel, Version=1.8.1.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>packages\System.ClientModel.1.8.1\lib\netstandard2.0\System.ClientModel.dll</HintPath>
     </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Diagnostics.DiagnosticSource.10.0.3\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.IO.Pipelines, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.Pipelines.10.0.3\lib\net462\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
-    <Reference Include="System.Memory.Data, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.Memory.Data.10.0.3\lib\net462\System.Memory.Data.dll</HintPath>
+    <Reference Include="System.Memory.Data, Version=9.0.0.18, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.Data.9.0.18\lib\net462\System.Memory.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
@@ -145,9 +161,30 @@
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.3\lib\net462\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
@@ -156,6 +193,9 @@
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -193,23 +233,37 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
+    <Compile Include="Controllers\EmergencyController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\HouseMasterController.cs" />
+    <Compile Include="Controllers\Leaverequestcontroller.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
+    <Compile Include="Controllers\ResidenceAllocationController.cs" />
+    <Compile Include="Controllers\ResidenceController.cs" />
+    <Compile Include="Controllers\BedController.cs" />
+    <Compile Include="Controllers\QRScanRecordController.cs" />
+    <Compile Include="Controllers\ResidenceAssignmentController.cs" />
+    <Compile Include="Controllers\ResidenceMovementController.cs" />
+    <Compile Include="Controllers\RoomController.cs" />
+    <Compile Include="Controllers\StudentQRCodeController.cs" />
+    <Compile Include="Controllers\StudentProfileController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TeacherAttendanceController.cs" />
     <Compile Include="Controllers\TeacherDashboardController.cs" />
@@ -218,12 +272,24 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605121148442_initialcreate.cs" />
-    <Compile Include="Migrations\202605121148442_initialcreate.Designer.cs">
-      <DependentUpon>202605121148442_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202608091757061_initialcreate.cs" />
+    <Compile Include="Migrations\202608091757061_initialcreate.Designer.cs">
+      <DependentUpon>202608091757061_initialcreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605120843363_AddNewTables.cs" />
+    <Compile Include="Migrations\202605120843363_AddNewTables.Designer.cs">
+      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202605121021512_AddInterviewDetails.cs" />
+    <Compile Include="Migrations\202605121021512_AddInterviewDetails.Designer.cs">
+      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\AIAlert.cs" />
+    <Compile Include="Models\AIAllocationHistory.cs" />
+    <Compile Include="Models\AIRecommendationOverride.cs" />
+    <Compile Include="Models\AIResidenceRecommendation.cs" />
+    <Compile Include="Models\AIWaitingList.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
@@ -231,15 +297,20 @@
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Driver.cs" />
+    <Compile Include="Models\EmergencyAlert.cs" />
+    <Compile Include="Models\EmergencyService.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
+    <Compile Include="Models\HouseMaster.cs" />
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Inventorymodels.cs" />
     <Compile Include="Models\InventoryService.cs" />
     <Compile Include="Models\Invoice.cs" />
+    <Compile Include="Models\Leaverequest.cs" />
     <Compile Include="Models\MaintananceRequest.cs" />
     <Compile Include="Models\MarkAttendanceViewModel.cs" />
     <Compile Include="Controllers\AccountController.cs" />
@@ -267,7 +338,6 @@
     <Compile Include="Models\AppUser.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Assessment.cs" />
-    <Compile Include="Models\DBContextClass.cs" />
     <Compile Include="Models\Document.cs" />
     <Compile Include="Models\EmailService.cs" />
     <Compile Include="Models\ICartService.cs" />
@@ -280,9 +350,13 @@
     <Compile Include="Models\ParentAttendanceViewModel.cs" />
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
+    <Compile Include="Models\QRScanRecord.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
+    <Compile Include="Models\ResidenceAllocation.cs" />
+    <Compile Include="Models\ResidenceMovement.cs" />
+    <Compile Include="Models\RoomCompatibilityResult.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
@@ -290,6 +364,10 @@
     <Compile Include="Models\StudentAccountService.cs" />
     <Compile Include="Models\StudentAttendanceSummaryViewModel.cs" />
     <Compile Include="Models\StudentMark.cs" />
+    <Compile Include="Models\StudentProfile.cs" />
+    <Compile Include="Models\StudentProfileWizardViewModels.cs" />
+    <Compile Include="Models\StudentQRCode.cs" />
+    <Compile Include="Models\StudentSafetyConfirmation.cs" />
     <Compile Include="Models\StudentSubject.cs" />
     <Compile Include="Models\Subject.cs" />
     <Compile Include="Models\Teacher.cs" />
@@ -302,14 +380,34 @@
     <Compile Include="Models\Timetablemodels.cs" />
     <Compile Include="Models\Transport.cs" />
     <Compile Include="Models\Trip.cs" />
+    <Compile Include="Models\TripStudentManifest.cs" />
+    <Compile Include="Models\TripVehicle.cs" />
     <Compile Include="Models\Vehicle.cs" />
     <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
+    <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
+    <Compile Include="Models\ViewModels\CreateTripVM.cs" />
+    <Compile Include="Models\ViewModels\DriverTripVM.cs" />
+    <Compile Include="Models\ViewModels\TripIndexVM.cs" />
     <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\TripController.cs" />
     <Compile Include="Controllers\VehicleIssuesController.cs" />
     <Compile Include="Controllers\VehiclesController.cs" />
+    <Compile Include="Services\AIQRCodeVerificationService.cs" />
+    <Compile Include="Services\AIResidenceAllocationService.cs" />
+    <Compile Include="Services\AIResidencePredictionService.cs" />
+    <Compile Include="Services\AllocationRuleService.cs" />
+    <Compile Include="Services\BoardingAccessService.cs" />
+    <Compile Include="Services\BoardingProfileService.cs" />
+    <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\ExplanationGenerator.cs" />
+    <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\ResidenceAllocationEngine.cs" />
+    <Compile Include="Services\ResidenceAvailabilityService.cs" />
+    <Compile Include="Services\StudentNumberService.cs" />
+    <Compile Include="Services\StudentRoomCompatibilityService.cs" />
+    <Compile Include="StudentQRCodeService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\academic.css" />
@@ -336,15 +434,32 @@
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Misc\Import_all.sql" />
+    <Content Include="Content\bootstrap.rtl.min.css.map" />
+    <Content Include="Content\bootstrap.rtl.css.map" />
+    <Content Include="Content\bootstrap.min.css.map" />
+    <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
+    <Content Include="Content\bootstrap-utilities.min.css.map" />
+    <Content Include="Content\bootstrap-utilities.css.map" />
+    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
+    <Content Include="Content\bootstrap-reboot.min.css.map" />
+    <Content Include="Content\bootstrap-reboot.css.map" />
+    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
+    <Content Include="Content\bootstrap-grid.rtl.css.map" />
+    <Content Include="Content\bootstrap-grid.min.css.map" />
+    <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Misc\Driver.pdf" />
-    <Content Include="Misc\ID.pdf" />
-    <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
+    <Content Include="Scripts\html5-qrcode.min.js" />
+    <Content Include="Misc\SQLQuery.sql" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -356,17 +471,105 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Misc\SQLQuery.sql" />
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
     <Content Include="Views\Driver\TripManifest.cshtml" />
+    <Content Include="Views\TransportManager\Details.cshtml" />
+    <Content Include="Views\TransportManager\Index.cshtml" />
+    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <Content Include="Views\StudentQRCode\Details.cshtml" />
+    <Content Include="Views\StudentQRCode\_QRCodeCard.cshtml" />
+    <Content Include="Views\StudentProfile\Basic.cshtml" />
+    <Content Include="Views\StudentProfile\Academic.cshtml" />
+    <Content Include="Views\StudentProfile\Activities.cshtml" />
+    <Content Include="Views\StudentProfile\Medical.cshtml" />
+    <Content Include="Views\StudentProfile\Personality.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Dashboard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\AIDashboard.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Recommend.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Index.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Details.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Create.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Edit.cshtml" />
+    <Content Include="Views\ResidenceAllocation\Archive.cshtml" />
+    <Content Include="Views\Residence\Index.cshtml" />
+    <Content Include="Views\Residence\Details.cshtml" />
+    <Content Include="Views\Residence\Create.cshtml" />
+    <Content Include="Views\Residence\Edit.cshtml" />
+    <Content Include="Views\Residence\Archive.cshtml" />
+    <Content Include="Views\Room\Index.cshtml" />
+    <Content Include="Views\Room\Details.cshtml" />
+    <Content Include="Views\Room\Create.cshtml" />
+    <Content Include="Views\Room\Edit.cshtml" />
+    <Content Include="Views\Room\Archive.cshtml" />
+    <Content Include="Views\Bed\Index.cshtml" />
+    <Content Include="Views\Bed\Details.cshtml" />
+    <Content Include="Views\Bed\Create.cshtml" />
+    <Content Include="Views\Bed\Edit.cshtml" />
+    <Content Include="Views\Bed\Archive.cshtml" />
+    <Content Include="Views\HouseMaster\Dashboard.cshtml" />
+    <Content Include="Views\HouseMaster\Index.cshtml" />
+    <Content Include="Views\HouseMaster\Details.cshtml" />
+    <Content Include="Views\HouseMaster\Create.cshtml" />
+    <Content Include="Views\HouseMaster\Edit.cshtml" />
+    <Content Include="Views\HouseMaster\Archive.cshtml" />
+    <Content Include="Views\Shared\_ResidenceActions.cshtml" />
+    <Content Include="Views\HouseMaster\ResidenceSummary.cshtml" />
+    <Content Include="Views\HouseMaster\CurrentStudents.cshtml" />
+    <Content Include="Views\HouseMaster\StudentsOutsideResidence.cshtml" />
+    <Content Include="Views\HouseMaster\RecentMovements.cshtml" />
+    <Content Include="Views\HouseMaster\EmergencyRollCall.cshtml" />
+    <Content Include="Views\HouseMaster\VisitorRegister.cshtml" />
+    <Content Include="Views\HouseMaster\Notifications.cshtml" />
+    <Content Include="Views\HouseMaster\ScanQRCode.cshtml" />
+    <Content Include="Views\HouseMaster\InvalidQRCode.cshtml" />
+    <Content Include="Views\ResidenceAssignment\Index.cshtml" />
+    <Content Include="Views\ResidenceAssignment\Details.cshtml" />
+    <Content Include="Views\ResidenceAssignment\Create.cshtml" />
+    <Content Include="Views\ResidenceAssignment\Edit.cshtml" />
+    <Content Include="Views\ResidenceAssignment\Archive.cshtml" />
+    <Content Include="Views\ResidenceMovement\Index.cshtml" />
+    <Content Include="Views\ResidenceMovement\Details.cshtml" />
+    <Content Include="Views\ResidenceMovement\Create.cshtml" />
+    <Content Include="Views\ResidenceMovement\Edit.cshtml" />
+    <Content Include="Views\ResidenceMovement\Archive.cshtml" />
+    <Content Include="Views\QRScanRecord\Index.cshtml" />
+    <Content Include="Views\QRScanRecord\Details.cshtml" />
+    <Content Include="Views\QRScanRecord\Archive.cshtml" />
+    <Content Include="Views\StudentQRCode\Index.cshtml" />
+    <Content Include="Views\LeaveRequest\Create.cshtml" />
+    <Content Include="Views\LeaveRequest\MyRequests.cshtml" />
+    <Content Include="Views\LeaveRequest\Details.cshtml" />
+    <Content Include="Views\LeaveRequest\ParentPending.cshtml" />
+    <Content Include="Views\LeaveRequest\HouseMasterPending.cshtml" />
+    <Content Include="Views\Emergency\AccountabilityDashboard.cshtml" />
+    <Content Include="Views\Emergency\AlertStatus.cshtml" />
+    <Content Include="Views\Emergency\ConfirmSafety.cshtml" />
+    <Content Include="Views\Emergency\NoActiveAlert.cshtml" />
+    <Content Include="Views\Emergency\StudentConfirmSafety.cshtml" />
+    <Content Include="Views\Emergency\TriggerAlert.cshtml" />
+    <Content Include="Views\Emergency\ViewAlertStatus.cshtml" />
+    <Content Include="Views\Shared\_EmergencyLayout.cshtml" />
     <WebConfigFile Include="Web.config" />
+    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
+    <Content Include="Views\Trip\AttendanceError.cshtml" />
+    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
+    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
+    <Content Include="Views\Trip\TripQRCodes.cshtml" />
+    <Content Include="Views\Students\ScanQRCode.cshtml" />
+    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
+    <Content Include="Views\Shared\SingleQRCode.cshtml" />
+    <WebConfigFile Include="Web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </WebConfigFile>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
@@ -522,25 +725,9 @@
     <Content Include="Views\Enrollments\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="Data\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Content\bootstrap.rtl.min.css.map" />
-    <Content Include="Content\bootstrap.rtl.css.map" />
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.rtl.css.map" />
-    <Content Include="Content\bootstrap-utilities.min.css.map" />
-    <Content Include="Content\bootstrap-utilities.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.rtl.css.map" />
-    <Content Include="Content\bootstrap-reboot.min.css.map" />
-    <Content Include="Content\bootstrap-reboot.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
-    <Content Include="Content\bootstrap-grid.rtl.css.map" />
-    <Content Include="Content\bootstrap-grid.min.css.map" />
+    <Folder Include="Views\Base\" />
+    <Folder Include="Views\Leaverequestcontroller\" />
   </ItemGroup>
   <ItemGroup Condition="$(VisualStudioVersion) == '17.0'">
     <Reference Include="Microsoft.Data.Tools.Schema.Sql, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -549,16 +736,22 @@
     </Reference>
     <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTesting, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <EmbeddedResource Include="Migrations\202608091757061_initialcreate.resx">
+      <DependentUpon>202608091757061_initialcreate.cs</DependentUpon>
     <Reference Include="Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(SSDTUnitTestPath)\Microsoft.Data.Tools.Schema.Sql.UnitTestingAdapter.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605121148442_initialcreate.resx">
-      <DependentUpon>202605121148442_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202605120841037_InitialBaseline.resx">
+      <DependentUpon>202605120841037_InitialBaseline.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605120843363_AddNewTables.resx">
+      <DependentUpon>202605120843363_AddNewTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202605121021512_AddInterviewDetails.resx">
+      <DependentUpon>202605121021512_AddInterviewDetails.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
@@ -589,20 +782,19 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
+  </PropertyGroup>
+  <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
-    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets'))" />
+    <Error Condition="!Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets'))" />
   </Target>
   <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
-  <Import Project="packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
-  <PropertyGroup>
-    <SsdtUnitTestVersion>3.1</SsdtUnitTestVersion>
-  </PropertyGroup>
-  <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
+  <Import Project="packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" />
 </Project>

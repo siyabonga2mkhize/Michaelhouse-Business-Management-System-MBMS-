@@ -1,0 +1,50 @@
+﻿@{
+    ViewBag.Title = "Trip QR Codes";
+    var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
+    string beforeQR = ViewBag.BeforeQR;
+    string afterQR = ViewBag.AfterQR;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Codes – @schedule.TripRequest.Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; }
+        .qr-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 30px; }
+        .qr-card { border: 1px solid #ddd; border-radius: 12px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .qr-card img { width: 250px; height: 250px; }
+        .label { font-size: 20px; font-weight: bold; margin-top: 15px; }
+        .sub { color: #555; margin-top: 5px; }
+        media print {
+            .no-print { display: none; }
+            .qr-card { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()">Print QR Codes</button>
+        <a href="@Url.Action("Manifest", "Trip", new { scheduleId = schedule.Id })">← Back to Manifest</a>
+    </div>
+
+    <h2>@schedule.TripRequest.Title</h2>
+    <p>Scheduled: @schedule.ScheduledDate.ToString("dddd, MMMM dd, yyyy")</p>
+
+    <div class="qr-container">
+        <div class="qr-card">
+            <img src="@beforeQR" alt="Departure QR Code" />
+            <div class="label">🚌 DEPARTURE</div>
+            <div class="sub">Scan to mark your departure</div>
+        </div>
+        <div class="qr-card">
+            <img src="@afterQR" alt="Return QR Code" />
+            <div class="label">🏠 RETURN</div>
+            <div class="sub">Scan after the trip to mark your return</div>
+        </div>
+    </div>
+    <div class="no-print" style="margin-top: 30px; color: #888;">
+        <p>👉 Students must be logged into their school account before scanning.</p>
+    </div>
+</body>
+</html>

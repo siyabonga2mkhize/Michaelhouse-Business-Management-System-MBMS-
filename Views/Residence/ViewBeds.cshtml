@@ -1,0 +1,19 @@
+@model IEnumerable<Michaelhouse.Models.Bed>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Room Beds";
+}
+
+<section class="p-8 max-w-5xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Beds - Room @ViewBag.Room</h1>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        @foreach (var bed in Model)
+        {
+            var status = !string.IsNullOrWhiteSpace(bed.Status) ? bed.Status : (bed.IsOccupied ? "Occupied" : "Available");
+            <div class="bg-white p-4 rounded shadow border">
+                <div class="font-semibold">Bed @bed.BedNumber</div>
+                <div class="text-sm text-gray-500">@status</div>
+            </div>
+        }
+    </div>
+</section>

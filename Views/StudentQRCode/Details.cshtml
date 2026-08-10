@@ -1,0 +1,62 @@
+﻿@model Michaelhouse.Models.StudentQRCode
+@{
+    ViewBag.Title = "Student QR Identity";
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+}
+
+<div class="container mt-4">
+
+    <h2>My QR Identity</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card p-4" style="max-width:420px;border:2px solid #b00;border-radius:10px;">
+
+        <div class="text-center" style="letter-spacing:2px;">
+            <h4 style="font-family:'Playfair Display',serif;">MICHAELHOUSE</h4>
+            <h6 style="color:#b00;">STUDENT IDENTITY</h6>
+        </div>
+
+        <hr />
+
+        <div class="text-center mb-3">
+            <img src="@Url.Action("MyQRCodeImage", "Students")"
+                 alt="Student QR Code"
+                 style="width:200px;height:200px;" />
+        </div>
+
+        <p><strong>Name:</strong> @student.Name</p>
+        <p><strong>Student Number:</strong> @student.StudentNumber</p>
+        <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-danger"
+               href="@Url.Action("DownloadMyQRCode", "Students")">
+                Download
+            </a>
+
+
+
+            @if (User.IsInRole("Admin"))
+            {
+                using (Html.BeginForm("Regenerate", "StudentQRCode", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("studentId", student.StudentId)
+                    <button type="submit" class="btn btn-outline-secondary"
+                            onclick="return confirm('This will invalidate the current QR code. Continue?');">
+                        Regenerate
+                    </button>
+
+                }
+                <a class="btn btn-danger"
+                   href="@Url.Action("DownloadMyQRCode", "Students")">
+                    Download
+                </a>
+            }
+        </div>
+
+    </div>
+
+</div>

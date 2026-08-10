@@ -108,6 +108,30 @@ namespace Michaelhouse.Filters
             }
         }
     }
+
+    /// <summary>
+    /// Allows only Admins and House Masters.
+    /// </summary>
+    public class AdminOrHouseMasterOnlyAttribute : ActionFilterAttribute
+    {
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var session = filterContext.HttpContext.Session;
+
+            if (session["UserId"] == null)
+            {
+                filterContext.Result = new RedirectResult("~/Account/Login");
+                return;
+            }
+
+            var role = session["UserRole"]?.ToString();
+            if (role != "Admin" && role != "HouseMaster" && role != "Housemaster")
+            {
+                filterContext.Result = new HttpUnauthorizedResult();
+            }
+        }
+    }
+
     /// <summary>
     /// Allows only Transport Managers and Admins. Redirects to login if not authenticated,
     /// or returns 403 if wrong role.

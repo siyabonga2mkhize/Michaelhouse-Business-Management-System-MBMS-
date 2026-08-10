@@ -1,0 +1,28 @@
+@model Michaelhouse.Models.StudentProfilePersonalityViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Student Profile - Personality Assessment";
+}
+
+<section class="p-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-2">Student Profile</h1>
+    <p class="text-sm text-gray-500 mb-6">Step 5 of 5 - Personality Assessment for @Model.StudentName</p>
+
+    <div class="bg-white rounded shadow p-6">
+        @using (Html.BeginForm("Personality", "StudentProfile", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.AppId)
+            @Html.HiddenFor(m => m.StudentId)
+            <div class="space-y-5">
+                <div><div class="font-semibold mb-2">I prefer</div><label class="mr-6">@Html.RadioButtonFor(m => m.EnvironmentPreference, "Quiet") Quiet environments</label><label>@Html.RadioButtonFor(m => m.EnvironmentPreference, "Busy") Busy environments</label></div>
+                <div><div class="font-semibold mb-2">I usually</div><label class="mr-6">@Html.RadioButtonFor(m => m.RoutinePreference, "WakeEarly") Wake early</label><label>@Html.RadioButtonFor(m => m.RoutinePreference, "SleepLate") Sleep late</label></div>
+                <div><div class="font-semibold mb-2">I enjoy</div><label class="mr-6">@Html.RadioButtonFor(m => m.ActivityPreference, "Team") Team activities</label><label>@Html.RadioButtonFor(m => m.ActivityPreference, "Independent") Independent activities</label></div>
+                <div><div class="font-semibold mb-2">I study best</div><label class="mr-6">@Html.RadioButtonFor(m => m.StudyPreference, "Alone") Alone</label><label class="mr-6">@Html.RadioButtonFor(m => m.StudyPreference, "SmallGroup") Small group</label><label>@Html.RadioButtonFor(m => m.StudyPreference, "LargeGroup") Large group</label></div>
+                <div><div class="font-semibold mb-2">I describe myself as</div><label class="mr-6">@Html.RadioButtonFor(m => m.SocialPreference, "Introverted") Introverted</label><label class="mr-6">@Html.RadioButtonFor(m => m.SocialPreference, "Balanced") Balanced</label><label>@Html.RadioButtonFor(m => m.SocialPreference, "Extroverted") Extroverted</label></div>
+            </div>
+            @Html.ValidationSummary(false, "", new { @class = "text-sm text-red-600 mt-4" })
+            <div class="flex justify-between mt-6"><a href="@Url.Action("Medical", new { appId = Model.AppId })" class="px-5 py-2 border rounded">Back</a><button type="submit" class="px-5 py-2 bg-[#C21E2E] text-white rounded">Complete Profile</button></div>
+        }
+    </div>
+</section>

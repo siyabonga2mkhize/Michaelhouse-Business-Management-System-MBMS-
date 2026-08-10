@@ -1,0 +1,15 @@
+@model Michaelhouse.Models.ResidenceAssignment
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Archive Assignment";
+}
+<div class="container py-4">
+    <h2>Archive Assignment</h2>
+    <div class="alert alert-warning">Archive assignment for @Model.Student.Name?</div>
+    @using (Html.BeginForm("Archive", "ResidenceAssignment", FormMethod.Post)) {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.ResidenceAssignmentId" />
+        <button class="btn btn-danger" type="submit">Archive</button>
+        <a class="btn btn-default" href="@Url.Action("Details", new { id = Model.ResidenceAssignmentId })">Cancel</a>
+    }
+</div>

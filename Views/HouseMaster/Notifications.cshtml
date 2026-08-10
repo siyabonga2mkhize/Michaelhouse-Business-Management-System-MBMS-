@@ -1,0 +1,21 @@
+@model List<Michaelhouse.Models.AIAlert>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Notifications";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Notifications — @ViewBag.Residence</h1>
+
+    <div class="grid grid-cols-1 gap-4">
+        @foreach(var a in Model){
+            <div class="bg-white p-4 rounded shadow flex justify-between items-center">
+                <div>
+                    <div class="font-bold">@a.Title</div>
+                    <div class="text-sm text-gray-500">@a.Message</div>
+                </div>
+                <div class="text-sm text-gray-400">@a.CreatedAt.ToLocalTime()</div>
+            </div>
+        }
+    </div>
+</section>
