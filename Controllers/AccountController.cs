@@ -10,7 +10,7 @@ using System.Web.Security;
 
 namespace Michaelhouse.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         // ─── Login ────────────────────────────────────────────────────────────────
 
@@ -76,6 +76,7 @@ namespace Michaelhouse.Controllers
                     }
                     catch { }
                 }
+
 
 
                 return RedirectByRole(role);
@@ -179,6 +180,33 @@ namespace Michaelhouse.Controllers
                     if (houseMaster != null)
                     {
                         Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                    }
+                }
+                // Inside [HttpPost] Login, right before "return RedirectByRole(user.Role);"
+                if (user.Role == "Student")
+                {
+                    {
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        if (activeAlert != null)
+                        {
+                            var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                            if (student != null)
+                            {
+                                // CRITICAL: Check if they confirmed for THIS specific alert ID
+                                bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                                if (!alreadyConfirmed)
+                                {
+                                    // Immediately force the redirect and stop the login flow
+                                    return RedirectToAction("ConfirmSafety", "Emergency");
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -346,6 +374,54 @@ namespace Michaelhouse.Controllers
                 case "Parent":
                     return RedirectToAction("Dashboard", "Parents");
                 case "Student":
+                    using (var db = new DBContextClass())
+                    {
+                        int userId = (int)Session["UserId"];
+
+                        // 1. FIND OR CREATE THE STUDENT RECORD (Guaranteed success)
+                        var student = db.Students.FirstOrDefault(s => s.UserId == userId);
+                        if (student == null)
+                        {
+                            var user = db.Users.Find(userId);
+                            var names = (user?.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var first = names.Length > 0 ? names[0] : user?.Name ?? "Student";
+                            var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+
+                            student = new Student
+                            {
+                                FirstName = first,
+                                LastName = last,
+                                UserId = userId,
+                                ParentId = 2, // Make sure this ID exists in your Parents table!
+                                IsActive = true,
+                                IsBoarding = true,
+                                GradeLevel = 8
+                            };
+                            db.Students.Add(student);
+                            db.SaveChanges();
+
+                            Session["StudentId"] = student.StudentId;
+                        }
+
+                        // 2. Check for an Active Emergency Alert
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        // 3. If there is an alert, check if they already confirmed
+                        if (activeAlert != null)
+                        {
+                            bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                            // 4. If NOT confirmed, IMMEDIATELY redirect them to the red screen
+                            if (!alreadyConfirmed)
+                            {
+                                return RedirectToAction("ConfirmSafety", "Emergency");
+                            }
+                        }
+                    }
                     return RedirectToAction("Dashboard", "Students");
                 case "Teacher":
                     return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)

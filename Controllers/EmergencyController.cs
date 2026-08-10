@@ -11,7 +11,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class EmergencyController : Controller
+    public class EmergencyController : BaseController
     {
         private DBContextClass db = new DBContextClass();
         private EmergencyService _emergencyService;
@@ -144,16 +144,28 @@ namespace Michaelhouse.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> ViewAlertStatus(int id)   // non-nullable int
         {
-            var alert = await db.EmergencyAlerts
+            // If no ID is given, try to find the most recent alert
+            if (id == null)
+            {
+                var latest = await db.EmergencyAlerts
+                    .OrderByDescending(a => a.AlertTime)
+                    .FirstOrDefaultAsync();
+                if (latest != null)
+                    return RedirectToAction("ViewAlertStatus", new { id = latest.AlertId });
+                else
+                    return HttpNotFound();
+            }
+
+            var alertEntity = await db.EmergencyAlerts
                 .FirstOrDefaultAsync(a => a.AlertId == id);
-            if (alert == null)
+            if (alertEntity == null)
                 return HttpNotFound();
 
             // Get boarding students – using IsBoarding and IsActive
             var boardingStudents = await db.Students
-    .Include(s => s.Parent) // <--- ADD THIS LINE
-    .Where(s => s.IsActive && s.IsBoarding)
-    .ToListAsync();
+                .Include(s => s.Parent)
+                .Where(s => s.IsActive && s.IsBoarding)
+                .ToListAsync();
 
             var confirmations = await db.StudentSafetyConfirmations
                 .Include(c => c.Student)
@@ -165,7 +177,7 @@ namespace Michaelhouse.Controllers
 
             var viewModel = new AlertAccountabilityViewModel
             {
-                Alert = alert,
+                Alert = alertEntity,
                 TotalStudents = boardingStudents.Count,
                 SafeCount = confirmations.Count(c => c.Status == SafetyStatus.Confirmed),
                 OutsideCount = confirmations.Count(c => c.Status == SafetyStatus.OutsideZone),
@@ -185,8 +197,8 @@ namespace Michaelhouse.Controllers
                         DistanceFromAssemblyPointMeters = confirmation.DistanceFromAssemblyPointMeters,
                         ConfirmationTime = confirmation.ConfirmationTime,
                         WithinGeofence = confirmation.WithinGeofence,
-                        StudentLatitude = confirmation.StudentLatitude,   // add this
-                        StudentLongitude = confirmation.StudentLongitude,  // add this
+                        StudentLatitude = confirmation.StudentLatitude,
+                        StudentLongitude = confirmation.StudentLongitude,
                         ParentName = student.Parent?.EmergencyContactName ?? student.Parent?.Name ?? "N/A",
                         ParentContact = student.Parent?.EmergencyContactPhone ?? student.Parent?.CellPhone ?? student.Parent?.Contact ?? "N/A"
                     });
@@ -417,6 +429,38 @@ namespace Michaelhouse.Controllers
             if (disposing)
                 db.Dispose();
             base.Dispose(disposing);
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult GetActiveAlertForStudent()
+        {
+            int? userId = Session["UserId"] as int?;
+            if (userId == null)
+                return Json(new { hasActiveAlert = false }, JsonRequestBehavior.AllowGet);
+
+            using (var db = new DBContextClass())
+            {
+                var student = db.Students.FirstOrDefault(s => s.UserId == userId.Value);
+                if (student == null)
+                    return Json(new { hasActiveAlert = false }, JsonRequestBehavior.AllowGet);
+
+                var activeAlert = db.EmergencyAlerts
+                    .Where(a => a.Status == AlertStatus.Active)
+                    .OrderByDescending(a => a.AlertTime)
+                    .FirstOrDefault();
+
+                if (activeAlert == null)
+                    return Json(new { hasActiveAlert = false }, JsonRequestBehavior.AllowGet);
+
+                bool alreadyConfirmed = db.StudentSafetyConfirmations
+                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                return Json(new
+                {
+                    hasActiveAlert = true,
+                    alreadyConfirmed = alreadyConfirmed
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
     }
 
