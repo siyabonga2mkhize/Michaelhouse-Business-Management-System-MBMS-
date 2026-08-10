@@ -1,62 +1,173 @@
 ﻿@model Michaelhouse.Models.StudentQRCode
 @{
-    ViewBag.Title = "Student QR Identity";
+    ViewBag.Title = "Personal Identity Profile";
     var student = ViewBag.Student as Michaelhouse.Models.Student;
+    bool isAdmin = User.IsInRole("Admin");
 }
 
-<div class="container mt-4">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <h2>My QR Identity</h2>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Identity & Security</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Student Identity Profile</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Official Access Code</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.history.back();" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            </button>
+        </div>
+    </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col items-center justify-center">
 
-    <div class="card p-4" style="max-width:420px;border:2px solid #b00;border-radius:10px;">
+        @* --- ALERTS --- *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="w-full max-w-4xl bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center mb-6">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
+            </div>
+        }
 
-        <div class="text-center" style="letter-spacing:2px;">
-            <h4 style="font-family:'Playfair Display',serif;">MICHAELHOUSE</h4>
-            <h6 style="color:#b00;">STUDENT IDENTITY</h6>
+        @* --- WIDE LANDSCAPE IDENTITY TOKEN --- *@
+        <div class="w-full max-w-4xl bg-white shadow-2xl border-t-4 border-[#C21E2E] relative overflow-hidden group flex flex-col">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-fingerprint absolute -right-4 -bottom-10 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            @* Official Branding Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h4 class="font-serif font-bold text-2xl tracking-[4px] text-gray-900">MICHAELHOUSE</h4>
+                    <h6 class="text-[9px] uppercase tracking-[6px] font-bold text-[#C21E2E] mt-1">Student Identity Code</h6>
+                </div>
+                <div class="relative z-10 text-right">
+                    @if (Model != null && Model.IsActive)
+                    {
+                        <span class="inline-flex items-center text-[10px] font-mono font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 shadow-sm uppercase tracking-widest">
+                            <i class="bi bi-check-circle me-2"></i> Verified Active
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="inline-flex items-center text-[10px] font-mono font-bold text-[#C21E2E] bg-red-50 border border-[#C21E2E]/30 px-3 py-1 shadow-sm uppercase tracking-widest">
+                            <i class="bi bi-x-octagon me-2"></i> Revoked / Inactive
+                        </span>
+                    }
+                </div>
+            </div>
+
+            @* Core Profile Data (Horizontal Layout) *@
+            <div class="p-10 flex flex-col md:flex-row items-center md:items-start gap-12 relative z-10 flex-grow">
+
+                @* Left: Optical Target Frame *@
+                <div class="flex-shrink-0">
+                    <div class="p-3 border-4 border-gray-900 bg-white relative group-hover:border-[#C21E2E] transition-colors duration-500 shadow-sm">
+                        @* Corner Accents *@
+                        <div class="absolute -top-2 -left-2 w-4 h-4 border-t-4 border-l-4 border-[#C21E2E]"></div>
+                        <div class="absolute -top-2 -right-2 w-4 h-4 border-t-4 border-r-4 border-[#C21E2E]"></div>
+                        <div class="absolute -bottom-2 -left-2 w-4 h-4 border-b-4 border-l-4 border-[#C21E2E]"></div>
+                        <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-4 border-r-4 border-[#C21E2E]"></div>
+
+                        <img src="@Url.Action("MyQRCodeImage", "Students")" alt="Student QR Code" class="w-56 h-56 object-contain" />
+                    </div>
+                </div>
+
+                @* Right: Personnel Details *@
+                <div class="flex-grow w-full flex flex-col justify-center h-full pt-4 md:pt-0">
+
+                    <div class="mb-8 border-b border-gray-100 pb-6">
+                        <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2 text-center md:text-left">Registered Student</p>
+                        <p class="font-serif font-bold text-gray-900 text-4xl leading-tight text-center md:text-left">@(student?.Name ?? "Unknown")</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="text-center md:text-left">
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Student Number</p>
+                            <div class="bg-gray-50 border border-gray-200 py-3 px-4 shadow-inner inline-block w-full max-w-[250px]">
+                                <span class="font-mono font-bold text-gray-800 text-xl tracking-[2px]">@(student?.StudentNumber ?? "N/A")</span>
+                            </div>
+                        </div>
+
+                        @* Official Passport Ink Stamp *@
+                        <div class="flex justify-center">
+                            <div class="inline-flex flex-col items-center justify-center p-3 border-4 border-double border-[#C21E2E] rounded-full w-28 h-28 transform -rotate-12 opacity-80 mix-blend-multiply hover:rotate-0 hover:scale-105 transition-all duration-500">
+                                <i class="bi bi-shield-check text-[#C21E2E] text-3xl mb-1"></i>
+                                <span class="text-[8px] font-bold font-serif uppercase tracking-[3px] text-[#C21E2E] text-center leading-tight">Verified<br />Clearance</span>
+                                <span class="text-[7px] font-mono font-bold text-[#C21E2E] mt-1 border-t border-[#C21E2E] pt-1 w-3/4 text-center">
+                                    @(Model?.DateGenerated.ToString("yyyy") ?? DateTime.Now.ToString("yyyy"))
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Security Actions Footer *@
+            <div class="bg-[#1a1a1a] p-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10 mt-auto flex-shrink-0">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono hidden md:block">
+                    <i class="bi bi-cpu me-2"></i> Generated: @(Model?.DateGenerated.ToString("dd MMM yyyy HH:mm") ?? "N/A")
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <a href="@Url.Action("DownloadMyQRCode", "Students")" class="text-center bg-transparent border border-white/20 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all duration-300">
+                        <i class="bi bi-download me-2 text-lg align-middle"></i> Download Code
+                    </a>
+
+                    @if (isAdmin && student != null)
+                    {
+                        using (Html.BeginForm("Regenerate", "StudentQRCode", FormMethod.Post, new { @class = "m-0 p-0" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("studentId", student.StudentId)
+                            <button type="submit" class="w-full md:w-auto text-center bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-8 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all duration-300" onclick="return confirm('WARNING: This will permanently invalidate the current cryptographic token. Proceed with regeneration?');">
+                                <i class="bi bi-arrow-clockwise me-2 text-lg align-middle"></i> Regenerate Identity
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
         </div>
 
-        <hr />
-
-        <div class="text-center mb-3">
-            <img src="@Url.Action("MyQRCodeImage", "Students")"
-                 alt="Student QR Code"
-                 style="width:200px;height:200px;" />
-        </div>
-
-        <p><strong>Name:</strong> @student.Name</p>
-        <p><strong>Student Number:</strong> @student.StudentNumber</p>
-        <div class="d-flex gap-2 mt-3">
-            <a class="btn btn-danger"
-               href="@Url.Action("DownloadMyQRCode", "Students")">
-                Download
-            </a>
-
-
-
-            @if (User.IsInRole("Admin"))
-            {
-                using (Html.BeginForm("Regenerate", "StudentQRCode", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.Hidden("studentId", student.StudentId)
-                    <button type="submit" class="btn btn-outline-secondary"
-                            onclick="return confirm('This will invalidate the current QR code. Continue?');">
-                        Regenerate
-                    </button>
-
-                }
-                <a class="btn btn-danger"
-                   href="@Url.Action("DownloadMyQRCode", "Students")">
-                    Download
-                </a>
-            }
+        @* Institutional Footer Note *@
+        <div class="mt-6 text-center max-w-4xl">
+            <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                <i class="bi bi-shield-lock me-1 text-gray-500"></i> Property of Michaelhouse. Unauthorized duplication is prohibited.
+            </p>
         </div>
 
     </div>
-
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

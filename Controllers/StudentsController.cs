@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class StudentsController : Controller
+    public class StudentsController : BaseController
     {
         private DBContextClass db = new DBContextClass();
         private int GetCurrentStudentId()
