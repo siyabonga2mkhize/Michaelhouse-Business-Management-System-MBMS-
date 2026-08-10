@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Michaelhouse.Models;
+using System;
 using System.Linq;
-using System.Web;
-using Michaelhouse.Models;
 
 
 namespace Michaelhouse.Services
@@ -88,6 +86,23 @@ namespace Michaelhouse.Services
                    $"{digits[rng.Next(digits.Length)]}" +
                    $"{digits[rng.Next(digits.Length)]}" +
                    $"{digits[rng.Next(digits.Length)]}";
+        }
+
+        public class StudentSafetyConfirmation
+        {
+            public int Id { get; set; }
+            public int AlertId { get; set; }
+            public int StudentId { get; set; }
+            public DateTime ConfirmationTime { get; set; }
+            public bool ConfirmedSafe { get; set; }
+            public double StudentLatitude { get; set; }
+            public double StudentLongitude { get; set; }
+            public bool WithinGeofence { get; set; }
+            public double DistanceFromAssemblyPoint { get; set; }
+
+            // Navigation
+            public EmergencyAlert Alert { get; set; }
+            public Student Student { get; set; }
         }
     }
 }

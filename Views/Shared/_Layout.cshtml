@@ -299,7 +299,7 @@
 
         // This pulls the name of the current controller (e.g., "Inventory")
         // Keep only ONE declaration of 'ctrl'
-        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string ctrl = ViewContext.RouteData.Values["controller"].ToString() ?? "";
 
         // 2. Define 'lowStockCount' for the notification badge
         int lowStockCount = 0;
@@ -403,7 +403,7 @@
 
 
 
-    <div class= "app-shell" >
+    <div class="app-shell">
 
         @if (isLoggedIn)
 
@@ -459,6 +459,11 @@
                         <a class="nav-link" href="@Url.Action("ChildrenAttendance", "Parents")">
 
                             <i class="bi bi-people"></i> Children's Attendance
+
+                        </a>
+                        <a class="nav-link" href="@Url.Action("ParentPending", "LeaveRequest")">
+
+                            <i class="bi bi-people"></i> Children's Leave Requests
 
                         </a>
 
@@ -590,6 +595,25 @@
                         <a class="nav-link @(currentController == "DriverApplications" && currentAction == "Index" ? "active" : "")"
                            href="@Url.Action("Index", "DriverApplications")">
                             <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
+                        </a>
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Emergency Management</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "LatestAlertStatus" ? "active" : "")"
+                           href="@Url.Action("LatestAlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
                         </a>
 
                         <hr class="sidebar-divider" />
@@ -773,6 +797,11 @@
                             <i class="bi bi-clock-history"></i> <span class="link-text">QR History</span>
                         </a>
 
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("HouseMasterPending", "LeaveRequest")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Leave Requests</span>
+                        </a>
+
                         <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"
                            href="@Url.Action("AIDashboard", "ResidenceAllocation")">
                             <i class="bi bi-graph-up-arrow"></i> <span class="link-text">Analytics</span>
@@ -827,23 +856,36 @@
                             <i class="bi bi-calendar-check"></i> My Attendance
 
                         </a>
+                        <div class="sidebar-label">Transport</div>
                         <hr class="sidebar-divider" />
                         <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
                         </a>
-                        <a class="nav-link @(currentController == "Students" && currentAction == "MyQRCode" ? "active" : "")"
-                           href="@Url.Action("MyQRCode", "Students")">
+                        <hr class="sidebar-divider" />
 
+                        <div class="sidebar-label">Emergency Safety</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafety" ? "active" : "")"
+                           href="@Url.Action("ConfirmSafety", "Emergency")">
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Safety</span>
+                        </a>
+
+                        <a class="nav-link" href="@Url.Action("MyQRCode", "Students")">
                             <i class="bi bi-qr-code"></i>
                             <span class="link-text">My QR Code</span>
+                        </a>
 
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("Create", "LeaveRequest")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Leave Request</span>
                         </a>
 
                         @*<a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i>
-                <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i>
+                                <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -939,6 +981,26 @@
                             <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
                         </a>
 
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Boarding Emergency</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "AlertStatus" ? "active" : "")"
+                           href="@Url.Action("AlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
+                        </a>
+
                     }
                     else if (userRole == "TransportManager")
                     {
@@ -1012,66 +1074,47 @@
 
 
 
-    <div class="main-content @(isHomePage ? "full-width" : "p-4")" style="width: 100%; max-width: none;">
+        <div class="main-content @(isHomePage ? "full-width" : "p-4")" style="width: 100%; max-width: none;">
 
-        @if (TempData["Success"] != null)
+            @if (TempData["Success"] != null)
 
-        {
+            {
 
-            <div class="alert alert-success alert-dismissible fade show mb-4">
+                <div class="alert alert-success alert-dismissible fade show mb-4">
 
-                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
 
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-            </div>
+                </div>
 
-        }
+            }
 
-        @if (TempData["Error"] != null)
+            @if (TempData["Error"] != null)
 
-        {
+            {
 
-            <div class="alert alert-danger alert-dismissible fade show mb-4">
+                <div class="alert alert-danger alert-dismissible fade show mb-4">
 
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
 
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 
-            </div>
+                </div>
 
-        }
-
-
+            }
 
 
 
-        @RenderBody()
+
+
+            @RenderBody()
+
+        </div>
 
     </div>
-
-    </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-
-        //document.addEventListener("DOMContentLoaded", function () {
-
-        //    const btn = document.getElementById('sidebarCollapse');
-
-        //    const sidebar = document.getElementById('sidebar');
-
-        //    if (btn && sidebar) {
-
-        //        btn.addEventListener('click', function () {
-
-        //            sidebar.classList.toggle('collapsed');
-
-        //        });
-
-        //    }
-        //});
         document.addEventListener("DOMContentLoaded", function () {
 
             const btn = document.getElementById("sidebarCollapse");
@@ -1088,32 +1131,65 @@
             });
 
         });
+        // --- 1. EXISTING NOTIFICATION LOGIC ---
         function loadNotifications() {
-    $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
-        $('#notificationList').html(data);
-        updateBadge();
-    });
-}
-
-function updateBadge() {
-    $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
-        if (count > 0) {
-            $('#notificationBadge').text(count).show();
-        } else {
-            $('#notificationBadge').hide();
+            $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
+                $('#notificationList').html(data);
+                updateBadge();
+            });
         }
-    });
-}
 
-// Load initially and every 30 seconds
-$(function() {
-    loadNotifications();
-    setInterval(loadNotifications, 30000);
-});
+        function updateBadge() {
+            $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
+                if (count > 0) {
+                    $('#notificationBadge').text(count).show();
+                } else {
+                    $('#notificationBadge').hide();
+                }
+            });
+        }
+
+        // --- 2. NEW: EMERGENCY OVERRIDE LOGIC (CRITICAL) ---
+        function checkEmergencyStatus() {
+            // Only perform this check if the user is logged in (to save server resources)
+            var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
+            if (!isLoggedIn) return;
+
+            $.ajax({
+                url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+                    // If there is an ACTIVE alert AND they haven't confirmed it yet:
+                    if (data.hasActiveAlert && !data.alreadyConfirmed) {
+                        // BAM! Immediate screen takeover
+                        window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
+                    }
+                },
+                error: function() {
+                    // Silently fail - we don't want error pop-ups for students.
+                }
+            });
+        }
+
+        // --- 3. TRIGGER THE CHECKS ---
+        $(function() {
+            // Start the notification listener
+            loadNotifications();
+            setInterval(loadNotifications, 30000); // 30 seconds
+
+            // Start the Emergency Override listener
+            // It runs IMMEDIATELY on page load, and repeats every 5 seconds while they browse.
+            checkEmergencyStatus();
+            setInterval(checkEmergencyStatus, 5000); // 5 seconds
+        });
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 
     @RenderSection("Scripts", required: false)
 
 </body>
 
-</html>
+</html >

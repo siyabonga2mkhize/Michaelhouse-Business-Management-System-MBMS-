@@ -1,0 +1,201 @@
+﻿@model Michaelhouse.Models.LeaveRequest
+@{
+    ViewBag.Title = "Departure Authorization Protocol";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Departure Authorization</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Request Official Clearance to Leave Residence</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("MyRequests", "LeaveRequest")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> View Past Requests
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE FORM SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+        <div class="w-full max-w-4xl">
+
+            @* --- DUAL-AUTHORIZATION PROTOCOL NOTICE --- *@
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-8 shadow-sm flex items-start gap-4">
+                <i class="bi bi-shield-check text-blue-600 text-2xl mt-1"></i>
+                <div>
+                    <h6 class="text-[10px] font-bold uppercase tracking-widest text-blue-800 mb-1">Dual-Authorization Workflow Active</h6>
+                    <p class="text-sm font-serif text-blue-900 mb-0">
+                        This request will be routed to your registered parent/guardian first. Upon their cryptographic approval, it will automatically escalate to <strong>@ViewBag.HouseMasterName</strong> (@ViewBag.ResidenceName) for final institutional clearance.
+                    </p>
+                </div>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] mb-6 shadow-sm">
+                    <div class="text-[10px] font-bold uppercase tracking-widest mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i> Protocol Validation Error</div>
+                    <div class="text-sm font-serif">@Html.ValidationSummary(false)</div>
+                </div>
+            }
+
+            @* --- OFFICIAL REQUEST FORM --- *@
+            @using (Html.BeginForm("Create", "LeaveRequest", FormMethod.Post, new { @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form" }))
+            {
+                @Html.AntiForgeryToken()
+
+                @* Ghost Watermark *@
+                <i class="bi bi-send absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-file-earmark-text me-2 text-gray-400"></i> Leave Requisition Parameters</h5>
+                </div>
+
+                <div class="p-8 space-y-8 relative z-10">
+
+                    @* Dynamic Destination Block *@
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Destination <span class="text-[#C21E2E]">*</span></label>
+                        @Html.TextBoxFor(m => m.Destination, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", placeholder = "e.g., 12 Musgrave Rd, Durban", id = "destinationInput" })
+                        @Html.ValidationMessageFor(m => m.Destination, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        <p class="text-[10px] text-gray-400 font-serif italic mt-2"><i class="bi bi-info-circle me-1"></i> Specify a verifiable address or landmark for authorization routing.</p>
+
+                        @* Live Map Visualizer *@
+                        <div id="mapPlaceholder" class="mt-4 p-8 text-center border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 font-mono text-[10px] uppercase tracking-widest transition-all">
+                            <i class="bi bi-geo-alt text-2xl block mb-2 text-gray-300"></i>
+                            Awaiting coordinate input for visual verification.
+                        </div>
+
+                        <div id="mapContainer" class="mt-4 border-2 border-gray-100 p-1 bg-white shadow-sm relative group/map overflow-hidden" style="display:none;">
+                            <iframe id="destinationMap" width="100%" height="240" class="border-0 grayscale group-hover/map:grayscale-0 transition-all duration-700" loading="lazy" src=""></iframe>
+                            <a id="destinationMapLink" href="#" target="_blank" rel="noopener" class="block w-full text-center bg-gray-50 border-t border-gray-100 py-2 text-[9px] font-bold uppercase tracking-[2px] text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Launch Independent Target Map
+                            </a>
+                        </div>
+                    </div>
+
+                    @* Temporal Parameters *@
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-gray-100">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Requested Departure <span class="text-[#C21E2E]">*</span></label>
+                            @Html.TextBoxFor(m => m.DepartureDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer", type = "datetime-local" })
+                            @Html.ValidationMessageFor(m => m.DepartureDateTime, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Expected Return <span class="text-[#C21E2E]">*</span></label>
+                            @Html.TextBoxFor(m => m.ExpectedReturnDateTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer", type = "datetime-local" })
+                            @Html.ValidationMessageFor(m => m.ExpectedReturnDateTime, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        </div>
+                    </div>
+
+                    @* Rationale *@
+                    <div class="pt-4 border-t border-gray-100">
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Official Justification <span class="text-[#C21E2E]">*</span></label>
+                        @Html.TextAreaFor(m => m.Reason, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif italic text-sm text-gray-800 transition-colors bg-transparent resize-y", rows = 4, placeholder = "Detail the institutional or personal reasoning requiring departure from the residence..." })
+                        @Html.ValidationMessageFor(m => m.Reason, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                    </div>
+
+                </div>
+
+                @* Institutional Footer Actions *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                        <i class="bi bi-shield-lock me-2 text-gray-500"></i> System Awaiting Initialization
+                    </div>
+                    <div class="flex gap-4">
+                        @Html.ActionLink("Discard Draft", "MyRequests", null, new { @class = "inline-block bg-transparent border border-white/10 text-gray-400 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300" })
+
+                        <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                            <i class="bi bi-send-check me-2"></i> Submit Request
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Clean up native date picker indicators slightly */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        (function () {
+            var input = document.getElementById("destinationInput");
+            var mapContainer = document.getElementById("mapContainer");
+            var map = document.getElementById("destinationMap");
+            var link = document.getElementById("destinationMapLink");
+            var placeholder = document.getElementById("mapPlaceholder");
+            var debounceTimer = null;
+
+            function updateMap() {
+                var value = input.value.trim();
+
+                if (value.length < 3) {
+                    mapContainer.style.display = "none";
+                    placeholder.style.display = "block";
+                    return;
+                }
+
+                var encoded = encodeURIComponent(value);
+                map.src = "https://maps.google.com/maps?q=" + encoded + "&output=embed";
+                link.href = "https://www.google.com/maps/search/?api=1&query=" + encoded;
+
+                placeholder.style.display = "none";
+                mapContainer.style.display = "block";
+            }
+
+            input.addEventListener("input", function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateMap, 600);
+            });
+
+            // Initialize on load for server-side validation repopulation
+            if (input.value.trim().length >= 3) {
+                updateMap();
+            }
+        })();
+    </script>
+}

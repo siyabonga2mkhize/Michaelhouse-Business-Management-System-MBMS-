@@ -35,6 +35,14 @@ namespace Michaelhouse.Models
         [Display(Name = "ID / Passport Number")]
         public string IdNumber { get; set; }
 
+        //lets add a property for IsBoarding
+        [Display(Name = "Is Boarding")]
+        public bool IsBoarding { get; set; } = false;
+
+        [Display(Name = "Is Active")]
+        public bool IsActive { get; set; } = true;
+
+
         // ─── Previous School ──────────────────────────────────────────────────────
         [MaxLength(200)]
         [Display(Name = "Previous School")]
@@ -59,7 +67,7 @@ namespace Michaelhouse.Models
 
         // --- MISSING PROPERTIES TO ADD ---
 
-        
+
         [Display(Name = "Student Number")]
         public string StudentNumber { get; set; }
 
@@ -75,6 +83,9 @@ namespace Michaelhouse.Models
         public DateTime EnrollmentDate { get; set; } = DateTime.Now;
 
         public int? ClassId { get; set; }
+
+        //lets add ResidenceId
+        public int? ResidenceId { get; set; }
 
         // Navigation
         public Parent Parent { get; set; }
