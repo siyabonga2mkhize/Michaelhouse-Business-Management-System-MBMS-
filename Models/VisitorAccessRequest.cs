@@ -108,4 +108,24 @@ namespace Michaelhouse.Models
 
         public bool IsClosedWeekend { get; set; }
     }
+    public class VisitorScanLog
+    {
+        [Key]
+        public int ScanId { get; set; }
+
+        public int RequestId { get; set; }                     // FK to VisitorAccessRequest
+        [ForeignKey("RequestId")]
+        public virtual VisitorAccessRequest Request { get; set; }
+
+        public DateTime ScannedAt { get; set; }               // When the scan occurred
+
+        public int? ScannerUserId { get; set; }               // If logged in, else null
+        public string ScannerName { get; set; }               // e.g., "Gate 1 - John"
+
+        public string Status { get; set; }                    // "Granted", "Denied", etc.
+        public string Reason { get; set; }                    // If denied, why
+
+        public string Location { get; set; }                  // e.g., "Main Gate"
+        public bool IsEntry { get; set; }                     // true for entry, maybe false for exit later
+    }
 }

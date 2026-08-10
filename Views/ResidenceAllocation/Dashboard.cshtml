@@ -1,60 +1,212 @@
 @{
-    ViewBag.Title = "Residence Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Predictive Analytics Engine";
 }
 
-<h2>Residence Predictions</h2>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<h3>Residences Likely to Become Full</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Residence</th>
-            <th>Current Occupied</th>
-            <th>Capacity</th>
-            <th>Likelihood</th>
-            <th>Explanation</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach(var p in (List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>)ViewBag.ResidencePredictions ?? new List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>()){
-    <tr>
-        <td>@p.ResidenceName</td>
-        <td>@p.CurrentOccupied</td>
-        <td>@p.Capacity</td>
-        <td>@String.Format("{0:P0}", p.LikelihoodFull)</td>
-        <td>@p.Explanation</td>
-    </tr>
-}
-    </tbody>
-</table>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Predictive Analytics</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">AI-Assisted Capacity Forecasting & Infrastructure Planning</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "HouseMaster")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:shadow-[0_0_15px_rgba(0,0,0,0.05)] transition-all text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Overview
+            </a>
+        </div>
+    </div>
 
-<h3>Rooms Likely to Become Empty</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Room</th>
-            <th>Occupied</th>
-            <th>Capacity</th>
-            <th>Likelihood</th>
-            <th>Explanation</th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach(var r in (List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>)ViewBag.RoomPredictions ?? new List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>()){
-    <tr>
-        <td>@r.RoomNumber</td>
-        <td>@r.CurrentOccupied</td>
-        <td>@r.Capacity</td>
-        <td>@String.Format("{0:P0}", r.LikelihoodEmpty)</td>
-        <td>@r.Explanation</td>
-    </tr>
-}
-    </tbody>
-</table>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
 
-<h3>Recommendations</h3>
-<ul>
-@foreach(var rec in (List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>)ViewBag.PredictionRecommendations ?? new List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>()){
-    <li>@rec.Text</li>
-}
-</ul>
+        @* --- SYSTEM RECOMMENDATIONS PANEL --- *@
+        <div class="bg-[#1a1a1a] border-t-4 border-blue-500 shadow-xl relative overflow-hidden group">
+            @* Ghost Watermark *@
+            <i class="bi bi-cpu absolute -right-6 -top-12 text-9xl text-white opacity-[0.03] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            <div class="p-6 relative z-10">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-blue-400 mb-4 border-b border-gray-800 pb-3"><i class="bi bi-lightning-charge-fill me-2"></i> Algorithmic Insights</h5>
+
+                @if (ViewBag.PredictionRecommendations == null || !((List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>)ViewBag.PredictionRecommendations).Any())
+                {
+                    <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-0">No immediate architectural adjustments recommended.</p>
+                }
+                else
+                {
+                    <ul class="space-y-3 m-0 p-0 list-none">
+                        @foreach (var rec in (List<Michaelhouse.Services.AIResidencePredictionService.Recommendation>)ViewBag.PredictionRecommendations)
+                        {
+                            <li class="flex items-start gap-3 bg-white/5 p-4 border border-white/10 hover:border-blue-500/50 hover:bg-white/10 transition-all duration-300">
+                                <i class="bi bi-arrow-right-short text-blue-500 text-lg mt-[-2px]"></i>
+                                <span class="text-sm font-serif italic text-gray-300">@rec.Text</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        @* --- RESIDENCES FORECAST LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+            @* Ghost Watermark *@
+            <i class="bi bi-building-up absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-graph-up-arrow me-2 text-[#C21E2E]"></i> Residences Likely to Maximize Capacity</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">Status: Projection Active</p>
+                </div>
+            </div>
+
+            <div class="table-responsive relative z-10">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="bg-white">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                            <th class="ps-8 py-4">Residence Profile</th>
+                            <th class="text-center border-l border-gray-100">Occupied</th>
+                            <th class="text-center border-l border-gray-100">Total Cap</th>
+                            <th class="text-center border-l border-gray-100">Probability</th>
+                            <th class="border-l border-gray-100 w-1/3">System Rationale</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (ViewBag.ResidencePredictions == null || !((List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>)ViewBag.ResidencePredictions).Any())
+                        {
+                            <tr><td colspan="5" class="py-12 text-center text-[10px] font-mono text-gray-400 uppercase tracking-widest">No critical capacity projections detected.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var p in (List<Michaelhouse.Services.AIResidencePredictionService.ResidencePrediction>)ViewBag.ResidencePredictions)
+                            {
+                                <tr class="group/row hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-4">
+                                        <div class="font-serif font-bold text-gray-900 text-lg group-hover/row:text-[#C21E2E] transition-colors">@p.ResidenceName</div>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono font-bold text-gray-900">@p.CurrentOccupied</span>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono font-bold text-gray-500">@p.Capacity</span>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono text-[11px] font-bold text-[#C21E2E] bg-red-50 border border-[#C21E2E]/30 px-3 py-1 shadow-sm">
+                                            @String.Format("{0:P0}", p.LikelihoodFull)
+                                        </span>
+                                    </td>
+                                    <td class="border-l border-gray-50 pe-8">
+                                        <div class="text-xs font-serif italic text-gray-600 border-l-2 border-transparent group-hover/row:border-[#C21E2E] pl-3 py-1 transition-all">
+                                            @p.Explanation
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* --- ROOMS FORECAST LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+            @* Ghost Watermark *@
+            <i class="bi bi-door-open absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-graph-down-arrow me-2 text-blue-600"></i> Rooms Projected to Vacate</h5>
+                    <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">Status: Projection Active</p>
+                </div>
+            </div>
+
+            <div class="table-responsive relative z-10">
+                <table class="table table-hover mb-0 align-middle w-full">
+                    <thead class="bg-white">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                            <th class="ps-8 py-4">Room Designation</th>
+                            <th class="text-center border-l border-gray-100">Occupied</th>
+                            <th class="text-center border-l border-gray-100">Total Cap</th>
+                            <th class="text-center border-l border-gray-100">Probability</th>
+                            <th class="border-l border-gray-100 w-1/3">System Rationale</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        @if (ViewBag.RoomPredictions == null || !((List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>)ViewBag.RoomPredictions).Any())
+                        {
+                            <tr><td colspan="5" class="py-12 text-center text-[10px] font-mono text-gray-400 uppercase tracking-widest">No vacancy projections detected.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var r in (List<Michaelhouse.Services.AIResidencePredictionService.RoomPrediction>)ViewBag.RoomPredictions)
+                            {
+                                <tr class="group/row hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                    <td class="ps-8 py-4">
+                                        <div class="font-serif font-bold text-gray-900 text-lg group-hover/row:text-blue-600 transition-colors">@(r.RoomNumber ?? "Unnamed Room")</div>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono font-bold text-gray-900">@r.CurrentOccupied</span>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono font-bold text-gray-500">@r.Capacity</span>
+                                    </td>
+                                    <td class="text-center border-l border-gray-50">
+                                        <span class="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 shadow-sm">
+                                            @String.Format("{0:P0}", r.LikelihoodEmpty)
+                                        </span>
+                                    </td>
+                                    <td class="border-l border-gray-50 pe-8">
+                                        <div class="text-xs font-serif italic text-gray-600 border-l-2 border-transparent group-hover/row:border-blue-500 pl-3 py-1 transition-all">
+                                            @r.Explanation
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

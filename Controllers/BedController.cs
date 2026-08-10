@@ -1,5 +1,6 @@
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -11,17 +12,20 @@ namespace Michaelhouse.Controllers
     public class BedController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();
+        private readonly BoardingAccessService boardingAccess = new BoardingAccessService();
 
         public ActionResult Index(string search, int? roomId, bool archived = false)
         {
             var query = db.Beds.Include(b => b.Room.Residence).Include(b => b.OccupiedByStudent).AsQueryable();
             query = query.Where(b => b.IsArchived == archived);
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            query = query.Where(b => residenceIds.Contains(b.Room.ResidenceId));
             if (roomId.HasValue) query = query.Where(b => b.RoomId == roomId.Value);
             if (!string.IsNullOrWhiteSpace(search)) query = query.Where(b => b.BedNumber.Contains(search) || b.Room.RoomNumber.Contains(search) || b.Room.Residence.Name.Contains(search));
             ViewBag.Search = search;
             ViewBag.RoomId = roomId;
             ViewBag.Archived = archived;
-            ViewBag.Rooms = new SelectList(db.Rooms.Where(r => !r.IsArchived && !r.Residence.IsArchived).Include(r => r.Residence).OrderBy(r => r.Residence.Name).ThenBy(r => r.RoomNumber).ToList(), "RoomId", "RoomNumber", roomId);
+            ViewBag.Rooms = RoomList(roomId);
             return View(query.OrderBy(b => b.Room.Residence.Name).ThenBy(b => b.Room.RoomNumber).ThenBy(b => b.BedNumber).ToList());
         }
 
@@ -30,11 +34,13 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var bed = db.Beds.Include(b => b.Room.Residence).Include(b => b.OccupiedByStudent).FirstOrDefault(b => b.BedId == id);
             if (bed == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessBed(this, db, bed.BedId)) return new HttpUnauthorizedResult();
             return View(bed);
         }
 
         public ActionResult Create(int? roomId)
         {
+            if (roomId.HasValue && !boardingAccess.CanAccessRoom(this, db, roomId.Value)) return new HttpUnauthorizedResult();
             ViewBag.Rooms = RoomList(roomId);
             return View(new Bed { RoomId = roomId ?? 0, Status = "Available" });
         }
@@ -62,6 +68,7 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var bed = db.Beds.Find(id);
             if (bed == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessBed(this, db, bed.BedId)) return new HttpUnauthorizedResult();
             ViewBag.Rooms = RoomList(bed.RoomId);
             return View(bed);
         }
@@ -73,6 +80,7 @@ namespace Michaelhouse.Controllers
             ValidateBed(model);
             var bed = db.Beds.Find(model.BedId);
             if (bed == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessBed(this, db, bed.BedId)) return new HttpUnauthorizedResult();
             if (bed.IsOccupied && model.Status != "Occupied") ModelState.AddModelError("Status", "Release the active assignment before changing an occupied bed status.");
             if (!ModelState.IsValid)
             {
@@ -94,6 +102,7 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var bed = db.Beds.Include(b => b.Room.Residence).FirstOrDefault(b => b.BedId == id);
             if (bed == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessBed(this, db, bed.BedId)) return new HttpUnauthorizedResult();
             return View(bed);
         }
 
@@ -103,6 +112,7 @@ namespace Michaelhouse.Controllers
         {
             var bed = db.Beds.Find(id);
             if (bed == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessBed(this, db, bed.BedId)) return new HttpUnauthorizedResult();
             if (bed.IsOccupied || db.ResidenceAssignments.Any(a => a.BedId == id && a.IsActive))
             {
                 TempData["Error"] = "Cannot archive an occupied bed.";
@@ -130,13 +140,15 @@ namespace Michaelhouse.Controllers
         private void ValidateBed(Bed bed)
         {
             if (string.IsNullOrWhiteSpace(bed.BedNumber)) ModelState.AddModelError("BedNumber", "Bed number is required.");
+            if (!boardingAccess.CanAccessRoom(this, db, bed.RoomId)) ModelState.AddModelError("RoomId", "You can only manage beds in your assigned residence.");
             if (db.Rooms.Any(r => r.RoomId == bed.RoomId && (r.IsArchived || r.Residence.IsArchived))) ModelState.AddModelError("RoomId", "Cannot use an archived room or residence.");
             if (db.Beds.Any(b => b.BedId != bed.BedId && b.RoomId == bed.RoomId && b.BedNumber == bed.BedNumber && !b.IsArchived)) ModelState.AddModelError("BedNumber", "Bed number already exists in this room.");
         }
 
         private SelectList RoomList(int? selected)
         {
-            var rooms = db.Rooms.Include(r => r.Residence).Where(r => !r.IsArchived && !r.Residence.IsArchived).OrderBy(r => r.Residence.Name).ThenBy(r => r.RoomNumber).ToList();
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            var rooms = db.Rooms.Include(r => r.Residence).Where(r => !r.IsArchived && !r.Residence.IsArchived && residenceIds.Contains(r.ResidenceId)).OrderBy(r => r.Residence.Name).ThenBy(r => r.RoomNumber).ToList();
             return new SelectList(rooms.Select(r => new { r.RoomId, Label = r.Residence.Name + " - Room " + r.RoomNumber }), "RoomId", "Label", selected);
         }
 

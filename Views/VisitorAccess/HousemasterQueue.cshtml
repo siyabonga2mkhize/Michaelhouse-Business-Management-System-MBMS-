@@ -68,6 +68,7 @@
                             <div class="d-flex justify-content-end gap-2">
                                 @using (Html.BeginForm("ReviewRequest", "VisitorAccess", FormMethod.Post))
                                 {
+                                    @Html.AntiForgeryToken() <!-- ✅ FIX ADDED HERE -->
                                     @Html.Hidden("id", item.RequestId)
                                     <button type="submit" name="action" value="Approve" class="btn btn-success btn-sm">
                                         ✅ Approve

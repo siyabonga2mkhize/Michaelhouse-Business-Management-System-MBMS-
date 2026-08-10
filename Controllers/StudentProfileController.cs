@@ -77,14 +77,15 @@ namespace Michaelhouse.Controllers
             if (reg == null) return HttpNotFound();
 
             var profile = EnsureProfile(reg);
+            var registeredSubjects = GetRegisteredSubjectNames(reg.StudentId);
             return View(new StudentProfileAcademicViewModel
             {
                 AppId = appId,
                 StudentId = reg.StudentId,
                 Step = 2,
                 StudentName = reg.Student.Name,
-                Grade = profile.Grade ?? reg.GradeEnrolling.ToString(),
-                Subjects = profile.ElectiveSubjects,
+                Grade = reg.GradeEnrolling.ToString(),
+                Subjects = registeredSubjects,
                 AcademicInterests = profile.AcademicInterests,
                 LearningStyle = profile.LearningStyle,
                 AcademicStream = profile.AcademicStream
@@ -106,15 +107,14 @@ namespace Michaelhouse.Controllers
             }
 
             var profile = EnsureProfile(reg);
-            profile.Grade = model.Grade;
-            profile.ElectiveSubjects = model.Subjects;
+            profile.Grade = reg.GradeEnrolling.ToString();
+            profile.ElectiveSubjects = GetRegisteredSubjectNames(reg.StudentId);
             profile.AcademicInterests = model.AcademicInterests;
             profile.LearningStyle = model.LearningStyle;
             profile.AcademicStream = model.AcademicStream;
             profile.CompletedStep = Math.Max(profile.CompletedStep, 2);
 
-            if (int.TryParse(model.Grade, out var gradeLevel))
-                reg.Student.GradeLevel = gradeLevel;
+            reg.Student.GradeLevel = reg.GradeEnrolling;
 
             db.SaveChanges();
             return RedirectToAction("Activities", new { appId = model.AppId });
@@ -287,6 +287,16 @@ namespace Michaelhouse.Controllers
             registration.Student.StudentProfile = profile;
             db.SaveChanges();
             return profile;
+        }
+
+        private string GetRegisteredSubjectNames(int studentId)
+        {
+            return string.Join(", ", db.StudentSubjects
+                .Include(ss => ss.Subject)
+                .Where(ss => ss.StudentId == studentId)
+                .OrderBy(ss => ss.Subject.Name)
+                .Select(ss => ss.Subject.Name)
+                .ToList());
         }
 
         protected override void Dispose(bool disposing)

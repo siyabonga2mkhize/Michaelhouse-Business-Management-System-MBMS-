@@ -14,19 +14,23 @@ namespace Michaelhouse.Controllers
     {
         private readonly DBContextClass db = new DBContextClass();
         private readonly AIResidencePredictionService _predictor = new AIResidencePredictionService();
+        private readonly BoardingAccessService boardingAccess = new BoardingAccessService();
 
         // Dashboard: high-level stats and predictions
         public ActionResult Dashboard()
         {
-            var total = db.Residences.Count(r => !r.IsArchived);
-            var totalAvailable = db.Residences.Sum(r => (int?)r.AvailableBeds) ?? 0;
-            var avgOccupancy = db.Residences.Where(r => !r.IsArchived && r.Capacity>0).Select(r => (double)r.OccupiedBeds / r.Capacity).DefaultIfEmpty(0).Average();
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            var residencesQuery = db.Residences.Where(r => !r.IsArchived && residenceIds.Contains(r.ResidenceId));
+            var total = residencesQuery.Count();
+            var totalAvailable = residencesQuery.ToList().Sum(r => r.AvailableBeds);
+            var avgOccupancy = residencesQuery.Where(r => r.Capacity > 0).Select(r => (double)r.OccupiedBeds / r.Capacity).DefaultIfEmpty(0).Average();
 
             ViewBag.TotalResidences = total;
             ViewBag.TotalAvailableBeds = totalAvailable;
             ViewBag.AverageOccupancy = Math.Round(avgOccupancy * 100, 1) + "%";
 
-            var preds = _predictor.PredictResidencesLikelyToBecomeFull(30);
+            var preds = _predictor.PredictResidencesLikelyToBecomeFull(30)
+                .Where(p => residenceIds.Contains(p.ResidenceId));
             ViewBag.Predictions = preds.Take(5).ToList();
 
             return View();
@@ -37,6 +41,8 @@ namespace Michaelhouse.Controllers
         {
             var query = db.Residences.AsQueryable();
             if (!archived) query = query.Where(r => !r.IsArchived);
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            query = query.Where(r => residenceIds.Contains(r.ResidenceId));
             var list = query.Include(r => r.HouseMaster).Include(r => r.Rooms).ToList();
             ViewBag.Archived = archived;
             return View(list);
@@ -48,10 +54,12 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.HouseMaster).FirstOrDefault(r => r.ResidenceId == id);
             if (res == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, res.ResidenceId)) return new HttpUnauthorizedResult();
             return View(res);
         }
 
         // GET: Create
+        [AdminOnly]
         public ActionResult Create()
         {
             ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName");
@@ -61,6 +69,7 @@ namespace Michaelhouse.Controllers
         // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminOnly]
         public ActionResult Create([Bind(Include = "Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
         {
             if (!ModelState.IsValid) { ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName"); return View(model); }
@@ -71,6 +80,7 @@ namespace Michaelhouse.Controllers
         }
 
         // GET: Edit
+        [AdminOnly]
         public ActionResult Edit(int? id)
         {
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -83,6 +93,7 @@ namespace Michaelhouse.Controllers
         // POST: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminOnly]
         public ActionResult Edit([Bind(Include = "ResidenceId,Name,Capacity,GradeCategory,NearMedicalFacility,NearHouseMasterOffice,HouseMasterId")] Residence model)
         {
             if (!ModelState.IsValid) { ViewBag.HouseMasters = new SelectList(db.HouseMasters.ToList(), "HouseMasterId", "FullName", model.HouseMasterId); return View(model); }
@@ -94,6 +105,7 @@ namespace Michaelhouse.Controllers
         }
 
         // GET: Archive
+        [AdminOnly]
         public ActionResult Archive(int? id)
         {
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -105,6 +117,7 @@ namespace Michaelhouse.Controllers
         // POST: Archive
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminOnly]
         public ActionResult ArchiveConfirmed(int id, string reason)
         {
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).FirstOrDefault(r => r.ResidenceId == id);
@@ -123,6 +136,7 @@ namespace Michaelhouse.Controllers
         // Occupancy view
         public ActionResult Occupancy(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var res = db.Residences.Include(r => r.Rooms.Select(ro => ro.Beds)).Include(r => r.Rooms.Select(ro => ro.Beds.Select(b => b.OccupiedByStudent))).FirstOrDefault(r => r.ResidenceId == id);
             if (res == null) return HttpNotFound();
             return View(res);
@@ -131,6 +145,7 @@ namespace Michaelhouse.Controllers
         // View Rooms
         public ActionResult ViewRooms(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var rooms = db.Rooms.Where(r => r.ResidenceId == id && !r.IsArchived).Include(r => r.Beds).ToList();
             ViewBag.Residence = db.Residences.Find(id)?.Name;
             return View(rooms);
@@ -139,6 +154,7 @@ namespace Michaelhouse.Controllers
         // View Beds
         public ActionResult ViewBeds(int roomId)
         {
+            if (!boardingAccess.CanAccessRoom(this, db, roomId)) return new HttpUnauthorizedResult();
             var beds = db.Beds.Where(b => b.RoomId == roomId).Include(b => b.OccupiedByStudent).ToList();
             ViewBag.Room = db.Rooms.Find(roomId)?.RoomNumber;
             return View(beds);
@@ -147,6 +163,7 @@ namespace Michaelhouse.Controllers
         // View Students
         public ActionResult ViewStudents(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var students = db.ResidenceAssignments.Where(a => a.ResidenceId == id && a.IsActive).Include(a => a.Student).Include(a => a.Room).Include(a => a.Bed).ToList();
             ViewBag.Residence = db.Residences.Find(id)?.Name;
             return View(students);
@@ -159,6 +176,21 @@ namespace Michaelhouse.Controllers
         {
             try
             {
+                var assignment = db.ResidenceAssignments
+                    .OrderByDescending(a => a.MoveInDate)
+                    .FirstOrDefault(a => a.StudentId == studentId && a.IsActive && !a.IsArchived);
+                var targetRoom = db.Rooms.Find(targetRoomId);
+                if (assignment == null || targetRoom == null)
+                    throw new InvalidOperationException("Student assignment or target room could not be found.");
+
+                if (!boardingAccess.IsAdmin(this))
+                {
+                    if (!boardingAccess.CanAccessResidence(this, db, assignment.ResidenceId) ||
+                        !boardingAccess.CanAccessResidence(this, db, targetRoom.ResidenceId) ||
+                        assignment.ResidenceId != targetRoom.ResidenceId)
+                        throw new InvalidOperationException("House Masters may only move students within their assigned residence. Inter-residence transfers require an administrator.");
+                }
+
                 var service = new AIResidenceAllocationService();
                 var userId = (int)(Session["UserId"] ?? 0);
                 var userName = (string)(Session["UserName"] ?? "system");
@@ -175,7 +207,8 @@ namespace Michaelhouse.Controllers
         // Generate occupancy report (CSV simple)
         public ActionResult GenerateOccupancyReport()
         {
-            var data = db.Residences.Include(r => r.Rooms).ToList();
+            var residenceIds = boardingAccess.GetAccessibleResidenceIds(this, db);
+            var data = db.Residences.Where(r => residenceIds.Contains(r.ResidenceId)).Include(r => r.Rooms).ToList();
             var csv = "Residence,Room,Capacity,Occupied\n";
             foreach (var r in data)
             {
@@ -190,6 +223,7 @@ namespace Michaelhouse.Controllers
         // AI Recommendations
         public ActionResult AIRecommendations(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var recs = db.AIResidenceRecommendations.Where(r => r.ResidenceId == id).Include(r => r.Student).OrderByDescending(r => r.GeneratedAt).ToList();
             ViewBag.ResidenceName = db.Residences.Find(id)?.Name;
             return View(recs);
@@ -198,6 +232,7 @@ namespace Michaelhouse.Controllers
         // Emergency roll call
         public ActionResult EmergencyRollCall(int id)
         {
+            if (!boardingAccess.CanAccessResidence(this, db, id)) return new HttpUnauthorizedResult();
             var students = db.ResidenceAssignments.Where(a => a.ResidenceId == id && a.IsActive).Include(a => a.Student).ToList();
             ViewBag.Residence = db.Residences.Find(id)?.Name;
             return View(students);
