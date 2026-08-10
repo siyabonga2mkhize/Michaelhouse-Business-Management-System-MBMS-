@@ -1,20 +1,161 @@
 @model Michaelhouse.Models.ResidenceAssignment
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Assignment Details";
+    ViewBag.Title = "Allocation Dossier - " + (Model?.Student?.Name ?? "Unknown");
+
+    // Dynamic status badge styling
+    string status = Model?.Status ?? "Unknown";
+    string statusColor = status.Equals("Active", StringComparison.OrdinalIgnoreCase) ? "text-green-700 bg-green-50 border-green-200" :
+                         status.Equals("Archived", StringComparison.OrdinalIgnoreCase) || status.Equals("Vacated", StringComparison.OrdinalIgnoreCase) ? "text-gray-600 bg-gray-100 border-gray-300" :
+                         "text-[#C21E2E] bg-red-50 border-[#C21E2E]/30";
 }
-<div class="container py-4">
-    <h2>Assignment Details</h2>
-    <dl class="dl-horizontal">
-        <dt>Student</dt><dd>@Model.Student.Name</dd>
-        <dt>Residence</dt><dd>@Model.Residence.Name</dd>
-        <dt>Room</dt><dd>@Model.Room.RoomNumber</dd>
-        <dt>Bed</dt><dd>@Model.Bed.BedNumber</dd>
-        <dt>Status</dt><dd>@Model.Status</dd>
-        <dt>Move In</dt><dd>@Model.MoveInDate.ToString("g")</dd>
-        <dt>Vacated</dt><dd>@(Model.VacatedDate?.ToString("g") ?? "Active")</dd>
-    </dl>
-    <a class="btn btn-primary" href="@Url.Action("Edit", new { id = Model.ResidenceAssignmentId })">Edit</a>
-    <a class="btn btn-danger" href="@Url.Action("Archive", new { id = Model.ResidenceAssignmentId })">Archive</a>
-    <a class="btn btn-default" href="@Url.Action("Index")">Back</a>
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Allocation Dossier</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Official Residence Assignment Record</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+        <div class="w-full max-w-4xl">
+
+            @* --- RECORD CARD --- *@
+            <div class="w-full bg-white shadow-2xl border-t-4 border-[#C21E2E] relative overflow-hidden group flex flex-col">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-building absolute -right-8 -bottom-10 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div class="relative z-10">
+                        <h4 class="font-serif font-bold text-xl tracking-[4px] text-gray-900">MICHAELHOUSE</h4>
+                        <h6 class="text-[9px] uppercase tracking-[6px] font-bold text-[#C21E2E] mt-1">Spatial Allocation Profile</h6>
+                    </div>
+                    <div class="relative z-10 text-right">
+                        <span class="inline-flex items-center text-[10px] font-mono font-bold uppercase tracking-widest border px-3 py-1 shadow-sm @statusColor">
+                            @(status.Equals("Active", StringComparison.OrdinalIgnoreCase) ? Html.Raw("<i class='bi bi-check-circle me-2'></i>") : Html.Raw("<i class='bi bi-archive me-2'></i>"))
+                            @status
+                        </span>
+                    </div>
+                </div>
+
+                @* Core Data Sectors *@
+                <div class="p-10 relative z-10 flex-grow grid grid-cols-1 md:grid-cols-12 gap-10">
+
+                    @* Left Column: Personnel & Logistics *@
+                    <div class="md:col-span-7 flex flex-col gap-8 border-r border-gray-100 pr-8">
+
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Registered Personnel</p>
+                            <p class="font-serif font-bold text-gray-900 text-3xl leading-tight">@(Model?.Student?.Name ?? "Unknown Student")</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                            <div>
+                                <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Move-In Timestamp</p>
+                                <div class="bg-gray-50 border border-gray-200 py-3 px-4 shadow-inner">
+                                    <span class="font-mono font-bold text-[#10b981] text-sm tracking-widest">
+                                        @(Model?.MoveInDate.ToString("dd MMM yyyy HH:mm") ?? "N/A")
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Vacated Timestamp</p>
+                                <div class="bg-gray-50 border border-gray-200 py-3 px-4 shadow-inner">
+                                    <span class="font-mono font-bold text-[#C21E2E] text-sm tracking-widest">
+                                        @(Model?.VacatedDate?.ToString("dd MMM yyyy HH:mm") ?? "CURRENTLY ACTIVE")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Right Column: Spatial Coordinates *@
+                    <div class="md:col-span-5 flex flex-col gap-6">
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Residence Facility</p>
+                            <p class="font-serif font-bold text-gray-800 text-xl border-l-4 border-[#C21E2E] pl-3">
+                                @(Model?.Residence?.Name ?? "Unassigned")
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Room No.</p>
+                                <p class="font-mono font-bold text-gray-900 text-lg bg-gray-50 border border-gray-200 px-3 py-2 text-center">
+                                    @(Model?.Room?.RoomNumber ?? "--")
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Bed Identifier</p>
+                                <p class="font-mono font-bold text-gray-900 text-lg bg-gray-50 border border-gray-200 px-3 py-2 text-center">
+                                    @(Model?.Bed?.BedNumber ?? "--")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Security & Administrative Actions Footer *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-auto flex-shrink-0">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono hidden md:block">
+                        <i class="bi bi-shield-lock me-2"></i> Allocation Ref: #@(Model?.ResidenceAssignmentId)
+                    </div>
+
+                    <div class="flex gap-3">
+                        <a href="@Url.Action("Edit", new { id = Model?.ResidenceAssignmentId })" class="text-center bg-transparent border border-[#10b981]/40 text-[#10b981] px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
+                            <i class="bi bi-pencil-square me-2 align-middle"></i> Modify Allocation
+                        </a>
+
+                        <a href="@Url.Action("Archive", new { id = Model?.ResidenceAssignmentId })" class="text-center bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all duration-300">
+                            <i class="bi bi-archive me-2 align-middle"></i> Archive Record
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
