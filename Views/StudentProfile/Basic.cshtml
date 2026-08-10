@@ -1,142 +1,369 @@
-@model Michaelhouse.Models.StudentProfileBasicViewModel
+@model Michaelhouse.Models.StudentProfileActivitiesViewModel
+
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Student Profile - Basic Information";
+    ViewBag.Title = "Student Profile - Co-Curricular Activities";
 }
 
-@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
-<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+@* --- INSTITUTIONAL HEADER --- *@
+<div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
 
-    @* --- INSTITUTIONAL HEADER --- *@
-    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
-        <div>
-            <div class="flex items-center gap-2 mb-3">
-                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
-                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Institutional Registry</h5>
-            </div>
-            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Student Profile</h2>
-            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Phase 1 of 5: Basic Information @Model.StudentName</p>
+    <div>
+
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">
+                Institutional Registry
+            </h5>
         </div>
 
-        @* Phase Tracking Indicator *@
-        <div class="flex gap-2 pb-2">
-            <div class="h-1 w-10 bg-[#C21E2E] shadow-[0_0_8px_rgba(194,30,46,0.5)]"></div>
-            <div class="h-1 w-10 bg-gray-200"></div>
-            <div class="h-1 w-10 bg-gray-200"></div>
-            <div class="h-1 w-10 bg-gray-200"></div>
-            <div class="h-1 w-10 bg-gray-200"></div>
-        </div>
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">
+            Student Profile
+        </h2>
+
+        <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+            Phase 3 of 5: Co-Curricular & Leadership Information for @Model.StudentName
+        </p>
+
     </div>
 
-    @* --- SCROLLABLE FORM SECTION --- *@
-    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
 
-        <div class="w-full max-w-4xl">
+    @* Phase Tracking Indicator *@
+    <div class="flex gap-2 pb-2">
 
-            @* --- OFFICIAL ONBOARDING FORM --- *@
-            @using (Html.BeginForm("Basic", "StudentProfile", FormMethod.Post, new { @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form" }))
-            {
-                @Html.AntiForgeryToken()
-                @Html.HiddenFor(m => m.AppId)
-                @Html.HiddenFor(m => m.StudentId)
-                @Html.HiddenFor(m => m.Step)
-                @Html.HiddenFor(m => m.StudentName)
+        <div class="h-1 w-10 bg-gray-300"></div>
 
-                @* Ghost Watermark *@
-                <i class="bi bi-person-vcard absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+        <div class="h-1 w-10 bg-gray-300"></div>
 
-                @* Archival Dot Grid Header *@
-                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
-                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-person-lines-fill me-2 text-gray-400"></i> Demographic Data Initialization</h5>
-                </div>
+        <div class="h-1 w-10 bg-[#C21E2E] shadow-[0_0_8px_rgba(194,30,46,0.5)]"></div>
 
-                <div class="p-8 space-y-8 relative z-10">
+        <div class="h-1 w-10 bg-gray-200"></div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Preferred Name</label>
-                            @Html.TextBoxFor(m => m.PreferredName, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent", placeholder = "e.g., John" })
-                            @Html.ValidationMessageFor(m => m.PreferredName, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
-                        </div>
+        <div class="h-1 w-10 bg-gray-200"></div>
 
-                        <div>
-                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Date of Birth <span class="text-[#C21E2E]">*</span></label>
-                            @Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}", new { type = "date", @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer" })
-                            @Html.ValidationMessageFor(m => m.DateOfBirth, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
-                        </div>
-
-                        <div>
-                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Registered Gender <span class="text-[#C21E2E]">*</span></label>
-                            <div class="relative">
-                                @Html.DropDownListFor(m => m.Gender, new SelectList(new[] { "Male", "Female", "Other" }), "Select classification...", new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
-                                <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                            </div>
-                            @Html.ValidationMessageFor(m => m.Gender, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
-                        </div>
-
-                        <div>
-                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Primary Home Language</label>
-                            @Html.TextBoxFor(m => m.HomeLanguage, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent", placeholder = "e.g., English, Zulu, Afrikaans..." })
-                            @Html.ValidationMessageFor(m => m.HomeLanguage, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Nationality / Citizenship</label>
-                            @Html.TextBoxFor(m => m.Nationality, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent", placeholder = "e.g., South African" })
-                            @Html.ValidationMessageFor(m => m.Nationality, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
-                        </div>
-                    </div>
-
-                </div>
-
-                @* Institutional Footer Actions *@
-                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
-                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
-                        <i class="bi bi-shield-lock me-2 text-gray-500"></i> Local Data Encryption Active
-                    </div>
-                    <div class="flex gap-4">
-                        <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
-                            Save & Advance Phase <i class="bi bi-arrow-right ms-2"></i>
-                        </button>
-                    </div>
-                </div>
-            }
-        </div>
     </div>
+
 </div>
 
-<style>
-    .font-serif {
-        font-family: 'Playfair Display', serif !important;
-    }
 
-    .font-mono {
-        font-family: 'Source Code Pro', monospace !important;
-    }
+@* --- SCROLLABLE FORM SECTION --- *@
+<div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
 
-    /* Internal scrollbar custom styling */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-    }
+    <div class="w-full max-w-4xl">
 
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #eee;
-        border-radius: 10px;
-    }
+        @* --- OFFICIAL ONBOARDING FORM --- *@
+        @using (Html.BeginForm(
+            "Activities",
+            "StudentProfile",
+            FormMethod.Post,
+            new
+            {
+                @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form",
+                id = "activitiesForm"
+            }))
+        {
 
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #C21E2E;
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(m => m.AppId)
+
+            @Html.HiddenFor(m => m.StudentId)
+
+            @Html.HiddenFor(m => m.Step)
+
+            @Html.HiddenFor(m => m.StudentName)
+
+
+            @* Hidden field containing the selected clubs *@
+            @Html.HiddenFor(
+                m => m.Clubs,
+                new { id = "Clubs" }
+            )
+
+
+            @* Ghost Watermark *@
+            <i class="bi bi-award absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;">
+                </div>
+
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">
+
+                    <i class="bi bi-trophy me-2 text-gray-400"></i>
+
+                    Co-Curricular Initialization
+
+                </h5>
+
+            </div>
+
+
+            @* --- FORM CONTENT --- *@
+            <div class="p-8 space-y-8 relative z-10">
+
+
+                @* =============================================== *@
+                @* SPORTS *@
+                @* =============================================== *@
+
+                <div>
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                        Athletics & Sports
+
+                    </label>
+
+
+                    <div class="relative">
+
+                        @Html.DropDownListFor(
+                            m => m.Sports,
+                            new SelectList(
+                                new[]
+                                {
+                                    "Athletics",
+                                    "Cricket",
+                                    "Hockey",
+                                    "Rugby",
+                                    "Football",
+                                    "Tennis",
+                                    "Swimming",
+                                    "Water Polo",
+                                    "Basketball",
+                                    "Golf",
+                                    "Squash",
+                                    "Rowing",
+                                    "Cross Country",
+                                    "None"
+                                },
+                                Model.Sports
+                            ),
+                            "Select main sport...",
+                            new
+                            {
+                                @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10"
+                            }
+                        )
+
+
+                        <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+
+                    </div>
+
+                </div>
+
+
+
+                @* =============================================== *@
+                @* CLUBS & SOCIETIES *@
+                @* =============================================== *@
+
+                <div>
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                        Clubs & Societies
+
+                    </label>
+
+                    <p class="text-[10px] text-gray-400 mb-5">
+
+                        Select all clubs and societies that interest you.
+
+                    </p>
+
+
+                    @{
+                        var clubs = new[]
+                        {
+                            "Chess",
+                            "Debate",
+                            "Coding & Robotics",
+                            "Music",
+                            "Drama",
+                            "Art",
+                            "Photography",
+                            "Community Service",
+                            "Entrepreneurship",
+                            "Christian Fellowship",
+                            "Environmental Club",
+                            "Public Speaking"
+                        };
+
+                        var selectedClubs = new List<string>();
+
+                        if (!string.IsNullOrWhiteSpace(Model.Clubs))
+                        {
+                            selectedClubs = Model.Clubs
+                                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(c => c.Trim())
+                                .ToList();
+                        }
+                    }
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                        @foreach (var club in clubs)
+                        {
+                            var isSelected = selectedClubs.Contains(club);
+
+                            <label class="flex items-center gap-3 p-4 border border-gray-200 hover:border-[#C21E2E] hover:bg-gray-50 cursor-pointer transition-all duration-200">
+
+                                <input type="checkbox"
+                                       class="club-checkbox w-4 h-4 accent-[#C21E2E]"
+                                       value="@club"
+                                       @(isSelected ? "checked" : "") />
+
+                                <span class="text-[11px] font-serif text-gray-800">
+
+                                    @club
+
+                                </span>
+
+                            </label>
+                        }
+
+                    </div>
+
+                </div>
+
+
+
+                @* =============================================== *@
+                @* LEADERSHIP *@
+                @* =============================================== *@
+
+                <div>
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                        Leadership Roles
+
+                    </label>
+
+
+                    @Html.TextAreaFor(
+                        m => m.LeadershipRoles,
+                        new
+                        {
+                            @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif italic text-sm text-gray-900 transition-colors bg-transparent resize-y",
+                            rows = 4,
+                            placeholder = "Specify official prefect, captaincy, or peer mentoring positions held..."
+                        }
+                    )
+
+                </div>
+
+
+
+                @* =============================================== *@
+                @* CULTURAL ACTIVITIES *@
+                @* =============================================== *@
+
+                <div>
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                        Cultural & Arts Activities
+
+                    </label>
+
+
+                    @Html.TextAreaFor(
+                        m => m.CulturalActivities,
+                        new
+                        {
+                            @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif italic text-sm text-gray-900 transition-colors bg-transparent resize-y",
+                            rows = 4,
+                            placeholder = "Record involvement in music ensembles, theatrical productions, or creative arts..."
+                        }
+                    )
+
+                </div>
+
+
+            </div>
+
+
+
+            @* =============================================== *@
+            @* FOOTER ACTIONS *@
+            @* =============================================== *@
+
+            <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
+
+
+                <a href="@Url.Action("Academic", new { appId = Model.AppId })"
+                   class="inline-block bg-transparent border border-white/10 text-gray-400 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 transition-all duration-300">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Previous Phase
+
+                </a>
+
+
+                <button type="submit"
+                        class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+
+                    Save & Advance Phase
+
+                    <i class="bi bi-arrow-right ms-2"></i>
+
+                </button>
+
+            </div>
+
         }
 
-    /* Clean up native date picker indicators slightly */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-    }
+    </div>
 
-        input[type="date"]::-webkit-calendar-picker-indicator:hover {
-            opacity: 1;
-        }
-</style>
+</div>
+
+
+@* ============================================================= *@
+@* CLUB CHECKBOX HANDLING *@
+@* ============================================================= *@
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const form = document.getElementById("activitiesForm");
+
+        const clubsField = document.getElementById("Clubs");
+
+        const clubCheckboxes =
+            document.querySelectorAll(".club-checkbox");
+
+
+        form.addEventListener("submit", function () {
+
+            const selected = [];
+
+            clubCheckboxes.forEach(function (checkbox) {
+
+                if (checkbox.checked) {
+
+                    selected.push(checkbox.value);
+
+                }
+
+            });
+
+
+            clubsField.value = selected.join(", ");
+
+        });
+
+    });
+
+</script>
