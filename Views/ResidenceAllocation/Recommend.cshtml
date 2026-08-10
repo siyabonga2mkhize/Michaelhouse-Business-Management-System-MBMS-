@@ -1,0 +1,110 @@
+@model Michaelhouse.Services.AllocationRecommendation
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Compatibility Recommendations";
+    var topRooms = Model.TopRooms ?? new List<Michaelhouse.Models.RoomCompatibilityResult>();
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-3xl font-serif font-bold">Residence Compatibility Recommendations</h1>
+        <p class="text-sm text-gray-500 mt-1">Top 5 ranked rooms based on student profile, current occupants, room conditions and residence suitability.</p>
+    </div>
+
+    <div class="space-y-5">
+        @foreach (var recommendation in topRooms)
+        {
+            var warningClass = recommendation.Warnings.Any() ? "border-amber-300" : "border-gray-200";
+            <div class="bg-white rounded shadow border @warningClass p-6">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold">@recommendation.ResidenceName - Room @recommendation.RoomNumber</h2>
+                        <div class="text-sm text-gray-600">Bed @recommendation.BedNumber</div>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <div class="text-3xl font-bold text-[#C21E2E]">@recommendation.CompatibilityScore.ToString("F0")%</div>
+                        <div class="text-sm text-gray-500">Confidence @recommendation.Confidence.ToString("P0")</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
+                    <div>
+                        <h3 class="font-semibold mb-2">Reasons</h3>
+                        <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                            @foreach (var reason in recommendation.Reasons)
+                            {
+                                <li>@reason</li>
+                            }
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Warnings</h3>
+                        @if (recommendation.Warnings.Any())
+                        {
+                            <ul class="list-disc pl-5 text-sm text-amber-700 space-y-1">
+                                @foreach (var warning in recommendation.Warnings)
+                                {
+                                    <li>@warning</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <div class="text-sm text-gray-500">None</div>
+                        }
+                    </div>
+                </div>
+
+                <details class="mt-5 border-t pt-4">
+                    <summary class="cursor-pointer font-semibold text-[#C21E2E]">Why this recommendation?</summary>
+                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div>
+                            <h4 class="font-semibold mb-2">Occupant Breakdown</h4>
+                            <div class="space-y-3">
+                                @if (recommendation.OccupantBreakdown.Any())
+                                {
+                                    foreach (var occupant in recommendation.OccupantBreakdown)
+                                    {
+                                        <div class="border rounded p-3">
+                                            <div class="flex justify-between">
+                                                <div class="font-semibold">@occupant.StudentName</div>
+                                                <div class="font-bold">@occupant.CompatibilityScore.ToString("F0")%</div>
+                                            </div>
+                                            <div class="text-sm text-gray-600 mt-2">@string.Join(", ", occupant.Reasons)</div>
+                                            @if (occupant.Warnings.Any())
+                                            {
+                                                <div class="text-sm text-amber-700 mt-1">@string.Join(", ", occupant.Warnings)</div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-sm text-gray-500">Room is currently empty.</div>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Score Details</h4>
+                            <ul class="list-disc pl-5 text-xs text-gray-600 space-y-1">
+                                @foreach (var detail in recommendation.ScoreDetails)
+                                {
+                                    <li>@detail</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+
+                @using (Html.BeginForm("Confirm", "ResidenceAllocation", FormMethod.Post, new { @class = "mt-5" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="studentId" value="@Model.StudentId" />
+                    <input type="hidden" name="roomId" value="@recommendation.RoomId" />
+                    <input type="hidden" name="bedId" value="@recommendation.BedId" />
+                    <button type="submit" class="px-4 py-2 bg-[#C21E2E] text-white rounded">Allocate This Room</button>
+                }
+            </div>
+        }
+    </div>
+</section>

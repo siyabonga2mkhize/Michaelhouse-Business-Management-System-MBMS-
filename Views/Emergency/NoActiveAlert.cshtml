@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "No Active Emergency";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card border-info">
+        <div class="card-header bg-info text-white">
+            <h4>No Active Emergency Alert</h4>
+        </div>
+        <div class="card-body">
+            <p class="lead">@ViewBag.Message</p>
+            <a href="@Url.Action("TriggerAlert")" class="btn btn-danger">Trigger New Alert</a>
+        </div>
+    </div>
+</div>

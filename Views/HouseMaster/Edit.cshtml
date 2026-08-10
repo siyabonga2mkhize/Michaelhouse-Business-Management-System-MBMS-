@@ -1,0 +1,10 @@
+@model Michaelhouse.Models.HouseMaster
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Edit House Master"; }
+<div class="container py-4"><h2>Edit House Master</h2>
+@using (Html.BeginForm()) { @Html.AntiForgeryToken() @Html.HiddenFor(m => m.HouseMasterId) @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<div class="form-group">@Html.LabelFor(m => m.FullName) @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ContactEmail) @Html.TextBoxFor(m => m.ContactEmail, new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ContactPhone) @Html.TextBoxFor(m => m.ContactPhone, new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ResidenceId) @Html.DropDownListFor(m => m.ResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
+<button class="btn btn-primary" type="submit">Save</button> }
+</div>

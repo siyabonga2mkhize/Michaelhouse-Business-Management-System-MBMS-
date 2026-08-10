@@ -1,0 +1,34 @@
+@model Michaelhouse.Models.Residence
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Create Residence";
+}
+
+<section class="p-8 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Create Residence</h1>
+
+    @using (Html.BeginForm("Create", "Residence", FormMethod.Post, new { @class = "space-y-6" }))
+    {
+        @Html.AntiForgeryToken()
+        <div class="bg-white p-6 rounded shadow">
+            <label class="block text-sm font-medium text-gray-700">Name</label>
+            @Html.TextBoxFor(m => m.Name, new { @class = "mt-1 block w-full border rounded px-3 py-2" })
+
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Capacity</label>
+                    @Html.TextBoxFor(m => m.Capacity, new { @class = "mt-1 block w-full border rounded px-3 py-2", type = "number", min = "0" })
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Grade Category</label>
+                    @Html.TextBoxFor(m => m.GradeCategory, new { @class = "mt-1 block w-full border rounded px-3 py-2" })
+                </div>
+            </div>
+
+            <div class="mt-4 flex gap-3">
+                <button type="submit" class="bg-[#C21E2E] text-white px-4 py-2 rounded">Create</button>
+                <a href="@Url.Action("Index")" class="px-4 py-2 border rounded">Cancel</a>
+            </div>
+        </div>
+    }
+</section>

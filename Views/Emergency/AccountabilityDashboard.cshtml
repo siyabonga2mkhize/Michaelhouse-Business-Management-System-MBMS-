@@ -1,0 +1,203 @@
+﻿@{
+    ViewBag.Title = "Accountability Dashboard";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Oversight</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Accountability Dashboard</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Audit Trails • Variance Monitoring • Fleet Compliance</p>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-download me-2"></i> Export Audit Trail
+            </button>
+            <a href="@Url.Action("Availabilities", "Driver")" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                <i class="bi bi-shield-check me-2"></i> Personnel Registry
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DASHBOARD SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 space-y-8">
+
+        @* --- KPI METRICS GRID --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Overall Compliance Rate</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">98.4%</div>
+                <div class="text-[10px] font-mono text-emerald-600 mt-2 flex items-center gap-1">
+                    <i class="bi bi-arrow-up-right"></i> +1.2% from last cycle
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Pending Discrepancies</div>
+                <div class="text-3xl font-serif font-bold text-[#C21E2E]">03</div>
+                <div class="text-[10px] font-mono text-[#C21E2E] mt-2 flex items-center gap-1">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Manager action required
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Active Fleet Deployments</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">14 / 16</div>
+                <div class="text-[10px] font-mono text-gray-400 mt-2 flex items-center gap-1">
+                    <i class="bi bi-truck me-1"></i> Vehicles in service
+                </div>
+            </div>
+
+            <div class="bg-white p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="text-[9px] font-bold uppercase tracking-[2px] text-gray-400 mb-2">Cumulative Route Variance</div>
+                <div class="text-3xl font-serif font-bold text-gray-900 font-mono">18.2 km</div>
+                <div class="text-[10px] font-mono text-amber-600 mt-2 flex items-center gap-1">
+                    <i class="bi bi-dash-circle me-1"></i> Within tolerance limit
+                </div>
+            </div>
+        </div>
+
+        @* --- MAIN CONTENT GRID --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            @* Audit Log Table (2 Cols) *@
+            <div class="lg:col-span-2 bg-white border border-gray-100 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">01. Vehicle Mileage & Shift Audit</h5>
+                    <div class="relative z-10">
+                        <input type="text" placeholder="Filter driver or vehicle..." class="bg-white border border-gray-200 px-3 py-1.5 text-[10px] font-mono text-gray-700 outline-none focus:border-[#C21E2E] transition-colors" />
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/30 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">
+                                <th class="py-4 px-6">Driver & Personnel</th>
+                                <th class="py-4 px-4">Vehicle Unit</th>
+                                <th class="py-4 px-4">Distance Logged</th>
+                                <th class="py-4 px-4">Variance</th>
+                                <th class="py-4 px-4">Status</th>
+                                <th class="py-4 px-6 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-xs font-mono">
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6">
+                                    <div class="font-serif font-bold text-gray-900 text-sm">Siyabonga Mkhize</div>
+                                    <div class="text-[9px] text-gray-400 uppercase tracking-widest font-mono">ID: DRV-8042</div>
+                                </td>
+                                <td class="py-4 px-4 font-bold text-gray-700">BUS-01 (Toyota Coaster)</td>
+                                <td class="py-4 px-4 text-gray-600">142.5 km</td>
+                                <td class="py-4 px-4 text-emerald-600 font-bold">+0.0 km</td>
+                                <td class="py-4 px-4">
+                                    <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified</span>
+                                </td>
+                                <td class="py-4 px-6 text-end">
+                                    <button class="text-gray-400 hover:text-gray-900 text-xs font-bold uppercase tracking-wider">Inspect</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6">
+                                    <div class="font-serif font-bold text-gray-900 text-sm">Nkosana Zondi</div>
+                                    <div class="text-[9px] text-gray-400 uppercase tracking-widest font-mono">ID: DRV-7119</div>
+                                </td>
+                                <td class="py-4 px-4 font-bold text-gray-700">VAN-03 (Mercedes Sprinter)</td>
+                                <td class="py-4 px-4 text-gray-600">88.2 km</td>
+                                <td class="py-4 px-4 text-[#C21E2E] font-bold">+12.4 km</td>
+                                <td class="py-4 px-4">
+                                    <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-red-50 text-[#C21E2E] border border-red-200">Flagged</span>
+                                </td>
+                                <td class="py-4 px-6 text-end">
+                                    <button class="text-[#C21E2E] hover:underline text-xs font-bold uppercase tracking-wider">Review</button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6">
+                                    <div class="font-serif font-bold text-gray-900 text-sm">David Campbell</div>
+                                    <div class="text-[9px] text-gray-400 uppercase tracking-widest font-mono">ID: DRV-6302</div>
+                                </td>
+                                <td class="py-4 px-4 font-bold text-gray-700">SUV-02 (Isuzu mu-X)</td>
+                                <td class="py-4 px-4 text-gray-600">31.0 km</td>
+                                <td class="py-4 px-4 text-amber-600 font-bold">+2.1 km</td>
+                                <td class="py-4 px-4">
+                                    <span class="inline-block px-2.5 py-1 text-[8px] uppercase tracking-widest font-bold bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+                                </td>
+                                <td class="py-4 px-6 text-end">
+                                    <button class="text-gray-400 hover:text-gray-900 text-xs font-bold uppercase tracking-wider">Inspect</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* Right Sidebar Panel *@
+            <div class="space-y-6">
+                @* Flagged Items Alert Panel *@
+                <div class="bg-white border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 -m-6 mb-6">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">02. Priority Discrepancies</h5>
+                    </div>
+                    <ul class="space-y-4 text-xs font-mono">
+                        <li class="p-3 bg-red-50/50 border-l-2 border-[#C21E2E]">
+                            <div class="font-serif font-bold text-gray-900">VAN-03 Route Excursion</div>
+                            <p class="text-[10px] text-gray-500 mt-1 mb-0">+12.4 km recorded outside designated schedule bounds on 08 Aug 2026.</p>
+                            <a href="#" class="inline-block text-[9px] uppercase font-bold text-[#C21E2E] tracking-wider mt-2 hover:underline">Investigate Entry →</a>
+                        </li>
+                        <li class="p-3 bg-amber-50/50 border-l-2 border-amber-500">
+                            <div class="font-serif font-bold text-gray-900">Outstanding Fuel Receipt</div>
+                            <p class="text-[10px] text-gray-500 mt-1 mb-0">Fuel log upload pending for Shift #2841 (Driver: D. Campbell).</p>
+                            <a href="#" class="inline-block text-[9px] uppercase font-bold text-amber-700 tracking-wider mt-2 hover:underline">Request Resubmission →</a>
+                        </li>
+                    </ul>
+                </div>
+
+                @* Institutional Guidelines Card *@
+                <div class="bg-[#1a1a1a] text-white p-6 shadow-sm">
+                    <div class="text-[9px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-2 font-mono">Compliance Policy</div>
+                    <h4 class="font-serif font-bold text-lg mb-3">Institutional Standards</h4>
+                    <p class="text-[11px] font-serif italic text-gray-300 leading-relaxed mb-4">
+                        All vehicle shift logs, fuel verifications, and mileage variations exceeding 5.0 km must be reviewed and countersigned by the Logistics Manager within 24 hours of shift completion.
+                    </p>
+                    <div class="text-[9px] uppercase tracking-[2px] font-mono text-gray-400 border-t border-gray-800 pt-3">
+                        Michaelhouse Transport Logistics • Sec. 4.1
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -2,14 +2,24 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-*.db-shm
+# Visual Studio / local machine files
 .vs/
-bin/
-obj/
-*.user
 *.suo
-*.dll
-*.pdb
+*.user
+*.userosscache
+*.sln.docstates
+*.db-shm
+*.db-wal
 
-/Migrations/202605111135347_initialcreate.Designer.cs
-/Migrations/202605111135347_initialcreate.resx
+# Build output
+[Bb]in/
+[Oo]bj/
+[Pp]ackages/
+
+# Entity Framework / generated content
+Migrations/
+
+# Logs
+*.log
+/Models/VisitorAccessRequest.cs.txt
+/Views/ScanGate.cshtml

@@ -1,7 +1,6 @@
 ﻿select * from SchoolClasses
 
 select * from appusers
-    
 
 
 Select * from ClassSubjects
@@ -195,12 +194,12 @@ VALUES
 DECLARE @ParentId INT = SCOPE_IDENTITY();
 
 -- Insert students with Gender (and any other required fields)
-INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
+INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, IsBoarding, IsActive)
 VALUES 
-('Thabo', 'Nkosi', 8, '2012-05-10', @ParentId, 'Male'),
-('Lerato', 'Molefe', 8, '2012-08-22', @ParentId, 'Female'),
-('Sipho', 'Dlamini', 8, '2012-02-15', @ParentId, 'Male'),
-('Zanele', 'Khumalo', 8, '2012-11-30', @ParentId, 'Female');
+('Thabo', 'Nkosi', 8, '2012-05-10', @ParentId, 1, 1),
+('Lerato', 'Molefe', 8, '2012-08-22', @ParentId,1, 1),
+('Sipho', 'Dlamini', 8, '2012-02-15', @ParentId, 1, 1),
+('Zanele', 'Khumalo', 8, '2012-11-30', @ParentId, 1, 1);
 
 
 INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, Gender)
@@ -1026,52 +1025,80 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE Ve
 
 
 
--- 1. List all tables
-SELECT TABLE_NAME 
-FROM INFORMATION_SCHEMA.TABLES 
-WHERE TABLE_TYPE = 'BASE TABLE';
-
--- 2. List all relationships (Foreign Keys)
-SELECT 
-    fk.name AS ForeignKeyName,
-    tp.name AS ParentTable,
-    cp.name AS ParentColumn,
-    tr.name AS ReferencedTable,
-    cr.name AS ReferencedColumn
-FROM sys.foreign_keys AS fk
-INNER JOIN sys.foreign_key_columns AS fkc ON fk.object_id = fkc.constraint_object_id
-INNER JOIN sys.tables AS tp ON fkc.parent_object_id = tp.object_id
-INNER JOIN sys.columns AS cp ON fkc.parent_object_id = cp.object_id AND fkc.parent_column_id = cp.column_id
-INNER JOIN sys.tables AS tr ON fkc.referenced_object_id = tr.object_id
-INNER JOIN sys.columns AS cr ON fkc.referenced_object_id = cr.object_id AND fkc.referenced_column_id = cr.column_id;
 
 
-SELECT 
-    t.name AS TableName,
-    c.name AS ColumnName,
-    ty.name AS DataType,
-    c.max_length AS MaxLength,
-    c.precision AS Precision,
-    c.scale AS Scale,
-    c.is_nullable,
-    c.is_identity,
-    c.is_computed,
-    c.is_rowguidcol,
-    c.is_filestream,
-    c.is_ansi_padded
-FROM sys.tables t
-INNER JOIN sys.columns c ON t.object_id = c.object_id
-INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
-ORDER BY t.name, c.column_id;
+select * from EmergencyAlerts;
 
-select * from JobCards;
-update JobCards set Status = 'Pending' where Id = 9;
+SELECT TOP 10
+    s.StudentId,
+    s.StudentNumber,
+    s.FirstName + ' ' + s.LastName AS StudentName,
+    sp.BoardingStatus,
+    r.Name          AS Residence,
+    rm.RoomNumber,
+    b.BedNumber,
+    qr.QRCodeValue
+FROM StudentQRCodes qr
+JOIN Students s               ON s.StudentId = qr.StudentId
+JOIN StudentProfiles sp       ON sp.StudentId = s.StudentId
+LEFT JOIN ResidenceAllocations ra ON ra.StudentId = s.StudentId AND ra.IsActive = 1
+LEFT JOIN Residences r        ON r.ResidenceId = ra.ResidenceId
+LEFT JOIN Rooms rm            ON rm.RoomId = ra.RoomId
+LEFT JOIN Beds b              ON b.BedId = ra.BedId
+WHERE qr.IsActive = 1
+  AND s.StudentNumber LIKE 'BDS%'
+ORDER BY s.StudentId;
+SELECT TOP 10
+    QRCodeId,
+    StudentId,
+    QRCodeValue,
+    LEN(QRImage) AS ImageSize,
+    IsActive
+FROM StudentQRCodes;
 
-ALTER TABLE JobCards ADD ReceiptFileName NVARCHAR(MAX) NULL;
-ORDER BY t.name, c.column_id;
 
-select * from JobCards;
 
-delete from JobCards where Id = 9;
+select * from Students
 
-ALTER TABLE JobCards ALTER COLUMN AssetId INT NULL;
+select * from Parents
+
+
+-- Insert the 5 students from your AppUsers table into the Students table
+-- Note: ParentId = 2 corresponds to the 'Demo Parent' in your Parents table.
+INSERT INTO Students (
+    FirstName, LastName, UserId, ParentId, 
+    DOB, IsBoarding, IsActive, GradeLevel, 
+    HomeLanguage, EnrollmentDate
+)
+VALUES 
+('Sipho', 'Nkosi', 1005, 2, '2006-01-01', 1, 1, 8, 'English', GETDATE()),
+('Thabo', 'Nkosi', 1006, 2, '2006-02-01', 1, 1, 8, 'English', GETDATE()),
+('Lerato', 'Molefe', 1007, 2, '2006-03-01', 1, 1, 8, 'English', GETDATE()),
+('Sipho', 'Dlamini', 1008, 2, '2006-04-01', 1, 1, 8, 'English', GETDATE()),
+('Zanele', 'Khumalo', 1009, 2, '2006-05-01', 1, 1, 8, 'English', GETDATE());
+
+
+
+SELECT GeofenceRadiusMeters FROM EmergencyAlerts WHERE AlertId = 1;
+
+-- 1. Update Demo Parent (ParentId 2) with emergency contact details
+UPDATE Parents 
+SET EmergencyContactName = 'Mrs. Demo Parent Emergency', 
+    EmergencyContactPhone = '+27 82 123 4567'
+WHERE ParentId = 2;
+
+-- 2. Make sure the students are linked to this parent
+UPDATE Students
+SET ParentId = 2
+WHERE UserId IN (1005, 1006, 1007, 1008, 1009); -- The 5 Student UserIds
+
+
+select * from EmergencyAlerts;
+
+
+--all 0 from status to 1
+update EmergencyAlerts
+set Status = 1 where Status = 0;
+
+
+DELETE FROM StudentSafetyConfirmations WHERE StudentId = 1005; -- (Use your test student's ID)

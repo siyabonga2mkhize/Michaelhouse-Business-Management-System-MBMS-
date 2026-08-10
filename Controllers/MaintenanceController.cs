@@ -296,7 +296,7 @@ namespace Michaelhouse.Controllers
             {
                 Staff = staff,
                 RecentJobs = recentJobs,
-                LeaveRequests = staff.LeaveRequests.OrderByDescending(l => l.RequestedAt).ToList(),
+                //LeaveRequests = staff.LeaveRequests.OrderByDescending(l => l.RequestedAt).ToList(),
                 UpcomingShifts = upcomingShifts,
                 TotalJobsCompleted = totalCompleted,
                 AvgResponseTime = avgResponse,
@@ -308,19 +308,19 @@ namespace Michaelhouse.Controllers
 
         // ══════════════════════════════════════════════════════════════════════
         // LEAVE MANAGEMENT
-        // ══════════════════════════════════════════════════════════════════════
-        public ActionResult LeaveRequests()
-        {
-            if (!IsAuthorized())
-                return RedirectToAction("Login", "Account");
+        //// ══════════════════════════════════════════════════════════════════════
+        //public ActionResult LeaveRequests()
+        //{
+        //    if (!IsAuthorized())
+        //        return RedirectToAction("Login", "Account");
 
-            var requests = db.LeaveRequests
-                .Include(l => l.Staff)
-                .Include(l => l.ApprovedBy)
-                .OrderByDescending(l => l.RequestedAt)
-                .ToList();
-            return View(requests);
-        }
+        //    var requests = db.LeaveRequests
+        //        .Include(l => l.Staff)
+        //        .Include(l => l.ApprovedBy)
+        //        .OrderByDescending(l => l.RequestedAt)
+        //        .ToList();
+        //    return View(requests);
+        //}
 
         [HttpPost]
         public ActionResult ApproveLeave(int id)
@@ -332,8 +332,8 @@ namespace Michaelhouse.Controllers
             if (request == null) return Json(new { success = false });
 
             request.Status = "Approved";
-            request.ApprovedByUserId = (int)Session["UserId"];
-            request.ApprovedAt = DateTime.Now;
+            //request.ApprovedByUserId = (int)Session["UserId"];
+            //request.ApprovedAt = DateTime.Now;
             db.SaveChanges();
             return Json(new { success = true });
         }
@@ -348,8 +348,8 @@ namespace Michaelhouse.Controllers
             if (request == null) return Json(new { success = false });
 
             request.Status = "Denied";
-            request.ApprovedByUserId = (int)Session["UserId"];
-            request.ApprovedAt = DateTime.Now;
+            //request.ApprovedByUserId = (int)Session["UserId"];
+            //request.ApprovedAt = DateTime.Now;
             db.SaveChanges();
             return Json(new { success = true });
         }

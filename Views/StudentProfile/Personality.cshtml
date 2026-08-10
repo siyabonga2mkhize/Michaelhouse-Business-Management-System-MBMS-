@@ -1,0 +1,381 @@
+@model Michaelhouse.Models.StudentProfilePersonalityViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Student Profile - Personality Assessment";
+}
+
+@* --- INSTITUTIONAL HEADER --- *@
+<div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">
+                Institutional Registry
+            </h5>
+        </div>
+
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">
+            Student Profile
+        </h2>
+
+        <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+            Phase 5 of 5: Personality Assessment for @Model.StudentName
+        </p>
+    </div>
+
+    @* Phase Tracking Indicator (Final Step) *@
+    <div class="flex gap-2 pb-2">
+        <div class="h-1 w-10 bg-gray-800"></div>
+        <div class="h-1 w-10 bg-gray-800"></div>
+        <div class="h-1 w-10 bg-gray-800"></div>
+        <div class="h-1 w-10 bg-gray-800"></div>
+        <div class="h-1 w-10 bg-[#C21E2E] shadow-[0_0_8px_rgba(194,30,46,0.5)] animate-pulse"></div>
+    </div>
+</div>
+
+
+@* --- SCROLLABLE FORM SECTION --- *@
+<div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+    <div class="w-full max-w-4xl">
+
+        @* --- OFFICIAL ONBOARDING FORM --- *@
+        @using (Html.BeginForm(
+            "Personality",
+            "StudentProfile",
+            FormMethod.Post,
+            new
+            {
+                @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form"
+            }))
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(m => m.AppId)
+            @Html.HiddenFor(m => m.StudentId)
+            @Html.HiddenFor(m => m.Step)
+            @Html.HiddenFor(m => m.StudentName)
+
+            @* Ghost Watermark *@
+            <i class="bi bi-puzzle absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;">
+                </div>
+
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">
+                    <i class="bi bi-diagram-3 me-2 text-gray-400"></i>
+                    Behavioral Affinities
+                </h5>
+
+            </div>
+
+
+            @* --- FORM CONTENT --- *@
+            <div class="p-8 space-y-8 relative z-10">
+
+
+                @* 1. Environment Preference *@
+                <div class="border-b border-gray-100 pb-8">
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-4">
+                        I typically prefer...
+                    </label>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.EnvironmentPreference,
+                                "Quiet",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Quiet Environments
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.EnvironmentPreference,
+                                "Busy",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Busy Environments
+                            </span>
+
+                        </label>
+
+                    </div>
+                </div>
+
+
+                @* 2. Routine Preference *@
+                <div class="border-b border-gray-100 pb-8">
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-4">
+                        I usually operate best when I...
+                    </label>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.RoutinePreference,
+                                "WakeEarly",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Wake Early
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.RoutinePreference,
+                                "SleepLate",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Work & Sleep Late
+                            </span>
+
+                        </label>
+
+                    </div>
+                </div>
+
+
+                @* 3. Activity Preference *@
+                <div class="border-b border-gray-100 pb-8">
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-4">
+                        I highly enjoy...
+                    </label>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.ActivityPreference,
+                                "Team",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Collaborative Team Activities
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.ActivityPreference,
+                                "Independent",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Independent Pursuits
+                            </span>
+
+                        </label>
+
+                    </div>
+                </div>
+
+
+                @* 4. Study Preference *@
+                <div class="border-b border-gray-100 pb-8">
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-4">
+                        My optimal study dynamic is...
+                    </label>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.StudyPreference,
+                                "Alone",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Working Alone
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.StudyPreference,
+                                "SmallGroup",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Small Study Groups
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.StudyPreference,
+                                "LargeGroup",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Large Academic Cohorts
+                            </span>
+
+                        </label>
+
+                    </div>
+                </div>
+
+
+                @* 5. Social Preference *@
+                <div>
+
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-[#C21E2E] mb-4">
+                        I generally describe my social inclination as...
+                    </label>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.SocialPreference,
+                                "Introverted",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Introverted
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.SocialPreference,
+                                "Balanced",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Balanced / Ambivert
+                            </span>
+
+                        </label>
+
+
+                        <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+
+                            @Html.RadioButtonFor(
+                                m => m.SocialPreference,
+                                "Extroverted",
+                                new
+                                {
+                                    @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                })
+
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">
+                                Extroverted
+                            </span>
+
+                        </label>
+
+                    </div>
+                </div>
+
+
+                @Html.ValidationSummary(
+                    false,
+                    "",
+                    new
+                    {
+                        @class = "text-[#C21E2E] text-[10px] font-bold uppercase mt-4 block tracking-widest bg-red-50 p-4 border-l-4 border-[#C21E2E]"
+                    })
+
+            </div>
+
+
+            @* --- INSTITUTIONAL FOOTER ACTIONS --- *@
+            <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
+
+                <a href="@Url.Action("Medical", new { appId = Model.AppId })"
+                   class="inline-block bg-transparent border border-white/10 text-gray-400 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 transition-all duration-300">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Previous Phase
+
+                </a>
+
+
+                <button type="submit"
+                        class="bg-green-600 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-green-500 hover:shadow-[0_0_15px_rgba(22,163,74,0.4)] transition-all duration-300">
+
+                    <i class="bi bi-check-circle me-2"></i>
+                    Finalize & Submit
+
+                </button>
+
+            </div>
+        }
+    </div>
+</div>

@@ -113,7 +113,7 @@ namespace Michaelhouse.Models
             DateJoined = DateTime.Now;
             IsActive = true;
             JobCards = new HashSet<JobCard>();
-            LeaveRequests = new HashSet<LeaveRequest>();
+            //LeaveRequests = new HashSet<LeaveRequest>();
             StaffShifts = new HashSet<StaffShift>();
             JobsCompletedThisMonth = 0;
             AvgResponseTime = 0;
@@ -123,56 +123,56 @@ namespace Michaelhouse.Models
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // LEAVE REQUEST
-    // ──────────────────────────────────────────────────────────────────────────
-    public class LeaveRequest
-    {
-        public int Id { get; set; }
+    //// ──────────────────────────────────────────────────────────────────────────
+    //// LEAVE REQUEST
+    //// ──────────────────────────────────────────────────────────────────────────
+    //public class LeaveRequest
+    //{
+    //    public int Id { get; set; }
 
-        [Required]
-        public int StaffId { get; set; }
+    //    [Required]
+    //    public int StaffId { get; set; }
 
-        [Required]
-        public string Type { get; set; } // Sick, Annual, Emergency, Other
+    //    [Required]
+    //    public string Type { get; set; } // Sick, Annual, Emergency, Other
 
-        [Required]
-        [Display(Name = "Start Date")]
-        [DataType(DataType.Date)]
-        public DateTime StartDate { get; set; }
+    //    [Required]
+    //    [Display(Name = "Start Date")]
+    //    [DataType(DataType.Date)]
+    //    public DateTime StartDate { get; set; }
 
-        [Required]
-        [Display(Name = "End Date")]
-        [DataType(DataType.Date)]
-        public DateTime EndDate { get; set; }
+    //    [Required]
+    //    [Display(Name = "End Date")]
+    //    [DataType(DataType.Date)]
+    //    public DateTime EndDate { get; set; }
 
-        [Display(Name = "Reason")]
-        public string Reason { get; set; }
+    //    [Display(Name = "Reason")]
+    //    public string Reason { get; set; }
 
-        [Display(Name = "Status")]
-        public string Status { get; set; } // Pending, Approved, Denied
+    //    [Display(Name = "Status")]
+    //    public string Status { get; set; } // Pending, Approved, Denied
 
-        [Display(Name = "Requested At")]
-        public DateTime RequestedAt { get; set; }
+    //    [Display(Name = "Requested At")]
+    //    public DateTime RequestedAt { get; set; }
 
-        [Display(Name = "Approved By")]
-        public int? ApprovedByUserId { get; set; }
+    //    [Display(Name = "Approved By")]
+    //    public int? ApprovedByUserId { get; set; }
 
-        [Display(Name = "Approved At")]
-        public DateTime? ApprovedAt { get; set; }
+    //    [Display(Name = "Approved At")]
+    //    public DateTime? ApprovedAt { get; set; }
 
-        [ForeignKey("StaffId")]
-        public virtual MaintenanceStaff Staff { get; set; }
+    //    [ForeignKey("StaffId")]
+    //    public virtual MaintenanceStaff Staff { get; set; }
 
-        [ForeignKey("ApprovedByUserId")]
-        public virtual AppUser ApprovedBy { get; set; }
+    //    [ForeignKey("ApprovedByUserId")]
+    //    public virtual AppUser ApprovedBy { get; set; }
 
-        public LeaveRequest()
-        {
-            Status = "Pending";
-            RequestedAt = DateTime.Now;
-        }
-    }
+    //    public LeaveRequest()
+    //    {
+    //        Status = "Pending";
+    //        RequestedAt = DateTime.Now;
+    //    }
+    //}
 
     // ──────────────────────────────────────────────────────────────────────────
     // SHIFT PATTERN (Template)

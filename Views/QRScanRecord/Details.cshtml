@@ -1,0 +1,8 @@
+@model Michaelhouse.Models.QRScanRecord
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "QR Scan Details"; }
+<div class="container py-4">
+    <h2>QR Scan Details</h2>
+    <dl class="dl-horizontal"><dt>Student</dt><dd>@Model.Student.Name</dd><dt>Residence</dt><dd>@(Model.Residence?.Name ?? "-")</dd><dt>Action</dt><dd>@Model.Action</dd><dt>Time</dt><dd>@Model.ScannedAt.ToString("g")</dd><dt>House Master</dt><dd>@(Model.HouseMaster?.FullName ?? "-")</dd><dt>Scanner</dt><dd>@Model.Scanner</dd><dt>Approved</dt><dd>@(Model.Approved ? "Yes" : "No")</dd><dt>Notes</dt><dd>@Model.Reason</dd></dl>
+    <a class="btn btn-danger" href="@Url.Action("Archive", new { id = Model.QRScanRecordId })">Archive</a>
+    <a class="btn btn-default" href="@Url.Action("Index")">Back</a>
+</div>

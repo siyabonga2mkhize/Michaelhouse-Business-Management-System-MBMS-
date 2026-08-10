@@ -1,0 +1,20 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Invalid QR Code";
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h3 class="mb-0">QR Code Not Verified</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                @(ViewBag.ErrorMessage ?? "The QR code could not be verified.")
+            </div>
+            <p class="text-muted">No boarding action was recorded and the student record was not updated.</p>
+            <a class="btn btn-primary" href="@Url.Action("ScanQRCode", "HouseMaster")">Scan Again</a>
+            <a class="btn btn-default" href="@Url.Action("Dashboard", "HouseMaster")">Back to Dashboard</a>
+        </div>
+    </div>
+</div>

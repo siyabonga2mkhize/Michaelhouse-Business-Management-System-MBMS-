@@ -1,7 +1,7 @@
 ﻿using Michaelhouse.Filters;
 using Michaelhouse.Models;
 using Michaelhouse.Services;
-using QRCoder;
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -632,17 +632,14 @@ namespace Michaelhouse.Controllers
         // Helper: generate QR code as base64 image data URL
         private string GenerateQRCodeDataUrl(string url)
         {
-            using (var qrGenerator = new QRCodeGenerator())
-            using (var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q))
-            using (var qrCode = new QRCode(qrCodeData))
+            var encoded = Uri.EscapeDataString(url ?? string.Empty);
+            var chartUrl = $"https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl={encoded}&chld=Q|1";
+
+            using (var wc = new WebClient())
             {
-                using (var bitmap = qrCode.GetGraphic(20))
-                using (var stream = new System.IO.MemoryStream())
-                {
-                    bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                    byte[] bytes = stream.ToArray();
-                    return "data:image/png;base64," + Convert.ToBase64String(bytes);
-                }
+                wc.Headers.Add("User-Agent", "MichaelhouseQRCodeGenerator/1.0");
+                var bytes = wc.DownloadData(chartUrl);
+                return "data:image/png;base64," + Convert.ToBase64String(bytes);
             }
         }
 

@@ -1,0 +1,406 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Student Verification";
+    var student = ViewBag.ScannedStudent as Michaelhouse.Models.Student;
+    var assignment = ViewBag.ActiveAssignment as Michaelhouse.Models.ResidenceAssignment;
+    string status = ViewBag.CurrentStatus as string;
+    string statusLabel = ViewBag.CurrentStatusLabel as string;
+    DateTime? lastCheckIn = ViewBag.LastCheckIn as DateTime?;
+    DateTime? lastCheckOut = ViewBag.LastCheckOut as DateTime?;
+    DateTime? holidayDeparture = ViewBag.HolidayDeparture as DateTime?;
+    string suspensionDetails = ViewBag.SuspensionDetails as string;
+
+    bool canCheckIn = ViewBag.CanCheckIn == true;
+    bool canCheckOut = ViewBag.CanCheckOut == true;
+    bool canHolidayDeparture = ViewBag.CanHolidayDeparture == true;
+    bool canHolidayReturn = ViewBag.CanHolidayReturn == true;
+    bool canVisitorReturn = ViewBag.CanVisitorReturn == true;
+    bool canSuspend = ViewBag.CanSuspend == true;
+    bool canReinstate = ViewBag.CanReinstate == true;
+    bool actionsLocked = ViewBag.ActionsLocked == true;
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Verification Terminal</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Student QR Identity & Access Control</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Dashboard", "HouseMaster")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> House Master Dashboard
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE TERMINAL SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4">
+
+        @* --- ALERTS --- *@
+        @if (TempData["Error"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] mb-6 shadow-sm flex items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
+            </div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 mb-6 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
+            </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            @* --- SCANNER PANE (Left Column) --- *@
+            <div class="lg:col-span-4 flex flex-col">
+                <div class="bg-white shadow-sm border-t-4 border-[#C21E2E] overflow-hidden relative flex flex-col h-full transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(194,30,46,0.1)] group">
+
+                    @* Ghost Watermark *@
+                    <i class="bi bi-qr-code-scan absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] text-white flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0"><i class="bi bi-camera-video me-2"></i> Optical Scanner</h5>
+                        <div class="flex gap-1">
+                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 flex flex-col items-center flex-grow relative z-10">
+                        <p class="text-xs font-serif italic text-gray-500 mb-6 text-center">
+                            Position the student's institutional QR target within the viewfinder to load their residency dossier.
+                        </p>
+
+                        <div id="qr-reader" class="w-full max-w-[300px] mx-auto bg-gray-50 border border-gray-200 p-2 mb-4"></div>
+                        <div id="qr-reader-status" class="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest text-center mb-6">Awaiting target...</div>
+
+                        @using (Html.BeginForm("ScanQRCode", "HouseMaster", FormMethod.Post, new { id = "scanForm", @class = "w-full mt-auto" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <div class="mb-4">
+                                <label for="qrCodeValue" class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Manual Override / Fallback</label>
+                                <input id="qrCodeValue" name="qrCodeValue" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" placeholder="Enter Reference ID" />
+                            </div>
+                            <button type="submit" class="w-full bg-black text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-[#C21E2E] transition-all shadow-sm">
+                                Execute Verification
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- DOSSIER PANE (Right Column) --- *@
+            <div class="lg:col-span-8 flex flex-col">
+                @if (student == null)
+                {
+                    <div class="bg-white border border-gray-200 shadow-sm h-full flex flex-col items-center justify-center p-12 relative overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-md group">
+                        <i class="bi bi-person-bounding-box absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+                        <i class="bi bi-shield-lock text-gray-200 text-6xl d-block mb-4 relative z-10"></i>
+                        <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] relative z-10">File Locked</h4>
+                        <p class="text-[11px] font-mono text-gray-400 mt-2 mb-0 relative z-10">Scan a valid student QR code to access personnel records.</p>
+                    </div>
+                }
+                else
+                {
+                    string badgeBg = status == "Inside" ? "bg-green-50 border-green-200 text-green-700" :
+                                     status == "Outside" ? "bg-red-50 border-red-200 text-[#C21E2E]" :
+                                     status == "OnHoliday" ? "bg-yellow-50 border-yellow-200 text-yellow-700" :
+                                     status == "WeekendLeave" ? "bg-blue-50 border-blue-200 text-blue-700" :
+                                     status == "Suspended" ? "bg-orange-50 border-orange-200 text-orange-700" : "bg-gray-50 border-gray-200 text-gray-600";
+
+                    string iconClass = status == "Inside" ? "bi-check-circle" :
+                                       status == "Outside" ? "bi-box-arrow-right" :
+                                       status == "OnHoliday" ? "bi-sun" :
+                                       status == "WeekendLeave" ? "bi-house" :
+                                       status == "Suspended" ? "bi-exclamation-triangle" : "bi-question-circle";
+
+                    <div class="bg-white border border-gray-200 shadow-sm relative overflow-hidden flex flex-col h-full transition-all duration-700 hover:-translate-y-1 hover:shadow-md group">
+
+                        @* Ghost Watermark *@
+                        <i class="bi bi-person-vcard absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                        @* Dossier Header *@
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-start relative z-10">
+                            <div>
+                                <h3 class="font-serif font-bold text-gray-900 text-3xl leading-tight mb-1 group-hover:text-[#C21E2E] transition-colors duration-500">@student.Name</h3>
+                                <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-1 mb-0">ID: @(student.StudentNumber ?? "UNREGISTERED") &middot; Grade @student.GradeLevel</p>
+                            </div>
+                            <div class="flex-shrink-0 text-right">
+                                <span class="inline-flex items-center px-3 py-1 text-[10px] font-bold uppercase tracking-[2px] border @badgeBg shadow-sm">
+                                    <i class="bi @iconClass me-2 text-sm"></i> @statusLabel
+                                </span>
+                            </div>
+                        </div>
+
+                        @* Dossier Data Grid *@
+                        <div class="p-8 relative z-10">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                <div>
+                                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Location Logistics</h6>
+                                    <dl class="space-y-4">
+                                        <div>
+                                            <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Assigned Residence</dt>
+                                            <dd class="text-sm font-bold text-gray-800">@(assignment?.Residence?.Name ?? "Not assigned")</dd>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Room No.</dt>
+                                                <dd class="text-sm font-mono text-gray-800">@(assignment?.Room?.RoomNumber ?? "N/A")</dd>
+                                            </div>
+                                            <div>
+                                                <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Bed No.</dt>
+                                                <dd class="text-sm font-mono text-gray-800">@(assignment?.Bed?.BedNumber ?? "N/A")</dd>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">House Master</dt>
+                                            <dd class="text-sm font-serif italic text-gray-600">@(assignment?.Residence?.HouseMaster?.FullName ?? "Not assigned")</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                                <div>
+                                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Temporal Records</h6>
+                                    <dl class="space-y-4">
+                                        <div>
+                                            <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Last Authorized Check-In</dt>
+                                            <dd class="text-xs font-mono font-bold text-[#10b981]">@(lastCheckIn?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "NO RECORD")</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Last Authorized Check-Out</dt>
+                                            <dd class="text-xs font-mono font-bold text-[#C21E2E]">@(lastCheckOut?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "NO RECORD")</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-[9px] uppercase tracking-[1px] font-bold text-gray-400 mb-1">Holiday Departure Registry</dt>
+                                            <dd class="text-xs font-mono text-gray-600">@(holidayDeparture?.ToLocalTime().ToString("dd MMM yyyy") ?? "NOT REGISTERED")</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(suspensionDetails))
+                            {
+                                <div class="bg-orange-50 border-l-2 border-orange-500 p-4 mb-8">
+                                    <p class="text-[9px] uppercase tracking-[2px] font-bold text-orange-600 mb-1"><i class="bi bi-exclamation-octagon me-1"></i> Disciplinary Notice</p>
+                                    <p class="text-sm font-serif italic text-gray-800 mb-0">"@suspensionDetails"</p>
+                                </div>
+                            }
+                        </div>
+
+                        @* Protocol Action Board (Ghost Buttons) *@
+                        <div class="mt-auto bg-[#1a1a1a] p-6 relative z-10">
+                            @if (assignment == null || actionsLocked)
+                            {
+                                <div class="text-center p-4">
+                                    <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-0"><i class="bi bi-lock-fill me-2"></i> Administrative actions locked or unavailable.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-800 pb-3 mb-4">Boarding Protocol Execution</h6>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+
+                                    @using (Html.BeginForm("CheckIn", "HouseMaster", FormMethod.Post, new { @class = "w-full" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <button type="submit" class="w-full text-left bg-transparent border border-[#10b981]/30 text-[#10b981] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canCheckIn ? "hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "opacity-30 cursor-not-allowed")" @(canCheckIn ? "" : "disabled")>
+                                            <i class="bi bi-box-arrow-in-right text-lg block mb-1"></i> Sign In
+                                        </button>
+                                    }
+
+                                    @using (Html.BeginForm("CheckOut", "HouseMaster", FormMethod.Post, new { @class = "w-full" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <button type="submit" class="w-full text-left bg-transparent border border-[#C21E2E]/30 text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canCheckOut ? "hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)]" : "opacity-30 cursor-not-allowed")" @(canCheckOut ? "" : "disabled")>
+                                            <i class="bi bi-box-arrow-up-right text-lg block mb-1"></i> Sign Out
+                                        </button>
+                                    }
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                                    @using (Html.BeginForm("HolidayDeparture", "HouseMaster", FormMethod.Post, new { @class = "w-full" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <button type="submit" class="w-full text-left bg-transparent border border-white/10 text-gray-300 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canHolidayDeparture ? "hover:bg-white/5 hover:border-white/40 hover:text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "opacity-30 cursor-not-allowed")" @(canHolidayDeparture ? "" : "disabled")>
+                                            <i class="bi bi-airplane text-lg block mb-1"></i> Holiday Departure
+                                        </button>
+                                    }
+
+                                    @using (Html.BeginForm("HolidayReturn", "HouseMaster", FormMethod.Post, new { @class = "w-full" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <button type="submit" class="w-full text-left bg-transparent border border-white/10 text-gray-300 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canHolidayReturn ? "hover:bg-white/5 hover:border-white/40 hover:text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "opacity-30 cursor-not-allowed")" @(canHolidayReturn ? "" : "disabled")>
+                                            <i class="bi bi-house-door text-lg block mb-1"></i> Holiday Return
+                                        </button>
+                                    }
+                                </div>
+
+                                @* Disciplinary Actions *@
+                                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-800 pb-3 mb-4 mt-8">Disciplinary Execution</h6>
+                                <div class="grid grid-cols-1 gap-4">
+                                    @using (Html.BeginForm("SuspendStudent", "HouseMaster", FormMethod.Post, new { @class = "w-full bg-gray-900/50 p-4 border border-gray-800" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Formal Reason</label>
+                                                <input name="suspensionReason" class="w-full border-b border-gray-700 bg-transparent py-2 text-white text-sm font-serif italic focus:border-orange-500 outline-none transition-colors" placeholder="Enter justification..." required />
+                                            </div>
+                                            <div>
+                                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Expected Return</label>
+                                                <input name="expectedReturnDate" type="datetime-local" class="w-full border-b border-gray-700 bg-transparent py-2 text-white text-sm font-mono focus:border-orange-500 outline-none transition-colors" />
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="bg-transparent border border-orange-500/30 text-orange-500 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canSuspend ? "hover:bg-orange-500/10 hover:border-orange-500 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)]" : "opacity-30 cursor-not-allowed")" @(canSuspend ? "" : "disabled") onclick="return confirm('Formal warning: Are you sure you wish to execute a suspension protocol?');">
+                                            <i class="bi bi-exclamation-octagon me-1"></i> Execute Suspension
+                                        </button>
+                                    }
+
+                                    @using (Html.BeginForm("ReinstateStudent", "HouseMaster", FormMethod.Post, new { @class = "w-full" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@student.StudentId" />
+                                        <button type="submit" class="bg-transparent border border-blue-500/30 text-blue-400 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canReinstate ? "hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-300 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "opacity-30 cursor-not-allowed hidden")" @(canReinstate ? "" : "disabled") onclick="return confirm('Reinstate this student to active residency?');">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reinstate Protocol
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* --- HTML5 QR CODE OVERRIDES --- */
+    #qr-reader {
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent;
+    }
+
+    #qr-reader__scan_region {
+        border: 2px solid #C21E2E !important;
+        background-color: #000;
+    }
+
+    #qr-reader__dashboard_section_csr span {
+        font-family: 'Source Code Pro', monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #999;
+    }
+
+    #qr-reader button {
+        background-color: #333 !important;
+        color: white !important;
+        font-family: 'Source Code Pro', monospace !important;
+        font-size: 9px !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+        padding: 8px 16px !important;
+        border: 1px solid #444 !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+        margin-top: 10px !important;
+    }
+
+        #qr-reader button:hover {
+            background-color: #C21E2E !important;
+            border-color: #C21E2E !important;
+        }
+
+    #qr-reader select {
+        font-family: 'Source Code Pro', monospace !important;
+        font-size: 11px !important;
+        padding: 6px !important;
+        border: 1px solid #333 !important;
+        background-color: #222 !important;
+        color: white !important;
+        outline: none !important;
+        margin-bottom: 10px !important;
+        width: 100%;
+    }
+
+    #qr-reader a {
+        color: #C21E2E !important;
+        text-decoration: none !important;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 10px;
+    }
+
+    /* Input date styling for dark mode */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+</style>
+
+@section Scripts {
+    <script src="@Url.Content("~/Scripts/html5-qrcode.min.js")"></script>
+    <script>
+        (function () {
+            var input = document.getElementById("qrCodeValue");
+            var form = document.getElementById("scanForm");
+            var status = document.getElementById("qr-reader-status");
+
+            if (!window.Html5Qrcode) {
+                status.innerHTML = '<span class="text-[#C21E2E]">Optical module offline. Utilize manual override.</span>';
+                return;
+            }
+
+            var scanner = new Html5Qrcode("qr-reader");
+            scanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                function (decodedText) {
+                    input.value = decodedText;
+                    status.innerHTML = '<span class="text-green-500"><i class="bi bi-shield-check me-1"></i> Target acquired. Initiating verification...</span>';
+                    scanner.stop().finally(function () { form.submit(); });
+                },
+                function () { }
+            ).catch(function () {
+                status.innerHTML = '<span class="text-orange-500">Camera access restricted. Utilize manual override.</span>';
+            });
+        })();
+    </script>
+}

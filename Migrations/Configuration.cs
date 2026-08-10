@@ -14,6 +14,7 @@ namespace Michaelhouse.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
         }
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)
@@ -23,7 +24,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Admin",
+                    Name = "Linda Smith",
                     Email = "admin@michaelhouse.co.za",
                     PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
@@ -31,9 +32,9 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ------------------------------------------------------------------
-            //  FIX: Ensure a Teacher exists before seeding trips
-            // ------------------------------------------------------------------
+            // ──────────────────────────────────────────────────────────────
+            // Ensure a Teacher exists before seeding trips (from HEAD)
+            // ──────────────────────────────────────────────────────────────
             if (!context.Users.Any(u => u.Role == "Teacher"))
             {
                 var teacherUser = new AppUser
@@ -87,9 +88,9 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ----------------------------
-            // Seed trips, vehicles, etc.
-            // ----------------------------
+            // ──────────────────────────────────────────────────────────────
+            // Seed trips, vehicles, etc. (from HEAD)
+            // ──────────────────────────────────────────────────────────────
             try
             {
                 var vehicleNumbers = new[] { "MH-TRIP-001", "MH-TRIP-002", "MH-TRIP-003" };
@@ -118,6 +119,7 @@ namespace Michaelhouse.Migrations
                 int vIndex = 0;
                 foreach (var drv in drivers)
                 {
+                    // upcoming trip
                     var upDate = DateTime.Today.AddDays(3 + vIndex);
                     bool upExists = context.TripSchedules.Any(ts => ts.DriverId == drv.Id && DbFunctions.TruncateTime(ts.ScheduledDate) == DbFunctions.TruncateTime(upDate));
                     if (!upExists)
@@ -173,6 +175,7 @@ namespace Michaelhouse.Migrations
                         context.SaveChanges();
                     }
 
+                    // past completed trip
                     var pastDate = DateTime.Today.AddDays(-7 - vIndex);
                     bool pastExists = context.TripSchedules.Any(ts => ts.DriverId == drv.Id && DbFunctions.TruncateTime(ts.ScheduledDate) == DbFunctions.TruncateTime(pastDate));
                     if (!pastExists)
@@ -365,11 +368,14 @@ namespace Michaelhouse.Migrations
             }
             catch { }
 
+            // ──────────────────────────────────────────────────────────────
+            // Seed InventoryManager and TransportManager (from HEAD)
+            // ──────────────────────────────────────────────────────────────
             if (!context.Users.Any(u => u.Role == "InventoryManager"))
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Inventory Manager",
+                    Name = "Andre Van Kok",
                     Email = "inventory@michaelhouse.co.za",
                     PasswordHash = HashPassword("Stock@123"),
                     Role = "InventoryManager"
@@ -381,7 +387,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Transport Manager",
+                    Name = "Greg Johnson",
                     Email = "transport@michaelhouse.co.za",
                     PasswordHash = HashPassword("Transport@123"),
                     Role = "TransportManager"
@@ -389,9 +395,9 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ----------------------------
-            // Seed Categories & Products
-            // ----------------------------
+            // ──────────────────────────────────────────────────────────────
+            // Seed Categories & Products (from HEAD)
+            // ──────────────────────────────────────────────────────────────
             if (!context.Categories.Any())
             {
                 var uniforms = new Category
@@ -442,9 +448,95 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ──────────────────────────────────────────────────────────────────────────────
-            // NEW: SEED SHIFT PATTERNS
-            // ──────────────────────────────────────────────────────────────────────────────
+            // ──────────────────────────────────────────────────────────────
+            // Seed Suppliers and SupplierProducts (from other branch)
+            // ──────────────────────────────────────────────────────────────
+            var uniformSupplier = new Supplier
+            {
+                Name = "KZN Uniform Manufacturers",
+                ContactPerson = "Sarah Ndlovu",
+                Email = "sales@kznuniforms.co.za",
+                Phone = "0311234567",
+                Address = "100 West St, Durban",
+                IsActive = true
+            };
+
+            var stationerySupplier = new Supplier
+            {
+                Name = "EduBooks SA",
+                ContactPerson = "David Smith",
+                Email = "orders@edubooks.co.za",
+                Phone = "0119876543",
+                Address = "50 Nelson Mandela Dr, Johannesburg",
+                IsActive = true
+            };
+
+            context.Suppliers.AddOrUpdate(s => s.Name, uniformSupplier, stationerySupplier);
+            context.SaveChanges();
+
+            // Re-fetch to get the newly generated Supplier IDs
+            uniformSupplier = context.Suppliers.First(s => s.Name == "KZN Uniform Manufacturers");
+            stationerySupplier = context.Suppliers.First(s => s.Name == "EduBooks SA");
+
+            // Grab Uniform products
+            var smallShirt = context.Products.First(p => p.Name == "School Shirt (White) - Small");
+            var medShirt = context.Products.First(p => p.Name == "School Shirt (White) - Medium");
+            var lrgShirt = context.Products.First(p => p.Name == "School Shirt (White) - Large");
+            var greyTrousers28 = context.Products.First(p => p.Name == "School Trousers (Grey) - 28");
+            var greyTrousers30 = context.Products.First(p => p.Name == "School Trousers (Grey) - 30");
+            var skirt = context.Products.First(p => p.Name == "School Skirt - Size 10");
+            var tie = context.Products.First(p => p.Name == "School Tie");
+            var blazerS = context.Products.First(p => p.Name == "School Blazer - Small");
+            var blazerM = context.Products.First(p => p.Name == "School Blazer - Medium");
+            var sportsKit = context.Products.First(p => p.Name == "School Sports Kit");
+
+            // Grab Books & Stationery products
+            var math8 = context.Products.First(p => p.Name == "Grade 8 Mathematics Textbook");
+            var math9 = context.Products.First(p => p.Name == "Grade 9 Mathematics Textbook");
+            var physSci = context.Products.First(p => p.Name == "Grade 10 Physical Science");
+            var engLit = context.Products.First(p => p.Name == "English Literature Anthology");
+            var exerciseBooks = context.Products.First(p => p.Name == "A4 Exercise Book (Pack of 10)");
+            var geometrySet = context.Products.First(p => p.Name == "Geometry Set");
+            var calculator = context.Products.First(p => p.Name == "Scientific Calculator");
+            var pencils = context.Products.First(p => p.Name == "Coloured Pencils (24 pack)");
+
+            var supplierLinks = new[]
+            {
+                // Uniform Supplier Links
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = smallShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-S", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = medShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-M", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = lrgShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-L", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = greyTrousers28.Id, UnitCost = 130.00m, SupplierSku = "TR-GRY-28", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = greyTrousers30.Id, UnitCost = 130.00m, SupplierSku = "TR-GRY-30", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = skirt.Id, UnitCost = 110.00m, SupplierSku = "SK-BLU-10", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = tie.Id, UnitCost = 40.00m, SupplierSku = "TIE-STD", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = blazerS.Id, UnitCost = 310.00m, SupplierSku = "BLZ-GRN-S", MinOrderQty = 5, LeadTimeDays = 21, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = blazerM.Id, UnitCost = 310.00m, SupplierSku = "BLZ-GRN-M", MinOrderQty = 5, LeadTimeDays = 21, IsPreferred = true },
+                new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = sportsKit.Id, UnitCost = 190.00m, SupplierSku = "SPT-KIT-ALL", MinOrderQty = 10, LeadTimeDays = 14, IsPreferred = true },
+
+                // Stationery Supplier Links
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = math8.Id, UnitCost = 180.00m, SupplierSku = "MATH-GR8-01", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = math9.Id, UnitCost = 190.00m, SupplierSku = "MATH-GR9-01", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = physSci.Id, UnitCost = 210.00m, SupplierSku = "SCI-GR10-01", MinOrderQty = 15, LeadTimeDays = 14, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = engLit.Id, UnitCost = 150.00m, SupplierSku = "ENG-LIT-ANTH", MinOrderQty = 20, LeadTimeDays = 10, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = exerciseBooks.Id, UnitCost = 50.00m, SupplierSku = "EX-BK-A4-10", MinOrderQty = 50, LeadTimeDays = 5, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = geometrySet.Id, UnitCost = 35.00m, SupplierSku = "GEO-SET-01", MinOrderQty = 30, LeadTimeDays = 7, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = calculator.Id, UnitCost = 250.00m, SupplierSku = "CALC-SCI-CAS", MinOrderQty = 10, LeadTimeDays = 10, IsPreferred = true },
+                new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = pencils.Id, UnitCost = 25.00m, SupplierSku = "PENC-24", MinOrderQty = 50, LeadTimeDays = 3, IsPreferred = true }
+            };
+
+            foreach (var link in supplierLinks)
+            {
+                if (!context.SupplierProducts.Any(sp => sp.SupplierId == link.SupplierId && sp.ProductId == link.ProductId))
+                {
+                    context.SupplierProducts.Add(link);
+                }
+            }
+            context.SaveChanges();
+
+            // ──────────────────────────────────────────────────────────────
+            // SHIFT PATTERNS (from HEAD)
+            // ──────────────────────────────────────────────────────────────
             if (!context.ShiftPatterns.Any())
             {
                 context.ShiftPatterns.AddOrUpdate(sp => sp.Name,
@@ -455,13 +547,10 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ====================================================================
-            //  MAINTENANCE SEEDING
-            //  All entities use the same AppUser. Roles: MaintenanceManager,
-            //  MaintenanceWorker, and FaultReporter.
-            // ====================================================================
-
-            // ---- SEED MAINTENANCE STAFF ----
+            // ──────────────────────────────────────────────────────────────
+            // MAINTENANCE SEEDING (from HEAD) – Staff, Users, Inventory,
+            // Assets, Job Cards, Safety Net
+            // ──────────────────────────────────────────────────────────────
             if (!context.MaintenanceStaff.Any())
             {
                 context.MaintenanceStaff.AddOrUpdate(s => s.StaffNumber,
@@ -599,10 +688,7 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ── SEED MAINTENANCE USERS (AppUser) ────────────────────────────────
-            // ALL 10 workers now have explicit seed entries (same pattern as Sipho, Eric, Sifiso)
-
-            // ---- Maintenance Manager ----
+            // ── Maintenance Users ──
             if (!context.Users.Any(u => u.Email == "j.mokoena@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -617,7 +703,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 1: Sipho Dlamini ----
             if (!context.Users.Any(u => u.Email == "s.dlamini@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -632,7 +717,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 2: Bongani Nkosi (NEW) ----
             if (!context.Users.Any(u => u.Email == "b.nkosi@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -647,7 +731,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 3: Eric Mthembu ----
             if (!context.Users.Any(u => u.Email == "e.mthembu@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -662,7 +745,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 4: Thabo Zulu (NEW) ----
             if (!context.Users.Any(u => u.Email == "t.zulu@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -677,7 +759,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 5: Lungelo Mbatha (NEW) ----
             if (!context.Users.Any(u => u.Email == "l.mbatha@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -692,7 +773,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 6: Sifiso Khumalo ----
             if (!context.Users.Any(u => u.Email == "s.khumalo@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -707,7 +787,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 7: Nhlanhla Mokoena (NEW) ----
             if (!context.Users.Any(u => u.Email == "n.mokoena@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -722,7 +801,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 8: Mandla Cele (NEW) ----
             if (!context.Users.Any(u => u.Email == "m.cele@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -737,7 +815,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 9: Sandile Ntanzi (NEW - FIXED!) ----
             if (!context.Users.Any(u => u.Email == "s.ntanzi@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -752,7 +829,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Worker 10: Phumzile Mhlongo (NEW) ----
             if (!context.Users.Any(u => u.Email == "p.mhlongo@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -767,7 +843,7 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- Fault Reporters ----
+            // Fault Reporters
             if (!context.Users.Any(u => u.Email == "d.hutchinson@michaelhouse.org"))
             {
                 context.Users.AddOrUpdate(u => u.Email,
@@ -824,7 +900,7 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- SEED MAINTENANCE INVENTORY ----
+            // ── Maintenance Inventory ──
             if (!context.MaintenanceInventory.Any())
             {
                 context.MaintenanceInventory.AddOrUpdate(i => i.ItemName,
@@ -1009,11 +1085,7 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ═══════════════════════════════════════════════════════════════════════
-            //  ADVANCED SEEDS – Shifts, Assets, Job Cards
-            // ═══════════════════════════════════════════════════════════════════════
-
-            // ── Seed Staff Shifts (next 7 days) ──────────────────────────────────
+            // ── Advanced Seeds – Shifts, Assets, Job Cards ──
             if (!context.StaffShifts.Any())
             {
                 var shiftPatterns = context.ShiftPatterns.ToList();
@@ -1038,7 +1110,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ── Seed Assets (50+ assets) ─────────────────────────────────────────
             if (!context.Assets.Any())
             {
                 var assetData = new List<dynamic>();
@@ -1151,7 +1222,6 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ── Seed Job Cards (open, completed, overdue) ──────────────────────
             if (!context.JobCards.Any())
             {
                 var staff = context.MaintenanceStaff.ToList();
@@ -1229,18 +1299,13 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ═══════════════════════════════════════════════════════════════════════
-            //  SAFETY NET: Ensure any remaining staff have login accounts
-            //  (This catches any staff that might have been added manually)
-            // ═══════════════════════════════════════════════════════════════════════
+            // ── Safety net – ensure all staff have login accounts ──
             var allStaff = context.MaintenanceStaff.ToList();
             foreach (var staff in allStaff)
             {
-                // Skip if staff already has a valid UserId
                 if (staff.UserId.HasValue && context.Users.Any(u => u.UserId == staff.UserId.Value))
                     continue;
 
-                // Check if a user with this email already exists
                 var existingUser = context.Users.FirstOrDefault(u => u.Email == staff.Email);
                 if (existingUser != null)
                 {
@@ -1250,8 +1315,6 @@ namespace Michaelhouse.Migrations
                     continue;
                 }
 
-                // Create a new AppUser for this staff member
-                // Ensure email is not null
                 var email = staff.Email ?? staff.FullName.Replace(" ", ".").ToLower() + "@michaelhouse.org";
                 var newUser = new AppUser
                 {
@@ -1268,9 +1331,9 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
-            // ---- END NEW ADVANCED SEEDS ----
-
-            // 4. Seed Drivers (including their AppUser accounts)
+            // ──────────────────────────────────────────────────────────────
+            // Seed Drivers (from HEAD) plus SQL script and Boarding House
+            // ──────────────────────────────────────────────────────────────
             if (!context.Users.Any(u => u.Role == "Driver"))
             {
                 var driversData = new[]
@@ -1311,33 +1374,40 @@ namespace Michaelhouse.Migrations
                     };
                     context.Drivers.Add(driver);
                 }
-                // ---- Execute the large SQL seed script (idempotent) ----
-                try
-                {
-                    var assembly = Assembly.GetExecutingAssembly();
-                    string resourceName = "Michaelhouse.Scripts.SQLQuery.sql"; // adjust to your actual namespace + folder
-                    using (var stream = assembly.GetManifestResourceStream(resourceName))
-                    {
-                        if (stream == null)
-                            throw new Exception($"Resource '{resourceName}' not found.");
-                        using (var reader = new StreamReader(stream))
-                        {
-                            string sqlScript = reader.ReadToEnd();
-                            ExecuteSqlScript(context, sqlScript);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log or rethrow – you may want to continue if script fails partially
-                    // Since the script is idempotent, we can swallow or log.
-                    System.Diagnostics.Debug.WriteLine("SQL Seed script error: " + ex.Message);
-                }
-
 
                 context.SaveChanges();
             }
+
+            // ── Execute SQL seed script (from other branch) ──
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                string resourceName = "Michaelhouse.Scripts.SQLQuery.sql"; // adjust to your actual namespace + folder
+                using (var stream = assembly.GetManifestResourceStream(resourceName))
+                {
+                    if (stream == null)
+                        throw new Exception($"Resource '{resourceName}' not found.");
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string sqlScript = reader.ReadToEnd();
+                        ExecuteSqlScript(context, sqlScript);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log or rethrow – since script is idempotent, we can swallow or log.
+                System.Diagnostics.Debug.WriteLine("SQL Seed script error: " + ex.Message);
+            }
+
+            // ── Seed Boarding House test data (from other branch) ──
+            SeedBoardingHouseTestData(context);
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // Helper methods (from other branch)
+        // ──────────────────────────────────────────────────────────────
+
         private void ExecuteSqlScript(DbContext context, string sqlScript)
         {
             var batches = sqlScript.Split(new[] { "GO" }, StringSplitOptions.RemoveEmptyEntries)
@@ -1360,6 +1430,211 @@ namespace Michaelhouse.Migrations
                     transaction.Rollback();
                     throw new Exception("Error executing SQL seed script: " + ex.Message, ex);
                 }
+            }
+        }
+
+        private void SeedBoardingHouseTestData(DBContextClass context)
+        {
+            var houses = new[]
+            {
+                new
+                {
+                    ResidenceName = "Founders House",
+                    HouseMasterName = "Mr James Harrington",
+                    Email = "founders.hm@michaelhouse.co.za",
+                    Phone = "0333301001",
+                    Gender = "Male",
+                    GradeCategory = "Junior",
+                    NearMedical = true,
+                    NearOffice = true,
+                    RoomPrefix = "F",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 4, 4, 3, 3 }
+                },
+                new
+                {
+                    ResidenceName = "Baines House",
+                    HouseMasterName = "Ms Nomvula Dlamini",
+                    Email = "baines.hm@michaelhouse.co.za",
+                    Phone = "0333301002",
+                    Gender = "Male",
+                    GradeCategory = "Middle",
+                    NearMedical = false,
+                    NearOffice = true,
+                    RoomPrefix = "B",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 3, 3, 4, 4 }
+                },
+                new
+                {
+                    ResidenceName = "Tatham House",
+                    HouseMasterName = "Mr Andrew Naidoo",
+                    Email = "tatham.hm@michaelhouse.co.za",
+                    Phone = "0333301003",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = false,
+                    NearOffice = false,
+                    RoomPrefix = "T",
+                    Floors = new[] { 1, 2, 2, 3 },
+                    Capacities = new[] { 2, 3, 3, 2 }
+                },
+                new
+                {
+                    ResidenceName = "Churchill House",
+                    HouseMasterName = "Ms Sarah Mokoena",
+                    Email = "churchill.hm@michaelhouse.co.za",
+                    Phone = "0333301004",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = true,
+                    NearOffice = false,
+                    RoomPrefix = "C",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 2, 2, 3, 3 }
+                }
+            };
+
+            foreach (var house in houses)
+            {
+                var user = context.Users.FirstOrDefault(u => u.Email == house.Email);
+                if (user == null)
+                {
+                    user = new AppUser
+                    {
+                        Name = house.HouseMasterName,
+                        Email = house.Email,
+                        PasswordHash = HashPassword("HouseMaster@123"),
+                        Role = "HouseMaster"
+                    };
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                }
+
+                var houseMaster = context.HouseMasters.FirstOrDefault(h => h.ContactEmail == house.Email);
+                if (houseMaster == null)
+                {
+                    houseMaster = new HouseMaster
+                    {
+                        FullName = house.HouseMasterName,
+                        ContactEmail = house.Email,
+                        ContactPhone = house.Phone
+                    };
+                    context.HouseMasters.Add(houseMaster);
+                    context.SaveChanges();
+                }
+
+                var residence = context.Residences.FirstOrDefault(r => r.Name == house.ResidenceName);
+                if (residence == null)
+                {
+                    residence = new Residence
+                    {
+                        Name = house.ResidenceName,
+                        Gender = house.Gender,
+                        GradeCategory = house.GradeCategory,
+                        HouseMasterId = houseMaster.HouseMasterId,
+                        NearMedicalFacility = house.NearMedical,
+                        NearHouseMasterOffice = house.NearOffice,
+                        OccupiedBeds = 0,
+                        IsArchived = false,
+                        ArchivedDate = DateTime.Now
+                    };
+                    context.Residences.Add(residence);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    residence.Gender = house.Gender;
+                    residence.GradeCategory = house.GradeCategory;
+                    residence.HouseMasterId = houseMaster.HouseMasterId;
+                    residence.NearMedicalFacility = house.NearMedical;
+                    residence.NearHouseMasterOffice = house.NearOffice;
+                }
+
+                houseMaster.ResidenceId = residence.ResidenceId;
+                context.SaveChanges();
+
+                for (var i = 0; i < house.Capacities.Length; i++)
+                {
+                    var roomNumber = $"{house.RoomPrefix}{(i + 1):00}";
+                    var room = context.Rooms.FirstOrDefault(r => r.ResidenceId == residence.ResidenceId && r.RoomNumber == roomNumber);
+                    if (room == null)
+                    {
+                        room = new Room
+                        {
+                            ResidenceId = residence.ResidenceId,
+                            RoomNumber = roomNumber,
+                            Capacity = house.Capacities[i],
+                            OccupiedBeds = 0,
+                            IsFull = false,
+                            Floor = house.Floors[i],
+                            IsGroundFloor = house.Floors[i] == 1,
+                            IsWheelchairAccessible = house.Floors[i] == 1,
+                            NearBathroom = i % 2 == 0,
+                            IsQuietStudyRoom = i == 0 || i == 2,
+                            NeedsMaintenance = false
+                        };
+                        context.Rooms.Add(room);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        room.Capacity = house.Capacities[i];
+                        room.Floor = house.Floors[i];
+                        room.IsGroundFloor = house.Floors[i] == 1;
+                        room.IsWheelchairAccessible = house.Floors[i] == 1;
+                        room.NearBathroom = i % 2 == 0;
+                        room.IsQuietStudyRoom = i == 0 || i == 2;
+                        room.NeedsMaintenance = false;
+                    }
+
+                    for (var bedNumber = 1; bedNumber <= house.Capacities[i]; bedNumber++)
+                    {
+                        var bedLabel = $"{roomNumber}-{bedNumber}";
+                        if (!context.Beds.Any(b => b.RoomId == room.RoomId && b.BedNumber == bedLabel))
+                        {
+                            context.Beds.Add(new Bed
+                            {
+                                RoomId = room.RoomId,
+                                BedNumber = bedLabel,
+                                IsOccupied = false,
+                                Status = "Available"
+                            });
+                        }
+                    }
+                    context.SaveChanges();
+                }
+
+                residence.Capacity = context.Rooms
+                    .Where(r => r.ResidenceId == residence.ResidenceId && !r.IsArchived)
+                    .Select(r => r.Capacity)
+                    .DefaultIfEmpty(0)
+                    .Sum();
+
+                residence.OccupiedBeds = context.ResidenceAssignments
+                    .Count(a => a.ResidenceId == residence.ResidenceId && a.IsActive);
+
+                foreach (var room in context.Rooms.Where(r => r.ResidenceId == residence.ResidenceId).ToList())
+                {
+                    room.OccupiedBeds = context.ResidenceAssignments.Count(a => a.RoomId == room.RoomId && a.IsActive);
+                    room.IsFull = room.OccupiedBeds >= room.Capacity;
+
+                    var occupiedBedIds = context.ResidenceAssignments
+                        .Where(a => a.RoomId == room.RoomId && a.IsActive)
+                        .Select(a => a.BedId)
+                        .ToList();
+
+                    foreach (var bed in context.Beds.Where(b => b.RoomId == room.RoomId).ToList())
+                    {
+                        var occupied = occupiedBedIds.Contains(bed.BedId);
+                        bed.IsOccupied = occupied;
+                        bed.Status = occupied ? "Occupied" : "Available";
+                        if (!occupied)
+                            bed.OccupiedByStudentId = null;
+                    }
+                }
+
+                context.SaveChanges();
             }
         }
 

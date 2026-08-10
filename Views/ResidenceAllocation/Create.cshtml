@@ -1,0 +1,12 @@
+@model Michaelhouse.Models.ResidenceAllocation
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Create Allocation"; }
+<div class="container py-4"><h2>Create Allocation Record</h2>
+@using (Html.BeginForm()) { @Html.AntiForgeryToken() @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+<div class="form-group">@Html.LabelFor(m => m.StudentId) @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "Select student", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.ResidenceId) @Html.DropDownListFor(m => m.ResidenceId, (SelectList)ViewBag.Residences, "Select residence", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.RoomId) @Html.DropDownListFor(m => m.RoomId, (SelectList)ViewBag.Rooms, "Select room", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.BedId) @Html.DropDownListFor(m => m.BedId, (SelectList)ViewBag.Beds, "Select bed", new { @class = "form-control" })</div>
+<div class="form-group">@Html.LabelFor(m => m.AllocatedAt) @Html.TextBoxFor(m => m.AllocatedAt, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
+<div class="checkbox">@Html.CheckBoxFor(m => m.IsActive) Active</div>
+<button class="btn btn-primary" type="submit">Save</button> }
+</div>

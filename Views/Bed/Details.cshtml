@@ -1,0 +1,166 @@
+@model Michaelhouse.Models.Bed
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Allocation Unit Dossier";
+
+    // Dynamic occupancy badge styling
+    bool isOccupied = Model?.IsOccupied ?? false;
+    string occupancyColor = isOccupied ? "bg-blue-50 border-blue-200 text-blue-800" : "bg-green-50 border-green-200 text-green-700";
+    string occupancyText = isOccupied ? "ALLOCATED" : "AVAILABLE";
+    string occupancyIcon = isOccupied ? "bi-person-check-fill" : "bi-check-circle";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Allocation Unit Profile</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Occupancy Record</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+        <div class="w-full max-w-4xl">
+
+            @* --- RECORD CARD --- *@
+            <div class="w-full bg-white shadow-2xl border-t-4 border-[#C21E2E] relative overflow-hidden group flex flex-col">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-layout-sidebar-inset absolute -right-8 -bottom-10 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div class="relative z-10">
+                        <h4 class="font-serif font-bold text-xl tracking-[4px] text-gray-900">MICHAELHOUSE</h4>
+                        <h6 class="text-[9px] uppercase tracking-[6px] font-bold text-[#C21E2E] mt-1">Individual Allocation Unit</h6>
+                    </div>
+                    <div class="relative z-10 text-right">
+                        <span class="inline-flex items-center text-[10px] font-mono font-bold uppercase tracking-widest border px-3 py-1 shadow-sm @occupancyColor">
+                            <i class="bi @occupancyIcon me-2"></i> @occupancyText
+                        </span>
+                    </div>
+                </div>
+
+                @* Core Data Sectors *@
+                <div class="p-10 relative z-10 flex-grow grid grid-cols-1 md:grid-cols-2 gap-12">
+
+                    @* Left Column: Macro-Location *@
+                    <div class="flex flex-col gap-6 md:border-r border-gray-100 md:pr-12">
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2">Macro-Location Logistics</h6>
+
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Residence Facility Base</p>
+                            <p class="font-serif font-bold text-gray-900 text-2xl">@(Model?.Room?.Residence?.Name ?? "Unassigned")</p>
+                        </div>
+
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Room</p>
+                            <p class="font-mono font-bold text-gray-800 text-xl bg-gray-50 border border-gray-200 px-4 py-2 inline-block">
+                                Room @(Model?.Room?.RoomNumber ?? "--")
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Specific Allocation ID</p>
+                            <p class="font-mono font-bold text-[#C21E2E] text-xl bg-red-50/50 border border-red-100 px-4 py-2 inline-block shadow-inner">
+                                Unit @(Model?.BedNumber ?? "--")
+                            </p>
+                        </div>
+                    </div>
+
+                    @* Right Column: Micro-Allocation *@
+                    <div class="flex flex-col gap-6">
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2">Allocation Telemetry</h6>
+
+                        <div>
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">Operational Condition</p>
+                            <span class="inline-block bg-gray-100 border border-gray-200 text-gray-700 px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-mono">
+                                @(Model?.Status ?? "Unknown")
+                            </span>
+                        </div>
+
+                        <div class="mt-4 p-6 bg-gray-50/80 border border-gray-200 shadow-sm">
+                            <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Registered Occupant</p>
+                            @if (isOccupied && Model?.OccupiedByStudent != null)
+                            {
+                                <div class="flex items-center gap-3">
+                                    <i class="bi bi-person-bounding-box text-2xl text-blue-800 opacity-20"></i>
+                                    <div>
+                                        <p class="font-serif font-bold text-gray-900 text-xl leading-tight mb-0">@Model.OccupiedByStudent.Name</p>
+                                        <a href="@Url.Action("Details", "Students", new { id = Model.OccupiedByStudent.StudentId })" class="text-[9px] uppercase tracking-[2px] font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                                            View Personnel Record <i class="bi bi-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="bi bi-person-x text-gray-300 text-3xl block mb-2"></i>
+                                    <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-0">No personnel currently allocated.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Security & Administrative Actions Footer *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-auto flex-shrink-0">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono hidden md:block">
+                        <i class="bi bi-shield-lock me-2"></i> Unit Ref: #@(Model?.BedId)
+                    </div>
+
+                    <div class="flex gap-3">
+                        <a href="@Url.Action("Edit", new { id = Model?.BedId })" class="text-center bg-transparent border border-[#10b981]/40 text-[#10b981] px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
+                            <i class="bi bi-pencil-square me-2 align-middle"></i> Edit
+                        </a>
+
+                        <a href="@Url.Action("Archive", new { id = Model?.BedId })" class="text-center bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all duration-300">
+                            <i class="bi bi-archive me-2 align-middle"></i> Archive Record
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

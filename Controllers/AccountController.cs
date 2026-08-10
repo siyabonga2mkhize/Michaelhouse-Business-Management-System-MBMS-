@@ -6,10 +6,11 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Mvc;
+using System.Web.Security;
 
 namespace Michaelhouse.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         // ─── Login ────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,29 @@ namespace Michaelhouse.Controllers
                     }
                     catch { }
                 }
+                else if ((role == "HouseMaster" || role == "Housemaster") && Session["HouseMasterId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+                            if (user != null)
+                            {
+                                var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                                    h.ContactEmail == user.Email || h.FullName == user.Name);
+                                if (houseMaster != null)
+                                {
+                                    Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+
 
                 // ── Maintenance Management: ensure MaintenanceStaffId is populated ──
                 // Same pattern as the Teacher check above, so refreshing the login
@@ -80,7 +104,9 @@ namespace Michaelhouse.Controllers
 
                 return RedirectByRole(role);
             }
-            return View();
+
+            // Pass an empty model to the view
+            return View(new LoginViewModel());
         }
 
         [HttpPost]
@@ -105,6 +131,7 @@ namespace Michaelhouse.Controllers
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
+                FormsAuthentication.SetAuthCookie(user.Email, false);
 
                 // Store role-specific identifiers in session for easy access
                 if (user.Role == "Parent")
@@ -168,6 +195,42 @@ namespace Michaelhouse.Controllers
 
                     // IMPORTANT: store correct key (Id, not DriverId)
                     Session["DriverId"] = driver.Id;
+                }
+                else if (user.Role == "HouseMaster" || user.Role == "Housemaster")
+                {
+                    var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                        h.ContactEmail == user.Email || h.FullName == user.Name);
+                    if (houseMaster != null)
+                    {
+                        Session["HouseMasterId"] = houseMaster.HouseMasterId;
+                    }
+                }
+                // Inside [HttpPost] Login, right before "return RedirectByRole(user.Role);"
+                if (user.Role == "Student")
+                {
+                    {
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        if (activeAlert != null)
+                        {
+                            var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
+                            if (student != null)
+                            {
+                                // CRITICAL: Check if they confirmed for THIS specific alert ID
+                                bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+
+                                if (!alreadyConfirmed)
+                                {
+                                    // Immediately force the redirect and stop the login flow
+                                    return RedirectToAction("ConfirmSafety", "Emergency");
+                                }
+                            }
+                        }
+                    }
                 }
                 // ── Maintenance Management: Worker session setup ────────────────
                 else if (user.Role == "MaintenanceWorker")
@@ -233,12 +296,14 @@ namespace Michaelhouse.Controllers
 
         public ActionResult Logout()
         {
+            FormsAuthentication.SignOut();
+
             Session.Clear();
             Session.Abandon();
+
             TempData["Success"] = "You have been logged out.";
             return RedirectToAction("Login");
         }
-
         // ─── Edit Profile ─────────────────────────────────────────────────────────
 
         [RequireLogin]
@@ -343,6 +408,44 @@ namespace Michaelhouse.Controllers
                 case "Parent":
                     return RedirectToAction("Dashboard", "Parents");
                 case "Student":
+                    using (var db = new DBContextClass())
+                    {
+                        int userId = (int)Session["UserId"];
+                        var student = db.Students.FirstOrDefault(s => s.UserId == userId);
+                        if (student == null)
+                        {
+                            var user = db.Users.Find(userId);
+                            var names = (user?.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            var first = names.Length > 0 ? names[0] : user?.Name ?? "Student";
+                            var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+                            student = new Student
+                            {
+                                FirstName = first,
+                                LastName = last,
+                                UserId = userId,
+                                ParentId = 2,
+                                IsActive = true,
+                                IsBoarding = true,
+                                GradeLevel = 8
+                            };
+                            db.Students.Add(student);
+                            db.SaveChanges();
+                            Session["StudentId"] = student.StudentId;
+                        }
+
+                        var activeAlert = db.EmergencyAlerts
+                            .Where(a => a.Status == AlertStatus.Active)
+                            .OrderByDescending(a => a.AlertTime)
+                            .FirstOrDefault();
+
+                        if (activeAlert != null)
+                        {
+                            bool alreadyConfirmed = db.StudentSafetyConfirmations
+                                .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+                            if (!alreadyConfirmed)
+                                return RedirectToAction("ConfirmSafety", "Emergency");
+                        }
+                    }
                     return RedirectToAction("Dashboard", "Students");
                 case "Teacher":
                     return RedirectToAction("Index", "TeacherDashboard");
@@ -350,19 +453,19 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
                     return RedirectToAction("Index", "Driver");
-
-                // ── Maintenance Management roles ────────────────────────────
+                case "HouseMaster":
+                case "Housemaster":
+                    return RedirectToAction("Dashboard", "HouseMaster");
+                // ── Maintenance Management roles ──
                 case "MaintenanceManager":
                     return RedirectToAction("Index", "Maintenance");
                 case "MaintenanceWorker":
                     return RedirectToAction("MyJobs", "Worker");
-                case "MaintenanceReporter":   // Keep this for backwards compatibility
-                case "FaultReporter":         // ← ADD THIS LINE (matches your seed)
+                case "MaintenanceReporter":   // backwards compatibility
+                case "FaultReporter":         // matches your seed
                     return RedirectToAction("ReportFault", "Reporter");
-
-                case "Transport Manager":
+                case "Transport Manager":     // (if you need this variant)
                     return RedirectToAction("Dashboard", "Transport");
-
                 default:
                     return RedirectToAction("Index", "Home");
             }

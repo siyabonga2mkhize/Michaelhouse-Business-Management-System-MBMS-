@@ -33,22 +33,26 @@
             --mh-red: #C21E2E;
             --mh-dark: #1a1a1a;
             --sidebar-width: 260px;
-            --sidebar-collapsed-width: 70px;
+            /*--sidebar-collapsed-width: 70px;*/
         }
 
-        html,body {
+        html,
+        body {
+            width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: auto; /* Prevent body from scrolling */
         }
 
         body {
+            width: 100%;
+            min-width: 0;
             background: #ffffff;
             font-family: 'Montserrat', sans-serif;
             display: flex;
-            flex-direction:column;
-            overflow-x: auto;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         h1, h2, h3, .navbar-brand, .sidebar-label {
@@ -79,11 +83,21 @@
         }
 
         /* --- DYNAMIC MAIN WRAPPER --- */
+        /*.app-shell {
+            display: flex;
+            flex: 1;*/ /* Fills remaining vertical space */
+            /*height: calc(100vh - var(--nav-height));
+            overflow: hidden;
+        }*/
+
         .app-shell {
             display: flex;
-            flex: 1; /* Fills remaining vertical space */
-            height: calc(100vh - var(--nav-height));
-            overflow: hidden;
+            width: 100%;
+            max-width: none !important;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: visible;
+            box-sizing: border-box;
         }
 
         .nav-logo {
@@ -96,28 +110,32 @@
 
         #sidebar {
             background: #fdfdfd;
-            min-height: calc(100vh - 70px);
             width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             border-right: 1px solid #eee;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Smoothly disappear */
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-x: hidden;
-            overflow-y:auto;
+            overflow-y: auto;
             white-space: nowrap;
-            flex-shrink: 0;
+            flex: 0 0 var(--sidebar-width);
             height: 100%;
         }
 
-
-
+            /* COLLAPSED = COMPLETELY HIDDEN */
             #sidebar.collapsed {
-                width: var(--sidebar-collapsed-width);
+                width: 0;
+                min-width: 0;
+                flex-basis: 0;
+                border-right: none;
             }
 
-
-
+                /* Hide everything inside while collapsed */
                 #sidebar.collapsed .sidebar-label,
-                #sidebar.collapsed .link-text {
-                    display: none;
+                #sidebar.collapsed .nav-link,
+                #sidebar.collapsed .sidebar-divider {
+                    opacity: 0;
+                    pointer-events: none;
                 }
 
 
@@ -180,31 +198,57 @@
 
 
 
-        .main-content {
+        /*.main-content {
             flex: 1;
             min-width: 0;
             transition: all 0.3s;
             background: #fff;
             position: relative;
             z-index: 1;
+        }*/
+        .main-content {
+            flex: 1 1 0%;
+            width: 100%;
+            max-width: none !important;
+            min-width: 0;
+            background: #fff;
+            position: relative;
+            z-index: 1;
+            overflow-x: auto;
+            box-sizing: border-box;
         }
 
 
-
+/*
         .full-width {
             padding: 0 !important;
-        }
+        }*/
 
 
 
-        #sidebarCollapse {
+        /*#sidebarCollapse {
             background: none;
             border: none;
             color: var(--mh-red);
             font-size: 1.5rem;
             cursor: pointer;
             padding: 0 15px;
+        }*/
+        #sidebarCollapse {
+            background: none;
+            border: none;
+            color: var(--mh-red);
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
+            #sidebarCollapse:hover {
+                color: #8f1622;
+            }
 
 
 
@@ -256,7 +300,7 @@
 
         // This pulls the name of the current controller (e.g., "Inventory")
         // Keep only ONE declaration of 'ctrl'
-        string ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string ctrl = ViewContext.RouteData.Values["controller"].ToString() ?? "";
 
         // 2. Define 'lowStockCount' for the notification badge
         int lowStockCount = 0;
@@ -303,7 +347,7 @@
 
             <a class="navbar-brand" href="@Url.Action("Index", "Home")">
 
-                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />
+                @*<img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />*@
 
                 <!-- Center: brand logo + text -->
                 <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
@@ -360,7 +404,7 @@
 
 
 
-    <div class="d-flex">
+    <div class="app-shell">
 
         @if (isLoggedIn)
 
@@ -416,6 +460,11 @@
                         <a class="nav-link" href="@Url.Action("ChildrenAttendance", "Parents")">
 
                             <i class="bi bi-people"></i> Children's Attendance
+
+                        </a>
+                        <a class="nav-link" href="@Url.Action("ParentPending", "LeaveRequest")">
+
+                            <i class="bi bi-people"></i> Children's Leave Requests
 
                         </a>
 
@@ -548,6 +597,89 @@
                            href="@Url.Action("Index", "DriverApplications")">
                             <i class="bi bi-person-badge"></i> <span class="link-text">Driver Applications</span>
                         </a>
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Emergency Management</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "LatestAlertStatus" ? "active" : "")"
+                           href="@Url.Action("LatestAlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
+                        </a>
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Boarding House</div>
+
+                        <a class="nav-link @(currentController == "Residence" ? "active" : "")"
+                           href="@Url.Action("Index", "Residence")">
+                            <i class="bi bi-building"></i> <span class="link-text">Residences</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Room" ? "active" : "")"
+                           href="@Url.Action("Index", "Room")">
+                            <i class="bi bi-door-open"></i> <span class="link-text">Rooms</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Bed" ? "active" : "")"
+                           href="@Url.Action("Index", "Bed")">
+                            <i class="bi bi-grid-3x3-gap"></i> <span class="link-text">Beds</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "HouseMaster" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "HouseMaster")">
+                            <i class="bi bi-people"></i> <span class="link-text">House Masters</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "HouseMaster" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "HouseMaster")">
+                            <i class="bi bi-person-workspace"></i> <span class="link-text">House Master Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAssignment" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAssignment")">
+                            <i class="bi bi-person-check"></i> <span class="link-text">Student Assignments</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "ResidenceAllocation")">
+                            <i class="bi bi-diagram-3"></i> <span class="link-text">Allocation Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAllocation")">
+                            <i class="bi bi-list-check"></i> <span class="link-text">Allocation Records</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceMovement" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceMovement")">
+                            <i class="bi bi-arrow-left-right"></i> <span class="link-text">Movements</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "StudentQRCode" ? "active" : "")"
+                           href="@Url.Action("Index", "StudentQRCode")">
+                            <i class="bi bi-qr-code"></i> <span class="link-text">Student QR Codes</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "QRScanRecord" ? "active" : "")"
+                           href="@Url.Action("Index", "QRScanRecord")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">QR Scan History</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"
+                           href="@Url.Action("AIDashboard", "ResidenceAllocation")">
+                            <i class="bi bi-graph-up-arrow"></i> <span class="link-text">Residence Analytics</span>
+                        </a>
 
                     }
                     else if (userRole == "InventoryManager")
@@ -617,6 +749,75 @@
 
                     }
 
+                    else if (userRole == "HouseMaster" || userRole == "Housemaster")
+                    {
+                        <div class="sidebar-label">Boarding House</div>
+
+                        <a class="nav-link @(currentController == "HouseMaster" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "HouseMaster")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "HouseMaster" && currentAction == "ScanQRCode" ? "active" : "")"
+                           href="@Url.Action("ScanQRCode", "HouseMaster")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Residence" ? "active" : "")"
+                           href="@Url.Action("Index", "Residence")">
+                            <i class="bi bi-building"></i> <span class="link-text">Residences</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Room" ? "active" : "")"
+                           href="@Url.Action("Index", "Room")">
+                            <i class="bi bi-door-open"></i> <span class="link-text">Rooms</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Bed" ? "active" : "")"
+                           href="@Url.Action("Index", "Bed")">
+                            <i class="bi bi-grid-3x3-gap"></i> <span class="link-text">Beds</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAssignment" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceAssignment")">
+                            <i class="bi bi-person-check"></i> <span class="link-text">Assignments</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "ResidenceAllocation")">
+                            <i class="bi bi-diagram-3"></i> <span class="link-text">Allocations</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceMovement" ? "active" : "")"
+                           href="@Url.Action("Index", "ResidenceMovement")">
+                            <i class="bi bi-arrow-left-right"></i> <span class="link-text">Movements</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "QRScanRecord" ? "active" : "")"
+                           href="@Url.Action("Index", "QRScanRecord")">
+                            <i class="bi bi-clock-history"></i> <span class="link-text">QR History</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("HouseMasterPending", "LeaveRequest")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Leave Requests</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "ResidenceAllocation" && currentAction == "AIDashboard" ? "active" : "")"
+                           href="@Url.Action("AIDashboard", "ResidenceAllocation")">
+                            <i class="bi bi-graph-up-arrow"></i> <span class="link-text">Analytics</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+
                     else if (userRole == "Student")
 
                     {
@@ -656,13 +857,36 @@
                             <i class="bi bi-calendar-check"></i> My Attendance
 
                         </a>
+                        <div class="sidebar-label">Transport</div>
                         <hr class="sidebar-divider" />
                         <a class="nav-link" href="@Url.Action("ScanQRCode", "Students")">
                             <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
                         </a>
+                        <hr class="sidebar-divider" />
 
+                        <div class="sidebar-label">Emergency Safety</div>
 
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "ConfirmSafety" ? "active" : "")"
+                           href="@Url.Action("ConfirmSafety", "Emergency")">
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Safety</span>
+                        </a>
 
+                        <a class="nav-link" href="@Url.Action("MyQRCode", "Students")">
+                            <i class="bi bi-qr-code"></i>
+                            <span class="link-text">My QR Code</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <a class="nav-link" href="@Url.Action("Create", "LeaveRequest")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Leave Request</span>
+                        </a>
+
+                        @*<a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i>
+                                <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                         @*<div class="sidebar-label text-truncate">Settings</div>
             <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
                href="@Url.Action("Profile", "Account")">
@@ -761,6 +985,26 @@
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
                            href="@Url.Action("Profile", "Account")">
                             <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+
+                        <div class="sidebar-label">Boarding Emergency</div>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "TriggerAlert" ? "active" : "")"
+                           href="@Url.Action("TriggerAlert", "Emergency")">
+
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span class="link-text">Trigger Emergency</span>
+
+                        </a>
+
+                        <a class="nav-link @(currentController == "Emergency" && currentAction == "AlertStatus" ? "active" : "")"
+                           href="@Url.Action("AlertStatus", "Emergency")">
+
+                            <i class="bi bi-shield-check"></i>
+                            <span class="link-text">Emergency Accountability</span>
+
                         </a>
 
                     }
@@ -946,7 +1190,7 @@
 
 
 
-        <div class="main-content @(isHomePage ? "full-width" : "p-4")">
+        <div class="main-content @(isHomePage ? "full-width" : "p-4")" style="width: 100%; max-width: none;">
 
             @if (TempData["Success"] != null)
 
@@ -985,53 +1229,83 @@
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const btn = document.getElementById("sidebarCollapse");
+            const sidebar = document.getElementById("sidebar");
+
+            if (!btn || !sidebar) {
+                return;
+            }
+
+            btn.addEventListener("click", function () {
+
+                sidebar.classList.toggle("collapsed");
+
+            });
+
+        });
+        // --- 1. EXISTING NOTIFICATION LOGIC ---
+        function loadNotifications() {
+            $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
+                $('#notificationList').html(data);
+                updateBadge();
+            });
+        }
+
+        function updateBadge() {
+            $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
+                if (count > 0) {
+                    $('#notificationBadge').text(count).show();
+                } else {
+                    $('#notificationBadge').hide();
+                }
+            });
+        }
+
+        // --- 2. NEW: EMERGENCY OVERRIDE LOGIC (CRITICAL) ---
+        function checkEmergencyStatus() {
+            // Only perform this check if the user is logged in (to save server resources)
+            var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
+            if (!isLoggedIn) return;
+
+            $.ajax({
+                url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+                    // If there is an ACTIVE alert AND they haven't confirmed it yet:
+                    if (data.hasActiveAlert && !data.alreadyConfirmed) {
+                        // BAM! Immediate screen takeover
+                        window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
+                    }
+                },
+                error: function() {
+                    // Silently fail - we don't want error pop-ups for students.
+                }
+            });
+        }
+
+        // --- 3. TRIGGER THE CHECKS ---
+        $(function() {
+            // Start the notification listener
+            loadNotifications();
+            setInterval(loadNotifications, 30000); // 30 seconds
+
+            // Start the Emergency Override listener
+            // It runs IMMEDIATELY on page load, and repeats every 5 seconds while they browse.
+            checkEmergencyStatus();
+            setInterval(checkEmergencyStatus, 5000); // 5 seconds
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const btn = document.getElementById('sidebarCollapse');
-
-            const sidebar = document.getElementById('sidebar');
-
-            if (btn && sidebar) {
-
-                btn.addEventListener('click', function () {
-
-                    sidebar.classList.toggle('collapsed');
-
-                });
-
-            }
-        });
-        function loadNotifications() {
-    $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
-        $('#notificationList').html(data);
-        updateBadge();
-    });
-}
-
-function updateBadge() {
-    $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
-        if (count > 0) {
-            $('#notificationBadge').text(count).show();
-        } else {
-            $('#notificationBadge').hide();
-        }
-    });
-}
-
-// Load initially and every 30 seconds
-$(function() {
-    loadNotifications();
-    setInterval(loadNotifications, 30000);
-});
-    </script>
 
     @RenderSection("Scripts", required: false)
 
 </body>
 
-</html>
+</html >

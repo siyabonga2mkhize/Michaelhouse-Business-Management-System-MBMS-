@@ -133,43 +133,43 @@ namespace Michaelhouse.Controllers
             return View(model);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // LEAVE REQUEST
-        // ══════════════════════════════════════════════════════════════════════
-        public ActionResult RequestLeave()
-        {
-            if (!IsWorker())
-                return RedirectToAction("Login", "Account");
-            return View();
-        }
+        //// ══════════════════════════════════════════════════════════════════════
+        //// LEAVE REQUEST
+        //// ══════════════════════════════════════════════════════════════════════
+        //public ActionResult RequestLeave()
+        //{
+        //    if (!IsWorker())
+        //        return RedirectToAction("Login", "Account");
+        //    return View();
+        //}
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult RequestLeave(LeaveRequestViewModel model)
-        {
-            if (!IsWorker())
-                return RedirectToAction("Login", "Account");
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult RequestLeave(LeaveRequestViewModel model)
+        //{
+        //    if (!IsWorker())
+        //        return RedirectToAction("Login", "Account");
 
-            if (ModelState.IsValid)
-            {
-                var staffId = GetStaffId();
-                var leave = new LeaveRequest
-                {
-                    StaffId = staffId,
-                    Type = model.Type,
-                    StartDate = model.StartDate,
-                    EndDate = model.EndDate,
-                    Reason = model.Reason,
-                    Status = "Pending",
-                    RequestedAt = DateTime.Now
-                };
-                db.LeaveRequests.Add(leave);
-                db.SaveChanges();
-                TempData["Success"] = "Leave request submitted for approval.";
-                return RedirectToAction("MyJobs");
-            }
-            return View(model);
-        }
+        //    if (ModelState.IsValid)
+        //    {
+        //        var staffId = GetStaffId();
+        //        var leave = new LeaveRequest
+        //        {
+        //            StaffId = staffId,
+        //            Type = model.Type,
+        //            StartDate = model.StartDate,
+        //            EndDate = model.EndDate,
+        //            Reason = model.Reason,
+        //            Status = "Pending",
+        //            RequestedAt = DateTime.Now
+        //        };
+        //        db.LeaveRequests.Add(leave);
+        //        db.SaveChanges();
+        //        TempData["Success"] = "Leave request submitted for approval.";
+        //        return RedirectToAction("MyJobs");
+        //    }
+        //    return View(model);
+        //}
 
         // ══════════════════════════════════════════════════════════════════════
         // JOB DETAIL & COMPLETION
