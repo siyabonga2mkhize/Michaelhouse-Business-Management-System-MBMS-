@@ -1065,5 +1065,6 @@ INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
 ORDER BY t.name, c.column_id;
 
 select * from JobCards;
+update JobCards set Status = 'Pending' where Id = 9;
 
 ALTER TABLE JobCards ADD ReceiptFileName NVARCHAR(MAX) NULL;

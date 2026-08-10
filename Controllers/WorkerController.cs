@@ -1,11 +1,8 @@
 ﻿using Michaelhouse.Models;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -96,7 +93,7 @@ namespace Michaelhouse.Controllers
         // ══════════════════════════════════════════════════════════════════════
         // WORKER PROFILE (view and edit personal info)
         // ══════════════════════════════════════════════════════════════════════
-        public ActionResult Profile()
+        public ActionResult MyProfile()
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -114,7 +111,7 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Profile(MaintenanceStaff model)
+        public ActionResult MyProfile(MaintenanceStaff model)
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -128,11 +125,10 @@ namespace Michaelhouse.Controllers
                 staff.Phone = model.Phone;
                 staff.EmergencyContactName = model.EmergencyContactName;
                 staff.EmergencyContactPhone = model.EmergencyContactPhone;
-                // Photo upload handled separately
 
                 db.SaveChanges();
                 TempData["Success"] = "Profile updated successfully.";
-                return RedirectToAction("Profile");
+                return RedirectToAction("MyProfile");
             }
             return View(model);
         }
@@ -220,64 +216,7 @@ namespace Michaelhouse.Controllers
             return Json(new { success = true, newStatus = status });
         }
 
-        [HttpPost]
-        public async Task<JsonResult> SearchParts(string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-                return Json(new { success = false, message = "Please enter a search term." });
-
-            try
-            {
-                string token = GetNexarToken();
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    string url = $"https://api.nexar.com/v1/parts/search?q={Uri.EscapeDataString(query)}&limit=10";
-                    var response = await client.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-                    string json = await response.Content.ReadAsStringAsync();
-
-                    // Parse the response (simplified)
-                    dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-                    var results = new List<object>();
-                    if (data.results != null)
-                    {
-                        foreach (var item in data.results)
-                        {
-                            // Get best price (e.g., from first supplier)
-                            decimal? unitPrice = null;
-                            if (item.prices != null && item.prices.Count > 0)
-                            {
-                                // Simplistic: take the lowest price from the first supplier's first break
-                                foreach (var priceSet in item.prices)
-                                {
-                                    if (priceSet.breaks != null && priceSet.breaks.Count > 0)
-                                    {
-                                        var firstBreak = priceSet.breaks[0];
-                                        unitPrice = (decimal?)firstBreak.price;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            results.Add(new
-                            {
-                                mpn = (string)item.mpn,
-                                manufacturer = (string)item.manufacturer?.name,
-                                description = (string)item.short_description,
-                                unitPrice = unitPrice
-                            });
-                        }
-                    }
-                    return Json(new { success = true, results });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
+        // ── COMPLETE JOB ──────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CompleteJob(int id,
@@ -289,12 +228,7 @@ namespace Michaelhouse.Controllers
                                 int[] quantities,
                                 decimal labourCost,
                                 decimal partsCost,
-                                decimal totalCost,
-                                string[] externalNames,
-                                string[] externalManufacturers,
-                                string[] externalMPNs,
-                                decimal[] externalUnitCosts,
-                                int[] externalQuantities)
+                                decimal totalCost)
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -317,6 +251,31 @@ namespace Michaelhouse.Controllers
                 jobCard.PhotoAfter = fileName;
             }
 
+            // ── Multiple photo handling ────────────────────────────
+            if (Request.Files != null && Request.Files.Count > 0)
+            {
+                foreach (string fileKey in Request.Files)
+                {
+                    var file = Request.Files[fileKey];
+                    if (file != null && file.ContentLength > 0)
+                    {
+                        var ext = Path.GetExtension(file.FileName);
+                        var fileName = "after_" + jobCard.JobReference.Replace("-", "_") + "_" + DateTime.Now.Ticks + ext;
+                        var savePath = Server.MapPath("~/Content/JobPhotos/");
+                        if (!Directory.Exists(savePath))
+                            Directory.CreateDirectory(savePath);
+                        file.SaveAs(Path.Combine(savePath, fileName));
+
+                        db.JobCardPhotos.Add(new JobCardPhoto
+                        {
+                            JobCardId = jobCard.Id,
+                            FileName = fileName,
+                            UploadedAt = DateTime.Now
+                        });
+                    }
+                }
+            }
+
             // ── Receipt handling ──────────────────────────────────────
             if (receipt != null && receipt.ContentLength > 0)
             {
@@ -329,8 +288,7 @@ namespace Michaelhouse.Controllers
                 //jobCard.ReceiptFileName = fileName;
             }
 
-            // ── Save parts used and calculate PartsCost ───────────────
-            decimal calculatedPartsCost = 0;
+            // ── Save parts used ──────────────────────────────────────
             if (inventoryIds != null && quantities != null && inventoryIds.Length == quantities.Length)
             {
                 for (int i = 0; i < inventoryIds.Length; i++)
@@ -339,7 +297,7 @@ namespace Michaelhouse.Controllers
                     if (qty <= 0) continue;
                     var inventoryItem = db.MaintenanceInventory.Find(inventoryIds[i]);
                     if (inventoryItem == null) continue;
-                    // reduce stock and save JobCardPart (existing)
+
                     inventoryItem.StockLevel -= qty;
                     db.JobCardParts.Add(new JobCardPart
                     {
@@ -347,25 +305,6 @@ namespace Michaelhouse.Controllers
                         InventoryItemId = inventoryItem.Id,
                         QuantityUsed = qty,
                         DateUsed = DateTime.Now
-                    });
-                }
-            }
-            if (externalNames != null && externalNames.Length > 0)
-            {
-                for (int i = 0; i < externalNames.Length; i++)
-                {
-                    int qty = externalQuantities != null && i < externalQuantities.Length ? externalQuantities[i] : 1;
-                    if (qty <= 0) continue;
-                    decimal unitCost = externalUnitCosts != null && i < externalUnitCosts.Length ? externalUnitCosts[i] : 0;
-                    db.JobCardParts.Add(new JobCardPart
-                    {
-                        JobCardId = id,
-                        InventoryItemId = null,
-                        QuantityUsed = qty,
-                        DateUsed = DateTime.Now,
-                        ExternalPartName = externalNames[i],
-                        ExternalManufacturer = externalManufacturers != null && i < externalManufacturers.Length ? externalManufacturers[i] : null,
-                        ExternalUnitCost = unitCost
                     });
                 }
             }
@@ -377,7 +316,7 @@ namespace Michaelhouse.Controllers
             jobCard.DateCompleted = DateTime.Now;
             jobCard.ResponseTimeMinutes = (int)(DateTime.Now - jobCard.DateCreated).TotalMinutes;
 
-            // Use the passed costs (from hidden fields) to ensure consistency
+            // Use the passed costs (from hidden fields)
             jobCard.PartsCost = partsCost;
             jobCard.LabourCost = labourCost;
             jobCard.TotalCost = totalCost;
@@ -397,11 +336,10 @@ namespace Michaelhouse.Controllers
                     asset.ConditionRating = "Fair";
                     asset.HealthScore = Math.Min(100, asset.HealthScore + 10);
                 }
-                // Update total maintenance cost
                 asset.TotalMaintenanceCost = (asset.TotalMaintenanceCost ?? 0) + (jobCard.PartsCost ?? 0) + (jobCard.LabourCost ?? 0);
             }
 
-            // ── Free worker ────────────────────────────────────────────
+            // ── Free worker ──────────────────────────────────────────
             var worker = db.MaintenanceStaff.Find(GetStaffId());
             if (worker != null) worker.CurrentStatus = "Available";
 

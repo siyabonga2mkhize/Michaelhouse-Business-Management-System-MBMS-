@@ -560,4 +560,16 @@ namespace Michaelhouse.Models
 
         public string Reason { get; set; }
     }
+    public class JobCardPhoto
+    {
+        public int Id { get; set; }
+        public int JobCardId { get; set; }
+        public string FileName { get; set; }
+        public string Caption { get; set; } // optional
+        public DateTime UploadedAt { get; set; }
+
+        [ForeignKey("JobCardId")]
+        public virtual JobCard JobCard { get; set; }
+    }
 }
+

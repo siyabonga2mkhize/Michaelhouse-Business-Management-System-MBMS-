@@ -242,6 +242,18 @@
     <Compile Include="Migrations\202608101837555_initialcreate1.Designer.cs">
       <DependentUpon>202608101837555_initialcreate1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608102001165_initialcreate2.cs" />
+    <Compile Include="Migrations\202608102001165_initialcreate2.Designer.cs">
+      <DependentUpon>202608102001165_initialcreate2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608102007243_AddJobCardPhotos.cs" />
+    <Compile Include="Migrations\202608102007243_AddJobCardPhotos.Designer.cs">
+      <DependentUpon>202608102007243_AddJobCardPhotos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608102015566_AddJobCardPhotos1.cs" />
+    <Compile Include="Migrations\202608102015566_AddJobCardPhotos1.Designer.cs">
+      <DependentUpon>202608102015566_AddJobCardPhotos1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
     <Compile Include="Models\Attendance.cs" />
@@ -1883,6 +1895,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608101837555_initialcreate1.resx">
       <DependentUpon>202608101837555_initialcreate1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608102001165_initialcreate2.resx">
+      <DependentUpon>202608102001165_initialcreate2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608102007243_AddJobCardPhotos.resx">
+      <DependentUpon>202608102007243_AddJobCardPhotos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608102015566_AddJobCardPhotos1.resx">
+      <DependentUpon>202608102015566_AddJobCardPhotos1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Scripts\SQLQuery.sql" />
     <Content Include="Views\Transport\Drivers.cshtml" />

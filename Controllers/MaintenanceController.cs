@@ -723,8 +723,15 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult CompleteJobCard(int id,
                                             string completionNotes,
-                                            string finalCondition,
-                                            HttpPostedFileBase photoAfter)
+                                string finalCondition,
+                                HttpPostedFileBase photoAfter,
+                                HttpPostedFileBase receipt,
+                                string photoData,  // new parameter
+                                int[] inventoryIds,
+                                int[] quantities,
+                                decimal labourCost,
+                                decimal partsCost,
+                                decimal totalCost)
         {
             if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
@@ -778,6 +785,30 @@ namespace Michaelhouse.Controllers
                     asset.ConditionRating = "Fair";
                     asset.HealthScore = Math.Min(100, asset.HealthScore + 10);
                 }
+            }
+            // ── Photo handling ──────────────────────────────────────
+            if (photoAfter != null && photoAfter.ContentLength > 0)
+            {
+                // Save uploaded file as before
+                var ext = System.IO.Path.GetExtension(photoAfter.FileName);
+                var fileName = "after_" + jobCard.JobReference.Replace("-", "_") + "_" + DateTime.Now.Ticks + ext;
+                var savePath = Server.MapPath("~/Content/JobPhotos/");
+                if (!System.IO.Directory.Exists(savePath))
+                    System.IO.Directory.CreateDirectory(savePath);
+                photoAfter.SaveAs(savePath + fileName);
+                jobCard.PhotoAfter = fileName;
+            }
+            else if (!string.IsNullOrEmpty(photoData) && photoData.StartsWith("data:image"))
+            {
+                // Handle base64 photo from camera capture
+                var base64 = photoData.Substring(photoData.IndexOf(',') + 1);
+                var bytes = Convert.FromBase64String(base64);
+                var fileName = "after_" + jobCard.JobReference.Replace("-", "_") + "_" + DateTime.Now.Ticks + ".png";
+                var savePath = Server.MapPath("~/Content/JobPhotos/");
+                if (!System.IO.Directory.Exists(savePath))
+                    System.IO.Directory.CreateDirectory(savePath);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(savePath, fileName), bytes);
+                jobCard.PhotoAfter = fileName;
             }
 
             db.SaveChanges();
