@@ -1,31 +1,15 @@
 ﻿@model List<Michaelhouse.Models.ManifestStudentViewModel>
 @{
-   var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
-    ViewBag.Title = "Trip Manifest";
     var schedule = ViewBag.Schedule as Michaelhouse.Models.TripSchedule;
+    ViewBag.Title = "Trip Manifest";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    bool preTripDone = Model.Any(s => s.AlreadyPresentBefore.HasValue && s.AlreadyPresentBefore == true);
-    bool postTripDone = Model.Any(s => s.AlreadyPresentAfter.HasValue && s.AlreadyPresentAfter == true);
-
-    bool canMark = schedule != null && System.DateTime.Today == schedule.ScheduledDate.Date;
     bool preTripDone = Model.Any(s => s.AlreadyPresentBefore == true);
     bool postTripDone = Model.Any(s => s.AlreadyPresentAfter == true);
+    bool canMark = schedule != null && DateTime.Today == schedule.ScheduledDate.Date;
 }
 
 <div class="flex flex-col h-full w-full overflow-hidden">
-<div class="page-header clearfix">
-    <a href="@Url.Action("MyTrips", "Driver")" class="btn btn-default btn-sm pull-right" style="margin-top:6px;">
-        <i class="fa fa-arrow-left"></i> Back to My Trips
-    </a>
-    <h2 style="margin-bottom:4px;">
-        <i class="fa fa-list-ul"></i> Trip Manifest
-    </h2>
-    <p class="text-muted" style="margin:0;">
-        @(schedule?.TripRequest != null ? schedule.TripRequest.Title : "—") &mdash;
-        @(schedule != null ? schedule.ScheduledDate.ToString("dddd, dd MMM yyyy") : "—")
-    </p>
-</div>
 
     @* --- INSTITUTIONAL HEADER --- *@
     <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
@@ -33,22 +17,10 @@
             <div class="flex items-center gap-2 mb-3">
                 <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
                 <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Driver Portal</h5>
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fa fa-check-circle"></i> @TempData["Success"]
-    </div>
+            </div>
             <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Trip Manifest</h2>
             <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1">Ref: SCH-@(schedule?.Id) • @(schedule?.TripRequest?.Title)</p>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <i class="fa fa-exclamation-circle"></i> @TempData["Error"]
-    </div>
-}
+        </div>
 
         <div class="flex gap-3">
             <a href="@Url.Action("MyTrips", "Driver")" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
@@ -60,147 +32,91 @@
             <a href="@Url.Action("ReturnQRCode", "Driver", new { scheduleId = schedule?.Id })" class="inline-block bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-md">
                 <i class="bi bi-qr-code me-2"></i> Return QR
             </a>
-@* Trip summary strip *@
-<div class="panel panel-default" style="margin-bottom:24px;">
-    <div class="panel-body">
-        <div class="row text-center">
-            <div class="col-sm-3 col-xs-6 trip-stat">
+        </div>
+    </div>
+
+    @* Alerts *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="mx-8 mb-4 bg-green-50 border-l-4 border-green-500 p-4 text-green-700">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mx-8 mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        </div>
+    }
+
+    @* Trip summary strip *@
+    <div class="mx-8 mb-6 bg-white border border-gray-100 shadow-sm">
+        <div class="grid grid-cols-2 md:grid-cols-5 text-center divide-x divide-gray-100">
+            <div class="py-4">
                 <div class="stat-num">@Model.Count</div>
                 <div class="stat-label">Students</div>
             </div>
-            <div class="col-sm-3 col-xs-6 trip-stat">
-                <div class="stat-num">@(schedule?.TripRequest != null ? schedule.TripRequest.DepartureTime.ToString("HH:mm") : "—")</div>
+            <div class="py-4">
+                <div class="stat-num">@(schedule?.TripRequest?.DepartureTime.ToString("HH:mm") ?? "—")</div>
                 <div class="stat-label">Departure</div>
             </div>
-
-    @* --- SCROLLABLE DATA SECTION --- *@
-    @using (Html.BeginForm("MarkManifest", "Driver", FormMethod.Post, new { @class = "flex flex-col flex-grow min-h-0 mx-8 pb-8" }))
-            <div class="col-sm-3 col-xs-6 trip-stat">
-                <div class="stat-num">@(schedule?.TripRequest != null ? schedule.TripRequest.ReturnTime.ToString("HH:mm") : "—")</div>
+            <div class="py-4">
+                <div class="stat-num">@(schedule?.TripRequest?.ReturnTime.ToString("HH:mm") ?? "—")</div>
                 <div class="stat-label">Return</div>
             </div>
-            <div class="col-sm-3 col-xs-6 trip-stat">
-                <div class="stat-num" style="font-size:16px; font-weight:600;">
-                    @(schedule?.Vehicle?.VehicleNumber ?? "—")
-                </div>
+            <div class="py-4">
+                <div class="stat-num text-sm font-mono">@(ViewBag.VehicleDisplay ?? "—")</div>
                 <div class="stat-label">Vehicle</div>
             </div>
+            <div class="py-4">
+                <div class="stat-num text-sm truncate">@(schedule?.TripRequest?.Destination ?? "—")</div>
+                <div class="stat-label">Destination</div>
+            </div>
         </div>
-        @if (!string.IsNullOrWhiteSpace(schedule?.TripRequest?.Destination))
-        {
+    </div>
+
+    @* Form for marking attendance *@
+    @using (Html.BeginForm("MarkManifest", "Driver", FormMethod.Post, new { @class = "flex flex-col flex-grow min-h-0 mx-8 pb-8" }))
+    {
         @Html.AntiForgeryToken()
         <input type="hidden" name="scheduleId" value="@schedule?.Id" />
 
         <div class="bg-white shadow-sm border border-gray-100 overflow-hidden relative flex flex-col flex-grow min-h-0">
 
-            @* Header with Vehicle & Stats *@
             <div class="p-6 border-b border-gray-100 d-flex justify-content-between align-items-center relative bg-white overflow-hidden flex-shrink-0">
-                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
-                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
                 <div class="relative z-10">
                     <h5 class="text-[11px] uppercase tracking-[4px] font-bold text-gray-900 mb-1">Logistics Verification Roster</h5>
                     <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest mb-0 font-mono">
-                        Vehicle: <span class="text-gray-700">@(ViewBag.VehicleDisplay ?? "—")</span> &nbsp;|&nbsp;
-                        Students: @Model.Count
-            <p class="text-center text-muted" style="margin-top:12px; margin-bottom:0;">
-                <i class="fa fa-map-marker"></i> <strong>Destination:</strong> @schedule.TripRequest.Destination
-            </p>
-        }
-    </div>
-</div>
-
-                <div class="relative z-10 flex items-center gap-4">
+                        Vehicle: <span class="text-gray-700">@(ViewBag.VehicleDisplay ?? "—")</span> &nbsp;|&nbsp; Students: @Model.Count
+                    </p>
+                </div>
+                <div class="relative z-10">
                     @if (!canMark)
-@* Tabs *@
-<ul class="nav nav-tabs manifest-tabs" role="tablist">
-    <li role="presentation" class="@(!preTripDone ? "active" : "")">
-        <a href="#pre-trip" aria-controls="pre-trip" role="tab" data-toggle="tab">
-            <i class="fa fa-sign-out"></i> Pre-Trip Attendance
-            @if (preTripDone)
-            {
-                        <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-                            <i class="bi bi-clock me-1"></i> Attendance only on trip date
-                        </span>
-                <span class="label label-success" style="margin-left:6px;">Done</span>
-            }
+                    {
+                        <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest"><i class="bi bi-clock me-1"></i> Attendance only on trip date</span>
+                    }
                     else
-        </a>
-    </li>
-    <li role="presentation" class="@(preTripDone ? "active" : "")">
-        <a href="#post-trip" aria-controls="post-trip" role="tab" data-toggle="tab">
-            <i class="fa fa-sign-in"></i> Post-Trip Attendance
-            @if (postTripDone)
-            {
-                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-widest">
-                            <i class="bi bi-check-circle me-1"></i> Attendance can be marked today
-                        </span>
-                <span class="label label-success" style="margin-left:6px;">Done</span>
-            }
-        </a>
-    </li>
-</ul>
-
-<div class="tab-content manifest-tab-content">
-
-    @* PRE-TRIP TAB *@
-    <div role="tabpanel" class="tab-pane @(!preTripDone ? "active" : "")" id="pre-trip">
-        <div class="tab-inner">
-            <div class="clearfix" style="margin-bottom:14px;">
-                <h4 class="pull-left" style="margin:0;">
-                    <i class="fa fa-sign-out text-warning"></i> Mark students present before departure
-                </h4>
-                <div class="pull-right">
-                    <button type="button" class="btn btn-xs btn-default" onclick="selectAll('pre', true)">Check All</button>
-                    <button type="button" class="btn btn-xs btn-default" onclick="selectAll('pre', false)">Uncheck All</button>
+                    {
+                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-widest"><i class="bi bi-check-circle me-1"></i> Attendance can be marked today</span>
+                    }
                 </div>
             </div>
 
-            @* Table Container *@
             <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
                 <table class="table table-hover mb-0 align-middle w-full">
                     <thead class="sticky top-0 z-10 bg-white">
                         <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b bg-gray-50/50">
                             <th class="ps-8 py-5">Student Identity</th>
                             <th>Parental Liaison</th>
-                @if (preTripDone)
-            {
-                <div class="alert alert-info">
-                    <i class="fa fa-info-circle"></i> Pre-trip attendance has already been saved. You can update it below if needed.
-                </div>
-            }
-                @if (!canMark)
-                {
-                    <div class="alert alert-warning">
-                        <i class="fa fa-clock-o"></i> Attendance can only be marked on the scheduled trip date.
-                    </div>
-                }
-
-            @using (Html.BeginForm("MarkManifest", "Driver", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="scheduleId" value="@schedule?.Id" />
-                <input type="hidden" name="markType" value="before" />
-
-                <div class="table-responsive">
-                    <table class="table table-hover manifest-table">
-                        <thead>
-                            <tr>
-                                <th style="width:50px;" class="text-center">Present</th>
-                                <th>#</th>
-                                <th>Student Name</th>
-                                <th>Parent / Guardian</th>
-                                <th>Emergency Contact</th>
+                            <th>Emergency Contact</th>
                             <th class="text-center bg-gray-50/80 w-48 border-l border-gray-100">Departure Registry</th>
                             <th class="text-center bg-green-50/30 w-48 border-l border-gray-100">Return Registry</th>
-                                <th class="text-center">Status</th>
-                            </tr>
-                        </thead>
+                        </tr>
+                    </thead>
                     <tbody class="text-gray-700">
                         @if (!Model.Any())
-                        <tbody>
-                            @for (int i = 0; i < Model.Count; i++)
-                            {
+                        {
                             <tr>
                                 <td colspan="5" class="py-20 text-center">
                                     <i class="bi bi-person-x text-gray-100 text-6xl d-block mb-4"></i>
@@ -218,60 +134,22 @@
                                 <tr class="group hover:bg-gray-50/50 transition-all border-b border-gray-50 last:border-0">
                                     <td class="ps-8 py-4">
                                         <div class="fw-bold text-gray-900 text-sm font-serif">@s.StudentName</div>
-                                <tr class="student-row @(s.IsPresentBefore ? "row-present" : "")">
-                                    <td class="text-center">
                                         <input type="hidden" name="students[@i].StudentId" value="@s.StudentId" />
                                         <input type="hidden" name="students[@i].IsPresentAfter" value="@s.IsPresentAfter.ToString().ToLower()" />
                                         <input type="hidden" name="students[@i].IsPresentBefore" value="@s.IsPresentBefore.ToString().ToLower()" />
-                                        <input type="checkbox"
-                                               name="students[@i].IsPresentBefore"
-                                               value="true"
-                                               class="pre-check attendance-check"
-                                               @(s.IsPresentBefore ? "checked" : "")
-                                               onchange="toggleRow(this)" />
                                     </td>
-                                    <td>@(i + 1)</td>
-                                    <td><strong>@s.StudentName</strong></td>
-                                    <td>@s.ParentName</td>
                                     <td>
                                         <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">@s.ParentName</span>
-                                        @if (!string.IsNullOrWhiteSpace(s.EmergencyContactPhone))
-                                        {
-                                            <span>@s.EmergencyContactName</span><br />
-                                            <a href="tel:@s.EmergencyContactPhone" class="text-muted small">
-                                                <i class="fa fa-phone"></i> @s.EmergencyContactPhone
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">@s.EmergencyContactName</span>
-                                        }
                                     </td>
                                     <td>
                                         <div class="text-[11px] font-bold text-gray-800 uppercase tracking-tight">@s.EmergencyContactName</div>
                                         @if (!string.IsNullOrEmpty(s.EmergencyContactPhone))
-                                    <td class="text-center">
-                                        @if (s.AlreadyPresentBefore == true)
                                         {
                                             <div class="text-[10px] font-mono text-blue-600 mt-1">
                                                 <i class="bi bi-telephone-fill me-1 text-gray-300"></i>@s.EmergencyContactPhone
                                             </div>
-                                            <span class="label label-success"><i class="fa fa-check"></i> Marked</span>
-                                        }
-                                        else if (s.AlreadyPresentBefore == false)
-                                        {
-                                            <span class="label label-danger"><i class="fa fa-times"></i> Absent</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="label label-default">Pending</span>
                                         }
                                     </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
 
                                     @* PRE-DEPARTURE CHECKBOX (READ-ONLY) *@
                                     <td class="text-center bg-gray-50/30 border-l border-gray-50">
@@ -283,150 +161,39 @@
                                                    @(s.IsPresentBefore ? "checked" : "")
                                                    @(canMark ? "" : "disabled") />
                                             @if (s.AlreadyPresentBefore == true)
-                <div class="attendance-summary" id="pre-summary">
-                    <span class="summary-present">0 present</span> of <strong>@Model.Count</strong> students
-                </div>
-
-                <div style="margin-top:16px;">
-                    <button type="submit" class="btn btn-warning btn-lg"
-                            onclick="return confirmMark('pre-trip')"
-                            @(canMark ? "" : "disabled")>
-                        <i class="fa fa-save"></i> Save Pre-Trip Attendance
-                    </button>
-                </div>
-            }
-        </div>
-    </div>
-
-    @* POST-TRIP TAB *@
-    <div role="tabpanel" class="tab-pane @(preTripDone ? "active" : "")" id="post-trip">
-        <div class="tab-inner">
-            <div class="clearfix" style="margin-bottom:14px;">
-                <h4 class="pull-left" style="margin:0;">
-                    <i class="fa fa-sign-in text-success"></i> Mark students present on return
-                </h4>
-                <div class="pull-right">
-                    <button type="button" class="btn btn-xs btn-default" onclick="selectAll('post', true)">Check All</button>
-                    <button type="button" class="btn btn-xs btn-default" onclick="selectAll('post', false)">Uncheck All</button>
-                </div>
-            </div>
-
-            @if (!preTripDone)
-            {
+                                            {
                                                 <span class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">Verified</span>
-                <div class="alert alert-warning">
-                    <i class="fa fa-exclamation-triangle"></i>
-                    <strong>Note:</strong> Pre-trip attendance has not been saved yet. You should complete that first.
-                </div>
-            }
-            @if (postTripDone)
-            {
-                <div class="alert alert-info">
-                    <i class="fa fa-info-circle"></i> Post-trip attendance has already been saved.
-                </div>
+                                            }
+                                        </div>
                                     </td>
-            }
-
-            @using (Html.BeginForm("MarkManifest", "Driver", FormMethod.Post))
-            {
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="scheduleId" value="@schedule?.Id" />
-                <input type="hidden" name="markType" value="after" />
 
                                     @* POST-RETURN CHECKBOX (READ-ONLY) *@
                                     <td class="text-center bg-green-50/10 border-l border-gray-50">
                                         <div class="flex flex-col items-center justify-center">
-                <div class="table-responsive">
-                    <table class="table table-hover manifest-table">
-                        <thead>
-                            <tr>
-                                <th style="width:50px;" class="text-center">Present</th>
-                                <th>#</th>
-                                <th>Student Name</th>
-                                <th>Parent / Guardian</th>
-                                <th>Emergency Contact</th>
-                                <th class="text-center">Pre-Trip</th>
-                                <th class="text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (int i = 0; i < Model.Count; i++)
-                            {
-                                var s = Model[i];
-                                <tr class="student-row @(s.IsPresentAfter ? "row-present" : "")">
-                                    <td class="text-center">
-                                        <input type="hidden" name="students[@i].StudentId" value="@s.StudentId" />
-                                        <input type="hidden" name="students[@i].IsPresentBefore" value="@s.IsPresentBefore.ToString().ToLower()" />
-                                        <input type="checkbox"
-                                               name="students[@i].IsPresentAfter"
-                                               value="true"
+                                            <input type="checkbox"
+                                                   name="students[@i].IsPresentAfter"
+                                                   value="true"
                                                    class="cb-after w-6 h-6 accent-[#10b981] pointer-events-none"
-                                               @(s.IsPresentAfter ? "checked" : "")
+                                                   @(s.IsPresentAfter ? "checked" : "")
                                                    @(afterDisabled ? "disabled" : "")
                                                    @(canMark ? "" : "disabled") />
-                                               onchange="toggleRow(this)" />
-                                    </td>
-                                    <td>@(i + 1)</td>
-                                    <td><strong>@s.StudentName</strong></td>
-                                    <td>@s.ParentName</td>
-                                    <td>
-                                        @if (!string.IsNullOrWhiteSpace(s.EmergencyContactPhone))
-                                        {
-                                            <span>@s.EmergencyContactName</span><br />
-                                            <a href="tel:@s.EmergencyContactPhone" class="text-muted small">
-                                                <i class="fa fa-phone"></i> @s.EmergencyContactPhone
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">@s.EmergencyContactName</span>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (s.AlreadyPresentBefore == true)
-                                        {
-                                            <span class="label label-success"><i class="fa fa-check"></i></span>
-                                        }
-                                        else
-                                        {
-                                            <span class="label label-danger"><i class="fa fa-times"></i></span>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        @if (s.AlreadyPresentAfter == true)
-                                        {
+                                            @if (s.AlreadyPresentAfter == true)
+                                            {
                                                 <span class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">Returned</span>
-                                            <span class="label label-success"><i class="fa fa-check"></i> Returned</span>
-                                        }
-                                        else if (s.AlreadyPresentAfter == false)
-                                        {
-                                            <span class="label label-danger"><i class="fa fa-times"></i> Absent</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="label label-default">Pending</span>
-                                        }
+                                            }
                                         </div>
                                     </td>
                                 </tr>
                             }
                         }
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
+            </div>
 
             @* Footer Actions *@
             <div class="p-6 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0">
                 <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
                     <i class="bi bi-clipboard-check me-2 text-gray-500"></i> Driver Attendance Protocol
-                <div class="attendance-summary" id="post-summary">
-                    <span class="summary-present">0 present</span> of <strong>@Model.Count</strong> students
-                </div>
-
-                <div class="alert alert-danger" style="margin-top:16px;">
-                    <i class="fa fa-exclamation-triangle"></i>
-                    <strong>Important:</strong> Saving post-trip attendance will mark this trip as
-                    <strong>Completed</strong>. Parents will be notified. This cannot be undone.
                 </div>
                 <div class="flex gap-3">
                     <button type="submit" name="markType" value="before" class="bg-gray-100 text-gray-900 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E] hover:text-white transition-all shadow-xl"
@@ -438,35 +205,46 @@
                             @(canMark ? "" : "disabled")
                             onclick="return confirm('Save post-trip attendance? This will mark the trip as COMPLETED and notify parents. This cannot be undone.')">
                         <i class="bi bi-box-arrow-in-down-right me-2"></i> Commit Return & Complete
-
-                <div>
-                    <button type="submit" class="btn btn-success btn-lg"
-                            onclick="return confirmMark('post-trip')"
-                            @(canMark ? "" : "disabled")>
-                        <i class="fa fa-check-circle"></i> Save Post-Trip Attendance &amp; Complete Trip
                     </button>
                 </div>
-            }
+            </div>
         </div>
-    </div>
     }
 </div>
 
 <style>
     .font-serif {
         font-family: 'Playfair Display', serif !important;
-    .page-header {
-        border-bottom: 2px solid #e2e2e2;
-        margin-bottom: 24px;
     }
 
-    .trip-stat {
-        padding: 12px 0;
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
     }
 
-        .trip-stat + .trip-stat {
-            border-left: 1px solid #eee;
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
+
+    .pointer-events-none {
+        pointer-events: none !important;
+    }
 
     .stat-num {
         font-size: 24px;
@@ -481,118 +259,4 @@
         letter-spacing: 0.5px;
         margin-top: 2px;
     }
-
-    .manifest-tabs {
-        margin-top: 24px;
-        border-bottom: 2px solid #ddd;
-    }
-
-        .manifest-tabs > li > a {
-            font-size: 15px;
-            font-weight: 600;
-            padding: 10px 20px;
-        }
-
-    .font-mono {
-        font-family: 'Source Code Pro', monospace !important;
-    .manifest-tab-content {
-        border: 1px solid #ddd;
-        border-top: none;
-        border-radius: 0 0 6px 6px;
-    }
-
-    .table thead th {
-        border-bottom: 2px solid #f8f9fa !important;
-    .tab-inner {
-        padding: 24px;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
-    .manifest-table thead th {
-        background: #f5f5f5;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-    .manifest-table .attendance-check {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #eee;
-        border-radius: 10px;
-    .row-present {
-        background-color: #f0fff0 !important;
-    }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #C21E2E;
-    .attendance-summary {
-        background: #f9f9f9;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        padding: 10px 16px;
-        margin-top: 12px;
-        font-size: 14px;
-        color: #555;
-    }
-
-    .pointer-events-none {
-        pointer-events: none !important;
-        .attendance-summary .summary-present {
-            font-weight: 700;
-            color: #2d862d;
-            font-size: 16px;
-        }
 </style>
-
-<script>
-    function toggleRow(checkbox) {
-        var row = checkbox.closest('tr');
-        if (checkbox.checked) {
-            row.classList.add('row-present');
-        } else {
-            row.classList.remove('row-present');
-        checkbox.checked ? row.classList.add('row-present') : row.classList.remove('row-present');
-        updateSummary();
-    }
-
-    function selectAll(prefix, checked) {
-        var selector = prefix === 'pre' ? '.pre-check' : '.post-check';
-        document.querySelectorAll(selector).forEach(function (cb) {
-            cb.checked = checked;
-            checked ? cb.closest('tr').classList.add('row-present')
-                    : cb.closest('tr').classList.remove('row-present');
-        });
-        updateSummary();
-    }
-
-    function updateSummary() {
-        var preChecked = document.querySelectorAll('.cb-before:checked').length;
-        var postChecked = document.querySelectorAll('.cb-after:checked').length;
-        // You can add a summary element if you like; for now just console.
-        console.log('Pre: ' + preChecked + ', Post: ' + postChecked);
-        var preChecked  = document.querySelectorAll('.pre-check:checked').length;
-        var postChecked = document.querySelectorAll('.post-check:checked').length;
-        var preSummary  = document.getElementById('pre-summary');
-        var postSummary = document.getElementById('post-summary');
-        if (preSummary)  preSummary.querySelector('.summary-present').textContent  = preChecked  + ' present';
-        if (postSummary) postSummary.querySelector('.summary-present').textContent = postChecked + ' present';
-    }
-
-    function confirmMark(tab) {
-        if (tab === 'post-trip') {
-            return confirm('Save post-trip attendance? This will mark the trip as COMPLETED and notify parents. This cannot be undone.');
-        }
-        return confirm('Save pre-trip attendance? Checked students will be marked present for departure.');
-    }
-
-    // Initial summary update
-    updateSummary();
-</script>

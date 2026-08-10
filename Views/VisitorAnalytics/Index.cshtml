@@ -1,0 +1,127 @@
+﻿@model IEnumerable<Michaelhouse.Models.VisitorScanLog>
+@{
+    ViewBag.Title = "Visitor Analytics";
+}
+
+<div class="container mt-4">
+    <h2 class="text-uppercase" style="color: #C21E2E;">Visitor Analytics</h2>
+    <hr />
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h5>Total Scans</h5>
+                    <h3>@ViewBag.Total</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h5>Granted</h5>
+                    <h3>@ViewBag.Granted</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h5>Denied</h5>
+                    <h3>@ViewBag.Denied</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h5>Exits</h5>
+                    <h3>@Model.Count(l => l.Status == "Exit")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Index", "VisitorAnalytics", FormMethod.Get))
+    {
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <label>Period</label>
+                <select name="period" class="form-select">
+                    <option value="daily" @(ViewBag.Period == "daily" ? "selected" : "")>Daily</option>
+                    <option value="weekly" @(ViewBag.Period == "weekly" ? "selected" : "")>Weekly</option>
+                    <option value="monthly" @(ViewBag.Period == "monthly" ? "selected" : "")>Monthly</option>
+                    <option value="yearly" @(ViewBag.Period == "yearly" ? "selected" : "")>Yearly</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>Year</label>
+                <input type="number" name="year" class="form-control" value="@ViewBag.Year" />
+            </div>
+            <div class="col-md-2">
+                <label>Month</label>
+                <input type="number" name="month" class="form-control" min="1" max="12" value="@ViewBag.Month" />
+            </div>
+            <div class="col-md-2">
+                <label>Day</label>
+                <input type="number" name="day" class="form-control" min="1" max="31" value="@ViewBag.Day" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    }
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Visitor</th>
+                <th>Date/Time</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Duration</th>
+                <th>Scanner</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model)
+            {
+                // Calculate duration if this is an exit and there's an entry before it
+                string duration = "—";
+                if (log.Status == "Exit")
+                {
+                    var entry = Model.FirstOrDefault(l => l.RequestId == log.RequestId && l.Status == "Granted" && l.IsEntry == true && l.ScannedAt < log.ScannedAt);
+                    if (entry != null)
+                    {
+                        var diff = log.ScannedAt - entry.ScannedAt;
+                        duration = diff.ToString(@"hh\:mm");
+                    }
+                }
+
+                <tr>
+                    <td>@log.Request?.VisitorFullName</td>
+                    <td>@log.ScannedAt.ToString("dd MMM yyyy HH:mm")</td>
+                    <td>
+                        @if (log.IsEntry)
+                        {
+                            <span class="badge bg-primary">Entry</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Exit</span>
+                        }
+                    </td>
+                    <td>
+                        <span class="badge @(log.Status == "Granted" ? "bg-success" : log.Status == "Exit" ? "bg-info" : "bg-danger")">
+                            @log.Status
+                        </span>
+                    </td>
+                    <td>@duration</td>
+                    <td>@log.ScannerName</td>
+                    <td>@log.Location</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

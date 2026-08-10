@@ -1,9 +1,8 @@
 using Michaelhouse.Models;
-using QRCoder;
 using System;
 using System.Linq;
-using System.Text;
-using System.Web.Security;
+using System.Text; // Required for Encoding
+using System.Web.Security; // Required for MachineKey
 
 namespace Michaelhouse.Services
 {
@@ -17,21 +16,32 @@ namespace Michaelhouse.Services
         public StudentQRCode GenerateQRCode(int studentId)
         {
             var student = db.Students.Find(studentId);
+
             if (student == null)
                 throw new InvalidOperationException("Student not found.");
 
             var existing = GetActiveQRCode(studentId);
+
             if (existing != null)
+            {
+                // Repair older QR records that have a value but no stored image.
+                if (existing.QRImage == null || existing.QRImage.Length == 0)
+                {
+                    existing.QRImage = GenerateQRImage(existing.QRCodeValue);
+                    db.SaveChanges();
+                }
+
                 return existing;
+            }
 
             string value = GenerateUniqueValue(student);
-            byte[] image = GenerateQRImage(value);
+            byte[] image = GenerateQRImage(value); // <--- Uncommented this!
 
             var qr = new StudentQRCode
             {
                 StudentId = studentId,
                 QRCodeValue = value,
-                QRImage = image,
+                QRImage = image, // <--- Uncommented this!
                 DateGenerated = DateTime.Now,
                 IsActive = true
             };
@@ -54,13 +64,13 @@ namespace Michaelhouse.Services
 
             var student = db.Students.Find(studentId);
             string value = GenerateUniqueValue(student);
-            byte[] image = GenerateQRImage(value);
+            byte[] image = GenerateQRImage(value); // <--- Uncommented this!
 
             var qr = new StudentQRCode
             {
                 StudentId = studentId,
                 QRCodeValue = value,
-                QRImage = image,
+                QRImage = image, // <--- Uncommented this!
                 DateGenerated = DateTime.Now,
                 IsActive = true,
                 RegeneratedFromId = current?.QRCodeId
@@ -108,13 +118,18 @@ namespace Michaelhouse.Services
             throw new InvalidOperationException("Could not generate a unique QR code after multiple attempts.");
         }
 
-        public byte[] GenerateQRImage(string value)
+        public byte[] GenerateQRImage(string qrCodeValue)
         {
-            using (var generator = new QRCodeGenerator())
-            using (var data = generator.CreateQrCode(value ?? string.Empty, QRCodeGenerator.ECCLevel.Q))
+            using (var qrGenerator = new QRCoder.QRCodeGenerator())
             {
-                var qrCode = new PngByteQRCode(data);
-                return qrCode.GetGraphic(20);
+                var qrCodeData = qrGenerator.CreateQrCode(qrCodeValue, QRCoder.QRCodeGenerator.ECCLevel.Q);
+                var qrCode = new QRCoder.QRCode(qrCodeData);
+                using (var bitmap = qrCode.GetGraphic(20))
+                using (var stream = new System.IO.MemoryStream())
+                {
+                    bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                    return stream.ToArray();
+                }
             }
         }
     }

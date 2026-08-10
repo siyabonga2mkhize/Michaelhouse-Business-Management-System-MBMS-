@@ -1,5 +1,6 @@
 using Michaelhouse.Filters;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using System;
 using System.Data.Entity;
 using System.Linq;
@@ -12,11 +13,13 @@ namespace Michaelhouse.Controllers
     public class ResidenceAssignmentController : Controller
     {
         private readonly DBContextClass db = new DBContextClass();
+        private readonly BoardingAccessService boardingAccess = new BoardingAccessService();
 
         public ActionResult Index(string search, bool archived = false)
         {
             var query = db.ResidenceAssignments.Include(a => a.Student).Include(a => a.Residence).Include(a => a.Room).Include(a => a.Bed).AsQueryable();
             query = query.Where(a => a.IsArchived == archived);
+            query = boardingAccess.ScopeAssignments(this, db, query);
             if (!string.IsNullOrWhiteSpace(search)) query = query.Where(a => a.Student.FirstName.Contains(search) || a.Student.LastName.Contains(search) || a.Residence.Name.Contains(search) || a.Room.RoomNumber.Contains(search));
             ViewBag.Search = search;
             ViewBag.Archived = archived;
@@ -28,9 +31,11 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var assignment = db.ResidenceAssignments.Include(a => a.Student).Include(a => a.Residence).Include(a => a.Room).Include(a => a.Bed).FirstOrDefault(a => a.ResidenceAssignmentId == id);
             if (assignment == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, assignment.ResidenceId)) return new HttpUnauthorizedResult();
             return View(assignment);
         }
 
+        [AdminOnly]
         public ActionResult Create()
         {
             PopulateLists();
@@ -39,6 +44,7 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminOnly]
         public ActionResult Create([Bind(Include = "StudentId,ResidenceId,RoomId,BedId,MoveInDate,Status,IsActive")] ResidenceAssignment model)
         {
             ValidateAssignment(model, true);
@@ -56,6 +62,7 @@ namespace Michaelhouse.Controllers
             return RedirectToAction("Details", new { id = model.ResidenceAssignmentId });
         }
 
+        [AdminOnly]
         public ActionResult Edit(int? id)
         {
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
@@ -67,6 +74,7 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AdminOnly]
         public ActionResult Edit([Bind(Include = "ResidenceAssignmentId,StudentId,ResidenceId,RoomId,BedId,MoveInDate,VacatedDate,Status,IsActive")] ResidenceAssignment model)
         {
             var assignment = db.ResidenceAssignments.Find(model.ResidenceAssignmentId);
@@ -105,6 +113,7 @@ namespace Michaelhouse.Controllers
             if (id == null) return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             var assignment = db.ResidenceAssignments.Include(a => a.Student).Include(a => a.Residence).FirstOrDefault(a => a.ResidenceAssignmentId == id);
             if (assignment == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, assignment.ResidenceId)) return new HttpUnauthorizedResult();
             return View(assignment);
         }
 
@@ -114,6 +123,7 @@ namespace Michaelhouse.Controllers
         {
             var assignment = db.ResidenceAssignments.Find(id);
             if (assignment == null) return HttpNotFound();
+            if (!boardingAccess.CanAccessResidence(this, db, assignment.ResidenceId)) return new HttpUnauthorizedResult();
             if (assignment.IsActive)
             {
                 TempData["Error"] = "Cannot archive an active assignment. Check out or transfer the student first.";

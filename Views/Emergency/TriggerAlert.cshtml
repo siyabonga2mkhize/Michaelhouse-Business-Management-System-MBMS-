@@ -1,0 +1,225 @@
+@model Michaelhouse.Models.EmergencyAlert
+
+@{
+    ViewBag.Title = "Trigger Emergency Alert";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-8 d-flex justify-content-between align-items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Critical Safety Protocols</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Trigger Emergency Alert</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Broadcast Directive • Geofence Assembly Control</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="javascript:history.back()" class="inline-block bg-white border border-gray-200 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Cancel & Return
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE CONTENT AREA --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 space-y-8">
+
+        @* --- CRITICAL WARNING BANNER --- *@
+        <div class="bg-red-50 border-l-4 border-[#C21E2E] p-6 shadow-sm flex items-start gap-4">
+            <div class="text-[#C21E2E] text-2xl flex-shrink-0 mt-0.5">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div>
+                <h5 class="text-xs font-mono uppercase font-bold text-[#C21E2E] tracking-wider mb-1">Critical Action Warning</h5>
+                <p class="text-xs text-gray-700 mb-0 font-serif">
+                    Executing this command will immediately trigger push notifications to all enrolled students and staff, enforcing mandatory routing to the designated assembly point coordinates.
+                </p>
+            </div>
+        </div>
+
+        @if (ViewBag.SuccessMessage != null)
+        {
+            <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 text-emerald-800 text-xs font-mono">
+                <i class="bi bi-check-circle-fill me-2"></i> @ViewBag.SuccessMessage
+            </div>
+        }
+
+        @using (Html.BeginForm("TriggerAlert", "Emergency", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            if (!ViewData.ModelState.IsValid)
+            {
+                <div class="bg-red-50 border border-red-200 p-4 mb-6 text-xs text-[#C21E2E] font-mono">
+                    @Html.ValidationSummary(true, "Please correct the errors below:", new { @class = "mb-0" })
+                </div>
+            }
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                @* Form Inputs (2 Cols) *@
+                <div class="lg:col-span-2 space-y-8">
+
+                    @* Section 01: Message Directive *@
+                    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative">
+                            <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">01. Emergency Message Directive</h5>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <label for="AlertMessage" class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-500 mb-2 font-mono">
+                                    Broadcast Alert Message <span class="text-[#C21E2E]">*</span>
+                                </label>
+                                @Html.TextAreaFor(m => m.AlertMessage, new
+                                {
+                                    @class = "w-full bg-white border border-gray-200 p-4 text-xs font-serif text-gray-900 outline-none focus:border-[#C21E2E] transition-colors shadow-inner min-h-[110px]",
+                                    @rows = 3,
+                                    @placeholder = "Enter emergency message..."
+                                })
+                                @Html.ValidationMessageFor(m => m.AlertMessage, "", new { @class = "text-[10px] text-[#C21E2E] font-mono mt-1 block" })
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Section 02: Location & Geofence Coordinates *@
+                    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative">
+                            <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">02. Assembly Location & Geofence Parameters</h5>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="AssemblyPointName" class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-500 mb-2 font-mono">
+                                        Assembly Point Name
+                                    </label>
+                                    @Html.TextBoxFor(m => m.AssemblyPointName, new
+                                    {
+                                        @class = "w-full bg-white border border-gray-200 px-4 py-2.5 text-xs font-mono text-gray-900 outline-none focus:border-[#C21E2E] transition-colors",
+                                        @placeholder = "e.g., Main Sports Field"
+                                    })
+                                </div>
+                                <div>
+                                    <label for="GeofenceRadiusMeters" class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-500 mb-2 font-mono">
+                                        Geofence Radius (Meters)
+                                    </label>
+                                    @Html.TextBoxFor(m => m.GeofenceRadiusMeters, new
+                                    {
+                                        @class = "w-full bg-white border border-gray-200 px-4 py-2.5 text-xs font-mono text-gray-900 outline-none focus:border-[#C21E2E] transition-colors",
+                                        @type = "number",
+                                        @step = "10",
+                                        @min = "50",
+                                        @max = "500"
+                                    })
+                                    <p class="text-[9px] font-mono text-gray-400 mt-1 mb-0">Default: 150m. Personnel within this radius are flagged safe.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6">
+                                <div>
+                                    <label for="AssemblyLatitude" class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-500 mb-2 font-mono">
+                                        Assembly Point Latitude
+                                    </label>
+                                    @Html.TextBoxFor(m => m.AssemblyLatitude, new
+                                    {
+                                        @class = "w-full bg-white border border-gray-200 px-4 py-2.5 text-xs font-mono text-gray-900 outline-none focus:border-[#C21E2E] transition-colors",
+                                        @step = "0.0001",
+                                        @placeholder = "-29.8587"
+                                    })
+                                </div>
+                                <div>
+                                    <label for="AssemblyLongitude" class="block text-[10px] uppercase tracking-[2px] font-bold text-gray-500 mb-2 font-mono">
+                                        Assembly Point Longitude
+                                    </label>
+                                    @Html.TextBoxFor(m => m.AssemblyLongitude, new
+                                    {
+                                        @class = "w-full bg-white border border-gray-200 px-4 py-2.5 text-xs font-mono text-gray-900 outline-none focus:border-[#C21E2E] transition-colors",
+                                        @step = "0.0001",
+                                        @placeholder = "30.8762"
+                                    })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Right Sidebar / Protocol Checklist *@
+                <div class="space-y-6">
+
+                    @* Checklist Card *@
+                    <div class="bg-white border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 bg-gray-50/50 -m-6 mb-6">
+                            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Pre-Execution Checklist</h5>
+                        </div>
+                        <ul class="space-y-3 text-xs font-mono text-gray-600">
+                            <li class="flex items-start gap-2">
+                                <i class="bi bi-shield-check text-[#C21E2E] text-sm flex-shrink-0 mt-0.5"></i>
+                                <span>Ensure assembly point coordinates are correct</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="bi bi-shield-check text-[#C21E2E] text-sm flex-shrink-0 mt-0.5"></i>
+                                <span>Verify geofence radius is appropriate for your location</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="bi bi-shield-check text-[#C21E2E] text-sm flex-shrink-0 mt-0.5"></i>
+                                <span>Confirm you are authorized to trigger this alert</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    @* Action Trigger Box *@
+                    <div class="bg-[#1a1a1a] text-white p-6 shadow-sm space-y-4">
+                        <div class="text-[9px] uppercase tracking-[3px] font-bold text-[#C21E2E] font-mono font-bold">Execute System Directive</div>
+                        <p class="text-[11px] font-serif italic text-gray-300 leading-relaxed mb-0">
+                            Initiating this command writes directly to the real-time emergency registry and activates automated location tracking across all student terminals.
+                        </p>
+                        <div class="pt-4 border-t border-gray-800 space-y-3">
+                            <button type="submit" class="w-full bg-[#C21E2E] hover:bg-red-700 text-white py-3 px-4 text-[10px] font-bold uppercase tracking-[2px] transition-all shadow-md flex items-center justify-center gap-2" onclick="return confirm('Are you sure? This will immediately notify all students.')">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Trigger Emergency Alert
+                            </button>
+                            <a href="javascript:history.back()" class="w-full inline-block text-center bg-gray-800 hover:bg-gray-700 text-gray-300 py-2.5 px-4 text-[9px] font-bold uppercase tracking-[2px] transition-all">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

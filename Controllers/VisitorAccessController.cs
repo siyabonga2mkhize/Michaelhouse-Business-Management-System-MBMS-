@@ -18,16 +18,38 @@ namespace Michaelhouse.Controllers
         private static readonly string QrSecretSalt = "MH_Secure_GatePass_Salt_2026";
 
         // ============================================================
+        //  HELPER: Get the current logged-in student
+        // ============================================================
+        private Student GetCurrentStudent()
+        {
+            var userId = (int?)Session["UserId"];
+            if (!userId.HasValue) return null;
+            return db.Students.FirstOrDefault(s => s.UserId == userId.Value);
+        }
+
+        // ============================================================
         // 📝 1. CREATE VISITOR REQUEST FORM
         // ============================================================
 
         [HttpGet]
         public ActionResult Create()
         {
+            var student = GetCurrentStudent();
+            if (student == null)
+                return RedirectToAction("Login", "Account");
+
+            string houseName = "Founders House";
+            if (student.ResidenceId.HasValue)
+            {
+                var residence = db.Residences.Find(student.ResidenceId.Value);
+                if (residence != null)
+                    houseName = residence.Name;
+            }
+
             var model = new VisitorAccessRequest
             {
-                StudentId = 1,
-                BoardingHouseName = "Founders House",
+                StudentId = student.StudentId,
+                BoardingHouseName = houseName,
                 VisitDate = DateTime.Today
             };
             return View(model);
@@ -37,21 +59,38 @@ namespace Michaelhouse.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(VisitorAccessRequest model)
         {
+            var student = GetCurrentStudent();
+            if (student == null)
+                return RedirectToAction("Login", "Account");
+
+            model.StudentId = student.StudentId;
+
             if (!ModelState.IsValid)
             {
+                if (student.ResidenceId.HasValue)
+                {
+                    var residence = db.Residences.Find(student.ResidenceId.Value);
+                    model.BoardingHouseName = residence?.Name ?? "Founders House";
+                }
+                else
+                {
+                    model.BoardingHouseName = "Founders House";
+                }
                 return View(model);
             }
 
-            // --- GUARDRAIL 1: Time Sequence Validation ---
+            // Time sequence validation
             if (model.StartTime >= model.EndTime)
             {
                 ModelState.AddModelError("", "Invalid Schedule: The Start Time must be before the End Time.");
                 return View(model);
             }
 
-            // --- MICHAELHOUSE RULES ENGINE ---
-
-            // RULE 0: Visiting hours based on day of week
+            // ============================================================
+            // ==== TEMPORARY FOR PRESENTATION – COMMENT OUT TIME RULES ====
+            // ============================================================
+            /*
+            // Visiting hours rules
             TimeSpan weekdayStart = new TimeSpan(16, 0, 0);
             TimeSpan weekdayEnd = new TimeSpan(19, 0, 0);
             TimeSpan weekendStart = new TimeSpan(9, 0, 0);
@@ -69,8 +108,9 @@ namespace Michaelhouse.Controllers
                 ModelState.AddModelError("", $"Visits are only permitted during {dayType}.");
                 return View(model);
             }
+            */
 
-            // RULE 1: Closed Weekend Restriction
+            // Closed weekend check (keep this – it's a separate rule)
             bool isClosedWeekend = db.TermCalendars.Any(c =>
                 c.IsClosedWeekend &&
                 model.VisitDate >= c.StartDate &&
@@ -82,7 +122,7 @@ namespace Michaelhouse.Controllers
                 return View(model);
             }
 
-            // RULE 2: Prep (18:30 - 20:30) & Curfew (21:00) Overlap Check
+            // Prep and curfew checks (keep these – they are safety rules)
             TimeSpan prepStart = new TimeSpan(18, 30, 0);
             TimeSpan prepEnd = new TimeSpan(20, 30, 0);
             TimeSpan curfew = new TimeSpan(21, 0, 0);
@@ -100,7 +140,7 @@ namespace Michaelhouse.Controllers
                 return View(model);
             }
 
-            // RULE 3: Safeguarding & Zone Enforcement
+            // Safeguarding & Zone Enforcement
             model.FinalAssignedZone = model.RequestedZone;
             string zoneMessage = string.Empty;
 
@@ -110,7 +150,7 @@ namespace Michaelhouse.Controllers
                 zoneMessage = " (Reassigned to Public Campus Grounds for safeguarding compliance)";
             }
 
-            // RULE 4: Smart Routing (Auto-approval vs. Housemaster Review)
+            // Smart Routing
             model.AccessGatePassCode = "MH-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
             model.CreatedAt = DateTime.Now;
 
@@ -119,10 +159,7 @@ namespace Michaelhouse.Controllers
                 model.Status = VisitorRequestStatus.AutoApprovedWeekend;
                 db.VisitorAccessRequests.Add(model);
                 db.SaveChanges();
-
-                // ✅ Send the real email with a link
                 SendVisitorPassEmail(model);
-
                 TempData["Success"] = $"✅ Auto-Approved! Visitor Pass emailed to {model.VisitorEmail}. {zoneMessage}";
                 return RedirectToAction("MyRequests");
             }
@@ -131,21 +168,24 @@ namespace Michaelhouse.Controllers
                 model.Status = VisitorRequestStatus.PendingHousemaster;
                 db.VisitorAccessRequests.Add(model);
                 db.SaveChanges();
-
                 TempData["Success"] = $"📨 Sent to Housemaster for review.{zoneMessage}";
                 return RedirectToAction("MyRequests");
             }
         }
 
         // ============================================================
-        // 📋 2. STUDENT DASHBOARD
+        // 📋 2. STUDENT DASHBOARD (My Requests)
         // ============================================================
 
         [HttpGet]
         public ActionResult MyRequests()
         {
+            var student = GetCurrentStudent();
+            if (student == null)
+                return RedirectToAction("Login", "Account");
+
             var requests = db.VisitorAccessRequests
-                .Where(r => r.StudentId == 1)
+                .Where(r => r.StudentId == student.StudentId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList();
             return View(requests);
@@ -177,10 +217,7 @@ namespace Michaelhouse.Controllers
             {
                 request.Status = VisitorRequestStatus.Approved;
                 db.SaveChanges();
-
-                // ✅ Send the real email with a link
                 SendVisitorPassEmail(request);
-
                 TempData["StudentNotification"] = $"✅ Housemaster approved {request.VisitorFullName}'s visit!";
                 TempData["Success"] = $"✅ Approved! Visitor Pass emailed to {request.VisitorEmail}.";
             }
@@ -209,7 +246,7 @@ namespace Michaelhouse.Controllers
         {
             var request = db.VisitorAccessRequests.Find(id);
             if (request == null) return HttpNotFound();
-            return View(request);
+            return View("VistorPass", request);
         }
 
         // ============================================================
@@ -219,7 +256,13 @@ namespace Michaelhouse.Controllers
         [HttpGet]
         public ActionResult ScanGate() => View();
 
-        public class QrPayload { public int rid { get; set; } public long ts { get; set; } public string sig { get; set; } }
+        // Inner class for QR payload
+        public class QrPayload
+        {
+            public int rid { get; set; }
+            public long ts { get; set; }
+            public string sig { get; set; }
+        }
 
         [HttpGet]
         public ActionResult GenerateQrImage(int id)
@@ -278,26 +321,80 @@ namespace Michaelhouse.Controllers
                     return Json(new { success = false, message = "Security Check Failed: Invalid signature detected." }, JsonRequestBehavior.AllowGet);
 
                 if (request.Status != VisitorRequestStatus.Approved && request.Status != VisitorRequestStatus.AutoApprovedWeekend)
+                {
+                    LogScan(request, "Denied", $"Invalid status: {request.Status}", isEntry: false);
                     return Json(new { success = false, message = $"Access Denied: Status is {request.Status}." }, JsonRequestBehavior.AllowGet);
+                }
 
                 var nowLocal = DateTime.Now;
                 if (nowLocal.Date != request.VisitDate.Date)
+                {
+                    LogScan(request, "Denied", $"Wrong date: expected {request.VisitDate:dd MMM yyyy}, got {nowLocal:dd MMM yyyy}", isEntry: false);
                     return Json(new { success = false, message = $"Pass active for date: {request.VisitDate:dd MMM yyyy}." }, JsonRequestBehavior.AllowGet);
+                }
 
+                // ============================================================
+                // ==== TEMPORARY FOR PRESENTATION – COMMENT OUT TIME CHECK ====
+                // ============================================================
+                /*
                 var currentTime = nowLocal.TimeOfDay;
                 if (currentTime < request.StartTime || currentTime > request.EndTime)
                 {
                     string startFormatted = request.StartTime.ToString(@"hh\:mm");
                     string endFormatted = request.EndTime.ToString(@"hh\:mm");
+                    LogScan(request, "Denied", $"Outside time window: {startFormatted} - {endFormatted}", isEntry: false);
                     return Json(new { success = false, message = $"Pass valid between {startFormatted} and {endFormatted}." }, JsonRequestBehavior.AllowGet);
                 }
+                */
 
+                // --- DETERMINE ENTRY / EXIT (fixed .Date issue) ---
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+
+                var existingEntry = db.VisitorScanLogs
+                    .FirstOrDefault(l => l.RequestId == request.RequestId
+                                         && l.Status == "Granted"
+                                         && l.IsEntry == true
+                                         && l.ScannedAt >= today
+                                         && l.ScannedAt < tomorrow);
+
+                var existingExit = db.VisitorScanLogs
+                    .FirstOrDefault(l => l.RequestId == request.RequestId
+                                         && l.Status == "Exit"
+                                         && l.ScannedAt >= today
+                                         && l.ScannedAt < tomorrow);
+
+                if (existingExit != null)
+                {
+                    LogScan(request, "Denied", "Already checked out today", isEntry: false);
+                    return Json(new { success = false, message = "This pass has already been used for exit today." }, JsonRequestBehavior.AllowGet);
+                }
+
+                if (existingEntry != null)
+                {
+                    LogScan(request, "Exit", "Visitor checked out", isEntry: false);
+                    var duration = DateTime.Now - existingEntry.ScannedAt;
+                    return Json(new
+                    {
+                        success = true,
+                        isExit = true,
+                        message = $"Goodbye, {request.VisitorFullName}! Have a great day.",
+                        visitorName = request.VisitorFullName,
+                        assignedZone = request.FinalAssignedZone.ToString(),
+                        visitDuration = duration.ToString(@"hh\:mm")
+                    }, JsonRequestBehavior.AllowGet);
+                }
+
+                // No entry yet → ENTRY
+                LogScan(request, "Granted", "Access granted", isEntry: true);
                 return Json(new
                 {
                     success = true,
+                    isExit = false,
                     message = $"Access Granted. Welcome to Michaelhouse, {request.VisitorFullName}!",
                     visitorName = request.VisitorFullName,
-                    assignedZone = request.FinalAssignedZone.ToString()
+                    assignedZone = request.FinalAssignedZone.ToString(),
+                    visitDuration = "N/A"
                 }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -307,7 +404,34 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
-        // 📧 EMAIL SENDING HELPER (Send a link instead of an image)
+        // 📊 HELPER: Log a visitor scan
+        // ============================================================
+        private void LogScan(VisitorAccessRequest request, string status, string reason, bool isEntry = true)
+        {
+            try
+            {
+                var log = new VisitorScanLog
+                {
+                    RequestId = request.RequestId,
+                    ScannedAt = DateTime.Now,
+                    ScannerUserId = (int?)Session["UserId"],
+                    ScannerName = Session["UserName"]?.ToString() ?? "Gate Scanner",
+                    Status = status,
+                    Reason = reason,
+                    Location = "Main Gate",
+                    IsEntry = isEntry
+                };
+                db.VisitorScanLogs.Add(log);
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to log scan: {ex.Message}");
+            }
+        }
+
+        // ============================================================
+        // 📧 EMAIL SENDING HELPER
         // ============================================================
 
         private void SendVisitorPassEmail(VisitorAccessRequest request)
@@ -327,7 +451,6 @@ namespace Michaelhouse.Controllers
                     return;
                 }
 
-                // Build the secure link to the dynamic pass page
                 string passLink = $"{Request.Url.Scheme}://{Request.Url.Authority}/VisitorAccess/VisitorPass/{request.RequestId}";
 
                 string body = $@"

@@ -48,7 +48,6 @@
         function onScanSuccess(decodedText, decodedResult) {
             if (isProcessing) return;
 
-            // Prevent duplicate scans of the exact same raw string unless reset
             if (decodedText !== lastResult) {
                 isProcessing = true;
                 lastResult = decodedText;
@@ -56,12 +55,10 @@
                 const resultArea = document.getElementById('result-area');
                 resultArea.innerHTML = `<div class="alert alert-info fw-bold">⏳ Validating Gate Pass...</div>`;
 
-                // Pause active scanning while evaluating token
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.pause(true);
                 }
 
-                // 🔥 FIXED: Changed from "VisitorsAccess" to "VisitorAccess" (Plural to Singular)
                 const targetUrl = '@Url.Action("ValidateGatePass", "VisitorAccess")' + '?data=' + encodeURIComponent(decodedText);
 
                 fetch(targetUrl)
@@ -69,7 +66,20 @@
                     .then(data => {
                         if (data.success) {
                             let zoneInfo = data.assignedZone ? `<br/><small><b>Zone:</b> ${data.assignedZone}</small>` : '';
-                            resultArea.innerHTML = `<div class="alert alert-success fs-5">✅ ${data.message}${zoneInfo}</div>`;
+                            let durationInfo = data.visitDuration && data.visitDuration !== "N/A" ?
+                                `<br/><small><b>Visit Duration:</b> ${data.visitDuration}</small>` : '';
+                            let scanType = data.isExit ? '🚪 EXIT LOGGED' : '✅ ENTRY GRANTED';
+                            let cardClass = data.isExit ? 'alert-secondary' : 'alert-success';
+                            let visitorName = data.visitorName || 'Visitor';
+
+                            resultArea.innerHTML = `
+                                <div class="alert ${cardClass} fs-5">
+                                    <strong>${scanType}</strong>
+                                    <br/><b>Visitor:</b> ${visitorName}
+                                    ${zoneInfo}
+                                    ${durationInfo}
+                                    <br/><span class="text-muted small">${data.message}</span>
+                                </div>`;
                         } else {
                             resultArea.innerHTML = `<div class="alert alert-danger fs-5">🚫 ${data.message}</div>`;
                         }
@@ -84,7 +94,7 @@
         }
 
         function onScanFailure(err) {
-            // Frame-by-frame read attempts (safe to ignore miss events)
+            // ignore
         }
 
         function resetScanner() {

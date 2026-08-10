@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    public class StudentsController : Controller
+    public class StudentsController : BaseController
     {
         private DBContextClass db = new DBContextClass();
         private int GetCurrentStudentId()
@@ -114,6 +114,111 @@ namespace Michaelhouse.Controllers
             }
             return View(student);
         }
+
+        [RequireLogin]
+        public ActionResult MyQRCode()
+        {
+            if (Session["UserRole"]?.ToString() != "Student")
+                return new HttpUnauthorizedResult();
+
+            var studentId = Session["StudentId"] as int?;
+
+            if (!studentId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var student = db.Students.Find(studentId.Value);
+
+            if (student == null)
+                return HttpNotFound();
+
+            var qrService = new StudentQRCodeService();
+
+            var qr = qrService.GenerateQRCode(student.StudentId);
+
+            ViewBag.Student = student;
+
+            return View("~/Views/StudentQRCode/Details.cshtml", qr);
+        }
+        [RequireLogin]
+        public ActionResult MyQRCodeImage()
+        {
+            if (Session["UserRole"]?.ToString() != "Student")
+                return new HttpUnauthorizedResult();
+
+            var studentId = Session["StudentId"] as int?;
+
+            if (!studentId.HasValue)
+                return new HttpUnauthorizedResult();
+
+            var qrService = new StudentQRCodeService();
+            var qr = qrService.GetActiveQRCode(studentId.Value);
+
+            if (qr == null)
+                qr = qrService.GenerateQRCode(studentId.Value);
+
+            if (qr.QRImage == null || qr.QRImage.Length == 0)
+            {
+                qr.QRImage = qrService.GenerateQRImage(qr.QRCodeValue);
+
+                using (var db = new DBContextClass())
+                {
+                    var existing = db.StudentQRCodes.Find(qr.QRCodeId);
+
+                    if (existing != null)
+                    {
+                        existing.QRImage = qr.QRImage;
+                        db.SaveChanges();
+                    }
+                }
+            }
+
+            return File(qr.QRImage, "image/png");
+        }
+        [RequireLogin]
+        public ActionResult DownloadMyQRCode()
+        {
+            if (Session["UserRole"]?.ToString() != "Student")
+                return new HttpUnauthorizedResult();
+
+            var studentId = Session["StudentId"] as int?;
+
+            if (!studentId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            using (var db = new DBContextClass())
+            {
+                var student = db.Students.Find(studentId.Value);
+
+                if (student == null)
+                    return HttpNotFound();
+
+                var qrService = new StudentQRCodeService();
+
+                var qr = qrService.GetActiveQRCode(studentId.Value);
+
+                if (qr == null)
+                    qr = qrService.GenerateQRCode(studentId.Value);
+
+                if (qr.QRImage == null || qr.QRImage.Length == 0)
+                {
+                    qr.QRImage = qrService.GenerateQRImage(qr.QRCodeValue);
+
+                    var existing = db.StudentQRCodes.Find(qr.QRCodeId);
+
+                    if (existing != null)
+                    {
+                        existing.QRImage = qr.QRImage;
+                        db.SaveChanges();
+                    }
+                }
+
+                var fileName =
+                    $"Michaelhouse-QR-{student.FirstName}-{student.LastName}.png";
+
+                return File(qr.QRImage, "image/png", fileName);
+            }
+        }
+
 
         // POST: Students/Delete/5
         [HttpPost, ActionName("Delete")]
