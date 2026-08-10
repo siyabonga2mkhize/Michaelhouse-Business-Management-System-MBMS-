@@ -42,12 +42,31 @@
                     @if (Model.DueDate.HasValue)
                     {
                         var overdue = Model.DueDate.Value < DateTime.Now && Model.Status != "Completed";
-                        <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Due Date</span><span class="@(overdue ? "text-danger fw-bold" : "")">@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm") @if (overdue)
-                        {<text>⚠️</text>}</span></li>
+                        <li class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-muted">Due Date</span><span class="@(overdue ? "text-danger fw-bold" : "")">
+                                @Model.DueDate.Value.ToString("dd MMM yyyy HH:mm") @if (overdue)
+                                {<text>⚠️</text>}
+                            </span>
+                        </li>
                     }
                     @if (Model.ResponseTimeMinutes.HasValue)
                     {
                         <li class="d-flex justify-content-between py-2"><span class="text-muted">Response Time</span><span class="text-success fw-bold">@Model.ResponseTimeMinutes mins</span></li>
+                    }
+                    @if (Model.TotalCost.HasValue)
+                    {
+                        <li class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-muted">Parts Cost</span>
+                            <span>R@(Model.PartsCost?.ToString("N2") ?? "0.00")</span>
+                        </li>
+                        <li class="d-flex justify-content-between border-bottom py-2">
+                            <span class="text-muted">Labour Cost</span>
+                            <span>R@(Model.LabourCost?.ToString("N2") ?? "0.00")</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Total Cost</span>
+                            <span class="fw-bold">R@(Model.TotalCost?.ToString("N2") ?? "0.00")</span>
+                        </li>
                     }
                 </ul>
 
