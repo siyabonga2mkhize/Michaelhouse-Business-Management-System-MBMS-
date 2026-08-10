@@ -1,27 +1,311 @@
 @model Michaelhouse.Models.StudentProfileAcademicViewModel
+
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Student Profile - Academic Information";
 }
 
-<section class="p-8 max-w-4xl mx-auto">
-    <h1 class="text-3xl font-serif font-bold mb-2">Student Profile</h1>
-    <p class="text-sm text-gray-500 mb-6">Step 2 of 5 - Academic Information for @Model.StudentName</p>
+@* --- INSTITUTIONAL HEADER --- *@
+<div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
 
-    <div class="bg-white rounded shadow p-6">
-        @using (Html.BeginForm("Academic", "StudentProfile", FormMethod.Post))
-        {
-            @Html.AntiForgeryToken()
-            @Html.HiddenFor(m => m.AppId)
-            @Html.HiddenFor(m => m.StudentId)
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Grade/Form</span>@Html.TextBoxFor(m => m.Grade, new { @class = "w-full px-4 py-2 border rounded mt-1 bg-gray-100", @readonly = "readonly" })@Html.ValidationMessageFor(m => m.Grade, "", new { @class = "text-sm text-red-600" })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Learning Style</span>@Html.DropDownListFor(m => m.LearningStyle, new SelectList(new[] { "Visual", "Practical", "Reading", "Mixed" }), "Select learning style", new { @class = "w-full px-4 py-2 border rounded mt-1" })@Html.ValidationMessageFor(m => m.LearningStyle, "", new { @class = "text-sm text-red-600" })</label>
-                <label class="block md:col-span-2"><span class="text-sm font-semibold text-gray-600">Registered Subjects</span>@Html.TextAreaFor(m => m.Subjects, new { @class = "w-full px-4 py-2 border rounded mt-1 bg-gray-100", rows = 3, @readonly = "readonly" })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Academic Interests</span>@Html.TextAreaFor(m => m.AcademicInterests, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Academic Stream</span>@Html.TextBoxFor(m => m.AcademicStream, new { @class = "w-full px-4 py-2 border rounded mt-1" })</label>
-            </div>
-            <div class="flex justify-between mt-6"><a href="@Url.Action("Basic", new { appId = Model.AppId })" class="px-5 py-2 border rounded">Back</a><button type="submit" class="px-5 py-2 bg-[#C21E2E] text-white rounded">Next</button></div>
-        }
+    <div>
+
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">
+                Institutional Registry
+            </h5>
+        </div>
+
+        <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">
+            Student Profile
+        </h2>
+
+        <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+            Step 2 of 5 - Academic Information for @Model.StudentName
+        </p>
+
     </div>
-</section>
+
+
+    @* Phase Tracking Indicator *@
+    <div class="flex gap-2 pb-2">
+
+        <div class="h-1 w-10 bg-gray-300"></div>
+
+        <div class="h-1 w-10 bg-[#C21E2E] shadow-[0_0_8px_rgba(194,30,46,0.5)]"></div>
+
+        <div class="h-1 w-10 bg-gray-200"></div>
+
+        <div class="h-1 w-10 bg-gray-200"></div>
+
+        <div class="h-1 w-10 bg-gray-200"></div>
+
+    </div>
+
+</div>
+
+
+@* --- SCROLLABLE FORM SECTION --- *@
+<div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+    <div class="w-full max-w-4xl">
+
+        @* --- OFFICIAL ONBOARDING FORM --- *@
+        @using (Html.BeginForm(
+            "Academic",
+            "StudentProfile",
+            FormMethod.Post,
+            new
+            {
+                @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form"
+            }))
+        {
+
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(m => m.AppId)
+
+            @Html.HiddenFor(m => m.StudentId)
+
+            @Html.HiddenFor(m => m.Step)
+
+            @Html.HiddenFor(m => m.StudentName)
+
+
+            @* Ghost Watermark *@
+            <i class="bi bi-journal-bookmark absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+
+
+            @* Archival Dot Grid Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+                     style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;">
+                </div>
+
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10">
+
+                    <i class="bi bi-mortarboard me-2 text-gray-400"></i>
+
+                    Academic Profile Initialization
+
+                </h5>
+
+            </div>
+
+
+            @* FORM CONTENT *@
+            <div class="p-8 space-y-8 relative z-10">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+
+                    @* =====================================================
+                       GRADE
+                       ===================================================== *@
+                    <div>
+
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                            Grade
+
+                        </label>
+
+                        @Html.TextBoxFor(
+                            m => m.Grade,
+                            new
+                            {
+                                @class = "w-full border-b-2 border-gray-200 py-3 outline-none font-mono text-sm text-gray-700 bg-gray-50/80 cursor-not-allowed",
+                                @readonly = "readonly"
+                            }
+                        )
+
+                        @Html.ValidationMessageFor(
+                            m => m.Grade,
+                            "",
+                            new
+                            {
+                                @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest"
+                            }
+                        )
+
+                    </div>
+
+
+                    @* =====================================================
+                       LEARNING STYLE
+                       ===================================================== *@
+                    <div>
+
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                            Learning Style
+
+                            <span class="text-[#C21E2E]">*</span>
+
+                        </label>
+
+                        <div class="relative">
+
+                            @Html.DropDownListFor(
+                                m => m.LearningStyle,
+                                new SelectList(
+                                    new[]
+                                    {
+                                        "Visual",
+                                        "Practical",
+                                        "Reading/Writing",
+                                        "Auditory",
+                                        "Mixed"
+                                    },
+                                    Model.LearningStyle
+                                ),
+                                "Select learning style...",
+                                new
+                                {
+                                    @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10"
+                                }
+                            )
+
+                            <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+
+                        </div>
+
+                        @Html.ValidationMessageFor(
+                            m => m.LearningStyle,
+                            "",
+                            new
+                            {
+                                @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest"
+                            }
+                        )
+
+                    </div>
+
+
+                    @* =====================================================
+                       REGISTERED SUBJECTS
+                       ===================================================== *@
+                    <div class="md:col-span-2">
+
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                            Registered Subjects
+
+                        </label>
+
+                        @Html.TextAreaFor(
+                            m => m.Subjects,
+                            new
+                            {
+                                @class = "w-full border-b-2 border-gray-200 py-3 outline-none font-mono text-xs text-gray-700 bg-gray-50/80 cursor-not-allowed resize-none",
+                                rows = 3,
+                                @readonly = "readonly"
+                            }
+                        )
+
+                    </div>
+
+
+                    @* =====================================================
+                       ACADEMIC INTERESTS
+                       ===================================================== *@
+                    <div>
+
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                            Academic Interests
+
+                        </label>
+
+                        @Html.TextAreaFor(
+                            m => m.AcademicInterests,
+                            new
+                            {
+                                @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif italic text-sm text-gray-900 transition-colors bg-transparent resize-y",
+                                rows = 3,
+                                placeholder = "Detail specific fields of academic curiosity..."
+                            }
+                        )
+
+                    </div>
+
+
+                    @* =====================================================
+                       ACADEMIC STREAM
+                       ===================================================== *@
+                    <div>
+
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">
+
+                            Academic Stream
+
+                        </label>
+
+                        <div class="relative">
+
+                            @Html.DropDownListFor(
+                                m => m.AcademicStream,
+                                new SelectList(
+                                    new[]
+                                    {
+                                        "General",
+                                        "Sciences",
+                                        "Commerce",
+                                        "Humanities",
+                                        "Technology",
+                                        "Arts"
+                                    },
+                                    Model.AcademicStream
+                                ),
+                                "Select academic stream...",
+                                new
+                                {
+                                    @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10"
+                                }
+                            )
+
+                            <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            @* =============================================================
+               INSTITUTIONAL FOOTER ACTIONS
+               ============================================================= *@
+            <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
+
+                <a href="@Url.Action("Basic", new { appId = Model.AppId })"
+                   class="inline-block bg-transparent border border-white/10 text-gray-400 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 transition-all duration-300">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Previous Phase
+
+                </a>
+
+
+                <button type="submit"
+                        class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+
+                    Save & Advance Phase
+
+                    <i class="bi bi-arrow-right ms-2"></i>
+
+                </button>
+
+            </div>
+
+        }
+
+    </div>
+
+</div>
