@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Michaelhouse.Services
 {
@@ -56,5 +57,15 @@ namespace Michaelhouse.Services
             foreach (var uid in users)
                 Send(db, uid, message, "Trip", 0);
         }
+        public static async Task SendEmergencyAlertToAllStudentsAsync(EmergencyAlert alert, Student student)
+        {
+            // Example: send to Firebase Cloud Messaging, SignalR, or use your existing service.
+            // For now, we just log to console.
+            await Task.Run(() =>
+            {
+                Console.WriteLine($"🚨 EMERGENCY ALERT to student {student.StudentId}: {alert.AlertMessage}");
+            });
+        }
+
     }
 }
