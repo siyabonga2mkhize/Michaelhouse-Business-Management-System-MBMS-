@@ -1,13 +1,200 @@
 @model Michaelhouse.Models.ResidenceMovement
-@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Create Movement"; }
-<div class="container py-4"><h2>Create Movement</h2>
-@using (Html.BeginForm()) { @Html.AntiForgeryToken() @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-<div class="form-group">@Html.LabelFor(m => m.StudentId) @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "Select student", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.FromResidenceId) @Html.DropDownListFor(m => m.FromResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.FromRoomId) @Html.DropDownListFor(m => m.FromRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.ToResidenceId) @Html.DropDownListFor(m => m.ToResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.ToRoomId) @Html.DropDownListFor(m => m.ToRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.PerformedAt) @Html.TextBoxFor(m => m.PerformedAt, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.Reason) @Html.TextAreaFor(m => m.Reason, new { @class = "form-control" })</div>
-<button class="btn btn-primary" type="submit">Save</button> }
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Personnel Reallocation Protocol";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Personnel Reallocation</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Execute Official Residence Transfer Protocol</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE FORM SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+        <div class="w-full max-w-5xl">
+
+            @* --- OFFICIAL REALLOCATION FORM --- *@
+            @using (Html.BeginForm("Create", "ResidenceMovement", FormMethod.Post, new { @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form" }))
+            {
+                @Html.AntiForgeryToken()
+
+                @* Ghost Watermark *@
+                <i class="bi bi-arrow-left-right absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:scale-[1.1] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-diagram-2 me-2 text-gray-400"></i> Transfer Protocol Configuration</h5>
+                </div>
+
+                <div class="p-10 space-y-12 relative z-10">
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-red-50 border-l-4 border-[#C21E2E] p-5 mb-8">
+                            <h6 class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i> Protocol Validation Error</h6>
+                            <div class="text-sm font-serif text-[#C21E2E]">@Html.ValidationSummary(true, "")</div>
+                        </div>
+                    }
+
+                    @* Section 1: Subject Selection *@
+                    <div>
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-6">1. Target Subject Specification</h6>
+                        <div class="w-full max-w-lg">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Registered Personnel <span class="text-[#C21E2E]">*</span></label>
+                            <div class="relative">
+                                @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "Select personnel for reallocation...", new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.StudentId, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        </div>
+                    </div>
+
+                    @* Section 2: Logistical Routing *@
+                    <div>
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-6">2. Logistical Routing</h6>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
+
+                            @* Visual Divider for Desktop *@
+                            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gray-100 -translate-x-1/2">
+                                <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white border border-gray-200 text-gray-400 rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                                    <i class="bi bi-arrow-right"></i>
+                                </div>
+                            </div>
+
+                            @* Origin Parameters *@
+                            <div class="bg-gray-50/50 p-6 border border-gray-100 relative">
+                                <span class="absolute top-0 right-0 bg-gray-200 text-gray-500 text-[8px] font-bold uppercase tracking-[2px] px-2 py-1">Origin</span>
+
+                                <div class="mb-6">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Current Facility Base</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.FromResidenceId, (SelectList)ViewBag.Residences, "None / Off-Campus", new { @class = "w-full border-b border-gray-300 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-700 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                        <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.FromResidenceId, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Current Spatial Sub-Unit</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.FromRoomId, (SelectList)ViewBag.Rooms, "None / Unassigned", new { @class = "w-full border-b border-gray-300 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-700 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                        <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.FromRoomId, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
+                            </div>
+
+                            @* Destination Parameters *@
+                            <div class="bg-blue-50/30 p-6 border border-blue-100 relative">
+                                <span class="absolute top-0 right-0 bg-blue-100 text-blue-700 text-[8px] font-bold uppercase tracking-[2px] px-2 py-1">Destination</span>
+
+                                <div class="mb-6">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-blue-800 mb-2">Target Facility Base</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.ToResidenceId, (SelectList)ViewBag.Residences, "None / Off-Campus", new { @class = "w-full border-b border-blue-200 py-2 outline-none focus:border-blue-600 font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                        <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.ToResidenceId, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-blue-800 mb-2">Target Spatial Sub-Unit</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.ToRoomId, (SelectList)ViewBag.Rooms, "None / Unassigned", new { @class = "w-full border-b border-blue-200 py-2 outline-none focus:border-blue-600 font-mono text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                        <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.ToRoomId, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    @* Section 3: Protocol Execution Details *@
+                    <div>
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-6">3. Protocol Parameters</h6>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="md:col-span-1 w-full max-w-sm">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Effective Transfer Timestamp <span class="text-[#C21E2E]">*</span></label>
+                                @Html.TextBoxFor(m => m.PerformedAt, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer" })
+                                @Html.ValidationMessageFor(m => m.PerformedAt, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Official Justification</label>
+                                @Html.TextAreaFor(m => m.Reason, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif italic text-sm text-gray-900 transition-colors bg-transparent resize-y", rows = 3, placeholder = "Detail the operational reasoning requiring this transfer..." })
+                                @Html.ValidationMessageFor(m => m.Reason, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Institutional Footer Actions *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono hidden sm:block">
+                        <i class="bi bi-shield-lock me-2 text-gray-500"></i> Operation requires authorization tracking
+                    </div>
+
+                    <button type="submit" class="w-full sm:w-auto bg-[#C21E2E] text-white px-10 py-4 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                        <i class="bi bi-arrow-right-circle me-2 text-sm align-middle"></i> Execute Transfer Protocol
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Clean up native date picker indicators slightly */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+</style>
