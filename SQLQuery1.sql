@@ -2,7 +2,6 @@
     Id INT IDENTITY(1,1) PRIMARY KEY,
     TripScheduleId INT NOT NULL,
     VehicleId INT NOT NULL,
-    DriverId INT NOT NULL,
     AllocatedSeats INT NOT NULL,
     CreatedAt DATETIME NOT NULL CONSTRAINT DF_TripVehicleAssignments_CreatedAt DEFAULT GETDATE(),
     

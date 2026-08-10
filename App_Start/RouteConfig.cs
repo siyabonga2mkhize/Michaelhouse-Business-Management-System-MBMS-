@@ -14,11 +14,6 @@ namespace Michaelhouse
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Account", action = "Login", id = UrlParameter.Optional }
             );
-            routes.MapRoute(
-    name: "Scan",
-    url: "Scan/{action}/{id}",
-    defaults: new { controller = "Scan", action = "Index", id = UrlParameter.Optional }
-);
         }
     }
 }

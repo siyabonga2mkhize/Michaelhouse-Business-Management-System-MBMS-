@@ -10,16 +10,13 @@ namespace Michaelhouse.Controllers
     /// <summary>
     /// Handles the Fault Reporter portal — for Housemasters, Teachers,
     /// Sports Coordinators, Kitchen Staff etc.
-    /// Role name: "FaultReporter" (matches the seeded role in Configuration.cs)
+    /// Accepts any of the role names used across seeding/testing so
+    /// nothing breaks regardless of which one was used to create the account.
     /// </summary>
     public class ReporterController : Controller
     {
         private DBContextClass db = new DBContextClass();
 
-        /// <summary>
-        /// Checks if the logged-in user has the FaultReporter role.
-        /// IMPORTANT: The seeded role is "FaultReporter" (not "MaintenanceReporter").
-        /// </summary>
         private bool IsReporter()
         {
             return Session["UserId"] != null
@@ -43,17 +40,14 @@ namespace Michaelhouse.Controllers
             if (!IsReporter())
                 return RedirectToAction("Login", "Account");
 
-            // ── Get all active assets ──────────────────────
             ViewBag.Assets = db.Assets
                 .Where(a => a.Status == "Active")
                 .OrderBy(a => a.LocationBuilding)
                 .ThenBy(a => a.AssetName)
                 .ToList();
 
-            // Pass the selected asset id to the view
             ViewBag.SelectedAssetId = assetId;
 
-            // ── Get this user's reported faults ─────────────
             var userId = GetUserId();
             var myReports = db.JobCards
                 .Include(j => j.Asset)
@@ -63,7 +57,6 @@ namespace Michaelhouse.Controllers
                 .ToList();
             ViewBag.MyReports = myReports;
 
-            // ── Stats ──────────────────────────────────────────
             ViewBag.TotalReported = myReports.Count;
             ViewBag.PendingCount = myReports.Count(j => j.Status == "Pending" || j.Status == "Assigned");
             ViewBag.FixedCount = myReports.Count(j => j.Status == "Completed");
@@ -77,15 +70,42 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult SubmitFault(JobCard jobCard,
-                                        HttpPostedFileBase photoBefore)
+        public ActionResult SubmitFault(JobCard jobCard, HttpPostedFileBase photoBefore, string photoData)
         {
             if (!IsReporter())
                 return RedirectToAction("Login", "Account");
 
+            int userId = GetUserId();
+
             if (ModelState.IsValid)
             {
-                // ── Handle photo upload ──────────────────────────────────────
+                // ── Guard: make sure the selected asset actually exists ──────
+                // This is what was crashing the page before — if the asset
+                // wasn't found, we now show a friendly message instead of
+                // throwing a NullReferenceException.
+                var asset = db.Assets.Find(jobCard.AssetId);
+                if (asset == null)
+                {
+                    TempData["Warning"] = "That asset could not be found. "
+                        + "Please select the asset again and resubmit.";
+
+                    ViewBag.Assets = db.Assets
+                        .Where(a => a.Status == "Active")
+                        .OrderBy(a => a.LocationBuilding)
+                        .ThenBy(a => a.AssetName)
+                        .ToList();
+
+                    ViewBag.MyReports = db.JobCards
+                        .Include(j => j.Asset)
+                        .Include(j => j.AssignedTo)
+                        .Where(j => j.ReportedById == userId)
+                        .OrderByDescending(j => j.DateCreated)
+                        .ToList();
+
+                    return View("ReportFault", jobCard);
+                }
+
+                // ── Handle photo — either an uploaded file OR a camera capture ──
                 if (photoBefore != null && photoBefore.ContentLength > 0)
                 {
                     var ext = System.IO.Path.GetExtension(photoBefore.FileName);
@@ -98,6 +118,29 @@ namespace Michaelhouse.Controllers
                     photoBefore.SaveAs(savePath + fileName);
                     jobCard.PhotoBefore = fileName;
                 }
+                else if (!string.IsNullOrEmpty(photoData) && photoData.Contains(","))
+                {
+                    // Camera capture sends a base64 data URL like
+                    // "data:image/png;base64,iVBORw0KGgo..." — decode and save it.
+                    try
+                    {
+                        var base64 = photoData.Substring(photoData.IndexOf(",") + 1);
+                        var bytes = Convert.FromBase64String(base64);
+                        var fileName = "before_" + DateTime.Now.Ticks + ".png";
+                        var savePath = Server.MapPath("~/Content/JobPhotos/");
+
+                        if (!System.IO.Directory.Exists(savePath))
+                            System.IO.Directory.CreateDirectory(savePath);
+
+                        System.IO.File.WriteAllBytes(savePath + fileName, bytes);
+                        jobCard.PhotoBefore = fileName;
+                    }
+                    catch
+                    {
+                        // If decoding fails for any reason, continue without a photo
+                        // rather than blocking the whole fault report.
+                    }
+                }
 
                 // ── Create job card ──────────────────────────────────────────
                 var count = db.JobCards.Count();
@@ -105,7 +148,7 @@ namespace Michaelhouse.Controllers
                 jobCard.DateCreated = DateTime.Now;
                 jobCard.JobType = "Reactive";
                 jobCard.Status = "Pending";
-                jobCard.ReportedById = GetUserId();
+                jobCard.ReportedById = userId;
 
                 jobCard.DueDate = jobCard.Priority == "Emergency"
                     ? DateTime.Now.AddHours(1)
@@ -117,19 +160,15 @@ namespace Michaelhouse.Controllers
 
                 db.JobCards.Add(jobCard);
 
-                // ── Update asset ─────────────────────────────────────────────
-                var asset = db.Assets.Find(jobCard.AssetId);
-                if (asset != null)
-                {
-                    asset.FaultCount++;
-                    asset.Status = "Under Repair";
-                    asset.HealthScore = Math.Max(0, asset.HealthScore - 10);
-                }
+                // ── Update the asset ─────────────────────────────────────────
+                asset.FaultCount++;
+                asset.Status = "Under Repair";
+                asset.HealthScore = Math.Max(0, asset.HealthScore - 10);
 
                 db.SaveChanges();
 
-                // ── Auto‑assign worker ──────────────────────────────────────
-                var skillNeeded = asset != null ? asset.Category : "General";
+                // ── Auto-assign the right worker ─────────────────────────────
+                var skillNeeded = asset.Category;
                 if (skillNeeded == "Sports" || skillNeeded == "Building")
                     skillNeeded = "General";
 
@@ -156,8 +195,8 @@ namespace Michaelhouse.Controllers
                     db.SaveChanges();
 
                     TempData["Success"] = "Your fault report has been submitted. "
-                        + "Job Card " + jobCard.JobReference + " created. "
-                        + worker.FullName + " has been assigned and will attend to it.";
+                        + "Job Card " + jobCard.JobReference + " created and assigned to "
+                        + worker.FullName + " (" + worker.SkillType + "). They will attend to it shortly.";
                 }
                 else
                 {
@@ -167,10 +206,14 @@ namespace Michaelhouse.Controllers
                         + "the Maintenance Manager has been notified.";
                 }
 
-                return RedirectToAction("Index", "Scan", new { id = asset.QrCode });
+                // ── Redirect back to the Reporter portal, NOT the Scan page ──
+                // This is what makes the assignment actually visible — the
+                // success message and the updated "My Reported Faults" list
+                // both live on this page.
+                return RedirectToAction("ReportFault");
             }
 
-            // ── If validation fails, reload the form ─────────────────────────
+            // ── Validation failed — reload the form with what they typed ────
             ViewBag.Assets = db.Assets
                 .Where(a => a.Status == "Active")
                 .OrderBy(a => a.LocationBuilding)
@@ -180,11 +223,49 @@ namespace Michaelhouse.Controllers
             ViewBag.MyReports = db.JobCards
                 .Include(j => j.Asset)
                 .Include(j => j.AssignedTo)
-                .Where(j => j.ReportedById == GetUserId())
+                .Where(j => j.ReportedById == userId)
                 .OrderByDescending(j => j.DateCreated)
                 .ToList();
 
             return View("ReportFault", jobCard);
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // IN-APP QR SCANNER LOOKUP
+        // Called by the JavaScript camera scanner on the ReportFault page.
+        // ══════════════════════════════════════════════════════════════════════
+
+        [HttpGet]
+        public JsonResult GetAssetByQrCode(string code)
+        {
+            if (!IsReporter())
+                return Json(new { success = false, message = "Not authorized." },
+                    JsonRequestBehavior.AllowGet);
+
+            if (string.IsNullOrEmpty(code))
+                return Json(new { success = false, message = "No code received." },
+                    JsonRequestBehavior.AllowGet);
+
+            var asset = db.Assets.FirstOrDefault(a =>
+                a.QrCode == code && a.Status == "Active");
+
+            if (asset == null)
+                return Json(new
+                {
+                    success = false,
+                    message = "No matching active asset found for this QR code."
+                },
+                    JsonRequestBehavior.AllowGet);
+
+            return Json(new
+            {
+                success = true,
+                id = asset.Id,
+                name = asset.AssetName,
+                building = asset.LocationBuilding,
+                room = asset.LocationRoom,
+                category = asset.Category
+            }, JsonRequestBehavior.AllowGet);
         }
 
         protected override void Dispose(bool disposing)

@@ -4,6 +4,21 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Warning"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
     <div>
         <div class="flex items-center gap-2 mb-3">
@@ -15,17 +30,48 @@
     </div>
 </div>
 
-
 <div class="row g-4">
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                {
+
+                <!-- ══════════════════════════════════════════════════ -->
+                <!-- QR SCANNER — scans in-page, auto-selects the asset -->
+                <!-- ══════════════════════════════════════════════════ -->
+                <div class="mb-4">
+                    <button type="button" id="startScanBtn" class="btn btn-dark w-100 py-3">
+                        <i class="bi bi-qr-code-scan me-1"></i> Scan Asset QR Code
+                    </button>
+
+                    <div id="qrScannerBox" style="display:none;margin-top:12px">
+                        <div id="qrReader" style="width:100%;border-radius:8px;overflow:hidden"></div>
+                        <button type="button" id="cancelScanBtn" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="bi bi-x-lg me-1"></i> Cancel Scan
+                        </button>
+                    </div>
+
+                    <div id="scanConfirm" class="alert alert-success mt-2" style="display:none">
+                        <div class="fw-bold text-uppercase" style="font-size:10px;letter-spacing:1px">
+                            <i class="bi bi-check-circle-fill"></i> Asset Scanned
+                        </div>
+                        <div id="scanConfirmName" class="fw-bold mt-1"></div>
+                        <div id="scanConfirmLocation" class="small"></div>
+                    </div>
+
+                    <div id="scanError" class="alert alert-danger mt-2" style="display:none"></div>
+
+                    <div class="text-center text-muted small mt-2">
+                        — or select the asset manually below —
+                    </div>
+                </div>
+
+                <form action="@Url.Action("SubmitFault", "Reporter")" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
+
                     <div class="row g-3">
                         <div class="col-12">
-                            <select name="AssetId" class="form-select">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
+                            <select name="AssetId" id="assetDropdown" class="form-select">
                                 <option value="">-- Select Asset --</option>
                                 @if (ViewBag.Assets != null)
                                 {
@@ -42,11 +88,20 @@
                         </div>
 
                         <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
+                            <input type="text" name="Title" class="form-control" placeholder="e.g. Burst pipe in bathroom" required />
+                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
-                            @Html.DropDownListFor(m => m.Priority,
-                                new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
-                                "-- Select Priority --",
-                                new { @class = "form-select", id = "prioritySelect" })
+                            <select name="Priority" class="form-select" id="prioritySelect">
+                                <option value="">-- Select Priority --</option>
+                                <option value="Emergency">Emergency</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
                             @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
                         </div>
 
@@ -56,30 +111,22 @@
 
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
-                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe exactly what you found..." })
+                            <textarea name="Description" class="form-control" rows="3" placeholder="Describe exactly what you found..." required></textarea>
                             @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
                         </div>
 
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <!-- PHOTO SECTION WITH CAMERA INTEGRATION                -->
-                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- Photo Section -->
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
-
-                            <!-- Camera Button -->
                             <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
                                 <i class="bi bi-camera me-1"></i> Open Camera
                             </button>
 
-                            <!-- Video element for camera -->
                             <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
-
-                            <!-- Capture button -->
                             <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
                                 <i class="bi bi-camera me-1"></i> Capture Photo
                             </button>
 
-                            <!-- File upload as fallback -->
                             <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
                                 <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
                                 <div id="uploadPlaceholder">
@@ -89,7 +136,6 @@
                                 <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
                             </div>
 
-                            <!-- Hidden field for base64 photo data -->
                             <input type="hidden" id="photoData" name="photoData" />
                         </div>
                     </div>
@@ -99,7 +145,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Fault Report</button>
-                }
+                </form>
             </div>
         </div>
     </div>
@@ -146,8 +192,10 @@
                             </div>
                             <div class="mt-2 d-flex justify-content-between small text-muted">
                                 <span>🟢 Reported</span>
-                                <span class="text-@(job.AssignedToId.HasValue ? "success" : "secondary")">🟡 @(job.AssignedToId.HasValue ? "Assigned" : "Pending")</span>
-                                <span class="text-@(job.Status == "Completed" ? "success" : "secondary")">✅ @(job.Status == "Completed" ? "Fixed" : "Fixed")</span>
+                                <span class="text-@(job.AssignedToId.HasValue ? "success" : "secondary")">
+                                    🟡 @(job.AssignedToId.HasValue ? ("Assigned to " + job.AssignedTo.FullName) : "Pending Assignment")
+                                </span>
+                                <span class="text-@(job.Status == "Completed" ? "success" : "secondary")">✅ @(job.Status == "Completed" ? "Fixed" : "Not Fixed")</span>
                             </div>
                             @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
                             {
@@ -169,8 +217,11 @@
 </div>
 
 @section Scripts {
+    <!-- html5-qrcode — opens the device camera in-browser and decodes QR codes -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
     <script>
-        // ── Camera Integration ──────────────────────────────────────────────
+        // ── Camera Integration (photo evidence) ─────────────────────────────
         let stream = null;
 
         function openCamera() {
@@ -201,15 +252,13 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/png');
 
-            // Show preview
             document.getElementById('photoPreview').src = dataUrl;
             document.getElementById('photoPreview').style.display = 'block';
             document.getElementById('uploadPlaceholder').style.display = 'none';
 
-            // Set hidden input for base64 data
+            // This now actually gets read and saved server-side (fixed).
             document.getElementById('photoData').value = dataUrl;
 
-            // Stop camera
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
@@ -250,6 +299,74 @@
                 guide.style.display = 'none';
             }
         });
+
+        // ═════════════════════════════════════════════════════════════════════
+        // IN-APP QR CODE SCANNER
+        // ═════════════════════════════════════════════════════════════════════
+        var html5QrCode = null;
+
+        document.getElementById('startScanBtn').addEventListener('click', function () {
+            document.getElementById('qrScannerBox').style.display = 'block';
+            document.getElementById('scanConfirm').style.display  = 'none';
+            document.getElementById('scanError').style.display    = 'none';
+            this.style.display = 'none';
+
+            html5QrCode = new Html5Qrcode("qrReader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 240, height: 240 } },
+                function onScanSuccess(decodedText) {
+                    html5QrCode.stop().then(function () {
+                        document.getElementById('qrScannerBox').style.display = 'none';
+                        processScannedCode(decodedText);
+                    });
+                },
+                function onScanFailure() { /* keep scanning silently */ }
+            ).catch(function () {
+                document.getElementById('scanError').style.display = 'block';
+                document.getElementById('scanError').textContent =
+                    'Could not access the camera. Please allow camera permission, or select the asset manually below.';
+                document.getElementById('qrScannerBox').style.display = 'none';
+                document.getElementById('startScanBtn').style.display = 'block';
+            });
+        });
+
+        document.getElementById('cancelScanBtn').addEventListener('click', function () {
+            if (html5QrCode) { html5QrCode.stop().catch(function () {}); }
+            document.getElementById('qrScannerBox').style.display = 'none';
+            document.getElementById('startScanBtn').style.display = 'block';
+        });
+
+        function processScannedCode(decodedText) {
+            var assetCode = decodedText.split('/').filter(Boolean).pop();
+
+            fetch('@Url.Action("GetAssetByQrCode", "Reporter")?code=' + encodeURIComponent(assetCode))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    document.getElementById('startScanBtn').style.display = 'block';
+
+                    if (data.success) {
+                        document.getElementById('assetDropdown').value = data.id;
+
+                        document.getElementById('scanConfirmName').textContent = data.name;
+                        document.getElementById('scanConfirmLocation').textContent =
+                            data.building + (data.room ? ' — ' + data.room : '');
+                        document.getElementById('scanConfirm').style.display = 'block';
+                        document.getElementById('scanError').style.display   = 'none';
+                    } else {
+                        document.getElementById('scanError').style.display = 'block';
+                        document.getElementById('scanError').textContent = data.message;
+                        document.getElementById('scanConfirm').style.display = 'none';
+                    }
+                })
+                .catch(function () {
+                    document.getElementById('startScanBtn').style.display = 'block';
+                    document.getElementById('scanError').style.display = 'block';
+                    document.getElementById('scanError').textContent =
+                        'Something went wrong looking up this asset. Please select it manually below.';
+                });
+        }
     </script>
 }
 
@@ -257,6 +374,10 @@
     <style>
         .font-serif {
             font-family: 'Playfair Display', serif !important;
+        }
+
+        #qrReader video {
+            border-radius: 8px;
         }
     </style>
 }
