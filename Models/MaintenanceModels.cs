@@ -222,6 +222,20 @@ namespace Michaelhouse.Models
     // ──────────────────────────────────────────────────────────────────────────
     public class Asset
     {
+        // ── NEW: Make AssetId nullable ──────────────────────────────────────────
+        // So we can have job cards that are NOT linked to a registered asset.
+        public int? AssetId { get; set; }
+
+        // ── NEW: Manual entry fields ────────────────────────────────────────────
+        // These are used when someone reports a fault on an unregistered asset.
+        [Display(Name = "Manual Asset Name")]
+        public string ManualAssetName { get; set; }
+
+        [Display(Name = "Manual Asset Location")]
+        public string ManualAssetLocation { get; set; }
+
+        [Display(Name = "Manual Category")]
+        public string ManualCategory { get; set; }
         public int Id { get; set; }
 
         [Required]
@@ -300,87 +314,100 @@ namespace Michaelhouse.Models
     // ──────────────────────────────────────────────────────────────────────────
     public class JobCard
     {
-        public int Id { get; set; }
+        
+            public int Id { get; set; }
 
-        [Display(Name = "Job Reference")]
-        public string JobReference { get; set; }
+            [Display(Name = "Job Reference")]
+            public string JobReference { get; set; }
 
-        [Required]
-        public string Title { get; set; }
+            [Required]
+            public string Title { get; set; }
 
-        public string Description { get; set; }
+            public string Description { get; set; }
 
-        [Display(Name = "Job Type")]
-        public string JobType { get; set; }
+            [Display(Name = "Job Type")]
+            public string JobType { get; set; }
 
-        [Required]
-        public string Priority { get; set; }
+            [Required]
+            public string Priority { get; set; }
 
-        public string Status { get; set; }
+            public string Status { get; set; }
 
-        [Display(Name = "Photo Before")]
-        public string PhotoBefore { get; set; }
+            [Display(Name = "Photo Before")]
+            public string PhotoBefore { get; set; }
 
-        [Display(Name = "Photo After")]
-        public string PhotoAfter { get; set; }
+            [Display(Name = "Photo After")]
+            public string PhotoAfter { get; set; }
 
-        [Display(Name = "Completion Notes")]
-        public string CompletionNotes { get; set; }
+            [Display(Name = "Completion Notes")]
+            public string CompletionNotes { get; set; }
 
-        [Display(Name = "Final Condition")]
-        public string FinalCondition { get; set; }
+            [Display(Name = "Final Condition")]
+            public string FinalCondition { get; set; }
 
-        [Display(Name = "Date Created")]
-        public DateTime DateCreated { get; set; }
+            [Display(Name = "Date Created")]
+            public DateTime DateCreated { get; set; }
 
-        [Display(Name = "Date Assigned")]
-        public DateTime? DateAssigned { get; set; }
+            [Display(Name = "Date Assigned")]
+            public DateTime? DateAssigned { get; set; }
 
-        [Display(Name = "Date Completed")]
-        public DateTime? DateCompleted { get; set; }
+            [Display(Name = "Date Completed")]
+            public DateTime? DateCompleted { get; set; }
 
-        [Display(Name = "Due Date")]
-        public DateTime? DueDate { get; set; }
+            [Display(Name = "Due Date")]
+            public DateTime? DueDate { get; set; }
 
-        [Display(Name = "Response Time (mins)")]
-        public int? ResponseTimeMinutes { get; set; }
+            [Display(Name = "Response Time (mins)")]
+            public int? ResponseTimeMinutes { get; set; }
 
-        // ─── Cost tracking ────────────────────────────────────────
-        [Display(Name = "Labour Cost (R)")]
-        public decimal? LabourCost { get; set; }
+            // ─── Cost tracking ──────────────────────────────────────────────────
+            [Display(Name = "Labour Cost (R)")]
+            public decimal? LabourCost { get; set; }
 
-        [Display(Name = "Parts Cost (R)")]
-        public decimal? PartsCost { get; set; }
+            [Display(Name = "Parts Cost (R)")]
+            public decimal? PartsCost { get; set; }
 
-        [Display(Name = "Total Cost (R)")]
-        public decimal? TotalCost { get; set; }
+            [Display(Name = "Total Cost (R)")]
+            public decimal? TotalCost { get; set; }
 
-        public int AssetId { get; set; }
+            // ─── Asset (now nullable) ──────────────────────────────────────────
+            public int? AssetId { get; set; }
 
-        public int? AssignedToId { get; set; }
+            public int? AssignedToId { get; set; }
 
-        public int ReportedById { get; set; }
+            public int ReportedById { get; set; }
 
-        [ForeignKey("AssetId")]
-        public virtual Asset Asset { get; set; }
+            // ─── NEW: Manual entry fields ──────────────────────────────────────
+            [Display(Name = "Manual Asset Name")]
+            public string ManualAssetName { get; set; }
 
-        [ForeignKey("AssignedToId")]
-        public virtual MaintenanceStaff AssignedTo { get; set; }
+            [Display(Name = "Manual Asset Location")]
+            public string ManualAssetLocation { get; set; }
 
-        public JobCard()
-        {
-            JobReference = string.Empty;
-            JobType = "Reactive";
-            Priority = "Medium";
-            Status = "Pending";
-            DateCreated = DateTime.Now;
+            [Display(Name = "Manual Category")]
+            public string ManualCategory { get; set; }
+
+            // ─── Navigation properties ─────────────────────────────────────────
+            [ForeignKey("AssetId")]
+            public virtual Asset Asset { get; set; }
+
+            [ForeignKey("AssignedToId")]
+            public virtual MaintenanceStaff AssignedTo { get; set; }
+
+            public JobCard()
+            {
+                JobReference = string.Empty;
+                JobType = "Reactive";
+                Priority = "Medium";
+                Status = "Pending";
+                DateCreated = DateTime.Now;
+            }
         }
-    }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // MAINTENANCE INVENTORY
-    // ──────────────────────────────────────────────────────────────────────────
-    public class MaintenanceInventory
+        // ──────────────────────────────────────────────────────────────────────────
+        // MAINTENANCE INVENTORY
+        // ──────────────────────────────────────────────────────────────────────────
+        public class MaintenanceInventory
     {
         public int Id { get; set; }
 

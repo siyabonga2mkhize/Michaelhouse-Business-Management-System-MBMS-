@@ -70,7 +70,14 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult SubmitFault(JobCard jobCard, HttpPostedFileBase photoBefore, string photoData)
+        public ActionResult SubmitFault(
+            JobCard jobCard,
+            HttpPostedFileBase photoBefore,
+            string photoData,
+            // ── NEW: Manual entry fields ────────────────────────────────────
+            string manualAssetName,
+            string manualAssetLocation,
+            string manualCategory)
         {
             if (!IsReporter())
                 return RedirectToAction("Login", "Account");
@@ -79,30 +86,50 @@ namespace Michaelhouse.Controllers
 
             if (ModelState.IsValid)
             {
-                // ── Guard: make sure the selected asset actually exists ──────
-                // This is what was crashing the page before — if the asset
-                // wasn't found, we now show a friendly message instead of
-                // throwing a NullReferenceException.
-                var asset = db.Assets.Find(jobCard.AssetId);
-                if (asset == null)
+                // ── Determine if this is a manual entry (no AssetId) ──────
+                bool isManual = string.IsNullOrEmpty(jobCard.AssetId?.ToString()) ||
+                                jobCard.AssetId == 0;
+
+                // ── If manual, we ignore the AssetId and store manual details ──
+                if (isManual)
                 {
-                    TempData["Warning"] = "That asset could not be found. "
-                        + "Please select the asset again and resubmit.";
+                    // Store the manual info in the job card
+                    jobCard.ManualAssetName = manualAssetName;
+                    jobCard.ManualAssetLocation = manualAssetLocation;
+                    jobCard.ManualCategory = manualCategory;
 
-                    ViewBag.Assets = db.Assets
-                        .Where(a => a.Status == "Active")
-                        .OrderBy(a => a.LocationBuilding)
-                        .ThenBy(a => a.AssetName)
-                        .ToList();
+                    // Set AssetId to null so EF knows not to link to an asset
+                    jobCard.AssetId = null;
+                }
+                else
+                {
+                    // ── Regular asset-based fault report ────────────────────
+                    var asset = db.Assets.Find(jobCard.AssetId);
+                    if (asset == null)
+                    {
+                        TempData["Warning"] = "That asset could not be found. "
+                            + "Please select the asset again and resubmit.";
 
-                    ViewBag.MyReports = db.JobCards
-                        .Include(j => j.Asset)
-                        .Include(j => j.AssignedTo)
-                        .Where(j => j.ReportedById == userId)
-                        .OrderByDescending(j => j.DateCreated)
-                        .ToList();
+                        ViewBag.Assets = db.Assets
+                            .Where(a => a.Status == "Active")
+                            .OrderBy(a => a.LocationBuilding)
+                            .ThenBy(a => a.AssetName)
+                            .ToList();
 
-                    return View("ReportFault", jobCard);
+                        ViewBag.MyReports = db.JobCards
+                            .Include(j => j.Asset)
+                            .Include(j => j.AssignedTo)
+                            .Where(j => j.ReportedById == userId)
+                            .OrderByDescending(j => j.DateCreated)
+                            .ToList();
+
+                        return View("ReportFault", jobCard);
+                    }
+
+                    // ── Update the asset (for linked reports) ──────────────
+                    asset.FaultCount++;
+                    asset.Status = "Under Repair";
+                    asset.HealthScore = Math.Max(0, asset.HealthScore - 10);
                 }
 
                 // ── Handle photo — either an uploaded file OR a camera capture ──
@@ -120,8 +147,6 @@ namespace Michaelhouse.Controllers
                 }
                 else if (!string.IsNullOrEmpty(photoData) && photoData.Contains(","))
                 {
-                    // Camera capture sends a base64 data URL like
-                    // "data:image/png;base64,iVBORw0KGgo..." — decode and save it.
                     try
                     {
                         var base64 = photoData.Substring(photoData.IndexOf(",") + 1);
@@ -137,8 +162,7 @@ namespace Michaelhouse.Controllers
                     }
                     catch
                     {
-                        // If decoding fails for any reason, continue without a photo
-                        // rather than blocking the whole fault report.
+                        // If decoding fails, continue without a photo
                     }
                 }
 
@@ -159,57 +183,67 @@ namespace Michaelhouse.Controllers
                     : DateTime.Now.AddDays(7);
 
                 db.JobCards.Add(jobCard);
-
-                // ── Update the asset ─────────────────────────────────────────
-                asset.FaultCount++;
-                asset.Status = "Under Repair";
-                asset.HealthScore = Math.Max(0, asset.HealthScore - 10);
-
                 db.SaveChanges();
 
-                // ── Auto-assign the right worker ─────────────────────────────
-                var skillNeeded = asset.Category;
-                if (skillNeeded == "Sports" || skillNeeded == "Building")
-                    skillNeeded = "General";
-
-                var worker = db.MaintenanceStaff
-                    .Where(s => s.IsActive
-                             && s.CurrentStatus == "Available"
-                             && s.SkillType == skillNeeded)
-                    .FirstOrDefault()
-                    ?? db.MaintenanceStaff
-                        .Where(s => s.IsActive
-                                 && s.CurrentStatus == "Available"
-                                 && s.SkillType == "General")
-                        .FirstOrDefault()
-                    ?? db.MaintenanceStaff
-                        .Where(s => s.IsActive && s.CurrentStatus == "Available")
-                        .FirstOrDefault();
-
-                if (worker != null)
+                // ── Auto‑assign worker (only if linked to an asset) ────────
+                if (!isManual)
                 {
-                    jobCard.AssignedToId = worker.Id;
-                    jobCard.Status = "Assigned";
-                    jobCard.DateAssigned = DateTime.Now;
-                    worker.CurrentStatus = "On Job";
-                    db.SaveChanges();
+                    var asset = db.Assets.Find(jobCard.AssetId);
+                    if (asset != null)
+                    {
+                        var skillNeeded = asset.Category;
+                        if (skillNeeded == "Sports" || skillNeeded == "Building")
+                            skillNeeded = "General";
 
-                    TempData["Success"] = "Your fault report has been submitted. "
-                        + "Job Card " + jobCard.JobReference + " created and assigned to "
-                        + worker.FullName + " (" + worker.SkillType + "). They will attend to it shortly.";
+                        var worker = db.MaintenanceStaff
+                            .Where(s => s.IsActive
+                                     && s.CurrentStatus == "Available"
+                                     && s.SkillType == skillNeeded)
+                            .FirstOrDefault()
+                            ?? db.MaintenanceStaff
+                                .Where(s => s.IsActive
+                                         && s.CurrentStatus == "Available"
+                                         && s.SkillType == "General")
+                                .FirstOrDefault()
+                            ?? db.MaintenanceStaff
+                                .Where(s => s.IsActive && s.CurrentStatus == "Available")
+                                .FirstOrDefault();
+
+                        if (worker != null)
+                        {
+                            jobCard.AssignedToId = worker.Id;
+                            jobCard.Status = "Assigned";
+                            jobCard.DateAssigned = DateTime.Now;
+                            worker.CurrentStatus = "On Job";
+                            db.SaveChanges();
+
+                            TempData["Success"] = "Your fault report has been submitted. "
+                                + "Job Card " + jobCard.JobReference + " created and assigned to "
+                                + worker.FullName + " (" + worker.SkillType + "). They will attend to it shortly.";
+                        }
+                        else
+                        {
+                            TempData["Warning"] = "Fault reported successfully. "
+                                + "Job Card " + jobCard.JobReference + " created. "
+                                + "No workers are available right now — "
+                                + "the Maintenance Manager has been notified.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["Warning"] = "Fault reported successfully. "
+                            + "Job Card " + jobCard.JobReference + " created, but the asset could not be found.";
+                    }
                 }
                 else
                 {
-                    TempData["Warning"] = "Fault reported successfully. "
+                    // For manual entries, we don't auto‑assign (manager will handle)
+                    TempData["Success"] = "Your manual fault report has been submitted. "
                         + "Job Card " + jobCard.JobReference + " created. "
-                        + "No workers are available right now — "
-                        + "the Maintenance Manager has been notified.";
+                        + "The Maintenance Manager will review and assign a worker.";
                 }
 
-                // ── Redirect back to the Reporter portal, NOT the Scan page ──
-                // This is what makes the assignment actually visible — the
-                // success message and the updated "My Reported Faults" list
-                // both live on this page.
+                // ── Redirect back to the Reporter portal ────────────────────
                 return RedirectToAction("ReportFault");
             }
 

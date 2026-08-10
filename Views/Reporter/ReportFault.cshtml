@@ -4,21 +4,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["Warning"] != null)
-{
-    <div class="alert alert-warning alert-dismissible fade show">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Warning"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
 <div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
     <div>
         <div class="flex items-center gap-2 mb-3">
@@ -26,132 +11,205 @@
             <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
         </div>
         <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Logged in as @Session["UserName"] · @(Session["JobTitle"] ?? "Reporter")</p>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Logged in as @Session["UserName"] · @(Session["JobTitle"] ?? "Reporter")
+        </p>
     </div>
 </div>
+
+<!-- Alerts -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Warning"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-x-circle me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="row g-4">
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-
-                <!-- ══════════════════════════════════════════════════ -->
-                <!-- QR SCANNER — scans in-page, auto-selects the asset -->
-                <!-- ══════════════════════════════════════════════════ -->
-                <div class="mb-4">
-                    <button type="button" id="startScanBtn" class="btn btn-dark w-100 py-3">
-                        <i class="bi bi-qr-code-scan me-1"></i> Scan Asset QR Code
-                    </button>
-
-                    <div id="qrScannerBox" style="display:none;margin-top:12px">
-                        <div id="qrReader" style="width:100%;border-radius:8px;overflow:hidden"></div>
-                        <button type="button" id="cancelScanBtn" class="btn btn-outline-secondary w-100 mt-2">
-                            <i class="bi bi-x-lg me-1"></i> Cancel Scan
-                        </button>
-                    </div>
-
-                    <div id="scanConfirm" class="alert alert-success mt-2" style="display:none">
-                        <div class="fw-bold text-uppercase" style="font-size:10px;letter-spacing:1px">
-                            <i class="bi bi-check-circle-fill"></i> Asset Scanned
-                        </div>
-                        <div id="scanConfirmName" class="fw-bold mt-1"></div>
-                        <div id="scanConfirmLocation" class="small"></div>
-                    </div>
-
-                    <div id="scanError" class="alert alert-danger mt-2" style="display:none"></div>
-
-                    <div class="text-center text-muted small mt-2">
-                        — or select the asset manually below —
-                    </div>
-                </div>
-
-                <form action="@Url.Action("SubmitFault", "Reporter")" method="post" enctype="multipart/form-data">
+                @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data", id = "faultForm" }))
+                {
                     @Html.AntiForgeryToken()
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
-                            <select name="AssetId" id="assetDropdown" class="form-select">
-                                <option value="">-- Select Asset --</option>
-                                @if (ViewBag.Assets != null)
-                                {
-                                    int? selectedAssetId = ViewBag.SelectedAssetId as int?;
-                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
-                                    {
-                                        bool isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
-                                        <option value="@a.Id" @(isSelected ? "selected" : "")>
-                                            @a.AssetName — @a.LocationBuilding
-                                        </option>
-                                    }
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
-                            <input type="text" name="Title" class="form-control" placeholder="e.g. Burst pipe in bathroom" required />
-                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
-                            <select name="Priority" class="form-select" id="prioritySelect">
-                                <option value="">-- Select Priority --</option>
-                                <option value="Emergency">Emergency</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
-                            </select>
-                            @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
-                        </div>
-
-                        <div class="col-12">
-                            <div id="priorityGuide" class="alert alert-secondary" style="display:none;"></div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
-                            <textarea name="Description" class="form-control" rows="3" placeholder="Describe exactly what you found..." required></textarea>
-                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
-                        </div>
-
-                        <!-- Photo Section -->
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
-                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
-                                <i class="bi bi-camera me-1"></i> Open Camera
+                    <!-- ════════════════════════════════════════════════════════════ -->
+                    <!-- MODE SELECTION: Scan QR / Select from List / Enter Manually -->
+                    <!-- ════════════════════════════════════════════════════════════ -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">How do you want to identify the broken asset?</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-secondary mode-btn active" data-mode="scan">
+                                <i class="bi bi-qr-code me-1"></i> Scan QR
                             </button>
-
-                            <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
-                            <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
-                                <i class="bi bi-camera me-1"></i> Capture Photo
+                            <button type="button" class="btn btn-outline-secondary mode-btn" data-mode="select">
+                                <i class="bi bi-list-ul me-1"></i> Select from List
                             </button>
+                            <button type="button" class="btn btn-outline-secondary mode-btn" data-mode="manual">
+                                <i class="bi bi-pencil me-1"></i> Enter Manually
+                            </button>
+                        </div>
+                    </div>
 
-                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
-                                <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
-                                <div id="uploadPlaceholder">
-                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
-                                    <span class="text-muted">Click to upload a photo</span>
-                                </div>
-                                <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
+                    <!-- ─── QR Scanner Section ─────────────────────────────────── -->
+                    <div id="scanSection">
+                        <div class="mb-3">
+                            <button type="button" id="startScanBtn" class="btn btn-dark w-100" style="padding:12px;">
+                                <i class="bi bi-camera me-1"></i> Open Camera & Scan QR Code
+                            </button>
+                            <div id="qrScannerBox" style="display:none; margin-top:12px;">
+                                <div id="qrReader" style="width:100%; border-radius:10px; overflow:hidden;"></div>
+                                <button type="button" id="cancelScanBtn" class="btn btn-outline-secondary w-100 mt-2">
+                                    <i class="bi bi-x-lg me-1"></i> Cancel Scan
+                                </button>
                             </div>
-
-                            <input type="hidden" id="photoData" name="photoData" />
+                            <!-- Scan confirmation card -->
+                            <div id="scanConfirm" style="display:none; margin-top:12px; padding:14px; border-radius:10px; background:#d4edda; border-left:4px solid #28a745;">
+                                <div style="font-size:11px; font-weight:700; color:#155724; text-transform:uppercase; letter-spacing:1px;">
+                                    <i class="bi bi-check-circle me-1"></i> Asset Scanned
+                                </div>
+                                <div id="scanConfirmName" style="font-weight:700; color:#155724; margin-top:4px; font-size:15px;"></div>
+                                <div id="scanConfirmLocation" style="font-size:13px; color:#155724;"></div>
+                            </div>
+                            <div id="scanError" style="display:none; margin-top:12px; padding:12px 14px; border-radius:10px; background:#f8d7da; border-left:4px solid #dc3545; color:#721c24; font-size:13px;"></div>
+                            <div class="text-center mt-2" style="font-size:12px; color:#999;">— or select the asset manually below —</div>
                         </div>
+                    </div>
+
+                    <!-- ─── Asset Dropdown (for scan & select modes) ──────────── -->
+                    <div id="assetSection" class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
+                        <select name="AssetId" id="assetDropdown" class="form-select" required>
+                            <option value="">-- Select the broken asset --</option>
+                            @if (ViewBag.Assets != null)
+                            {
+                                var assets = (List<Michaelhouse.Models.Asset>)ViewBag.Assets;
+                                var buildings = assets.Select(a => a.LocationBuilding).Distinct().OrderBy(b => b);
+                                int? selectedAssetId = ViewBag.SelectedAssetId;
+
+                                foreach (var building in buildings)
+                                {
+                                    <optgroup label="@building">
+                                        @foreach (var a in assets.Where(x => x.LocationBuilding == building))
+                                        {
+                                            var isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
+                                            <option value="@a.Id" data-name="@a.AssetName" data-building="@a.LocationBuilding" data-room="@a.LocationRoom" selected="@(isSelected ? "selected" : null)">
+                                                @a.AssetName
+                                                @if (!string.IsNullOrEmpty(a.LocationRoom))
+                                                {
+                                                    <text>— @a.LocationRoom</text>
+                                                }
+                                            </option>
+                                        }
+                                    </optgroup>
+                                }
+                            }
+                        </select>
+                        @Html.ValidationMessage("AssetId", "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- ─── Manual Entry Fields ────────────────────────────────── -->
+                    <div id="manualSection" style="display:none;" class="mb-3">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">What is broken? *</label>
+                                <input type="text" name="manualAssetName" id="manualAssetName" class="form-control" placeholder="e.g. Broken window, leaking pipe" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Where is it located? *</label>
+                                <input type="text" name="manualAssetLocation" id="manualAssetLocation" class="form-control" placeholder="e.g. Founders House, Room 12" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-uppercase text-muted">Category (optional)</label>
+                                <select name="manualCategory" id="manualCategory" class="form-select">
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Electrical">Electrical</option>
+                                    <option value="Plumbing">Plumbing</option>
+                                    <option value="HVAC">HVAC</option>
+                                    <option value="Grounds">Grounds</option>
+                                    <option value="Sports">Sports</option>
+                                    <option value="Building">Building</option>
+                                    <option value="Safety">Safety</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Kitchen">Kitchen</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            If this asset is important, the Maintenance Manager can register it later.
+                        </div>
+                    </div>
+
+                    <!-- ─── Title ─────────────────────────────────────────────────── -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
+                        @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Burst pipe in bathroom" })
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- ─── Priority ─────────────────────────────────────────────── -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
+                        @Html.DropDownListFor(m => m.Priority,
+                            new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                            "-- Select Priority --",
+                            new { @class = "form-select", id = "prioritySelect" })
+                        @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
+                        <div id="priorityGuide" class="alert alert-secondary mt-2" style="display:none;"></div>
+                    </div>
+
+                    <!-- ─── Description ───────────────────────────────────────────── -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe exactly what you found..." })
+                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <!-- ─── Photo Upload (evidence) ─────────────────────────────── -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
+                        <div class="border p-3 text-center" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
+                            <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
+                            <div id="uploadPlaceholder">
+                                <i class="bi bi-camera fs-2 d-block mb-2 text-secondary"></i>
+                                <span class="text-muted">Click to upload a photo</span>
+                            </div>
+                            <img id="photoPreview" src="#" alt="Preview" style="display:none; max-width:100%; border-radius:8px; margin-top:10px;" />
+                        </div>
+                        <!-- Hidden field for base64 camera capture -->
+                        <input type="hidden" id="photoData" name="photoData" />
                     </div>
 
                     <div class="alert alert-info mt-3">
-                        <i class="bi bi-robot me-2"></i> After submission, the system automatically finds the right maintenance worker and assigns them.
+                        <i class="bi bi-robot me-2"></i>
+                        After submission, the system automatically finds the right maintenance worker and assigns them.
                     </div>
 
                     <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Fault Report</button>
-                </form>
+                }
             </div>
         </div>
     </div>
 
+    <!-- ─── RIGHT: My Previous Reports ──────────────────────────────────── -->
     <div class="col-lg-6">
-        <!-- Stats Cards -->
         <div class="row g-3 mb-4">
             <div class="col-4">
                 <div class="card border-0 shadow-sm text-center">
@@ -170,7 +228,6 @@
             </div>
         </div>
 
-        <!-- My Reported Faults -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2"></i>My Reported Faults</h5>
@@ -186,16 +243,23 @@
                                 <div>
                                     <code class="text-danger">@job.JobReference</code>
                                     <div class="fw-bold">@job.Title</div>
-                                    <small class="text-muted">@(job.Asset != null ? job.Asset.LocationBuilding : "") · @job.DateCreated.ToString("dd MMM yyyy HH:mm")</small>
+                                    <small class="text-muted">
+                                        @if (job.Asset != null)
+                                        {
+                                            <span>@job.Asset.AssetName — @job.Asset.LocationBuilding</span>
+                                        }
+                                        else if (!string.IsNullOrEmpty(job.ManualAssetName))
+                                        {
+                                            <span>@job.ManualAssetName — @job.ManualAssetLocation</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Manual report</span>
+                                        }
+                                        · @job.DateCreated.ToString("dd MMM yyyy HH:mm")
+                                    </small>
                                 </div>
                                 <span class="badge bg-@statusColor">@job.Status</span>
-                            </div>
-                            <div class="mt-2 d-flex justify-content-between small text-muted">
-                                <span>🟢 Reported</span>
-                                <span class="text-@(job.AssignedToId.HasValue ? "success" : "secondary")">
-                                    🟡 @(job.AssignedToId.HasValue ? ("Assigned to " + job.AssignedTo.FullName) : "Pending Assignment")
-                                </span>
-                                <span class="text-@(job.Status == "Completed" ? "success" : "secondary")">✅ @(job.Status == "Completed" ? "Fixed" : "Not Fixed")</span>
                             </div>
                             @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
                             {
@@ -217,61 +281,13 @@
 </div>
 
 @section Scripts {
-    <!-- html5-qrcode — opens the device camera in-browser and decodes QR codes -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
     <script>
-        // ── Camera Integration (photo evidence) ─────────────────────────────
-        let stream = null;
-
-        function openCamera() {
-            const video = document.getElementById('videoElement');
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function (s) {
-                        stream = s;
-                        video.srcObject = s;
-                        video.play();
-                        video.style.display = 'block';
-                        document.getElementById('captureBtn').style.display = 'inline';
-                    })
-                    .catch(function (err) {
-                        alert('Camera not available: ' + err.message);
-                    });
-            } else {
-                alert('Camera not supported in this browser.');
-            }
-        }
-
-        function capturePhoto() {
-            const video = document.getElementById('videoElement');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/png');
-
-            document.getElementById('photoPreview').src = dataUrl;
-            document.getElementById('photoPreview').style.display = 'block';
-            document.getElementById('uploadPlaceholder').style.display = 'none';
-
-            // This now actually gets read and saved server-side (fixed).
-            document.getElementById('photoData').value = dataUrl;
-
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-                video.style.display = 'none';
-            }
-            document.getElementById('captureBtn').style.display = 'none';
-        }
-
-        // ── File Upload Preview ─────────────────────────────────────────────
+        // ── Photo preview ──────────────────────────────────────────────────
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     document.getElementById('photoPreview').src = e.target.result;
                     document.getElementById('photoPreview').style.display = 'block';
                     document.getElementById('uploadPlaceholder').style.display = 'none';
@@ -281,34 +297,70 @@
         }
 
         // ── Priority Guide ──────────────────────────────────────────────────
-        var guides = {
-            'Emergency': '🔴 EMERGENCY — Fix within 1 HOUR.',
-            'High': '🟡 HIGH — Must be fixed by end of today.',
-            'Medium': '🔵 MEDIUM — Will be scheduled within 3 days.',
-            'Low': '🟢 LOW — Will be completed within this week.'
+        var priorityInfo = {
+            'Emergency': { bg:'#f8d7da', border:'#dc3545', color:'#721c24',
+                text:'🔴 EMERGENCY — Fix within 1 hour. Use for: burst pipes flooding, generator failure, fire alarm fault, dangerous electrical issues.' },
+            'High': { bg:'#fff3cd', border:'#ffc107', color:'#856404',
+                text:'🟡 HIGH — Fix same day. Use for: no hot water in a boarding house, broken window, projector not working before class.' },
+            'Medium': { bg:'#cce5ff', border:'#0d6efd', color:'#004085',
+                text:'🔵 MEDIUM — Fix within 3 days. Use for: dripping tap, damaged fence section, broken cupboard.' },
+            'Low': { bg:'#d4edda', border:'#28a745', color:'#155724',
+                text:'🟢 LOW — Fix this week. Use for: peeling paint, loose door handle, small crack in a pathway.' }
         };
 
-        document.getElementById('prioritySelect').addEventListener('change', function () {
+        document.getElementById('prioritySelect').addEventListener('change', function() {
             var guide = document.getElementById('priorityGuide');
             var val = this.value;
-            if (val && guides[val]) {
+            if (val && priorityInfo[val]) {
+                var p = priorityInfo[val];
                 guide.style.display = 'block';
-                guide.textContent = guides[val];
-                guide.className = 'alert alert-' + (val === 'Emergency' ? 'danger' : val === 'High' ? 'warning' : val === 'Medium' ? 'info' : 'success');
+                guide.style.background = p.bg;
+                guide.style.borderLeft = '4px solid ' + p.border;
+                guide.style.color = p.color;
+                guide.innerHTML = '<strong>' + p.text + '</strong>';
             } else {
                 guide.style.display = 'none';
             }
         });
 
-        // ═════════════════════════════════════════════════════════════════════
-        // IN-APP QR CODE SCANNER
-        // ═════════════════════════════════════════════════════════════════════
+        // ── Mode switching ──────────────────────────────────────────────────
+        var modeBtns = document.querySelectorAll('.mode-btn');
+        var scanSection = document.getElementById('scanSection');
+        var assetSection = document.getElementById('assetSection');
+        var manualSection = document.getElementById('manualSection');
+
+        modeBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                modeBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                var mode = this.dataset.mode;
+                if (mode === 'scan') {
+                    scanSection.style.display = 'block';
+                    assetSection.style.display = 'block';
+                    manualSection.style.display = 'none';
+                } else if (mode === 'select') {
+                    scanSection.style.display = 'block';
+                    assetSection.style.display = 'block';
+                    manualSection.style.display = 'none';
+                    // hide QR scanner box if visible
+                    document.getElementById('qrScannerBox').style.display = 'none';
+                    document.getElementById('startScanBtn').style.display = 'block';
+                } else if (mode === 'manual') {
+                    scanSection.style.display = 'none';
+                    assetSection.style.display = 'none';
+                    manualSection.style.display = 'block';
+                }
+            });
+        });
+
+        // ── QR Scanner ──────────────────────────────────────────────────────
         var html5QrCode = null;
 
         document.getElementById('startScanBtn').addEventListener('click', function () {
             document.getElementById('qrScannerBox').style.display = 'block';
-            document.getElementById('scanConfirm').style.display  = 'none';
-            document.getElementById('scanError').style.display    = 'none';
+            document.getElementById('scanConfirm').style.display = 'none';
+            document.getElementById('scanError').style.display = 'none';
             this.style.display = 'none';
 
             html5QrCode = new Html5Qrcode("qrReader");
@@ -322,38 +374,52 @@
                         processScannedCode(decodedText);
                     });
                 },
-                function onScanFailure() { /* keep scanning silently */ }
-            ).catch(function () {
+                function onScanFailure() {
+                    // ignore
+                }
+            ).catch(function (err) {
                 document.getElementById('scanError').style.display = 'block';
                 document.getElementById('scanError').textContent =
-                    'Could not access the camera. Please allow camera permission, or select the asset manually below.';
+                    'Could not access the camera. Please allow camera permission, or select the asset manually.';
                 document.getElementById('qrScannerBox').style.display = 'none';
                 document.getElementById('startScanBtn').style.display = 'block';
             });
         });
 
         document.getElementById('cancelScanBtn').addEventListener('click', function () {
-            if (html5QrCode) { html5QrCode.stop().catch(function () {}); }
+            if (html5QrCode) {
+                html5QrCode.stop().catch(function () {});
+            }
             document.getElementById('qrScannerBox').style.display = 'none';
             document.getElementById('startScanBtn').style.display = 'block';
         });
 
         function processScannedCode(decodedText) {
+            // Extract the QR code from the URL: e.g. /Scan/Index/MH-ASSET-0001
             var assetCode = decodedText.split('/').filter(Boolean).pop();
 
             fetch('@Url.Action("GetAssetByQrCode", "Reporter")?code=' + encodeURIComponent(assetCode))
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     document.getElementById('startScanBtn').style.display = 'block';
-
                     if (data.success) {
-                        document.getElementById('assetDropdown').value = data.id;
+                        // Auto-select asset
+                        var dropdown = document.getElementById('assetDropdown');
+                        dropdown.value = data.id;
 
+                        // Show confirmation
                         document.getElementById('scanConfirmName').textContent = data.name;
                         document.getElementById('scanConfirmLocation').textContent =
                             data.building + (data.room ? ' — ' + data.room : '');
                         document.getElementById('scanConfirm').style.display = 'block';
-                        document.getElementById('scanError').style.display   = 'none';
+                        document.getElementById('scanError').style.display = 'none';
+
+                        // Switch to 'select' mode to highlight the dropdown
+                        modeBtns.forEach(b => b.classList.remove('active'));
+                        document.querySelector('.mode-btn[data-mode="select"]').classList.add('active');
+                        scanSection.style.display = 'block';
+                        assetSection.style.display = 'block';
+                        manualSection.style.display = 'none';
                     } else {
                         document.getElementById('scanError').style.display = 'block';
                         document.getElementById('scanError').textContent = data.message;
@@ -364,20 +430,26 @@
                     document.getElementById('startScanBtn').style.display = 'block';
                     document.getElementById('scanError').style.display = 'block';
                     document.getElementById('scanError').textContent =
-                        'Something went wrong looking up this asset. Please select it manually below.';
+                        'Something went wrong looking up this asset. Please select it manually.';
                 });
         }
     </script>
 }
-
 @section Styles {
     <style>
         .font-serif {
             font-family: 'Playfair Display', serif !important;
         }
 
+        .mode-btn.active {
+            background-color: #C21E2E;
+            color: white;
+            border-color: #C21E2E;
+        }
+
         #qrReader video {
-            border-radius: 8px;
+            border-radius: 10px;
+            width: 100%;
         }
     </style>
 }

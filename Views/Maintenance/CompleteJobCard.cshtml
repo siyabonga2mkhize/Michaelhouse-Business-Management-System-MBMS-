@@ -8,115 +8,154 @@
     <div>
         <div class="flex items-center gap-2 mb-3">
             <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Complete Job</h5>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Complete Job Card</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">@Model.JobReference · @Model.Title</p>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">@Model.JobReference</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @Model.Title · Assigned to @(Model.AssignedTo?.FullName ?? "Unassigned")
+        </p>
     </div>
+    <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Job
+    </a>
 </div>
 
 <div class="row g-4">
-    <div class="col-lg-8">
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                @using (Html.BeginForm("CompleteJobCard", "Maintenance", new { id = Model.Id }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+                @using (Html.BeginForm("CompleteJobCard", "Maintenance", FormMethod.Post, new { enctype = "multipart/form-data", id = "completeJobForm" }))
                 {
                     @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+
                     <div class="row g-3">
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <!-- PHOTO SECTION WITH CAMERA INTEGRATION                -->
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">After Photo (Proof) *</label>
-
-                            <!-- Camera Button -->
-                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
-                                <i class="bi bi-camera me-1"></i> Open Camera
-                            </button>
-
-                            <!-- Video element for camera -->
-                            <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
-
-                            <!-- Capture button -->
-                            <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
-                                <i class="bi bi-camera me-1"></i> Capture Photo
-                            </button>
-
-                            <!-- File upload as fallback -->
-                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
-                                <input type="file" name="photoAfter" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
-                                <div id="uploadPlaceholder">
-                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
-                                    <span class="text-muted">Click to upload a photo</span>
-                                </div>
-                                <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
-                            </div>
-
-                            <!-- Hidden field for base64 photo data -->
-                            <input type="hidden" id="photoData" name="photoData" />
-                        </div>
-
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase text-muted">Completion Notes *</label>
-                            <textarea name="completionNotes" class="form-control" rows="4" placeholder="Describe exactly what you did..." required></textarea>
+                            <textarea name="completionNotes" class="form-control" rows="3" placeholder="Describe what was done, parts replaced, etc." required></textarea>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label small fw-bold text-uppercase text-muted">Final Condition *</label>
-                            <div class="row g-2">
-                                @foreach (var opt in new[] {
-                                    ("Fixed", "Fully repaired and working", "success"),
-                                    ("Repaired Temporarily", "Short fix — needs permanent repair", "warning"),
-                                    ("Needs Further Work", "Bigger problem — more help needed", "danger"),
-                                    ("Replaced", "Old part replaced with new one", "info")
-                                })
-                                {
-                                    <div class="col-md-6">
-                                        <div class="border rounded p-2" style="background:#f8f9fa;">
-                                            <label class="d-block">
-                                                <input type="radio" name="finalCondition" value="@opt.Item1" required />
-                                                <strong class="text-@opt.Item3">@opt.Item1</strong>
-                                                <span class="text-muted small d-block ms-3">@opt.Item2</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                }
+                            <select name="finalCondition" class="form-select" required>
+                                <option value="">-- Select --</option>
+                                <option value="Fixed">Fixed</option>
+                                <option value="Replaced">Replaced</option>
+                                <option value="Repaired Temporarily">Repaired Temporarily</option>
+                                <option value="Cannot Fix">Cannot Fix (needs specialist)</option>
+                            </select>
+                        </div>
+
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- AFTER PHOTO SECTION (identical to Reporter's)         -->
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">After Photo (Proof of Completion)</label>
+
+                            <!-- Camera button -->
+                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openAfterCamera()">
+                                <i class="bi bi-camera me-1"></i> Open Camera
+                            </button>
+
+                            <!-- Video preview -->
+                            <video id="afterVideoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
+
+                            <!-- Capture button -->
+                            <button id="afterCaptureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="captureAfterPhoto()">
+                                <i class="bi bi-camera me-1"></i> Capture Photo
+                            </button>
+
+                            <!-- File upload fallback -->
+                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('afterPhotoInput').click();">
+                                <input type="file" name="photoAfter" id="afterPhotoInput" accept="image/*" style="display:none" onchange="previewAfterPhoto(this)" />
+                                <div id="afterUploadPlaceholder">
+                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
+                                    <span class="text-muted">Click to upload a photo</span>
+                                </div>
+                                <img id="afterPhotoPreview" src="#" alt="After Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
+                            </div>
+
+                            <!-- Hidden field for base64 camera capture -->
+                            <input type="hidden" id="afterPhotoData" name="afterPhotoData" />
+
+                            <!-- Optional: show compression message (hidden by default) -->
+                            <div id="compressingMsg" style="display:none;color:#666;font-size:0.9rem;margin-top:8px;">
+                                <i class="bi bi-arrow-repeat me-1"></i> Compressing image...
                             </div>
                         </div>
-                    </div>
 
-                    <div class="alert alert-success mt-3">
-                        <i class="bi bi-info-circle me-2"></i> Completing will: calculate response time, update asset health score, free the worker's status, and notify the reporter.
-                    </div>
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- YOUR "PARTS USED" SECTION – KEEP IT HERE             -->
+                        <!-- (I’ve left a placeholder – you already have your code) -->
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        @* 👇 Your existing parts-used table goes here (if any) *@
 
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Mark Job Complete</button>
-                        <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = Model.Id })" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Completing this job will update the asset's status and set the worker back to "Available".
+                        </div>
+
+                        <button type="submit" id="completeSubmitBtn" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Complete Job</button>
+                        <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary ms-2">Cancel</a>
                     </div>
                 }
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard me-2"></i>Job Summary</h5>
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Job Summary</h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled">
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Reference</span><code class="text-danger">@Model.JobReference</code></li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Asset</span>@(Model.Asset != null ? Model.Asset.AssetName : "—")</li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Location</span>@(Model.Asset != null ? Model.Asset.LocationBuilding : "—")</li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Priority</span><span class="badge bg-@(Model.Priority=="Emergency"?"danger":Model.Priority=="High"?"warning":Model.Priority=="Medium"?"info":"secondary")">@Model.Priority</span></li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Assigned To</span>@(Model.AssignedTo != null ? Model.AssignedTo.FullName : "—")</li>
-                    <li class="d-flex justify-content-between py-2"><span class="text-muted">Time Open</span><span id="timeOpen" class="fw-bold text-danger">—</span></li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Reference</span>
+                        <code class="text-danger">@Model.JobReference</code>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Title</span>
+                        <span>@Model.Title</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Priority</span>
+                        <span class="badge bg-@(Model.Priority=="Emergency"?"danger":Model.Priority=="High"?"warning":Model.Priority=="Medium"?"info":"secondary")">@Model.Priority</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Asset</span>
+                        <span>@(Model.Asset?.AssetName ?? "—")</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Location</span>
+                        <span>@(Model.Asset?.LocationBuilding ?? "—")</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Created</span>
+                        <span>@Model.DateCreated.ToString("dd MMM yyyy HH:mm")</span>
+                    </li>
+                    @if (Model.DueDate.HasValue)
+                    {
+                        <li class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Due Date</span>
+                            <span>@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm")</span>
+                        </li>
+                    }
                 </ul>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mt-3">
+                        <h6 class="fw-bold"><i class="bi bi-quote me-2"></i>Description</h6>
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+                }
+
                 @if (!string.IsNullOrEmpty(Model.PhotoBefore))
                 {
-                    <div class="border rounded mt-3">
-                        <div class="bg-light p-2 small text-muted text-uppercase fw-bold">Before Photo</div>
-                        <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="img-fluid" />
+                    <div class="mt-3">
+                        <h6 class="fw-bold"><i class="bi bi-camera me-2"></i>Before Photo</h6>
+                        <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="img-fluid rounded" style="max-height:200px;" />
                     </div>
                 }
             </div>
@@ -126,20 +165,43 @@
 
 @section Scripts {
     <script>
-        // ── Camera Integration ──────────────────────────────────────────────
-        let stream = null;
+        let afterStream = null;
+        const MAX_DIMENSION = 1280;
+        const JPEG_QUALITY = 0.75;
 
-        function openCamera() {
-            const video = document.getElementById('videoElement');
+        function compressCanvasToJpeg(sourceCanvasOrVideo, sourceWidth, sourceHeight) {
+            let targetWidth = sourceWidth;
+            let targetHeight = sourceHeight;
+
+            if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+                if (targetWidth > targetHeight) {
+                    targetHeight = Math.round((targetHeight / targetWidth) * MAX_DIMENSION);
+                    targetWidth = MAX_DIMENSION;
+                } else {
+                    targetWidth = Math.round((targetWidth / targetHeight) * MAX_DIMENSION);
+                    targetHeight = MAX_DIMENSION;
+                }
+            }
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = targetWidth;
+            outCanvas.height = targetHeight;
+            const ctx = outCanvas.getContext('2d');
+            ctx.drawImage(sourceCanvasOrVideo, 0, 0, targetWidth, targetHeight);
+
+            return outCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        }
+
+        function openAfterCamera() {
+            const video = document.getElementById('afterVideoElement');
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                     .then(function (s) {
-                        stream = s;
+                        afterStream = s;
                         video.srcObject = s;
                         video.play();
                         video.style.display = 'block';
-                        document.getElementById('captureBtn').style.display = 'inline';
-                        document.getElementById('cameraBtn').style.display = 'none';
+                        document.getElementById('afterCaptureBtn').style.display = 'inline';
                     })
                     .catch(function (err) {
                         alert('Camera not available: ' + err.message);
@@ -149,58 +211,55 @@
             }
         }
 
-        function capturePhoto() {
-            const video = document.getElementById('videoElement');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/png');
+        function captureAfterPhoto() {
+            const video = document.getElementById('afterVideoElement');
+            const dataUrl = compressCanvasToJpeg(video, video.videoWidth, video.videoHeight);
 
-            // Show preview
-            document.getElementById('photoPreview').src = dataUrl;
-            document.getElementById('photoPreview').style.display = 'block';
-            document.getElementById('uploadPlaceholder').style.display = 'none';
+            document.getElementById('afterPhotoPreview').src = dataUrl;
+            document.getElementById('afterPhotoPreview').style.display = 'block';
+            document.getElementById('afterUploadPlaceholder').style.display = 'none';
 
-            // Set hidden input for base64 data
-            document.getElementById('photoData').value = dataUrl;
+            document.getElementById('afterPhotoData').value = dataUrl;
 
-            // Stop camera
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+            if (afterStream) {
+                afterStream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
                 video.style.display = 'none';
             }
-            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('afterCaptureBtn').style.display = 'none';
         }
 
-        // ── File Upload Preview ─────────────────────────────────────────────
-        function previewPhoto(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photoPreview').src = e.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('uploadPlaceholder').style.display = 'none';
+        // ── File upload with compression ───────────────────────────────────
+        function previewAfterPhoto(input) {
+            if (!input.files || !input.files[0]) return;
+
+            document.getElementById('compressingMsg').style.display = 'block';
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onload = function () {
+                    var dataUrl = compressCanvasToJpeg(img, img.width, img.height);
+
+                    document.getElementById('afterPhotoPreview').src = dataUrl;
+                    document.getElementById('afterPhotoPreview').style.display = 'block';
+                    document.getElementById('afterUploadPlaceholder').style.display = 'none';
+                    document.getElementById('afterPhotoData').value = dataUrl;
+                    document.getElementById('compressingMsg').style.display = 'none';
                 };
-                reader.readAsDataURL(input.files[0]);
-            }
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
-        // ── Time Open Counter ──────────────────────────────────────────────
-        var created = new Date('@Model.DateCreated.ToString("yyyy-MM-ddTHH:mm:ss")');
-        function updateTime() {
-            var diff = Math.floor((new Date() - created) / 60000);
-            var hours = Math.floor(diff / 60);
-            var mins = diff % 60;
-            document.getElementById('timeOpen').textContent = hours > 0 ? hours + 'h ' + mins + 'm' : mins + ' mins';
-        }
-        updateTime();
-        setInterval(updateTime, 30000);
+        // Disable submit button after click to prevent double-submit
+        document.getElementById('completeJobForm').addEventListener('submit', function () {
+            var btn = document.getElementById('completeSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Saving...';
+        });
     </script>
 }
-
 @section Styles {
     <style>
         .font-serif {

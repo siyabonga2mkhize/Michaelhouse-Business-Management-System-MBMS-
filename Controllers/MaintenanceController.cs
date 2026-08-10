@@ -722,9 +722,10 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CompleteJobCard(int id,
-                                            string completionNotes,
-                                            string finalCondition,
-                                            HttpPostedFileBase photoAfter)
+                                    string completionNotes,
+                                    string finalCondition,
+                                    HttpPostedFileBase photoAfter,
+                                    string afterPhotoData)
         {
             if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
@@ -734,36 +735,61 @@ namespace Michaelhouse.Controllers
                 .Include(j => j.AssignedTo)
                 .FirstOrDefault(j => j.Id == id);
 
-            if (jobCard == null) return HttpNotFound();
+            if (jobCard == null)
+                return HttpNotFound();
+
+            // ── Save after photo ──────────────────────────────────────────────────
+            string savedFileName = null;
 
             if (photoAfter != null && photoAfter.ContentLength > 0)
             {
                 var ext = System.IO.Path.GetExtension(photoAfter.FileName);
-                var fileName = "after_"
-                    + jobCard.JobReference.Replace("-", "_")
-                    + "_" + DateTime.Now.Ticks + ext;
+                savedFileName = "after_" + jobCard.JobReference.Replace("-", "_")
+                                + "_" + DateTime.Now.Ticks + ext;
                 var savePath = Server.MapPath("~/Content/JobPhotos/");
-
                 if (!System.IO.Directory.Exists(savePath))
                     System.IO.Directory.CreateDirectory(savePath);
-
-                photoAfter.SaveAs(savePath + fileName);
-                jobCard.PhotoAfter = fileName;
+                photoAfter.SaveAs(savePath + savedFileName);
+            }
+            else if (!string.IsNullOrEmpty(afterPhotoData) && afterPhotoData.StartsWith("data:image"))
+            {
+                try
+                {
+                    var base64 = afterPhotoData.Substring(afterPhotoData.IndexOf(',') + 1);
+                    var bytes = Convert.FromBase64String(base64);
+                    savedFileName = "after_" + jobCard.JobReference.Replace("-", "_")
+                                    + "_" + DateTime.Now.Ticks + ".png";
+                    var savePath = Server.MapPath("~/Content/JobPhotos/");
+                    if (!System.IO.Directory.Exists(savePath))
+                        System.IO.Directory.CreateDirectory(savePath);
+                    System.IO.File.WriteAllBytes(savePath + savedFileName, bytes);
+                }
+                catch (Exception ex)
+                {
+                    // log if needed
+                    TempData["Warning"] = "Could not save the after photo.";
+                }
             }
 
+            if (!string.IsNullOrEmpty(savedFileName))
+                jobCard.PhotoAfter = savedFileName;
+
+            // ── Update fields ─────────────────────────────────────────────────────
             jobCard.CompletionNotes = completionNotes;
             jobCard.FinalCondition = finalCondition;
             jobCard.Status = "Completed";
             jobCard.DateCompleted = DateTime.Now;
-            jobCard.ResponseTimeMinutes = (int)(DateTime.Now - jobCard.DateCreated)
-                                              .TotalMinutes;
+            jobCard.ResponseTimeMinutes = (int)(DateTime.Now - jobCard.DateCreated).TotalMinutes;
 
+            // ── Update worker ────────────────────────────────────────────────────
             if (jobCard.AssignedToId.HasValue)
             {
                 var worker = db.MaintenanceStaff.Find(jobCard.AssignedToId.Value);
-                if (worker != null) worker.CurrentStatus = "Available";
+                if (worker != null)
+                    worker.CurrentStatus = "Available";
             }
 
+            // ── Update asset ─────────────────────────────────────────────────────
             var asset = db.Assets.Find(jobCard.AssetId);
             if (asset != null)
             {
@@ -783,8 +809,8 @@ namespace Michaelhouse.Controllers
             db.SaveChanges();
 
             TempData["Success"] = "Job Card " + jobCard.JobReference
-                + " completed. Response time: "
-                + jobCard.ResponseTimeMinutes + " minutes.";
+                                + " completed. Response time: "
+                                + jobCard.ResponseTimeMinutes + " minutes.";
 
             return RedirectToAction("JobCardDetail", new { id = jobCard.Id });
         }
