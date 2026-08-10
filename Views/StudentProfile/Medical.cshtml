@@ -1,33 +1,191 @@
 @model Michaelhouse.Models.StudentProfileMedicalViewModel
+
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Student Profile - Medical and Accessibility";
 }
 
 <section class="p-8 max-w-4xl mx-auto">
-    <h1 class="text-3xl font-serif font-bold mb-2">Student Profile</h1>
-    <p class="text-sm text-gray-500 mb-6">Step 4 of 5 - Medical and Accessibility for @Model.StudentName</p>
+
+    <h1 class="text-3xl font-serif font-bold mb-2">
+        Student Profile
+    </h1>
+
+    <p class="text-sm text-gray-500 mb-6">
+        Step 4 of 5 - Medical and Accessibility for @Model.StudentName
+    </p>
 
     <div class="bg-white rounded shadow p-6">
+
         @using (Html.BeginForm("Medical", "StudentProfile", FormMethod.Post))
         {
             @Html.AntiForgeryToken()
+
             @Html.HiddenFor(m => m.AppId)
             @Html.HiddenFor(m => m.StudentId)
+
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @Html.TextAreaFor(m => m.Allergies, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Allergies" })
-                @Html.TextAreaFor(m => m.Disabilities, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Disabilities" })
-                @Html.TextAreaFor(m => m.MedicalConditions, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Medical Conditions" })
-                @Html.TextAreaFor(m => m.EmergencyMedication, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Emergency Medication" })
-                @Html.TextAreaFor(m => m.MobilityRequirements, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Mobility Requirements" })
-                @Html.TextAreaFor(m => m.AccessibilityNotes, new { @class = "w-full px-4 py-2 border rounded", rows = 3, placeholder = "Accessibility Notes" })
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Allergies
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.Allergies,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "List any known allergies"
+                        }
+                    )
+                </div>
+
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Disabilities
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.Disabilities,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "List any disabilities"
+                        }
+                    )
+                </div>
+
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Medical Conditions
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.MedicalConditions,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "List relevant medical conditions"
+                        }
+                    )
+                </div>
+
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Emergency Medication
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.EmergencyMedication,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "List emergency medication if applicable"
+                        }
+                    )
+                </div>
+
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Mobility Requirements
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.MobilityRequirements,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "Describe any mobility requirements"
+                        }
+                    )
+                </div>
+
+
+                <div>
+                    <label class="text-sm font-semibold text-gray-600">
+                        Accessibility Notes
+                    </label>
+
+                    @Html.TextAreaFor(
+                        m => m.AccessibilityNotes,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            rows = 3,
+                            placeholder = "Additional accessibility information"
+                        }
+                    )
+                </div>
+
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <label class="flex items-center gap-2">@Html.CheckBoxFor(m => m.AccessibilityRequired) Accessibility required</label>
-                <label class="flex items-center gap-2">@Html.CheckBoxFor(m => m.MedicalAccommodationRequired) Medical accommodation required</label>
+
+
+            <!-- REQUIREMENTS -->
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+
+                <label class="flex items-center gap-2">
+                    @Html.CheckBoxFor(m => m.AccessibilityRequired)
+                    <span>Accessibility required</span>
+                </label>
+
+                <label class="flex items-center gap-2">
+                    @Html.CheckBoxFor(m => m.MedicalAccommodationRequired)
+                    <span>Medical accommodation required</span>
+                </label>
+
             </div>
-            <label class="block mt-4"><span class="text-sm font-semibold text-gray-600">Medical Accommodation Notes</span>@Html.TextAreaFor(m => m.MedicalAccommodationNotes, new { @class = "w-full px-4 py-2 border rounded mt-1", rows = 3 })</label>
-            <div class="flex justify-between mt-6"><a href="@Url.Action("Activities", new { appId = Model.AppId })" class="px-5 py-2 border rounded">Back</a><button type="submit" class="px-5 py-2 bg-[#C21E2E] text-white rounded">Next</button></div>
+
+
+            <!-- ACCOMMODATION NOTES -->
+
+            <label class="block mt-5">
+
+                <span class="text-sm font-semibold text-gray-600">
+                    Medical Accommodation Notes
+                </span>
+
+                @Html.TextAreaFor(
+                    m => m.MedicalAccommodationNotes,
+                    new
+                    {
+                        @class = "w-full px-4 py-2 border rounded mt-1",
+                        rows = 3,
+                        placeholder = "Provide additional accommodation information if required"
+                    }
+                )
+
+            </label>
+
+
+            <!-- NAVIGATION -->
+
+            <div class="flex justify-between mt-6">
+
+                <a href="@Url.Action("Activities", new { appId = Model.AppId })"
+                   class="px-5 py-2 border rounded">
+                    Back
+                </a>
+
+                <button type="submit"
+                        class="px-5 py-2 bg-[#C21E2E] text-white rounded hover:opacity-90">
+                    Next
+                </button>
+
+            </div>
         }
+
     </div>
+
 </section>

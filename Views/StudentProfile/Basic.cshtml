@@ -1,27 +1,199 @@
 @model Michaelhouse.Models.StudentProfileBasicViewModel
+
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Student Profile - Basic Information";
 }
 
 <section class="p-8 max-w-4xl mx-auto">
-    <h1 class="text-3xl font-serif font-bold mb-2">Student Profile</h1>
-    <p class="text-sm text-gray-500 mb-6">Step 1 of 5 - Basic Information for @Model.StudentName</p>
+
+    <h1 class="text-3xl font-serif font-bold mb-2">
+        Student Profile
+    </h1>
+
+    <p class="text-sm text-gray-500 mb-6">
+        Step 1 of 5 - Basic Information for @Model.StudentName
+    </p>
 
     <div class="bg-white rounded shadow p-6">
+
         @using (Html.BeginForm("Basic", "StudentProfile", FormMethod.Post))
         {
             @Html.AntiForgeryToken()
+
             @Html.HiddenFor(m => m.AppId)
             @Html.HiddenFor(m => m.StudentId)
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Preferred Name</span>@Html.TextBoxFor(m => m.PreferredName, new { @class = "w-full px-4 py-2 border rounded mt-1" })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Date of Birth</span>@Html.TextBoxFor(m => m.DateOfBirth, "{0:yyyy-MM-dd}", new { type = "date", @class = "w-full px-4 py-2 border rounded mt-1" })@Html.ValidationMessageFor(m => m.DateOfBirth, "", new { @class = "text-sm text-red-600" })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Gender</span>@Html.DropDownListFor(m => m.Gender, new SelectList(new[] { "Male", "Female", "Other" }), "Select gender", new { @class = "w-full px-4 py-2 border rounded mt-1" })@Html.ValidationMessageFor(m => m.Gender, "", new { @class = "text-sm text-red-600" })</label>
-                <label class="block"><span class="text-sm font-semibold text-gray-600">Home Language</span>@Html.TextBoxFor(m => m.HomeLanguage, new { @class = "w-full px-4 py-2 border rounded mt-1" })</label>
-                <label class="block md:col-span-2"><span class="text-sm font-semibold text-gray-600">Nationality</span>@Html.TextBoxFor(m => m.Nationality, new { @class = "w-full px-4 py-2 border rounded mt-1" })</label>
+
+                <!-- Preferred Name -->
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-600">
+                        Preferred Name
+                    </span>
+
+                    @Html.TextBoxFor(
+                        m => m.PreferredName,
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1",
+                            placeholder = "Enter preferred name"
+                        }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.PreferredName,
+                        "",
+                        new { @class = "text-sm text-red-600" }
+                    )
+                </label>
+
+
+                <!-- Date of Birth -->
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-600">
+                        Date of Birth
+                    </span>
+
+                    @Html.TextBoxFor(
+                        m => m.DateOfBirth,
+                        "{0:yyyy-MM-dd}",
+                        new
+                        {
+                            type = "date",
+                            @class = "w-full px-4 py-2 border rounded mt-1"
+                        }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.DateOfBirth,
+                        "",
+                        new { @class = "text-sm text-red-600" }
+                    )
+                </label>
+
+
+                <!-- Gender -->
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-600">
+                        Gender
+                    </span>
+
+                    @Html.DropDownListFor(
+                        m => m.Gender,
+                        new SelectList(
+                            new[]
+                            {
+                                "Male"
+                            },
+                            Model.Gender
+                        ),
+                        "Select gender",
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1"
+                        }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.Gender,
+                        "",
+                        new { @class = "text-sm text-red-600" }
+                    )
+                </label>
+
+
+                <!-- Home Language -->
+                <label class="block">
+                    <span class="text-sm font-semibold text-gray-600">
+                        Home Language
+                    </span>
+
+                    @Html.DropDownListFor(
+                        m => m.HomeLanguage,
+                        new SelectList(
+                            new[]
+                            {
+                                "English",
+                                "isiZulu",
+                                "isiXhosa",
+                                "Sesotho",
+                                "Setswana",
+                                "Sepedi",
+                                "Xitsonga",
+                                "siSwati",
+                                "Tshivenda",
+                                "Afrikaans",
+                                "Other"
+                            },
+                            Model.HomeLanguage
+                        ),
+                        "Select home language",
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1"
+                        }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.HomeLanguage,
+                        "",
+                        new { @class = "text-sm text-red-600" }
+                    )
+                </label>
+
+
+                <!-- Nationality -->
+                <label class="block md:col-span-2">
+                    <span class="text-sm font-semibold text-gray-600">
+                        Nationality
+                    </span>
+
+                    @Html.DropDownListFor(
+                        m => m.Nationality,
+                        new SelectList(
+                            new[]
+                            {
+                                "South African",
+                                "Zimbabwean",
+                                "Mozambican",
+                                "Botswanan",
+                                "Namibian",
+                                "Zambian",
+                                "Malawian",
+                                "Eswatini",
+                                "Lesotho",
+                                "Other"
+                            },
+                            Model.Nationality
+                        ),
+                        "Select nationality",
+                        new
+                        {
+                            @class = "w-full px-4 py-2 border rounded mt-1"
+                        }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.Nationality,
+                        "",
+                        new { @class = "text-sm text-red-600" }
+                    )
+                </label>
+
             </div>
-            <div class="flex justify-end mt-6"><button type="submit" class="px-5 py-2 bg-[#C21E2E] text-white rounded">Next</button></div>
+
+
+            <!-- Navigation -->
+            <div class="flex justify-end mt-6">
+
+                <button type="submit"
+                        class="px-5 py-2 bg-[#C21E2E] text-white rounded hover:opacity-90">
+                    Next
+                </button>
+
+            </div>
         }
     </div>
+
 </section>
