@@ -524,7 +524,6 @@ namespace Michaelhouse.Controllers
         }
 
         // ── QR CODE GENERATION (UPDATED) ─────────────────────────────────────
-        // The QR code now encodes a real URL that opens the public Scan page.
         public ActionResult QrCode(int? id)
         {
             if (id == null) return RedirectToAction("Assets");
@@ -721,11 +720,18 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CompleteJobCard(int id,
-                                    string completionNotes,
-                                    string finalCondition,
-                                    HttpPostedFileBase photoAfter,
-                                    string afterPhotoData)
+        public ActionResult CompleteJobCard(
+            int id,
+            string completionNotes,
+            string finalCondition,
+            HttpPostedFileBase photoAfter,
+            HttpPostedFileBase receipt,
+            string photoData,
+            int[] inventoryIds,
+            int[] quantities,
+            decimal labourCost,
+            decimal partsCost,
+            decimal totalCost)
         {
             if (!IsAuthorized())
                 return RedirectToAction("Login", "Account");
@@ -751,11 +757,11 @@ namespace Michaelhouse.Controllers
                     System.IO.Directory.CreateDirectory(savePath);
                 photoAfter.SaveAs(savePath + savedFileName);
             }
-            else if (!string.IsNullOrEmpty(afterPhotoData) && afterPhotoData.StartsWith("data:image"))
+            else if (!string.IsNullOrEmpty(photoData) && photoData.StartsWith("data:image"))
             {
                 try
                 {
-                    var base64 = afterPhotoData.Substring(afterPhotoData.IndexOf(',') + 1);
+                    var base64 = photoData.Substring(photoData.IndexOf(',') + 1);
                     var bytes = Convert.FromBase64String(base64);
                     savedFileName = "after_" + jobCard.JobReference.Replace("-", "_")
                                     + "_" + DateTime.Now.Ticks + ".png";
@@ -764,9 +770,8 @@ namespace Michaelhouse.Controllers
                         System.IO.Directory.CreateDirectory(savePath);
                     System.IO.File.WriteAllBytes(savePath + savedFileName, bytes);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    // log if needed
                     TempData["Warning"] = "Could not save the after photo.";
                 }
             }
@@ -803,6 +808,31 @@ namespace Michaelhouse.Controllers
                 {
                     asset.ConditionRating = "Fair";
                     asset.HealthScore = Math.Min(100, asset.HealthScore + 10);
+                }
+            }
+
+            // ── Save cost fields ─────────────────────────────────────────────────
+            jobCard.LabourCost = labourCost;
+            jobCard.PartsCost = partsCost;
+            jobCard.TotalCost = totalCost;
+
+            // ── Save parts used ──────────────────────────────────────────────────
+            if (inventoryIds != null && quantities != null)
+            {
+                for (int i = 0; i < inventoryIds.Length; i++)
+                {
+                    if (i >= quantities.Length || quantities[i] <= 0) continue;
+                    var item = db.MaintenanceInventory.Find(inventoryIds[i]);
+                    if (item == null) continue;
+                    item.StockLevel = Math.Max(0, item.StockLevel - quantities[i]);
+
+                    db.JobCardParts.Add(new JobCardPart
+                    {
+                        JobCardId = id,
+                        InventoryItemId = inventoryIds[i],
+                        QuantityUsed = quantities[i],
+                        DateUsed = DateTime.Now
+                    });
                 }
             }
 

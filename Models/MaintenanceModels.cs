@@ -93,6 +93,8 @@ namespace Michaelhouse.Models
         // ─── Photo ────────────────────────────────────────────────
         [Display(Name = "Profile Photo")]
         public string PhotoUrl { get; set; }
+        [Display(Name = "Receipt File")]
+        public string ReceiptFileName { get; set; }
 
         // ─── Link to AppUser ─────────────────────────────────────
         public int? UserId { get; set; }
@@ -457,15 +459,14 @@ namespace Michaelhouse.Models
 
         public int JobCardId { get; set; }
 
-        public int InventoryItemId { get; set; }
+        public int? InventoryItemId { get; set; } // now nullable
 
-        [Display(Name = "Quantity Used")]
         public int QuantityUsed { get; set; }
 
         public DateTime DateUsed { get; set; }
 
-        public virtual JobCard JobCard { get; set; }
 
+        public virtual JobCard JobCard { get; set; }
         public virtual MaintenanceInventory InventoryItem { get; set; }
 
         public JobCardPart()
@@ -586,4 +587,16 @@ namespace Michaelhouse.Models
 
         public string Reason { get; set; }
     }
+    public class JobCardPhoto
+    {
+        public int Id { get; set; }
+        public int JobCardId { get; set; }
+        public string FileName { get; set; }
+        public string Caption { get; set; } // optional
+        public DateTime UploadedAt { get; set; }
+
+        [ForeignKey("JobCardId")]
+        public virtual JobCard JobCard { get; set; }
+    }
 }
+

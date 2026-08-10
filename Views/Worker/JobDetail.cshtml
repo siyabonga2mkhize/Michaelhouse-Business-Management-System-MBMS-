@@ -2,185 +2,394 @@
 @{
     ViewBag.Title = "Job Detail";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var priorityBadgeClass = Model.Priority == "Emergency" ? "bg-red-50 text-[#C21E2E] border-red-200" :
+                            Model.Priority == "High" ? "bg-amber-50 text-amber-800 border-amber-200" :
+                            Model.Priority == "Medium" ? "bg-blue-50 text-blue-800 border-blue-200" :
+                            "bg-gray-100 text-gray-600 border-gray-200";
+
+    var statusBadgeClass = Model.Status == "Completed" ? "bg-emerald-50 text-emerald-800 border-emerald-200" :
+                           Model.Status == "Assigned" ? "bg-blue-50 text-blue-800 border-blue-200" :
+                           "bg-amber-50 text-amber-800 border-amber-200";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
-        </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">@Model.Title</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
-            <code class="text-danger">@Model.JobReference</code> · @Model.Priority Priority
-        </p>
-    </div>
-    @if (Model.Status != "Completed" && Model.Status != "Cancelled")
-    {
-        <a href="#completeSection" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Complete This Job</a>
-    }
-</div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/50">
 
-<div class="row g-4">
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Job Information</h5>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 flex justify-between items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal • Maintenance Log</h5>
             </div>
-            <div class="card-body">
-                <ul class="list-unstyled">
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Priority</span><span class="badge bg-@(Model.Priority=="Emergency"?"danger":Model.Priority=="High"?"warning":Model.Priority=="Medium"?"info":"secondary")">@Model.Priority</span></li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Asset</span>@(Model.Asset != null ? Model.Asset.AssetName : "—")</li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Location</span>@(Model.Asset != null ? Model.Asset.LocationBuilding : "—")</li>
-                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Status</span><span class="badge bg-@(Model.Status=="Completed"?"success":Model.Status=="Assigned"?"info":"warning")">@Model.Status</span></li>
-                    @if (Model.DueDate.HasValue)
-                    {
-                        var overdue = Model.DueDate.Value < DateTime.Now && Model.Status != "Completed";
-                        <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Due Date</span><span class="@(overdue ? "text-danger fw-bold" : "")">@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm") @if (overdue)
-                        {<text>⚠️ OVERDUE</text>}</span></li>
-                    }
-                    <li class="d-flex justify-content-between py-2"><span class="text-muted">Time Open</span><span id="timeOpen" class="fw-bold text-danger">—</span></li>
-                </ul>
-                @if (!string.IsNullOrEmpty(Model.Description))
-                {
-                    <div class="alert alert-secondary mt-3"><i class="bi bi-quote me-1"></i> @Model.Description</div>
-                }
-            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">@Model.Title</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1 mb-0 flex items-center gap-2">
+                <span class="text-[#C21E2E] font-bold bg-red-50 px-2 py-0.5 border border-red-100">@Model.JobReference</span>
+                <span>•</span>
+                <span>@Model.Priority Priority Level</span>
+            </p>
         </div>
-        @if (!string.IsNullOrEmpty(Model.PhotoBefore))
-        {
-            <div class="card border-0 shadow-sm mt-3">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-camera me-2"></i>Fault Photo</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="bg-light p-2 small text-muted text-uppercase fw-bold">Before — Fault Evidence</div>
-                    <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="img-fluid" />
-                </div>
-            </div>
-        }
+        <div>
+            @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+            {
+                <a href="#completeSection" class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 text-[10px] font-mono font-bold uppercase tracking-[2px] transition-all shadow-sm">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Complete This Job</span>
+                </a>
+            }
+        </div>
     </div>
-    <div class="col-lg-7">
-        @if (Model.Status != "Completed" && Model.Status != "Cancelled")
-        {
-            <div class="card border-0 shadow-sm" id="completeSection">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>Complete This Job</h5>
-                </div>
-                <div class="card-body">
-                    @using (Html.BeginForm("CompleteJob", "Worker", new { id = Model.Id }, FormMethod.Post, new { enctype = "multipart/form-data" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">After Photo (Proof) *</label>
-                                <div class="border p-3 text-center" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
-                                    <input type="file" name="photoAfter" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
-                                    <div id="uploadPlaceholder">
-                                        <i class="bi bi-camera fs-2 d-block mb-2 text-secondary"></i>
-                                        <span class="text-muted">Click to upload a photo</span>
-                                    </div>
-                                    <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
-                                </div>
+
+    @* --- SCROLLABLE CONTENT CONTAINER --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                @* --- LEFT COLUMN: JOB SPECIFICATIONS & FAULT PHOTO (5 Cols) --- *@
+                <div class="lg:col-span-5 space-y-6">
+
+                    @* Job Information Card *@
+                    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center font-mono">
+                            <span class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900">01. Job Specifications</span>
+                            <i class="bi bi-info-circle text-gray-400"></i>
+                        </div>
+
+                        <div class="p-5 space-y-3 font-mono text-xs">
+                            <div class="flex justify-between items-center py-1.5 border-b border-gray-100">
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider">Priority Level</span>
+                                <span class="px-2.5 py-0.5 text-[9px] uppercase font-bold tracking-wider border @priorityBadgeClass">
+                                    @Model.Priority
+                                </span>
                             </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">Parts Used</label>
-                                @if (ViewBag.Inventory != null && ((List<Michaelhouse.Models.MaintenanceInventory>)ViewBag.Inventory).Any())
-                                {
-                                    <div class="border p-2" style="max-height:200px;overflow-y:auto;">
-                                        @foreach (var item in (List<Michaelhouse.Models.MaintenanceInventory>)ViewBag.Inventory)
+
+                            <div class="flex justify-between items-center py-1.5 border-b border-gray-100">
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider">Asset Item</span>
+                                <span class="font-bold text-gray-800 font-sans">@(Model.Asset != null ? Model.Asset.AssetName : "—")</span>
+                            </div>
+
+                            <div class="flex justify-between items-center py-1.5 border-b border-gray-100">
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider">Location Target</span>
+                                <span class="font-bold text-gray-800 font-sans">@(Model.Asset != null ? Model.Asset.LocationBuilding : "—")</span>
+                            </div>
+
+                            <div class="flex justify-between items-center py-1.5 border-b border-gray-100">
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider">Current Status</span>
+                                <span class="px-2.5 py-0.5 text-[9px] uppercase font-bold tracking-wider border @statusBadgeClass">
+                                    @Model.Status
+                                </span>
+                            </div>
+
+                            @if (Model.DueDate.HasValue)
+                            {
+                                var overdue = Model.DueDate.Value < DateTime.Now && Model.Status != "Completed";
+                                <div class="flex justify-between items-center py-1.5 border-b border-gray-100">
+                                    <span class="text-gray-400 text-[10px] uppercase tracking-wider">Due Target</span>
+                                    <span class="@(overdue ? "text-[#C21E2E] font-bold" : "text-gray-700")">
+                                        @Model.DueDate.Value.ToString("dd MMM yyyy HH:mm")
+                                        @if (overdue)
                                         {
-                                            <div class="d-flex align-items-center justify-content-between border-bottom py-1">
-                                                <span class="small">@item.ItemName <span class="text-muted">(@item.StockLevel @item.Unit in stock)</span></span>
-                                                <input type="number" name="quantities" value="0" min="0" max="@item.StockLevel" class="form-control form-control-sm" style="width:70px;" />
-                                                <input type="hidden" name="inventoryIds" value="@item.Id" />
-                                            </div>
+                                            <span class="ms-1 text-[9px] bg-red-100 text-[#C21E2E] px-1 py-0.5 uppercase tracking-wider">⚠️ Overdue</span>
                                         }
-                                    </div>
-                                    <small class="text-muted">Enter 0 if not used.</small>
-                                }
-                                else
+                                    </span>
+                                </div>
+                            }
+
+                            <div class="flex justify-between items-center pt-1.5">
+                                <span class="text-gray-400 text-[10px] uppercase tracking-wider">Active Elapsed Time</span>
+                                <span id="timeOpen" class="font-bold text-[#C21E2E] font-mono text-sm">—</span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <div class="p-4 bg-gray-50 border-t border-gray-100 text-xs text-gray-700 italic font-serif leading-relaxed">
+                                <i class="bi bi-quote text-lg text-gray-400 me-1"></i> @Model.Description
+                            </div>
+                        }
+                    </div>
+
+                    @* Fault Photo (Before) *@
+                    @if (!string.IsNullOrEmpty(Model.PhotoBefore))
+                    {
+                        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                            <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center font-mono">
+                                <span class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900">02. Initial Fault Evidence</span>
+                                <span class="text-[9px] uppercase text-gray-400">Before Repair</span>
+                            </div>
+                            <div class="p-3 bg-gray-900 flex justify-center">
+                                <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="max-h-72 object-contain border border-gray-800" alt="Fault Before Photo" />
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+                @* --- RIGHT COLUMN: JOB COMPLETION FORM OR COMPLETED LOG (7 Cols) --- *@
+                <div class="lg:col-span-7 space-y-6">
+                    @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+                    {
+                        @* --- ACTIVE COMPLETION FORM --- *@
+                        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden" id="completeSection">
+                            <div class="p-4 border-b border-emerald-100 bg-emerald-50/50 flex justify-between items-center font-mono">
+                                <div class="flex items-center gap-2 text-emerald-900">
+                                    <i class="bi bi-clipboard-check text-emerald-700"></i>
+                                    <span class="text-[10px] uppercase tracking-[3px] font-bold">Execution & Job Sign-Off</span>
+                                </div>
+                                <span class="text-[9px] uppercase text-emerald-700 font-bold">Worker Protocol</span>
+                            </div>
+
+                            <div class="p-6">
+                                @using (Html.BeginForm("CompleteJob", "Worker", new { id = Model.Id }, FormMethod.Post, new { enctype = "multipart/form-data", @class = "space-y-6" }))
                                 {
-                                    <p class="text-muted">No inventory items available.</p>
-                                }
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">Completion Notes *</label>
-                                <textarea name="completionNotes" class="form-control" rows="3" placeholder="Describe exactly what you did..." required></textarea>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">Final Condition *</label>
-                                <div class="row g-2">
-                                    @foreach (var opt in new[] {
-                                        ("Fixed", "Fully repaired and working", "success"),
-                                        ("Repaired Temporarily", "Short fix — needs permanent repair", "warning"),
-                                        ("Needs Further Work", "Bigger problem — more help needed", "danger"),
-                                        ("Replaced", "Old part replaced with new one", "info")
-                                    })
-                                    {
-                                        <div class="col-md-6">
-                                            <div class="border rounded p-2" style="background:#f8f9fa;">
-                                                <label class="d-block">
-                                                    <input type="radio" name="finalCondition" value="@opt.Item1" required />
-                                                    <strong class="text-@opt.Item3">@opt.Item1</strong>
-                                                    <span class="text-muted small d-block ms-3">@opt.Item2</span>
-                                                </label>
+                                    @Html.AntiForgeryToken()
+
+                                    @* Photo Upload Dropzone *@
+                                    <!-- Photo Upload Section -->
+                                    <div>
+                                        <label class="block text-[10px] font-mono uppercase tracking-[2px] font-bold text-gray-500 mb-2">
+                                            Repair Photo Proof *
+                                        </label>
+                                        <div class="border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 text-center transition-colors">
+                                            <!-- Action Buttons -->
+                                            <div class="flex justify-center gap-3 mb-3">
+                                                <button type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-mono font-bold uppercase tracking-wider transition-colors rounded" onclick="openCamera()">
+                                                    <i class="bi bi-camera"></i> Take Photo
+                                                </button>
+                                                <button type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors rounded" onclick="document.getElementById('photoInput').click();">
+                                                    <i class="bi bi-folder2-open"></i> Upload Photo
+                                                </button>
+                                            </div>
+
+                                            <!-- File Input (hidden) for upload -->
+                                            <input type="file" name="photoAfter" id="photoInput" accept="image/*" class="hidden" onchange="handleFileUpload(this)" />
+
+                                            <!-- Camera Container (hidden initially) -->
+                                            <div id="cameraContainer" style="display:none; margin-top:10px;">
+                                                <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; max-height:300px;" autoplay></video>
+                                                <div class="flex justify-center gap-3 mt-2">
+                                                    <button type="button" id="captureBtn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-[10px] font-mono font-bold uppercase tracking-wider transition-colors rounded" onclick="capturePhoto()">
+                                                        <i class="bi bi-camera"></i> Capture
+                                                    </button>
+                                                    <button type="button" class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors rounded" onclick="closeCamera()">
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Placeholder -->
+                                            <div id="uploadPlaceholder" class="space-y-2 mt-2">
+                                                <i class="bi bi-image text-3xl text-gray-400 block"></i>
+                                                <span class="text-xs font-mono text-gray-600 block">No photo selected yet.</span>
+                                            </div>
+
+                                            <!-- Preview with Remove Button -->
+                                            <div id="photoPreviewContainer" class="hidden mt-2 relative">
+                                                <img id="photoPreview" src="#" alt="Preview" class="max-h-56 mx-auto border border-gray-300 shadow-sm" />
+                                                <button type="button" id="removePhotoBtn" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white text-[9px] font-mono font-bold uppercase tracking-wider px-3 py-1.5 rounded transition-colors" onclick="removePhoto()">
+                                                    <i class="bi bi-x-lg"></i> Remove
+                                                </button>
+                                            </div>
+
+                                            <!-- Hidden field for base64 photo data (from camera capture) -->
+                                            <input type="hidden" id="photoData" name="photoData" />
+                                        </div>
+                                    </div>
+
+                                    @* Inventory & Parts Selector *@
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label class="text-[10px] font-mono uppercase tracking-[2px] font-bold text-gray-500 mb-0">
+                                                Parts & Material Allocation
+                                            </label>
+                                            <small class="text-[9px] font-mono text-gray-400 uppercase">Inventory auto-deduction</small>
+                                        </div>
+
+                                        <div id="partsContainer" class="space-y-2 mb-3">
+                                            <p class="text-xs font-mono text-gray-400 italic py-2 text-center bg-gray-50 border border-dashed border-gray-200" id="noPartsMessage">
+                                                No parts added yet. Use buttons below to add items.
+                                            </p>
+                                        </div>
+
+                                        <div class="flex gap-2 flex-wrap">
+                                            <button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors border border-gray-200" onclick="addPartRow()">
+                                                <i class="bi bi-plus-circle text-emerald-700"></i> Add Inventory Part
+                                            </button>
+                                            <button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors border border-gray-200" onclick="addManualPartRow()">
+                                                <i class="bi bi-pencil text-blue-700"></i> Add Custom Part
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    @* Labour Cost Input *@
+                                    <div>
+                                        <label class="block text-[10px] font-mono uppercase tracking-[2px] font-bold text-gray-500 mb-2">
+                                            Labour Cost (ZAR)
+                                        </label>
+                                        <div class="relative">
+                                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center font-mono text-xs text-gray-400">R</span>
+                                            <input type="number" name="labourCost" id="labourCost" value="0" min="0" step="0.01" class="w-full bg-gray-50 border border-gray-200 pl-8 pr-3 py-2 text-xs font-mono text-gray-900 focus:bg-white focus:border-gray-900 focus:outline-none transition-colors" />
+                                        </div>
+                                    </div>
+
+                                    @* Financial Cost Summary Card *@
+                                    <div class="bg-[#1a1a1a] text-white p-4 font-mono text-xs space-y-2">
+                                        <div class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-800 pb-2 mb-2">
+                                            Financial Reconciliation Summary
+                                        </div>
+                                        <div class="flex justify-between text-gray-300">
+                                            <span>Parts & Materials Subtotal:</span>
+                                            <span id="partsCostDisplay" class="font-bold">R0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-gray-300">
+                                            <span>Labour Subtotal:</span>
+                                            <span id="labourCostDisplay" class="font-bold">R0.00</span>
+                                        </div>
+                                        <div class="flex justify-between border-t border-gray-800 pt-2 text-sm">
+                                            <span class="font-bold text-emerald-400 uppercase tracking-wider">Total Calculated Job Cost:</span>
+                                            <span id="totalCostDisplay" class="font-bold text-emerald-400">R0.00</span>
+                                        </div>
+                                        <input type="hidden" id="totalPartsCost" name="partsCost" value="0" />
+                                        <input type="hidden" id="totalCost" name="totalCost" value="0" />
+                                    </div>
+
+                                    @* Receipt Upload *@
+                                    <div>
+                                        <label class="block text-[10px] font-mono uppercase tracking-[2px] font-bold text-gray-500 mb-2">
+                                            Expense Receipt / Voucher (Optional)
+                                        </label>
+                                        <div class="border border-gray-200 bg-gray-50/50 p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors" onclick="document.getElementById('receiptInput').click();">
+                                            <input type="file" name="receipt" id="receiptInput" accept="image/*,application/pdf" class="hidden" onchange="previewReceipt(this)" />
+                                            <div id="receiptPlaceholder" class="space-y-1">
+                                                <i class="bi bi-receipt text-xl text-gray-400 block"></i>
+                                                <span class="text-xs font-mono text-gray-600 block">Click to attach supplier receipt (Image or PDF)</span>
+                                            </div>
+                                            <div id="receiptPreview" class="hidden font-mono text-xs flex items-center justify-center gap-2">
+                                                <span id="receiptFileName" class="text-gray-800 font-bold truncate max-w-xs"></span>
+                                                <button type="button" class="px-2 py-0.5 bg-red-50 text-[#C21E2E] border border-red-200 text-[9px] font-bold uppercase tracking-wider" onclick="clearReceipt()">
+                                                    Remove
+                                                </button>
                                             </div>
                                         </div>
-                                    }
-                                </div>
+                                    </div>
+
+                                    @* Final Disclaimer Notice *@
+                                    <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 font-mono text-[11px] leading-relaxed flex items-start gap-2">
+                                        <i class="bi bi-shield-check text-emerald-700 text-base flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <strong>Protocol Notice:</strong> Submitting sign-off updates asset health indexes, deducts used inventory quantities, and switches worker availability status.
+                                        </div>
+                                    </div>
+
+                                    @* Submit Button *@
+                                    <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3.5 px-6 text-xs font-mono font-bold uppercase tracking-[2px] transition-all shadow-sm flex items-center justify-center gap-2">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <span>Mark Job as Completed</span>
+                                    </button>
+                                }
                             </div>
                         </div>
-                        <div class="alert alert-success mt-3">
-                            <i class="bi bi-info-circle me-2"></i> Completing will: update asset health, adjust inventory, and set your status to Available.
-                        </div>
-                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle me-1"></i> Mark Job as Complete</button>
                     }
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-check-circle me-2"></i>Job Completed</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-4 text-center"><span class="text-muted small">Completed On</span><br />@(Model.DateCompleted.HasValue ? Model.DateCompleted.Value.ToString("dd MMM HH:mm") : "—")</div>
-                        <div class="col-4 text-center"><span class="text-muted small">Condition</span><br /><span class="badge bg-secondary">@Model.FinalCondition</span></div>
-                        <div class="col-4 text-center"><span class="text-muted small">Response Time</span><br /><span class="fw-bold text-success">@(Model.ResponseTimeMinutes.HasValue ? Model.ResponseTimeMinutes + " mins" : "—")</span></div>
-                    </div>
-                    @if (!string.IsNullOrEmpty(Model.CompletionNotes))
+                    else
                     {
-                        <div class="alert alert-success mt-3"><i class="bi bi-quote me-1"></i> @Model.CompletionNotes</div>
-                    }
-                    @if (!string.IsNullOrEmpty(Model.PhotoAfter))
-                    {
-                        <div class="mt-3">
-                            <div class="bg-light p-2 small text-muted text-uppercase fw-bold">After — Repair Complete</div>
-                            <img src="~/Content/JobPhotos/@Model.PhotoAfter" class="img-fluid" />
+                        @* --- COMPLETED JOB VIEW ARCHIVE --- *@
+                        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                            <div class="p-4 border-b border-emerald-100 bg-emerald-50/50 flex justify-between items-center font-mono">
+                                <div class="flex items-center gap-2 text-emerald-900">
+                                    <i class="bi bi-check-circle-fill text-emerald-700"></i>
+                                    <span class="text-[10px] uppercase tracking-[3px] font-bold">Job Execution Record - Completed</span>
+                                </div>
+                                <span class="text-[9px] uppercase text-emerald-800 font-bold">Archived Log</span>
+                            </div>
+
+                            <div class="p-6 space-y-6">
+                                <div class="grid grid-cols-3 gap-4 text-center font-mono border border-gray-100 p-4 bg-gray-50/50">
+                                    <div>
+                                        <span class="text-[9px] uppercase tracking-wider text-gray-400 block mb-1">Completed On</span>
+                                        <span class="text-xs font-bold text-gray-800">
+                                            @(Model.DateCompleted.HasValue ? Model.DateCompleted.Value.ToString("dd MMM HH:mm") : "—")
+                                        </span>
+                                    </div>
+                                    <div class="border-x border-gray-200">
+                                        <span class="text-[9px] uppercase tracking-wider text-gray-400 block mb-1">Final Condition</span>
+                                        <span class="px-2 py-0.5 text-[9px] uppercase font-bold bg-gray-200 text-gray-700 border border-gray-300">
+                                            @Model.FinalCondition
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[9px] uppercase tracking-wider text-gray-400 block mb-1">Response Time</span>
+                                        <span class="text-xs font-bold text-emerald-700">
+                                            @(Model.ResponseTimeMinutes.HasValue ? Model.ResponseTimeMinutes + " mins" : "—")
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(Model.CompletionNotes))
+                                {
+                                    <div class="p-4 bg-emerald-50/50 border border-emerald-200 text-xs text-emerald-900 italic font-serif leading-relaxed">
+                                        <i class="bi bi-quote text-lg text-emerald-600 me-1"></i> @Model.CompletionNotes
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.PhotoAfter))
+                                {
+                                    <div class="border border-gray-100 overflow-hidden">
+                                        <div class="p-3 bg-gray-50 border-b border-gray-100 text-[10px] font-mono uppercase tracking-[2px] font-bold text-gray-600">
+                                            After Repair - Proof Photo
+                                        </div>
+                                        <div class="p-3 bg-gray-900 flex justify-center">
+                                            <img src="~/Content/JobPhotos/@Model.PhotoAfter" class="max-h-72 object-contain border border-gray-800" alt="Fault After Photo" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
+
             </div>
-        }
+        </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     document.getElementById('photoPreview').src = e.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('photoPreview').classList.remove('hidden');
+                    document.getElementById('uploadPlaceholder').classList.add('hidden');
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
         var created = new Date('@Model.DateCreated.ToString("yyyy-MM-ddTHH:mm:ss")');
         function updateTime() {
             var diff = Math.floor((new Date() - created) / 60000);
@@ -190,12 +399,230 @@
         }
         updateTime();
         setInterval(updateTime, 30000);
-    </script>
-}
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
+
+        // Inventory Data
+        var inventoryItems = @Html.Raw(Json.Encode(ViewBag.Inventory));
+
+        // Add Inventory Part Row
+        function addPartRow() {
+            var container = document.getElementById('partsContainer');
+            var noMsg = document.getElementById('noPartsMessage');
+            if (noMsg) noMsg.style.display = 'none';
+
+            var row = document.createElement('div');
+            row.className = 'part-row flex items-center gap-2 bg-gray-50 p-2 border border-gray-200 font-mono text-xs';
+            row.innerHTML = `
+                <select name="inventoryIds" class="part-select flex-grow bg-white border border-gray-200 px-2 py-1.5 text-xs text-gray-800 focus:outline-none">
+                    <option value="">-- Select Inventory Part --</option>
+                    ${inventoryItems.map(item => `<option value="${item.Id}" data-unitcost="${item.UnitCost}">${item.ItemName} (${item.StockLevel} ${item.Unit} · R${item.UnitCost.toFixed(2)})</option>`).join('')}
+                </select>
+                <input type="number" name="quantities" value="1" min="1" max="999" class="qty-input w-16 bg-white border border-gray-200 px-2 py-1.5 text-xs text-center focus:outline-none" />
+                <button type="button" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-[#C21E2E] border border-red-200 text-xs transition-colors" onclick="removePartRow(this)"><i class="bi bi-x-lg"></i></button>
+            `;
+            container.appendChild(row);
+
+            var select = row.querySelector('.part-select');
+            var qtyInput = row.querySelector('.qty-input');
+            select.addEventListener('change', calculateCost);
+            qtyInput.addEventListener('input', calculateCost);
+            calculateCost();
         }
-    </style>
+
+        // Add Custom (Manual) Part Row
+        function addManualPartRow() {
+            var container = document.getElementById('partsContainer');
+            var noMsg = document.getElementById('noPartsMessage');
+            if (noMsg) noMsg.style.display = 'none';
+
+            var row = document.createElement('div');
+            row.className = 'part-row flex items-center gap-2 bg-gray-50 p-2 border border-gray-200 font-mono text-xs';
+            row.innerHTML = `
+                <input type="text" name="manualPartNames" placeholder="Part description" class="flex-grow bg-white border border-gray-200 px-2 py-1.5 text-xs text-gray-800 focus:outline-none" />
+                <input type="number" name="manualPartPrices" placeholder="Price (R)" min="0" step="0.01" class="w-24 bg-white border border-gray-200 px-2 py-1.5 text-xs text-center focus:outline-none" />
+                <input type="number" name="manualQuantities" value="1" min="1" class="qty-input w-16 bg-white border border-gray-200 px-2 py-1.5 text-xs text-center focus:outline-none" />
+                <button type="button" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-[#C21E2E] border border-red-200 text-xs transition-colors" onclick="removePartRow(this)"><i class="bi bi-x-lg"></i></button>
+            `;
+            container.appendChild(row);
+
+            row.querySelector('.qty-input').addEventListener('input', calculateCost);
+            row.querySelector('input[name="manualPartPrices"]').addEventListener('input', calculateCost);
+            calculateCost();
+        }
+
+        // Remove Part Row
+        function removePartRow(btn) {
+            var row = btn.closest('.part-row');
+            row.remove();
+            calculateCost();
+            var container = document.getElementById('partsContainer');
+            if (container.children.length === 0) {
+                var noMsg = document.getElementById('noPartsMessage');
+                if (noMsg) noMsg.style.display = 'block';
+            }
+        }
+
+        // Calculate Total Cost
+        function calculateCost() {
+            let partsCost = 0;
+            var rows = document.querySelectorAll('.part-row');
+            rows.forEach(function (row) {
+                // Internal part (dropdown)
+                var select = row.querySelector('.part-select');
+                if (select && select.value) {
+                    var unitCost = parseFloat(select.options[select.selectedIndex].dataset.unitcost) || 0;
+                    var qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                    partsCost += qty * unitCost;
+                }
+                // Manual part (price input)
+                var manualPrice = row.querySelector('input[name="manualPartPrices"]');
+                if (manualPrice) {
+                    var unitCost = parseFloat(manualPrice.value) || 0;
+                    var qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                    partsCost += qty * unitCost;
+                }
+            });
+
+            var labourCost = parseFloat(document.getElementById('labourCost').value) || 0;
+            var total = partsCost + labourCost;
+
+            document.getElementById('partsCostDisplay').textContent = 'R' + partsCost.toFixed(2);
+            document.getElementById('labourCostDisplay').textContent = 'R' + labourCost.toFixed(2);
+            document.getElementById('totalCostDisplay').textContent = 'R' + total.toFixed(2);
+            document.getElementById('totalPartsCost').value = partsCost.toFixed(2);
+            document.getElementById('totalCost').value = total.toFixed(2);
+        }
+
+        // Receipt Preview & Clear
+        function previewReceipt(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                document.getElementById('receiptFileName').textContent = file.name;
+                document.getElementById('receiptPlaceholder').classList.add('hidden');
+                document.getElementById('receiptPreview').classList.remove('hidden');
+            }
+        }
+
+        function clearReceipt() {
+            document.getElementById('receiptInput').value = '';
+            document.getElementById('receiptPlaceholder').classList.remove('hidden');
+            document.getElementById('receiptPreview').classList.add('hidden');
+        }
+
+        // Event Attachments
+        document.addEventListener('DOMContentLoaded', function () {
+            var labourInput = document.getElementById('labourCost');
+            if (labourInput) {
+                labourInput.addEventListener('input', calculateCost);
+            }
+            calculateCost();
+        });
+        // ─── Camera Handling ──────────────────────────────────────────
+        let stream = null;
+
+        function openCamera() {
+            const video = document.getElementById('videoElement');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (s) {
+                        stream = s;
+                        video.srcObject = s;
+                        video.play();
+                        document.getElementById('cameraContainer').style.display = 'block';
+                        document.getElementById('uploadPlaceholder').style.display = 'none';
+                    })
+                    .catch(function (err) {
+                        alert('Camera not available: ' + err.message);
+                    });
+            } else {
+                alert('Camera not supported in this browser.');
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            // Show preview
+            const preview = document.getElementById('photoPreview');
+            preview.src = dataUrl;
+            preview.classList.remove('hidden');
+
+            // Show the preview container with remove button
+            document.getElementById('photoPreviewContainer').classList.remove('hidden');
+
+            // Hide placeholder
+            document.getElementById('uploadPlaceholder').style.display = 'none';
+
+            // Set hidden field for base64 data
+            document.getElementById('photoData').value = dataUrl;
+
+            // Stop camera
+            closeCamera();
+        }
+
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            const video = document.getElementById('videoElement');
+            video.srcObject = null;
+            document.getElementById('cameraContainer').style.display = 'none';
+
+            // Only show placeholder if no preview exists
+            const preview = document.getElementById('photoPreview');
+            if (!preview.src || preview.src === '#' || preview.classList.contains('hidden')) {
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+                document.getElementById('photoPreviewContainer').classList.add('hidden');
+            }
+        }
+
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+
+                    // Show the preview container with remove button
+                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
+
+                    // Hide the placeholder
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+
+                    // Clear any camera data
+                    document.getElementById('photoData').value = '';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        // ─── Remove Photo ──────────────────────────────────────────────
+        function removePhoto() {
+            // Clear the preview
+            const preview = document.getElementById('photoPreview');
+            preview.src = '#';
+            preview.classList.add('hidden');
+
+            // Hide the preview container
+            document.getElementById('photoPreviewContainer').classList.add('hidden');
+
+            // Show the placeholder
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+
+            // Clear the file input
+            document.getElementById('photoInput').value = '';
+
+            // Clear the hidden field
+            document.getElementById('photoData').value = '';
+
+            // If camera was used, ensure it's stopped
+            closeCamera();
+        }
+    </script>
 }

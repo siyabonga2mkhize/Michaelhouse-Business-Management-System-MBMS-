@@ -1,9 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Web.Mvc;
+﻿using Michaelhouse.Models;
+using System;
 using System.Data.Entity;
-using Michaelhouse.Models;
+using System.IO;
+using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
@@ -92,7 +93,7 @@ namespace Michaelhouse.Controllers
         // ══════════════════════════════════════════════════════════════════════
         // WORKER PROFILE (view and edit personal info)
         // ══════════════════════════════════════════════════════════════════════
-        public ActionResult Profile()
+        public ActionResult MyProfile()
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -110,7 +111,7 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Profile(MaintenanceStaff model)
+        public ActionResult MyProfile(MaintenanceStaff model)
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -124,11 +125,10 @@ namespace Michaelhouse.Controllers
                 staff.Phone = model.Phone;
                 staff.EmergencyContactName = model.EmergencyContactName;
                 staff.EmergencyContactPhone = model.EmergencyContactPhone;
-                // Photo upload handled separately
 
                 db.SaveChanges();
                 TempData["Success"] = "Profile updated successfully.";
-                return RedirectToAction("Profile");
+                return RedirectToAction("MyProfile");
             }
             return View(model);
         }
@@ -216,14 +216,19 @@ namespace Michaelhouse.Controllers
             return Json(new { success = true, newStatus = status });
         }
 
+        // ── COMPLETE JOB ──────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CompleteJob(int id,
-                                        string completionNotes,
-                                        string finalCondition,
-                                        HttpPostedFileBase photoAfter,
-                                        int[] inventoryIds,
-                                        int[] quantities)
+                                string completionNotes,
+                                string finalCondition,
+                                HttpPostedFileBase photoAfter,
+                                HttpPostedFileBase receipt,
+                                int[] inventoryIds,
+                                int[] quantities,
+                                decimal labourCost,
+                                decimal partsCost,
+                                decimal totalCost)
         {
             if (!IsWorker())
                 return RedirectToAction("Login", "Account");
@@ -234,7 +239,7 @@ namespace Michaelhouse.Controllers
 
             if (jobCard == null) return HttpNotFound();
 
-            // Photo handling – camera integration
+            // ── Photo handling ──────────────────────────────────────
             if (photoAfter != null && photoAfter.ContentLength > 0)
             {
                 var ext = System.IO.Path.GetExtension(photoAfter.FileName);
@@ -246,32 +251,77 @@ namespace Michaelhouse.Controllers
                 jobCard.PhotoAfter = fileName;
             }
 
-            // Update inventory
-            if (inventoryIds != null && quantities != null)
+            // ── Multiple photo handling ────────────────────────────
+            if (Request.Files != null && Request.Files.Count > 0)
+            {
+                foreach (string fileKey in Request.Files)
+                {
+                    var file = Request.Files[fileKey];
+                    if (file != null && file.ContentLength > 0)
+                    {
+                        var ext = Path.GetExtension(file.FileName);
+                        var fileName = "after_" + jobCard.JobReference.Replace("-", "_") + "_" + DateTime.Now.Ticks + ext;
+                        var savePath = Server.MapPath("~/Content/JobPhotos/");
+                        if (!Directory.Exists(savePath))
+                            Directory.CreateDirectory(savePath);
+                        file.SaveAs(Path.Combine(savePath, fileName));
+
+                        db.JobCardPhotos.Add(new JobCardPhoto
+                        {
+                            JobCardId = jobCard.Id,
+                            FileName = fileName,
+                            UploadedAt = DateTime.Now
+                        });
+                    }
+                }
+            }
+
+            // ── Receipt handling ──────────────────────────────────────
+            if (receipt != null && receipt.ContentLength > 0)
+            {
+                var ext = System.IO.Path.GetExtension(receipt.FileName);
+                var fileName = "receipt_" + jobCard.JobReference.Replace("-", "_") + "_" + DateTime.Now.Ticks + ext;
+                var savePath = Server.MapPath("~/Content/Receipts/");
+                if (!System.IO.Directory.Exists(savePath))
+                    System.IO.Directory.CreateDirectory(savePath);
+                receipt.SaveAs(savePath + fileName);
+                //jobCard.ReceiptFileName = fileName;
+            }
+
+            // ── Save parts used ──────────────────────────────────────
+            if (inventoryIds != null && quantities != null && inventoryIds.Length == quantities.Length)
             {
                 for (int i = 0; i < inventoryIds.Length; i++)
                 {
-                    if (i >= quantities.Length || quantities[i] <= 0) continue;
-                    var item = db.MaintenanceInventory.Find(inventoryIds[i]);
-                    if (item == null) continue;
-                    item.StockLevel = Math.Max(0, item.StockLevel - quantities[i]);
+                    int qty = quantities[i];
+                    if (qty <= 0) continue;
+                    var inventoryItem = db.MaintenanceInventory.Find(inventoryIds[i]);
+                    if (inventoryItem == null) continue;
+
+                    inventoryItem.StockLevel -= qty;
                     db.JobCardParts.Add(new JobCardPart
                     {
                         JobCardId = id,
-                        InventoryItemId = inventoryIds[i],
-                        QuantityUsed = quantities[i],
+                        InventoryItemId = inventoryItem.Id,
+                        QuantityUsed = qty,
                         DateUsed = DateTime.Now
                     });
                 }
             }
 
+            // ── Update job card fields ──────────────────────────────
             jobCard.CompletionNotes = completionNotes;
             jobCard.FinalCondition = finalCondition;
             jobCard.Status = "Completed";
             jobCard.DateCompleted = DateTime.Now;
             jobCard.ResponseTimeMinutes = (int)(DateTime.Now - jobCard.DateCreated).TotalMinutes;
 
-            // Update asset condition
+            // Use the passed costs (from hidden fields)
+            jobCard.PartsCost = partsCost;
+            jobCard.LabourCost = labourCost;
+            jobCard.TotalCost = totalCost;
+
+            // ── Update asset ─────────────────────────────────────────
             var asset = db.Assets.Find(jobCard.AssetId);
             if (asset != null)
             {
@@ -286,10 +336,10 @@ namespace Michaelhouse.Controllers
                     asset.ConditionRating = "Fair";
                     asset.HealthScore = Math.Min(100, asset.HealthScore + 10);
                 }
-                // Update total maintenance cost
                 asset.TotalMaintenanceCost = (asset.TotalMaintenanceCost ?? 0) + (jobCard.PartsCost ?? 0) + (jobCard.LabourCost ?? 0);
             }
 
+            // ── Free worker ──────────────────────────────────────────
             var worker = db.MaintenanceStaff.Find(GetStaffId());
             if (worker != null) worker.CurrentStatus = "Available";
 
