@@ -1,0 +1,87 @@
+@{
+    ViewBag.Title = "AI Residence Dashboard";
+    var residencesNearing = ViewBag.ResidencesNearing as IEnumerable<Michaelhouse.Models.Residence> ?? Enumerable.Empty<Michaelhouse.Models.Residence>();
+    var waitingList = ViewBag.WaitingList as IEnumerable<Michaelhouse.Models.AIWaitingList> ?? Enumerable.Empty<Michaelhouse.Models.AIWaitingList>();
+    var recentDecisions = ViewBag.RecentDecisions as IEnumerable<Michaelhouse.Models.AIAllocationHistory> ?? Enumerable.Empty<Michaelhouse.Models.AIAllocationHistory>();
+}
+
+<div class="p-8">
+    <h1 class="text-3xl font-serif font-bold mb-6">AI Residence Management Dashboard</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Total AI Recommendations</h3>
+            <div class="mt-4 text-3xl font-bold">@ViewBag.TotalRecommendations</div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Average Confidence</h3>
+            <div class="mt-4 text-3xl font-bold">@String.Format("{0:P0}", ViewBag.AvgConfidence ?? 0.0)</div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Most Suitable Residence</h3>
+            <div class="mt-4 text-2xl font-bold">@ViewBag.MostSuitableResidence</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Residences Nearing Capacity</h3>
+            <ul class="mt-4 space-y-2">
+                @foreach(var r in residencesNearing){
+                    <li class="p-3 border rounded flex justify-between items-center">
+                        <div>
+                            <div class="font-bold">@r.Name</div>
+                            <div class="text-sm text-gray-500">@r.OccupiedBeds / @r.Capacity</div>
+                        </div>
+                        <div class="text-red-600 font-bold">@String.Format("{0:P0}", ((double)r.OccupiedBeds / r.Capacity))</div>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Students Requiring Manual Review</h3>
+            <ul class="mt-4 space-y-2">
+                @foreach(var w in waitingList){
+                    <li class="p-3 border rounded">
+                        <div class="flex justify-between">
+                            <div>
+                                <div class="font-bold">@w.Student?.Name</div>
+                                <div class="text-sm text-gray-500">Requested: @w.RequestedAt.ToLocalTime()</div>
+                            </div>
+                            <div class="text-sm text-gray-600">Priority @w.Priority</div>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-700">@w.Reason</div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Allocation Overrides</h3>
+            <div class="mt-4 text-3xl font-bold">@ViewBag.OverridesCount</div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Prediction Accuracy</h3>
+            <div class="mt-4 text-3xl font-bold">@String.Format("{0:P0}", ViewBag.PredictionAccuracy ?? 0.0)</div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-sm font-mono text-gray-500 uppercase">Recent AI Decisions</h3>
+            <ul class="mt-4 space-y-2">
+                @foreach(var h in recentDecisions){
+                    <li class="p-3 border rounded">
+                        <div class="font-bold">@h.Student?.Name</div>
+                        <div class="text-sm text-gray-500">@h.CreatedDate.ToLocalTime() — Score: @h.Score — Accepted: @(h.Accepted?"Yes":"No")</div>
+                        <div class="mt-2 text-sm text-gray-700">@h.Explanation</div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

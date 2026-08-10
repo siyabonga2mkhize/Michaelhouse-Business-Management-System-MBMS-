@@ -1,0 +1,30 @@
+@model List<Michaelhouse.Models.Notification>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Visitor Register";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Visitor Register — @ViewBag.Residence</h1>
+
+    <div class="bg-white rounded shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Visitor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purpose</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                @foreach(var v in Model){
+                    <tr>
+                        <td class="px-6 py-4">@v.Title</td>
+                        <td class="px-6 py-4">@v.Message</td>
+                        <td class="px-6 py-4">@v.CreatedAt.ToLocalTime()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

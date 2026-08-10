@@ -1,0 +1,32 @@
+@model List<Michaelhouse.Models.ResidenceMovement>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Recent Movements";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Recent Movements — @ViewBag.Residence</h1>
+
+    <div class="bg-white rounded shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">From</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">To</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">At</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                @foreach(var m in Model){
+                    <tr>
+                        <td class="px-6 py-4">@m.Student?.Name</td>
+                        <td class="px-6 py-4">@m.FromResidence?.Name</td>
+                        <td class="px-6 py-4">@m.ToResidence?.Name</td>
+                        <td class="px-6 py-4">@m.PerformedAt.ToLocalTime()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -84,7 +84,7 @@
                                         <div class="w-24 h-16 bg-white border border-gray-200 shadow-sm flex items-center justify-center p-1 flex-shrink-0">
                                             @if (!string.IsNullOrEmpty(v.ImageUrl))
                                             {
-                                                <img src="@v.ImageUrl" alt="Vehicle" class="max-w-full max-h-full object-contain" />
+                                                <img src="@Url.Content(v.ImageUrl)" alt="Vehicle" class="max-w-full max-h-full object-contain" />
                                             }
                                             else
                                             {
@@ -96,7 +96,7 @@
                                             <div class="text-[9px] uppercase tracking-widest text-gray-400 mt-1">Fleet ID</div>
                                         </div>
                                     </div>
-                                </td>
+                                </td>>
                                 <td>
                                     <div class="fw-bold text-gray-800 text-sm font-serif">@v.Model</div>
                                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">@v.Type</div>

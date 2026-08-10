@@ -1,8 +1,8 @@
 ﻿using Michaelhouse.Models;
 using System;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
-using System.Data.Entity;
 
 namespace Michaelhouse.Migrations
 {
@@ -11,6 +11,7 @@ namespace Michaelhouse.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = true;
+            AutomaticMigrationDataLossAllowed = true;
         }
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)
@@ -20,7 +21,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Admin",
+                    Name = "Linda Smith",
                     Email = "admin@michaelhouse.co.za",
                     PasswordHash = HashPassword("Admin@123"),
                     Role = "Admin"
@@ -28,6 +29,8 @@ namespace Michaelhouse.Migrations
                 context.SaveChanges();
             }
 
+            SeedBoardingHouseTestData(context);
+            //BoardingManagementSeeder.Seed(context);
             // ----------------------------
             // Seed additional vehicles and multiple trips for drivers
             // Creates one upcoming and one completed trip per seeded driver
@@ -212,11 +215,11 @@ namespace Michaelhouse.Migrations
 
                         var sampleStudents = new[]
                         {
-                            new Student { FirstName = "Amina", LastName = "Khan", DOB = DateTime.Today.AddYears(-14), CurrentGrade = "Grade 8", ParentId = parentsList[0].ParentId, StudentNumber = "S0001", Gender = "F", GradeLevel = 8, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Thabo", LastName = "Ntuli", DOB = DateTime.Today.AddYears(-15), CurrentGrade = "Grade 9", ParentId = parentsList[1].ParentId, StudentNumber = "S0002", Gender = "M", GradeLevel = 9, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Lindiwe", LastName = "Mthembu", DOB = DateTime.Today.AddYears(-16), CurrentGrade = "Grade 10", ParentId = parentsList[2].ParentId, StudentNumber = "S0003", Gender = "F", GradeLevel = 10, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Sipho", LastName = "Zulu", DOB = DateTime.Today.AddYears(-13), CurrentGrade = "Grade 8", ParentId = parentsList[3].ParentId, StudentNumber = "S0004", Gender = "M", GradeLevel = 8, EnrollmentDate = DateTime.Now },
-                            new Student { FirstName = "Nomsa", LastName = "Dlamini", DOB = DateTime.Today.AddYears(-17), CurrentGrade = "Grade 11", ParentId = parentsList[4].ParentId, StudentNumber = "S0005", Gender = "F", GradeLevel = 11, EnrollmentDate = DateTime.Now }
+                            new Student { FirstName = "Amina", LastName = "Khan", DOB = DateTime.Today.AddYears(-14), CurrentGrade = "Grade 8", ParentId = parentsList[0].ParentId, StudentNumber = "S0001", GradeLevel = 8, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Thabo", LastName = "Ntuli", DOB = DateTime.Today.AddYears(-15), CurrentGrade = "Grade 9", ParentId = parentsList[1].ParentId, StudentNumber = "S0002", GradeLevel = 9, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Lindiwe", LastName = "Mthembu", DOB = DateTime.Today.AddYears(-16), CurrentGrade = "Grade 10", ParentId = parentsList[2].ParentId, StudentNumber = "S0003", GradeLevel = 10, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Sipho", LastName = "Zulu", DOB = DateTime.Today.AddYears(-13), CurrentGrade = "Grade 8", ParentId = parentsList[3].ParentId, StudentNumber = "S0004", GradeLevel = 8, EnrollmentDate = DateTime.Now },
+                            new Student { FirstName = "Nomsa", LastName = "Dlamini", DOB = DateTime.Today.AddYears(-17), CurrentGrade = "Grade 11", ParentId = parentsList[4].ParentId, StudentNumber = "S0005", GradeLevel = 11, EnrollmentDate = DateTime.Now }
                         };
                         context.Students.AddRange(sampleStudents);
                         context.SaveChanges();
@@ -323,7 +326,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new Michaelhouse.Models.AppUser
                 {
-                    Name = "System Inventory Manager",
+                    Name = "Andre Van Kok",
                     Email = "inventory@michaelhouse.co.za",
                     PasswordHash = HashPassword("Stock@123"),
                     Role = "InventoryManager"
@@ -337,7 +340,7 @@ namespace Michaelhouse.Migrations
             {
                 context.Users.Add(new AppUser
                 {
-                    Name = "System Transport Manager",
+                    Name = "Greg Johnson",
                     Email = "transport@michaelhouse.co.za",
                     PasswordHash = HashPassword("Transport@123"),
                     Role = "TransportManager"
@@ -400,32 +403,121 @@ namespace Michaelhouse.Migrations
 
                 var products = new[]
                 {
-                    // Uniforms
-                    new Product { Name = "School Shirt (White) - Small", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 50, ReorderLevel = 10, Description = "Official white school shirt, small size.", IsActive = true },
-                    new Product { Name = "School Shirt (White) - Medium", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Official white school shirt, medium size.", IsActive = true },
-                    new Product { Name = "School Shirt (White) - Large", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 60, ReorderLevel = 15, Description = "Official white school shirt, large size.", IsActive = true },
-                    new Product { Name = "School Trousers (Grey) - 28", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Official grey school trousers, 28 inch waist.", IsActive = true },
-                    new Product { Name = "School Trousers (Grey) - 30", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 55, ReorderLevel = 10, Description = "Official grey school trousers, 30 inch waist.", IsActive = true },
-                    new Product { Name = "School Skirt - Size 10", CategoryId = uniformsCat.Id, Price = 160.00, QuantityInStock = 35, ReorderLevel = 8, Description = "Official school skirt, size 10.", IsActive = true },
-                    new Product { Name = "School Tie", CategoryId = uniformsCat.Id, Price = 65.00, QuantityInStock = 100, ReorderLevel = 20, Description = "Official school tie with house colours.", IsActive = true },
-                    new Product { Name = "School Blazer - Small", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Official school blazer, small size.", IsActive = true },
-                    new Product { Name = "School Blazer - Medium", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Official school blazer, medium size.", IsActive = true },
-                    new Product { Name = "School Sports Kit", CategoryId = uniformsCat.Id, Price = 280.00, QuantityInStock = 3, ReorderLevel = 10, Description = "Official sports kit (shirt + shorts).", IsActive = true },
-                    
-                    // Books & Stationery
-                    new Product { Name = "Grade 8 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 220.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 8.", IsActive = true },
-                    new Product { Name = "Grade 9 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 235.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 9.", IsActive = true },
-                    new Product { Name = "Grade 10 Physical Science", CategoryId = stationeryCat.Id, Price = 260.00, QuantityInStock = 20, ReorderLevel = 5, Description = "Approved Physical Science textbook for Grade 10.", IsActive = true },
-                    new Product { Name = "English Literature Anthology", CategoryId = stationeryCat.Id, Price = 195.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Set works anthology for Grades 8-12.", IsActive = true },
-                    new Product { Name = "A4 Exercise Book (Pack of 10)", CategoryId = stationeryCat.Id, Price = 85.00, QuantityInStock = 120, ReorderLevel = 25, Description = "Ruled A4 exercise books, 96 pages each.", IsActive = true },
-                    new Product { Name = "Geometry Set", CategoryId = stationeryCat.Id, Price = 55.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Complete geometry set with compass, ruler and protractor.", IsActive = true },
-                    new Product { Name = "Scientific Calculator", CategoryId = stationeryCat.Id, Price = 320.00, QuantityInStock = 5, ReorderLevel = 8, Description = "Approved scientific calculator for Grades 10-12.", IsActive = true },
-                    new Product { Name = "Coloured Pencils (24 pack)", CategoryId = stationeryCat.Id, Price = 45.00, QuantityInStock = 150, ReorderLevel = 30, Description = "24 assorted coloured pencils.", IsActive = true }
-                };
+          // Uniforms
+          new Product { Name = "School Shirt (White) - Small", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 50, ReorderLevel = 10, Description = "Official white school shirt, small size.", IsActive = true },
+          new Product { Name = "School Shirt (White) - Medium", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Official white school shirt, medium size.", IsActive = true },
+          new Product { Name = "School Shirt (White) - Large", CategoryId = uniformsCat.Id, Price = 120.00, QuantityInStock = 60, ReorderLevel = 15, Description = "Official white school shirt, large size.", IsActive = true },
+          new Product { Name = "School Trousers (Grey) - 28", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Official grey school trousers, 28 inch waist.", IsActive = true },
+          new Product { Name = "School Trousers (Grey) - 30", CategoryId = uniformsCat.Id, Price = 180.00, QuantityInStock = 55, ReorderLevel = 10, Description = "Official grey school trousers, 30 inch waist.", IsActive = true },
+          new Product { Name = "School Skirt - Size 10", CategoryId = uniformsCat.Id, Price = 160.00, QuantityInStock = 35, ReorderLevel = 8, Description = "Official school skirt, size 10.", IsActive = true },
+          new Product { Name = "School Tie", CategoryId = uniformsCat.Id, Price = 65.00, QuantityInStock = 100, ReorderLevel = 20, Description = "Official school tie with house colours.", IsActive = true },
+          new Product { Name = "School Blazer - Small", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Official school blazer, small size.", IsActive = true },
+          new Product { Name = "School Blazer - Medium", CategoryId = uniformsCat.Id, Price = 450.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Official school blazer, medium size.", IsActive = true },
+          new Product { Name = "School Sports Kit", CategoryId = uniformsCat.Id, Price = 280.00, QuantityInStock = 3, ReorderLevel = 10, Description = "Official sports kit (shirt + shorts).", IsActive = true },
+          
+          // Books & Stationery
+          new Product { Name = "Grade 8 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 220.00, QuantityInStock = 30, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 8.", IsActive = true },
+          new Product { Name = "Grade 9 Mathematics Textbook", CategoryId = stationeryCat.Id, Price = 235.00, QuantityInStock = 25, ReorderLevel = 5, Description = "Approved Mathematics textbook for Grade 9.", IsActive = true },
+          new Product { Name = "Grade 10 Physical Science", CategoryId = stationeryCat.Id, Price = 260.00, QuantityInStock = 20, ReorderLevel = 5, Description = "Approved Physical Science textbook for Grade 10.", IsActive = true },
+          new Product { Name = "English Literature Anthology", CategoryId = stationeryCat.Id, Price = 195.00, QuantityInStock = 40, ReorderLevel = 8, Description = "Set works anthology for Grades 8-12.", IsActive = true },
+          new Product { Name = "A4 Exercise Book (Pack of 10)", CategoryId = stationeryCat.Id, Price = 85.00, QuantityInStock = 120, ReorderLevel = 25, Description = "Ruled A4 exercise books, 96 pages each.", IsActive = true },
+          new Product { Name = "Geometry Set", CategoryId = stationeryCat.Id, Price = 55.00, QuantityInStock = 80, ReorderLevel = 15, Description = "Complete geometry set with compass, ruler and protractor.", IsActive = true },
+          new Product { Name = "Scientific Calculator", CategoryId = stationeryCat.Id, Price = 320.00, QuantityInStock = 5, ReorderLevel = 8, Description = "Approved scientific calculator for Grades 10-12.", IsActive = true },
+          new Product { Name = "Coloured Pencils (24 pack)", CategoryId = stationeryCat.Id, Price = 45.00, QuantityInStock = 150, ReorderLevel = 30, Description = "24 assorted coloured pencils.", IsActive = true }
+      };
 
                 context.Products.AddOrUpdate(p => p.Name, products);
                 context.SaveChanges();
             }
+
+            // 4. Seed Suppliers
+            var uniformSupplier = new Supplier
+            {
+                Name = "KZN Uniform Manufacturers",
+                ContactPerson = "Sarah Ndlovu",
+                Email = "sales@kznuniforms.co.za",
+                Phone = "0311234567",
+                Address = "100 West St, Durban",
+                IsActive = true
+            };
+
+            var stationerySupplier = new Supplier
+            {
+                Name = "EduBooks SA",
+                ContactPerson = "David Smith",
+                Email = "orders@edubooks.co.za",
+                Phone = "0119876543",
+                Address = "50 Nelson Mandela Dr, Johannesburg",
+                IsActive = true
+            };
+
+            context.Suppliers.AddOrUpdate(s => s.Name, uniformSupplier, stationerySupplier);
+            context.SaveChanges();
+
+            // Re-fetch to get the newly generated Supplier IDs
+            uniformSupplier = context.Suppliers.First(s => s.Name == "KZN Uniform Manufacturers");
+            stationerySupplier = context.Suppliers.First(s => s.Name == "EduBooks SA");
+
+
+            // 5. Link Seeded Products to Suppliers (SupplierProducts)
+
+            // Grab Uniform products
+            var smallShirt = context.Products.First(p => p.Name == "School Shirt (White) - Small");
+            var medShirt = context.Products.First(p => p.Name == "School Shirt (White) - Medium");
+            var lrgShirt = context.Products.First(p => p.Name == "School Shirt (White) - Large");
+            var greyTrousers28 = context.Products.First(p => p.Name == "School Trousers (Grey) - 28");
+            var greyTrousers30 = context.Products.First(p => p.Name == "School Trousers (Grey) - 30");
+            var skirt = context.Products.First(p => p.Name == "School Skirt - Size 10");
+            var tie = context.Products.First(p => p.Name == "School Tie");
+            var blazerS = context.Products.First(p => p.Name == "School Blazer - Small");
+            var blazerM = context.Products.First(p => p.Name == "School Blazer - Medium");
+            var sportsKit = context.Products.First(p => p.Name == "School Sports Kit");
+
+            // Grab Books & Stationery products
+            var math8 = context.Products.First(p => p.Name == "Grade 8 Mathematics Textbook");
+            var math9 = context.Products.First(p => p.Name == "Grade 9 Mathematics Textbook");
+            var physSci = context.Products.First(p => p.Name == "Grade 10 Physical Science");
+            var engLit = context.Products.First(p => p.Name == "English Literature Anthology");
+            var exerciseBooks = context.Products.First(p => p.Name == "A4 Exercise Book (Pack of 10)");
+            var geometrySet = context.Products.First(p => p.Name == "Geometry Set");
+            var calculator = context.Products.First(p => p.Name == "Scientific Calculator");
+            var pencils = context.Products.First(p => p.Name == "Coloured Pencils (24 pack)");
+
+            var supplierLinks = new[]
+            {
+      // -- Uniform Supplier Links --
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = smallShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-S", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = medShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-M", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = lrgShirt.Id, UnitCost = 85.00m, SupplierSku = "SH-WHT-L", MinOrderQty = 10, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = greyTrousers28.Id, UnitCost = 130.00m, SupplierSku = "TR-GRY-28", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = greyTrousers30.Id, UnitCost = 130.00m, SupplierSku = "TR-GRY-30", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = skirt.Id, UnitCost = 110.00m, SupplierSku = "SK-BLU-10", MinOrderQty = 5, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = tie.Id, UnitCost = 40.00m, SupplierSku = "TIE-STD", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = blazerS.Id, UnitCost = 310.00m, SupplierSku = "BLZ-GRN-S", MinOrderQty = 5, LeadTimeDays = 21, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = blazerM.Id, UnitCost = 310.00m, SupplierSku = "BLZ-GRN-M", MinOrderQty = 5, LeadTimeDays = 21, IsPreferred = true },
+      new SupplierProduct { SupplierId = uniformSupplier.SupplierId, ProductId = sportsKit.Id, UnitCost = 190.00m, SupplierSku = "SPT-KIT-ALL", MinOrderQty = 10, LeadTimeDays = 14, IsPreferred = true },
+
+      // -- Stationery Supplier Links --
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = math8.Id, UnitCost = 180.00m, SupplierSku = "MATH-GR8-01", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = math9.Id, UnitCost = 190.00m, SupplierSku = "MATH-GR9-01", MinOrderQty = 20, LeadTimeDays = 14, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = physSci.Id, UnitCost = 210.00m, SupplierSku = "SCI-GR10-01", MinOrderQty = 15, LeadTimeDays = 14, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = engLit.Id, UnitCost = 150.00m, SupplierSku = "ENG-LIT-ANTH", MinOrderQty = 20, LeadTimeDays = 10, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = exerciseBooks.Id, UnitCost = 50.00m, SupplierSku = "EX-BK-A4-10", MinOrderQty = 50, LeadTimeDays = 5, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = geometrySet.Id, UnitCost = 35.00m, SupplierSku = "GEO-SET-01", MinOrderQty = 30, LeadTimeDays = 7, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = calculator.Id, UnitCost = 250.00m, SupplierSku = "CALC-SCI-CAS", MinOrderQty = 10, LeadTimeDays = 10, IsPreferred = true },
+      new SupplierProduct { SupplierId = stationerySupplier.SupplierId, ProductId = pencils.Id, UnitCost = 25.00m, SupplierSku = "PENC-24", MinOrderQty = 50, LeadTimeDays = 3, IsPreferred = true }
+  };
+
+            foreach (var link in supplierLinks)
+            {
+                if (!context.SupplierProducts.Any(sp => sp.SupplierId == link.SupplierId && sp.ProductId == link.ProductId))
+                {
+                    context.SupplierProducts.Add(link);
+                }
+            }
+
+            context.SaveChanges();
+
 
             // 4. Seed Drivers (including their AppUser accounts)
             if (!context.Users.Any(u => u.Role == "Driver"))
@@ -468,6 +560,213 @@ namespace Michaelhouse.Migrations
                     };
                     context.Drivers.Add(driver);
                 }
+
+                context.SaveChanges();
+            }
+        }
+
+        private void SeedBoardingHouseTestData(DBContextClass context)
+        {
+            var houses = new[]
+            {
+                new
+                {
+                    ResidenceName = "Founders House",
+                    HouseMasterName = "Mr James Harrington",
+                    Email = "founders.hm@michaelhouse.co.za",
+                    Phone = "0333301001",
+                    Gender = "Male",
+                    GradeCategory = "Junior",
+                    NearMedical = true,
+                    NearOffice = true,
+                    RoomPrefix = "F",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 4, 4, 3, 3 }
+                },
+                new
+                {
+                    ResidenceName = "Baines House",
+                    HouseMasterName = "Ms Nomvula Dlamini",
+                    Email = "baines.hm@michaelhouse.co.za",
+                    Phone = "0333301002",
+                    Gender = "Male",
+                    GradeCategory = "Middle",
+                    NearMedical = false,
+                    NearOffice = true,
+                    RoomPrefix = "B",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 3, 3, 4, 4 }
+                },
+                new
+                {
+                    ResidenceName = "Tatham House",
+                    HouseMasterName = "Mr Andrew Naidoo",
+                    Email = "tatham.hm@michaelhouse.co.za",
+                    Phone = "0333301003",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = false,
+                    NearOffice = false,
+                    RoomPrefix = "T",
+                    Floors = new[] { 1, 2, 2, 3 },
+                    Capacities = new[] { 2, 3, 3, 2 }
+                },
+                new
+                {
+                    ResidenceName = "Churchill House",
+                    HouseMasterName = "Ms Sarah Mokoena",
+                    Email = "churchill.hm@michaelhouse.co.za",
+                    Phone = "0333301004",
+                    Gender = "Male",
+                    GradeCategory = "Senior",
+                    NearMedical = true,
+                    NearOffice = false,
+                    RoomPrefix = "C",
+                    Floors = new[] { 1, 1, 2, 2 },
+                    Capacities = new[] { 2, 2, 3, 3 }
+                }
+            };
+
+            foreach (var house in houses)
+            {
+                var user = context.Users.FirstOrDefault(u => u.Email == house.Email);
+                if (user == null)
+                {
+                    user = new AppUser
+                    {
+                        Name = house.HouseMasterName,
+                        Email = house.Email,
+                        PasswordHash = HashPassword("HouseMaster@123"),
+                        Role = "HouseMaster"
+                    };
+                    context.Users.Add(user);
+                    context.SaveChanges();
+                }
+
+                var houseMaster = context.HouseMasters.FirstOrDefault(h => h.ContactEmail == house.Email);
+                if (houseMaster == null)
+                {
+                    houseMaster = new HouseMaster
+                    {
+                        FullName = house.HouseMasterName,
+                        ContactEmail = house.Email,
+                        ContactPhone = house.Phone
+                    };
+                    context.HouseMasters.Add(houseMaster);
+                    context.SaveChanges();
+                }
+
+                var residence = context.Residences.FirstOrDefault(r => r.Name == house.ResidenceName);
+                if (residence == null)
+                {
+                    residence = new Residence
+                    {
+                        Name = house.ResidenceName,
+                        Gender = house.Gender,
+                        GradeCategory = house.GradeCategory,
+                        HouseMasterId = houseMaster.HouseMasterId,
+                        NearMedicalFacility = house.NearMedical,
+                        NearHouseMasterOffice = house.NearOffice,
+                        OccupiedBeds = 0,
+                        IsArchived = false,
+
+                        ArchivedDate = DateTime.Now
+                    };
+                    context.Residences.Add(residence);
+                    context.SaveChanges();
+                }
+                else
+                {
+                    residence.Gender = house.Gender;
+                    residence.GradeCategory = house.GradeCategory;
+                    residence.HouseMasterId = houseMaster.HouseMasterId;
+                    residence.NearMedicalFacility = house.NearMedical;
+                    residence.NearHouseMasterOffice = house.NearOffice;
+                }
+
+                houseMaster.ResidenceId = residence.ResidenceId;
+                context.SaveChanges();
+
+                for (var i = 0; i < house.Capacities.Length; i++)
+                {
+                    var roomNumber = $"{house.RoomPrefix}{(i + 1):00}";
+                    var room = context.Rooms.FirstOrDefault(r => r.ResidenceId == residence.ResidenceId && r.RoomNumber == roomNumber);
+                    if (room == null)
+                    {
+                        room = new Room
+                        {
+                            ResidenceId = residence.ResidenceId,
+                            RoomNumber = roomNumber,
+                            Capacity = house.Capacities[i],
+                            OccupiedBeds = 0,
+                            IsFull = false,
+                            Floor = house.Floors[i],
+                            IsGroundFloor = house.Floors[i] == 1,
+                            IsWheelchairAccessible = house.Floors[i] == 1,
+                            NearBathroom = i % 2 == 0,
+                            IsQuietStudyRoom = i == 0 || i == 2,
+                            NeedsMaintenance = false
+                        };
+                        context.Rooms.Add(room);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        room.Capacity = house.Capacities[i];
+                        room.Floor = house.Floors[i];
+                        room.IsGroundFloor = house.Floors[i] == 1;
+                        room.IsWheelchairAccessible = house.Floors[i] == 1;
+                        room.NearBathroom = i % 2 == 0;
+                        room.IsQuietStudyRoom = i == 0 || i == 2;
+                        room.NeedsMaintenance = false;
+                    }
+
+                    for (var bedNumber = 1; bedNumber <= house.Capacities[i]; bedNumber++)
+                    {
+                        var bedLabel = $"{roomNumber}-{bedNumber}";
+                        if (!context.Beds.Any(b => b.RoomId == room.RoomId && b.BedNumber == bedLabel))
+                        {
+                            context.Beds.Add(new Bed
+                            {
+                                RoomId = room.RoomId,
+                                BedNumber = bedLabel,
+                                IsOccupied = false,
+                                Status = "Available"
+                            });
+                        }
+                    }
+                    context.SaveChanges();
+                }
+
+                residence.Capacity = context.Rooms
+                    .Where(r => r.ResidenceId == residence.ResidenceId && !r.IsArchived)
+                    .Select(r => r.Capacity)
+                    .DefaultIfEmpty(0)
+                    .Sum();
+
+                residence.OccupiedBeds = context.ResidenceAssignments
+                    .Count(a => a.ResidenceId == residence.ResidenceId && a.IsActive);
+
+                foreach (var room in context.Rooms.Where(r => r.ResidenceId == residence.ResidenceId).ToList())
+                {
+                    room.OccupiedBeds = context.ResidenceAssignments.Count(a => a.RoomId == room.RoomId && a.IsActive);
+                    room.IsFull = room.OccupiedBeds >= room.Capacity;
+
+                    var occupiedBedIds = context.ResidenceAssignments
+                        .Where(a => a.RoomId == room.RoomId && a.IsActive)
+                        .Select(a => a.BedId)
+                        .ToList();
+
+                    foreach (var bed in context.Beds.Where(b => b.RoomId == room.RoomId).ToList())
+                    {
+                        var occupied = occupiedBedIds.Contains(bed.BedId);
+                        bed.IsOccupied = occupied;
+                        bed.Status = occupied ? "Occupied" : "Available";
+                        if (!occupied)
+                            bed.OccupiedByStudentId = null;
+                    }
+                }
+
                 context.SaveChanges();
             }
         }

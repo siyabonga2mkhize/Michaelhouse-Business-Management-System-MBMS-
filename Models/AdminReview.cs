@@ -20,7 +20,7 @@ namespace Michaelhouse.Models
         [Required]
         public string AdminId { get; set; } // ASP.NET Identity UserId
 
-        public DateTime? Date { get; set; } = DateTime.UtcNow;
+        public DateTime Date { get; set; } = DateTime.UtcNow;
 
         [Required]
         public string Decision { get; set; } // "Approved" | "Rejected" | "Waitlisted"

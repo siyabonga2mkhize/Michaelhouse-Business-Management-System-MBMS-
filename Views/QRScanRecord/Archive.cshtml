@@ -1,0 +1,5 @@
+@model Michaelhouse.Models.QRScanRecord
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Archive QR Scan"; }
+<div class="container py-4"><h2>Archive QR Scan</h2><div class="alert alert-warning">Archive this QR scan record?</div>
+@using (Html.BeginForm("Archive", "QRScanRecord", FormMethod.Post)) { @Html.AntiForgeryToken() <input type="hidden" name="id" value="@Model.QRScanRecordId" /><button class="btn btn-danger" type="submit">Archive</button> <a class="btn btn-default" href="@Url.Action("Details", new { id = Model.QRScanRecordId })">Cancel</a> }
+</div>

@@ -1,0 +1,57 @@
+@model Michaelhouse.Models.Residence
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Details";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <div class="flex items-start justify-between mb-6">
+        <div>
+            <h1 class="text-4xl font-serif font-bold">@Model.Name</h1>
+            <p class="text-sm text-gray-500 mt-1">Residence overview, rooms, beds, and student allocation</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="@Url.Action("Edit", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Edit</a>
+            <a href="@Url.Action("Archive", new { id = Model.ResidenceId })" class="px-4 py-2 bg-red-600 text-white rounded">Archive</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Capacity</div>
+            <div class="mt-2 text-2xl font-bold">@Model.Capacity</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Occupied</div>
+            <div class="mt-2 text-2xl font-bold">@Model.OccupiedBeds</div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-sm text-gray-500 uppercase">Available</div>
+            <div class="mt-2 text-2xl font-bold">@Model.AvailableBeds</div>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 mb-6">
+        <a href="@Url.Action("Occupancy", new { id = Model.ResidenceId })" class="px-4 py-2 bg-[#C21E2E] text-white rounded">Occupancy</a>
+        <a href="@Url.Action("ViewRooms", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Rooms</a>
+        <a href="@Url.Action("ViewStudents", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Students</a>
+        <a href="@Url.Action("AIRecommendations", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Recommendations</a>
+        <a href="@Url.Action("EmergencyRollCall", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Roll Call</a>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-bold mb-4">Rooms</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @foreach (var room in Model.Rooms ?? new System.Collections.Generic.List<Michaelhouse.Models.Room>())
+            {
+                <div class="p-4 border rounded">
+                    <div class="font-bold">Room @room.RoomNumber</div>
+                    <div class="text-sm text-gray-500">Capacity @room.Capacity - Occupied @room.OccupiedBeds</div>
+                    <div class="mt-2 flex gap-2">
+                        <a class="text-[#C21E2E]" href="@Url.Action("ViewBeds", new { roomId = room.RoomId })">Beds</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

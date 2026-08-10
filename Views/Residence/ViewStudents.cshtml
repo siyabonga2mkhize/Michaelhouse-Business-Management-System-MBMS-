@@ -1,0 +1,30 @@
+@model IEnumerable<Michaelhouse.Models.ResidenceAssignment>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Residence Students";
+}
+
+<section class="p-8 max-w-6xl mx-auto">
+    <h1 class="text-3xl font-serif font-bold mb-4">Students - @ViewBag.Residence</h1>
+    <div class="bg-white rounded shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bed</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach (var assignment in Model)
+                {
+                    <tr>
+                        <td class="px-6 py-4">@assignment.Student.Name</td>
+                        <td class="px-6 py-4">@assignment.Room.RoomNumber</td>
+                        <td class="px-6 py-4">@assignment.Bed.BedNumber</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

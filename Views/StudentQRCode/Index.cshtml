@@ -1,0 +1,10 @@
+@model IEnumerable<Michaelhouse.Models.StudentQRCode>
+@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Student QR Codes"; }
+<div class="container py-4">
+    <h2>Student QR Codes</h2>
+    @using (Html.BeginForm("Index", "StudentQRCode", FormMethod.Get)) { <input name="search" value="@ViewBag.Search" class="form-control mb-3" placeholder="Search student or number" /> }
+    <table class="table table-striped"><thead><tr><th>Student</th><th>Student No.</th><th>Generated</th><th>Active</th><th></th></tr></thead><tbody>
+    @foreach (var q in Model) { <tr><td>@q.Student.Name</td><td>@q.Student.StudentNumber</td><td>@q.DateGenerated.ToString("g")</td><td>@(q.IsActive ? "Yes" : "No")</td><td><a href="@Url.Action("Details", new { studentId = q.StudentId })">Details</a></td></tr> }
+    </tbody></table>
+    @if (!Model.Any()) { <div class="alert alert-info">No QR codes found.</div> }
+</div>
