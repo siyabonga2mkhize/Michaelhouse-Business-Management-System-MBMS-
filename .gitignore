@@ -21,3 +21,5 @@ Migrations/
 
 # Logs
 *.log
+/Models/VisitorAccessRequest.cs.txt
+/Views/ScanGate.cshtml
