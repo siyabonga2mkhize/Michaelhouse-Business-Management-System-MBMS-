@@ -1,13 +1,947 @@
+
 @model Michaelhouse.Models.ResidenceMovement
-@{ Layout = "~/Views/Shared/_Layout.cshtml"; ViewBag.Title = "Create Movement"; }
-<div class="container py-4"><h2>Create Movement</h2>
-@using (Html.BeginForm()) { @Html.AntiForgeryToken() @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-<div class="form-group">@Html.LabelFor(m => m.StudentId) @Html.DropDownListFor(m => m.StudentId, (SelectList)ViewBag.Students, "Select student", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.FromResidenceId) @Html.DropDownListFor(m => m.FromResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.FromRoomId) @Html.DropDownListFor(m => m.FromRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.ToResidenceId) @Html.DropDownListFor(m => m.ToResidenceId, (SelectList)ViewBag.Residences, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.ToRoomId) @Html.DropDownListFor(m => m.ToRoomId, (SelectList)ViewBag.Rooms, "None", new { @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.PerformedAt) @Html.TextBoxFor(m => m.PerformedAt, "{0:yyyy-MM-ddTHH:mm}", new { type = "datetime-local", @class = "form-control" })</div>
-<div class="form-group">@Html.LabelFor(m => m.Reason) @Html.TextAreaFor(m => m.Reason, new { @class = "form-control" })</div>
-<button class="btn btn-primary" type="submit">Save</button> }
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Move Student";
+}
+
+<div class="min-h-screen bg-gray-50">
+
+    <!-- HEADER -->
+    <div class="bg-white border-b border-gray-200 px-8 py-8">
+
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+
+            <span class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">
+                Residence Management
+            </span>
+        </div>
+
+        <div class="flex justify-between items-end">
+
+            <div>
+                <h1 class="text-4xl font-serif font-bold text-gray-900">
+                    Move Student
+                </h1>
+
+                <p class="text-sm text-gray-500 mt-2">
+                    Transfer a student to a different residence, room and bed.
+                </p>
+            </div>
+
+            <a href="@Url.Action("Index")"
+               class="px-5 py-3 border border-gray-300 bg-white text-gray-600
+                      text-[10px] font-bold uppercase tracking-[2px]
+                      hover:bg-gray-50 transition">
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Movements
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- FORM AREA -->
+    <div class="px-8 py-8">
+
+        <div class="max-w-5xl mx-auto">
+
+            @using (Html.BeginForm(
+                "Create",
+                "ResidenceMovement",
+                FormMethod.Post,
+                new { id = "movementForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(
+                         true,
+                         "",
+                         new
+                         {
+                             @class =
+                                 "mb-6 bg-red-50 border-l-4 border-[#C21E2E] " +
+                                 "text-[#C21E2E] p-4 text-sm"
+                         })
+
+                <!-- ================================================= -->
+                <!-- STUDENT SEARCH -->
+                <!-- ================================================= -->
+
+                <div class="bg-white border border-gray-200 shadow-sm mb-6">
+
+                    <div class="px-6 py-5 border-b border-gray-100 bg-gray-50">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-9 h-9 bg-[#C21E2E] text-white
+                                        flex items-center justify-center">
+
+                                <i class="bi bi-person-search"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h2 class="text-xs uppercase tracking-[3px]
+                                           font-bold text-gray-900">
+                                    Student
+                                </h2>
+
+                                <p class="text-[11px] text-gray-400 mt-1">
+                                    Search for the student you want to move.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="p-6">
+
+                        <label class="block text-[10px] uppercase
+                                      tracking-[2px] font-bold text-gray-500 mb-2">
+                            Search Student
+                        </label>
+
+                        <div class="relative">
+
+                            <input type="text"
+                                   id="studentSearch"
+                                   autocomplete="off"
+                                   placeholder="Search by name or student number..."
+                                   class="w-full border border-gray-300
+                                          px-4 py-3 text-sm
+                                          focus:border-[#C21E2E]
+                                          focus:ring-1
+                                          focus:ring-[#C21E2E]
+                                          outline-none" />
+
+                            <!-- SEARCH RESULTS -->
+                            <div id="studentResults"
+                                 class="absolute left-0 right-0 bg-white
+                                        border border-gray-200 shadow-lg
+                                        z-50 hidden">
+                            </div>
+
+                        </div>
+
+                        <!-- Hidden StudentId -->
+                        @Html.HiddenFor(m => m.StudentId, new
+                        {
+                            id = "StudentId"
+                        })
+
+
+                        <!-- SELECTED STUDENT -->
+                        <div id="selectedStudent"
+                             class="hidden mt-4 bg-gray-50
+                                    border border-gray-200 p-4">
+
+                            <div class="flex justify-between items-center">
+
+                                <div>
+
+                                    <div class="text-[9px] uppercase
+                                                tracking-[2px]
+                                                text-gray-400 font-bold">
+                                        Selected Student
+                                    </div>
+
+                                    <div id="selectedStudentName"
+                                         class="text-sm font-bold
+                                                text-gray-900 mt-1">
+                                    </div>
+
+                                    <div id="selectedStudentNumber"
+                                         class="text-[11px] text-gray-500
+                                                mt-1">
+                                    </div>
+
+                                </div>
+
+                                <button type="button"
+                                        id="clearStudent"
+                                        class="text-[#C21E2E] text-[10px]
+                                               uppercase tracking-[2px]
+                                               font-bold">
+                                    Change
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- CURRENT ASSIGNMENT -->
+                <!-- ================================================= -->
+
+                <div id="currentAssignment"
+                     class="bg-white border border-gray-200 shadow-sm mb-6 hidden">
+
+                    <div class="px-6 py-5 border-b border-gray-100
+                                bg-gray-50">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-9 h-9 bg-gray-800 text-white
+                                        flex items-center justify-center">
+
+                                <i class="bi bi-house-check"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h2 class="text-xs uppercase tracking-[3px]
+                                           font-bold text-gray-900">
+                                    Current Assignment
+                                </h2>
+
+                                <p class="text-[11px] text-gray-400 mt-1">
+                                    Automatically retrieved from the student's
+                                    active residence assignment.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
+
+                        <div class="bg-gray-50 border border-gray-200 p-4">
+
+                            <div class="text-[9px] uppercase tracking-[2px]
+                                        font-bold text-gray-400">
+                                Residence
+                            </div>
+
+                            <div id="currentResidence"
+                                 class="font-bold text-gray-900 mt-2">
+                                —
+                            </div>
+
+                        </div>
+
+
+                        <div class="bg-gray-50 border border-gray-200 p-4">
+
+                            <div class="text-[9px] uppercase tracking-[2px]
+                                        font-bold text-gray-400">
+                                Room
+                            </div>
+
+                            <div id="currentRoom"
+                                 class="font-bold text-gray-900 mt-2">
+                                —
+                            </div>
+
+                        </div>
+
+
+                        <div class="bg-gray-50 border border-gray-200 p-4">
+
+                            <div class="text-[9px] uppercase tracking-[2px]
+                                        font-bold text-gray-400">
+                                Bed
+                            </div>
+
+                            <div id="currentBed"
+                                 class="font-bold text-gray-900 mt-2">
+                                —
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- DESTINATION -->
+                <!-- ================================================= -->
+
+                <div id="destinationSection"
+                     class="bg-white border border-gray-200 shadow-sm mb-6 hidden">
+
+                    <div class="px-6 py-5 border-b border-gray-100
+                                bg-gray-50">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-9 h-9 bg-[#C21E2E] text-white
+                                        flex items-center justify-center">
+
+                                <i class="bi bi-arrow-right"></i>
+
+                            </div>
+
+                            <div>
+
+                                <h2 class="text-xs uppercase tracking-[3px]
+                                           font-bold text-gray-900">
+                                    New Assignment
+                                </h2>
+
+                                <p class="text-[11px] text-gray-400 mt-1">
+                                    Select where the student should be moved.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="p-6 space-y-6">
+
+                        <!-- RESIDENCE -->
+
+                        <div>
+
+                            <label class="block text-[10px] uppercase
+                                          tracking-[2px] font-bold
+                                          text-gray-500 mb-2">
+                                Destination Residence
+                            </label>
+
+                            @Html.DropDownListFor(
+                                     m => m.ToResidenceId,
+                                     (SelectList)ViewBag.Residences,
+                                     "Select residence...",
+                                     new
+                                     {
+                                         id = "ToResidenceId",
+                                         @class =
+                                             "w-full border border-gray-300 " +
+                                             "px-4 py-3 text-sm bg-white " +
+                                             "focus:border-[#C21E2E] " +
+                                             "focus:ring-1 " +
+                                             "focus:ring-[#C21E2E] outline-none"
+                                     })
+                        </div>
+
+
+                        <!-- ROOM -->
+
+                        <div>
+
+                            <label class="block text-[10px] uppercase
+                                          tracking-[2px] font-bold
+                                          text-gray-500 mb-2">
+                                Destination Room
+                            </label>
+
+                            <select id="ToRoomId"
+                                    name="ToRoomId"
+                                    disabled
+                                    class="w-full border border-gray-300
+                                           px-4 py-3 text-sm bg-gray-100
+                                           outline-none">
+
+                                <option value="">
+                                    Select a residence first...
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- BED -->
+
+                        <div>
+
+                            <label class="block text-[10px] uppercase
+                                          tracking-[2px] font-bold
+                                          text-gray-500 mb-2">
+                                Destination Bed
+                            </label>
+
+                            <select id="ToBedId"
+                                    name="ToBedId"
+                                    disabled
+                                    class="w-full border border-gray-300
+                                           px-4 py-3 text-sm bg-gray-100
+                                           outline-none">
+
+                                <option value="">
+                                    Select a room first...
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- AVAILABILITY -->
+
+                        <div id="availabilityMessage"
+                             class="hidden p-4 bg-green-50
+                                    border-l-4 border-green-600
+                                    text-green-700 text-[11px]
+                                    font-bold uppercase tracking-wider">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- REASON -->
+                <!-- ================================================= -->
+
+                <div id="reasonSection"
+                     class="bg-white border border-gray-200 shadow-sm mb-6 hidden">
+
+                    <div class="px-6 py-5 border-b border-gray-100
+                                bg-gray-50">
+
+                        <h2 class="text-xs uppercase tracking-[3px]
+                                   font-bold text-gray-900">
+                            Movement Details
+                        </h2>
+
+                    </div>
+
+                    <div class="p-6">
+
+                        <label class="block text-[10px] uppercase
+                                      tracking-[2px] font-bold
+                                      text-gray-500 mb-2">
+                            Reason for Movement
+                        </label>
+
+                        @Html.TextAreaFor(
+                                 m => m.Reason,
+                                 4,
+                                 1,
+                                 new
+                                 {
+                                     @class =
+                                         "w-full border border-gray-300 " +
+                                         "px-4 py-3 text-sm resize-none " +
+                                         "focus:border-[#C21E2E] " +
+                                         "focus:ring-1 " +
+                                         "focus:ring-[#C21E2E] outline-none",
+                                     placeholder =
+                                         "Enter the reason for this movement..."
+                                 })
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- ACTIONS -->
+                <!-- ================================================= -->
+
+                <div id="actionSection"
+                     class="hidden bg-[#1a1a1a] px-6 py-5
+                            flex justify-between items-center">
+
+                    <a href="@Url.Action("Index")"
+                       class="text-gray-400 text-[10px]
+                              uppercase tracking-[2px]
+                              font-bold hover:text-white">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            id="submitButton"
+                            disabled
+                            class="bg-green-600 text-white
+                                   px-8 py-3
+                                   text-[10px] font-bold
+                                   uppercase tracking-[3px]
+                                   hover:bg-green-500
+                                   disabled:opacity-40
+                                   disabled:cursor-not-allowed
+                                   transition">
+
+                        <i class="bi bi-arrow-left-right me-2"></i>
+
+                        Move Student
+
+                    </button>
+
+                </div>
+
+            }
+
+        </div>
+
+    </div>
+
 </div>
+
+
+<!-- ============================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================= -->
+
+<script>
+
+    $(document).ready(function () {
+
+        var searchTimer = null;
+
+
+        // =========================================================
+        // STUDENT SEARCH
+        // =========================================================
+
+        $("#studentSearch").on("input", function () {
+
+            var term = $(this).val().trim();
+
+            clearTimeout(searchTimer);
+
+            if (term.length < 2) {
+
+                $("#studentResults")
+                    .addClass("hidden")
+                    .empty();
+
+                return;
+            }
+
+
+            searchTimer = setTimeout(function () {
+
+                $.getJSON(
+                    '@Url.Action("SearchStudents", "ResidenceMovement")',
+                    { term: term },
+                    function (students) {
+
+                        var results = $("#studentResults");
+
+                        results.empty();
+
+
+                        if (!students.length) {
+
+                            results
+                                .removeClass("hidden")
+                                .html(
+                                    '<div class="p-4 text-sm text-gray-500">' +
+                                    'No students found.' +
+                                    '</div>'
+                                );
+
+                            return;
+                        }
+
+
+                        $.each(students, function (index, student) {
+
+                            var item = $(
+                                '<button type="button" ' +
+                                'class="w-full text-left p-4 border-b ' +
+                                'border-gray-100 hover:bg-gray-50">' +
+
+                                '<div class="font-bold text-sm text-gray-900">' +
+                                student.name +
+                                '</div>' +
+
+                                '<div class="text-[10px] text-gray-500 mt-1">' +
+                                student.studentNumber +
+                                '</div>' +
+
+                                '</button>'
+                            );
+
+
+                            item.on("click", function () {
+
+                                selectStudent(student);
+
+                            });
+
+
+                            results.append(item);
+
+                        });
+
+
+                        results.removeClass("hidden");
+
+                    }
+                );
+
+            }, 300);
+
+        });
+
+
+        // =========================================================
+        // SELECT STUDENT
+        // =========================================================
+
+        function selectStudent(student) {
+
+            $("#StudentId").val(student.id);
+
+            $("#studentSearch")
+                .val("")
+                .addClass("hidden");
+
+            $("#studentResults")
+                .addClass("hidden")
+                .empty();
+
+
+            $("#selectedStudentName")
+                .text(student.name);
+
+            $("#selectedStudentNumber")
+                .text("Student Number: " + student.studentNumber);
+
+            $("#selectedStudent")
+                .removeClass("hidden");
+
+
+            loadCurrentAssignment(student.id);
+
+        }
+
+
+        // =========================================================
+        // LOAD CURRENT ASSIGNMENT
+        // =========================================================
+
+        function loadCurrentAssignment(studentId) {
+
+            $("#currentAssignment")
+                .removeClass("hidden");
+
+            $("#currentResidence")
+                .text("Loading...");
+
+            $("#currentRoom")
+                .text("Loading...");
+
+            $("#currentBed")
+                .text("Loading...");
+
+
+            $.getJSON(
+                '@Url.Action("GetStudentAssignment", "ResidenceMovement")',
+                { studentId: studentId },
+                function (data) {
+
+                    if (!data.success) {
+
+                        $("#currentResidence")
+                            .text("Not assigned");
+
+                        $("#currentRoom")
+                            .text("—");
+
+                        $("#currentBed")
+                            .text("—");
+
+                        alert(data.message);
+
+                        return;
+                    }
+
+
+                    $("#currentResidence")
+                        .text(data.residence);
+
+                    $("#currentRoom")
+                        .text(data.room);
+
+                    $("#currentBed")
+                        .text(data.bed);
+
+
+                    $("#destinationSection")
+                        .removeClass("hidden");
+
+                    $("#reasonSection")
+                        .removeClass("hidden");
+
+                    $("#actionSection")
+                        .removeClass("hidden");
+
+                }
+            );
+
+        }
+
+
+        // =========================================================
+        // CHANGE STUDENT
+        // =========================================================
+
+        $("#clearStudent").on("click", function () {
+
+            $("#StudentId").val("");
+
+            $("#studentSearch")
+                .val("")
+                .removeClass("hidden")
+                .focus();
+
+            $("#selectedStudent")
+                .addClass("hidden");
+
+            $("#currentAssignment")
+                .addClass("hidden");
+
+            $("#destinationSection")
+                .addClass("hidden");
+
+            $("#reasonSection")
+                .addClass("hidden");
+
+            $("#actionSection")
+                .addClass("hidden");
+
+            $("#ToResidenceId").val("");
+
+            resetRooms();
+
+            resetBeds();
+
+        });
+
+
+        // =========================================================
+        // RESIDENCE CHANGED
+        // =========================================================
+
+        $("#ToResidenceId").on("change", function () {
+
+            var residenceId = $(this).val();
+
+            resetRooms();
+            resetBeds();
+
+            $("#submitButton")
+                .prop("disabled", true);
+
+
+            if (!residenceId)
+                return;
+
+
+            $("#ToRoomId")
+                .prop("disabled", true)
+                .html(
+                    '<option value="">Loading rooms...</option>'
+                );
+
+
+            $.getJSON(
+                '@Url.Action("GetRooms", "ResidenceMovement")',
+                { residenceId: residenceId },
+                function (rooms) {
+
+                    $("#ToRoomId").empty();
+
+
+                    if (!rooms.length) {
+
+                        $("#ToRoomId")
+                            .append(
+                                '<option value="">No available rooms</option>'
+                            );
+
+                        return;
+                    }
+
+
+                    $("#ToRoomId")
+                        .append(
+                            '<option value="">Select room...</option>'
+                        );
+
+
+                    $.each(rooms, function (index, room) {
+
+                        $("#ToRoomId")
+                            .append(
+                                '<option value="' +
+                                room.id +
+                                '">' +
+                                room.name +
+                                ' (' +
+                                room.availableBeds +
+                                ' beds available)' +
+                                '</option>'
+                            );
+
+                    });
+
+
+                    $("#ToRoomId")
+                        .prop("disabled", false);
+
+                }
+            );
+
+        });
+
+
+        // =========================================================
+        // ROOM CHANGED
+        // =========================================================
+
+        $("#ToRoomId").on("change", function () {
+
+            var roomId = $(this).val();
+
+            resetBeds();
+
+            $("#submitButton")
+                .prop("disabled", true);
+
+
+            if (!roomId)
+                return;
+
+
+            $("#ToBedId")
+                .prop("disabled", true)
+                .html(
+                    '<option value="">Loading beds...</option>'
+                );
+
+
+            $.getJSON(
+                '@Url.Action("GetBeds", "ResidenceMovement")',
+                { roomId: roomId },
+                function (beds) {
+
+                    $("#ToBedId").empty();
+
+
+                    if (!beds.length) {
+
+                        $("#ToBedId")
+                            .append(
+                                '<option value="">No available beds</option>'
+                            );
+
+                        return;
+                    }
+
+
+                    $("#ToBedId")
+                        .append(
+                            '<option value="">Select bed...</option>'
+                        );
+
+
+                    $.each(beds, function (index, bed) {
+
+                        $("#ToBedId")
+                            .append(
+                                '<option value="' +
+                                bed.id +
+                                '">' +
+                                bed.name +
+                                '</option>'
+                            );
+
+                    });
+
+
+                    $("#ToBedId")
+                        .prop("disabled", false);
+
+                }
+            );
+
+        });
+
+
+        // =========================================================
+        // BED CHANGED
+        // =========================================================
+
+        $("#ToBedId").on("change", function () {
+
+            var bedId = $(this).val();
+
+            if (bedId) {
+
+                $("#availabilityMessage")
+                    .removeClass("hidden")
+                    .text(
+                        "Destination bed is available."
+                    );
+
+                $("#submitButton")
+                    .prop("disabled", false);
+
+            }
+            else {
+
+                $("#availabilityMessage")
+                    .addClass("hidden");
+
+                $("#submitButton")
+                    .prop("disabled", true);
+
+            }
+
+        });
+
+
+        // =========================================================
+        // RESET ROOMS
+        // =========================================================
+
+        function resetRooms() {
+
+            $("#ToRoomId")
+                .prop("disabled", true)
+                .html(
+                    '<option value="">Select a residence first...</option>'
+                );
+
+        }
+
+
+        // =========================================================
+        // RESET BEDS
+        // =========================================================
+
+        function resetBeds() {
+
+            $("#ToBedId")
+                .prop("disabled", true)
+                .html(
+                    '<option value="">Select a room first...</option>'
+                );
+
+            $("#availabilityMessage")
+                .addClass("hidden");
+
+        }
+
+    });
+
+</script>
