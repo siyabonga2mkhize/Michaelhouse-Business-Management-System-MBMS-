@@ -1023,3 +1023,43 @@ UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/nissan1.jpg' WHERE Vehi
 
 -- Mercedes Sprinter for MH-TRIP-001, MH-TRIP-002, MH-TRIP-003
 UPDATE Vehicles SET ImageUrl = '/Content/Images/Vehicles/mercedes1.jpg' WHERE VehicleNumber IN ('MH-TRIP-001', 'MH-TRIP-002', 'MH-TRIP-003');
+
+
+
+-- 1. List all tables
+SELECT TABLE_NAME 
+FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_TYPE = 'BASE TABLE';
+
+-- 2. List all relationships (Foreign Keys)
+SELECT 
+    fk.name AS ForeignKeyName,
+    tp.name AS ParentTable,
+    cp.name AS ParentColumn,
+    tr.name AS ReferencedTable,
+    cr.name AS ReferencedColumn
+FROM sys.foreign_keys AS fk
+INNER JOIN sys.foreign_key_columns AS fkc ON fk.object_id = fkc.constraint_object_id
+INNER JOIN sys.tables AS tp ON fkc.parent_object_id = tp.object_id
+INNER JOIN sys.columns AS cp ON fkc.parent_object_id = cp.object_id AND fkc.parent_column_id = cp.column_id
+INNER JOIN sys.tables AS tr ON fkc.referenced_object_id = tr.object_id
+INNER JOIN sys.columns AS cr ON fkc.referenced_object_id = cr.object_id AND fkc.referenced_column_id = cr.column_id;
+
+
+SELECT 
+    t.name AS TableName,
+    c.name AS ColumnName,
+    ty.name AS DataType,
+    c.max_length AS MaxLength,
+    c.precision AS Precision,
+    c.scale AS Scale,
+    c.is_nullable,
+    c.is_identity,
+    c.is_computed,
+    c.is_rowguidcol,
+    c.is_filestream,
+    c.is_ansi_padded
+FROM sys.tables t
+INNER JOIN sys.columns c ON t.object_id = c.object_id
+INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
+ORDER BY t.name, c.column_id;

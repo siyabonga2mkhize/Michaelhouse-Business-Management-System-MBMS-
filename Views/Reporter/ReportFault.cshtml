@@ -25,29 +25,17 @@
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-12">
-                            <select name="AssetId" class="mh-form-control mh-form-select" required>
-                                <option value="">-- Select the broken asset --</option>
+                            <select name="AssetId" class="form-select">
+                                <option value="">-- Select Asset --</option>
                                 @if (ViewBag.Assets != null)
                                 {
-                                    var assets = (List<Michaelhouse.Models.Asset>)ViewBag.Assets;
-                                    var buildings = assets.Select(a => a.LocationBuilding).Distinct().OrderBy(b => b);
-                                    int? selectedAssetId = ViewBag.SelectedAssetId;
-
-                                    foreach (var building in buildings)
+                                    int? selectedAssetId = ViewBag.SelectedAssetId as int?;
+                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
                                     {
-                                        <optgroup label="@building">
-                                            @foreach (var a in assets.Where(x => x.LocationBuilding == building))
-                                            {
-                                                var isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
-                                                <option value="@a.Id" selected="@(isSelected ? "selected" : null)">
-                                                    @a.AssetName
-                                                    @if (!string.IsNullOrEmpty(a.LocationRoom))
-                                                    {
-                                                        <text>— @a.LocationRoom</text>
-                                                    }
-                                                </option>
-                                            }
-                                        </optgroup>
+                                        bool isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
+                                        <option value="@a.Id" @(isSelected ? "selected" : "")>
+                                            @a.AssetName — @a.LocationBuilding
+                                        </option>
                                     }
                                 }
                             </select>

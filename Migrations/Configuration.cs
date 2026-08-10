@@ -1,9 +1,11 @@
 ﻿using Michaelhouse.Models;
 using System;
-using System.Data.Entity.Migrations;
-using System.Linq;
-using System.Data.Entity;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.Entity.Migrations;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Michaelhouse.Migrations
 {
@@ -1309,8 +1311,55 @@ namespace Michaelhouse.Migrations
                     };
                     context.Drivers.Add(driver);
                 }
+                // ---- Execute the large SQL seed script (idempotent) ----
+                try
+                {
+                    var assembly = Assembly.GetExecutingAssembly();
+                    string resourceName = "Michaelhouse.Scripts.SQLQuery.sql"; // adjust to your actual namespace + folder
+                    using (var stream = assembly.GetManifestResourceStream(resourceName))
+                    {
+                        if (stream == null)
+                            throw new Exception($"Resource '{resourceName}' not found.");
+                        using (var reader = new StreamReader(stream))
+                        {
+                            string sqlScript = reader.ReadToEnd();
+                            ExecuteSqlScript(context, sqlScript);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log or rethrow – you may want to continue if script fails partially
+                    // Since the script is idempotent, we can swallow or log.
+                    System.Diagnostics.Debug.WriteLine("SQL Seed script error: " + ex.Message);
+                }
+
 
                 context.SaveChanges();
+            }
+        }
+        private void ExecuteSqlScript(DbContext context, string sqlScript)
+        {
+            var batches = sqlScript.Split(new[] { "GO" }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(b => b.Trim())
+                                    .Where(b => !string.IsNullOrEmpty(b))
+                                    .ToList();
+
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    foreach (var batch in batches)
+                    {
+                        context.Database.ExecuteSqlCommand(batch);
+                    }
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw new Exception("Error executing SQL seed script: " + ex.Message, ex);
+                }
             }
         }
 

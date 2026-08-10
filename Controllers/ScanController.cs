@@ -1,32 +1,30 @@
-﻿using System.Linq;
-using System.Web.Mvc;
+﻿using Michaelhouse.Models;
 using System.Data.Entity;
-using Michaelhouse.Models;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    /// <summary>
-    /// Public-facing controller that handles QR code scans.
-    /// No login required to VIEW an asset — but the quick action buttons
-    /// change depending on whether someone is logged in and what role they have.
-    /// This is what a phone camera opens when it scans an asset's QR code.
-    /// </summary>
     public class ScanController : Controller
     {
         private DBContextClass db = new DBContextClass();
 
-        // GET: /Scan/Index/MH-ASSET-0001
-        // The "id" here is actually the asset's QrCode string, not a numeric Id.
+        // GET: /Scan/Index (shows the scanner)
+        // GET: /Scan/Index/MH-ASSET-0001 (redirects to report fault)
         public ActionResult Index(string id)
         {
+            // If no asset code, show the scanner view
             if (string.IsNullOrEmpty(id))
-                return HttpNotFound();
+            {
+                return View("Scanner");
+            }
 
+            // Look up the asset
             var asset = db.Assets.FirstOrDefault(a => a.QrCode == id);
             if (asset == null)
                 return HttpNotFound();
 
-            // Recent job/fault history for this asset
+            // Load job history
             var jobHistory = db.JobCards
                 .Include(j => j.AssignedTo)
                 .Where(j => j.AssetId == asset.Id)
@@ -35,13 +33,12 @@ namespace Michaelhouse.Controllers
                 .ToList();
 
             ViewBag.JobHistory = jobHistory;
-
-            // Who is looking at this? Determines which buttons to show.
             ViewBag.IsLoggedIn = Session["UserId"] != null;
-            ViewBag.UserRole = Session["UserRole"] != null
-                ? Session["UserRole"].ToString() : "";
+            ViewBag.UserRole = Session["UserRole"]?.ToString() ?? "";
 
-            return View(asset);
+            // Always show the asset details view – the action buttons inside it
+            // will redirect to the appropriate controller/action based on role.
+            return View("Index", asset);
         }
 
         protected override void Dispose(bool disposing)

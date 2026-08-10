@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Web.Mvc;
+﻿using Michaelhouse.Models;
+using System;
 using System.Data.Entity;
-using Michaelhouse.Models;
+using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {

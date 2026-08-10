@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Web.Mvc;
+﻿using Michaelhouse.Models;
+using System;
 using System.Data.Entity;
-using Michaelhouse.Models;
+using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
@@ -24,7 +24,9 @@ namespace Michaelhouse.Controllers
         {
             return Session["UserId"] != null
                 && Session["UserRole"] != null
-                && Session["UserRole"].ToString() == "FaultReporter";
+                && (Session["UserRole"].ToString() == "FaultReporter" ||
+                    Session["UserRole"].ToString() == "MaintenanceWorker" ||
+                    Session["UserRole"].ToString() == "MaintenanceReporter");
         }
 
         private int GetUserId()
@@ -36,36 +38,35 @@ namespace Michaelhouse.Controllers
         // FAULT REPORTER HOME PAGE
         // ══════════════════════════════════════════════════════════════════════
 
-        public ActionResult ReportFault()
+        public ActionResult ReportFault(int? assetId = null)
         {
             if (!IsReporter())
                 return RedirectToAction("Login", "Account");
 
-            var userId = GetUserId();
-
-            // ── Get all active assets for the dropdown ──────────────────────
+            // ── Get all active assets ──────────────────────
             ViewBag.Assets = db.Assets
                 .Where(a => a.Status == "Active")
                 .OrderBy(a => a.LocationBuilding)
                 .ThenBy(a => a.AssetName)
                 .ToList();
 
-            // ── Get this user's reported faults ─────────────────────────────
+            // Pass the selected asset id to the view
+            ViewBag.SelectedAssetId = assetId;
+
+            // ── Get this user's reported faults ─────────────
+            var userId = GetUserId();
             var myReports = db.JobCards
                 .Include(j => j.Asset)
                 .Include(j => j.AssignedTo)
                 .Where(j => j.ReportedById == userId)
                 .OrderByDescending(j => j.DateCreated)
                 .ToList();
-
             ViewBag.MyReports = myReports;
 
-            // ── Stats ─────────────────────────────────────────────────────────
+            // ── Stats ──────────────────────────────────────────
             ViewBag.TotalReported = myReports.Count;
-            ViewBag.PendingCount = myReports.Count(j =>
-                j.Status == "Pending" || j.Status == "Assigned");
-            ViewBag.FixedCount = myReports.Count(j =>
-                j.Status == "Completed");
+            ViewBag.PendingCount = myReports.Count(j => j.Status == "Pending" || j.Status == "Assigned");
+            ViewBag.FixedCount = myReports.Count(j => j.Status == "Completed");
 
             return View();
         }
@@ -166,7 +167,7 @@ namespace Michaelhouse.Controllers
                         + "the Maintenance Manager has been notified.";
                 }
 
-                return RedirectToAction("ReportFault");
+                return RedirectToAction("Index", "Scan", new { id = asset.QrCode });
             }
 
             // ── If validation fails, reload the form ─────────────────────────

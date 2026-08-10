@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 
 <html lang="en">
 
@@ -911,13 +912,29 @@
                            href="@Url.Action("MyJobs", "Worker")">
                             <i class="bi bi-clipboard-check"></i> <span class="link-text">My Jobs</span>
                         </a>
+
+                        <div class="sidebar-label">Fault Reporting</div>
+                        <a class="nav-link @(currentController == "Reporter" && currentAction == "ReportFault" ? "active" : "")"
+                           href="@Url.Action("ReportFault", "Reporter")">
+                            <i class="bi bi-exclamation-triangle"></i> <span class="link-text">Report a Fault</span>
+                        </a>
+                        <a class="nav-link @(currentController == "Scan" ? "active" : "")"
+                           href="@Url.Action("Index", "Scan")">
+                            <i class="bi bi-qr-code-scan"></i> <span class="link-text">Scan QR Code</span>
+                        </a>
                     }
-                    else if (userRole == "MaintenanceReporter")
+                    else if (userRole == "FaultReporter" || userRole == "MaintenanceReporter")
                     {
                         <div class="sidebar-label">Fault Reporting</div>
                         <a class="nav-link @(currentController == "Reporter" && currentAction == "ReportFault" ? "active" : "")"
                            href="@Url.Action("ReportFault", "Reporter")">
                             <i class="bi bi-exclamation-triangle"></i> <span class="link-text">Report a Fault</span>
+                        </a>
+                        <!-- For FaultReporter -->
+                        <a class="nav-link @(currentController == "Scan" ? "active" : "")"
+                           href="@Url.Action("Index", "Scan")">
+                            <i class="bi bi-qr-code-scan"></i>
+                            <span class="link-text">Scan QR Code</span>
                         </a>
                     }
 

@@ -217,7 +217,7 @@
                 {
                     string role = (string)ViewBag.UserRole;
 
-                    if (role == "MaintenanceReporter")
+                    if (role == "FaultReporter" || role == "MaintenanceReporter" || role == "MaintenanceWorker" || role == "Student")
                     {
                         <a href="@Url.Action("ReportFault","Reporter", new { assetId = Model.Id })"
                            class="action-btn action-primary">

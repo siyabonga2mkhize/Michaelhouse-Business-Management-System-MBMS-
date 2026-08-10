@@ -108,6 +108,12 @@
     <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
+    <Reference Include="MSTest.TestFramework, Version=4.3.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\MSTest.TestFramework.4.3.3\lib\net462\MSTest.TestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="MSTest.TestFramework.Extensions, Version=4.3.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\MSTest.TestFramework.4.3.3\lib\net462\MSTest.TestFramework.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -228,29 +234,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202605140202101_initialcreate.cs" />
-    <Compile Include="Migrations\202605140202101_initialcreate.Designer.cs">
-      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608021134179_StuModelUpdate.cs" />
-    <Compile Include="Migrations\202608021134179_StuModelUpdate.Designer.cs">
-      <DependentUpon>202608021134179_StuModelUpdate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608021140417_StuModelUpdate1.cs" />
-    <Compile Include="Migrations\202608021140417_StuModelUpdate1.Designer.cs">
-      <DependentUpon>202608021140417_StuModelUpdate1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.cs" />
-    <Compile Include="Migrations\202608021147371_AdReviewModelUpdate.Designer.cs">
-      <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608032136127_AddMaintenanceModule.cs" />
-    <Compile Include="Migrations\202608032136127_AddMaintenanceModule.Designer.cs">
-      <DependentUpon>202608032136127_AddMaintenanceModule.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608042309180_AddTripVehicleAssignments.cs" />
-    <Compile Include="Migrations\202608042309180_AddTripVehicleAssignments.Designer.cs">
-      <DependentUpon>202608042309180_AddTripVehicleAssignments.cs</DependentUpon>
+    <Compile Include="Migrations\202608100658569_initialcreate.cs" />
+    <Compile Include="Migrations\202608100658569_initialcreate.Designer.cs">
+      <DependentUpon>202608100658569_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -340,6 +326,7 @@
     <Compile Include="Controllers\TripController.cs" />
     <Compile Include="Controllers\VehicleIssuesController.cs" />
     <Compile Include="Controllers\VehiclesController.cs" />
+    <Compile Include="Scripts\SqlDatabaseSetup.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\academic.css" />
@@ -365,6 +352,8 @@
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Misc\diagnosis.txt" />
+    <Content Include="Misc\diagnosis_In.txt" />
     <Content Include="Misc\Import_all.sql" />
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />
@@ -381,6 +370,7 @@
     <Content Include="Content\bootstrap-grid.rtl.min.css.map" />
     <Content Include="Content\bootstrap-grid.rtl.css.map" />
     <Content Include="Content\bootstrap-grid.min.css.map" />
+    <Content Include="Misc\columns_full.csv" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\MBMS - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
@@ -392,6 +382,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\html5-qrcode.min.js" />
     <Content Include="Misc\SQLQuery.sql" />
+    <Content Include="Scripts\app.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -403,6 +394,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <EmbeddedResource Include="Scripts\SQLQuery.sql" />
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
@@ -436,6 +428,7 @@
     <Content Include="Views\Worker\RequestLeave.cshtml" />
     <Content Include="Views\Maintenance\ReportFaultFromScan.cshtml" />
     <Content Include="Views\Scan\Index.cshtml" />
+    <Content Include="Views\Scan\Scanner.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -629,24 +622,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202605140202101_initialcreate.resx">
-      <DependentUpon>202605140202101_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608100658569_initialcreate.resx">
+      <DependentUpon>202608100658569_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608021134179_StuModelUpdate.resx">
-      <DependentUpon>202608021134179_StuModelUpdate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608021140417_StuModelUpdate1.resx">
-      <DependentUpon>202608021140417_StuModelUpdate1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608021147371_AdReviewModelUpdate.resx">
-      <DependentUpon>202608021147371_AdReviewModelUpdate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608032136127_AddMaintenanceModule.resx">
-      <DependentUpon>202608032136127_AddMaintenanceModule.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608042309180_AddTripVehicleAssignments.resx">
-      <DependentUpon>202608042309180_AddTripVehicleAssignments.cs</DependentUpon>
-    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -684,6 +666,7 @@
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets'))" />
   </Target>
   <Import Project="packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.1\build\net471\System.ValueTuple.targets')" />
   <PropertyGroup>
@@ -692,4 +675,5 @@
   <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
   <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
+  <Import Project="packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets" Condition="Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" />
 </Project>
