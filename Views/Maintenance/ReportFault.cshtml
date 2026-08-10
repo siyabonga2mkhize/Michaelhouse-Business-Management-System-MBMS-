@@ -1,0 +1,264 @@
+﻿@model Michaelhouse.Models.JobCard
+@{
+    ViewBag.Title = "Report a Fault";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Logged in as @Session["UserName"] · @(Session["JobTitle"] ?? "Reporter")</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">What is the problem? *</label>
+                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Burst pipe in bathroom" })
+                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
+                            <select name="AssetId" class="form-select">
+                                <option value="">-- Select Asset --</option>
+                                @if (ViewBag.Assets != null)
+                                {
+                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
+                                    {
+                                        <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
+                            @Html.DropDownListFor(m => m.Priority,
+                                new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                                "-- Select Priority --",
+                                new { @class = "form-select", id = "prioritySelect" })
+                            @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-12">
+                            <div id="priorityGuide" class="alert alert-secondary" style="display:none;"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe exactly what you found..." })
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- PHOTO SECTION WITH CAMERA INTEGRATION                -->
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
+
+                            <!-- Camera Button -->
+                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
+                                <i class="bi bi-camera me-1"></i> Open Camera
+                            </button>
+
+                            <!-- Video element for camera -->
+                            <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
+
+                            <!-- Capture button -->
+                            <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
+                                <i class="bi bi-camera me-1"></i> Capture Photo
+                            </button>
+
+                            <!-- File upload as fallback -->
+                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
+                                <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
+                                <div id="uploadPlaceholder">
+                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
+                                    <span class="text-muted">Click to upload a photo</span>
+                                </div>
+                                <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
+                            </div>
+
+                            <!-- Hidden field for base64 photo data -->
+                            <input type="hidden" id="photoData" name="photoData" />
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-robot me-2"></i> After submission, the system automatically finds the right maintenance worker and assigns them.
+                    </div>
+
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Fault Report</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body"><h3 class="fw-bold">@ViewBag.TotalReported</h3><span class="text-muted small">Reported</span></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body"><h3 class="fw-bold text-warning">@ViewBag.PendingCount</h3><span class="text-muted small">In Progress</span></div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body"><h3 class="fw-bold text-success">@ViewBag.FixedCount</h3><span class="text-muted small">Fixed</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Reported Faults -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2"></i>My Reported Faults</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.MyReports != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.MyReports).Any())
+                {
+                    foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.MyReports)
+                    {
+                        string statusColor = job.Status == "Completed" ? "success" : job.Status == "Assigned" ? "warning" : "secondary";
+                        <div class="border-bottom p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <code class="text-danger">@job.JobReference</code>
+                                    <div class="fw-bold">@job.Title</div>
+                                    <small class="text-muted">@(job.Asset != null ? job.Asset.LocationBuilding : "") · @job.DateCreated.ToString("dd MMM yyyy HH:mm")</small>
+                                </div>
+                                <span class="badge bg-@statusColor">@job.Status</span>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between small text-muted">
+                                <span>🟢 Reported</span>
+                                <span class="text-@(job.AssignedToId.HasValue ? "success" : "secondary")">🟡 @(job.AssignedToId.HasValue ? "Assigned" : "Pending")</span>
+                                <span class="text-@(job.Status == "Completed" ? "success" : "secondary")">✅ @(job.Status == "Completed" ? "Fixed" : "Fixed")</span>
+                            </div>
+                            @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
+                            {
+                                <div class="text-success small mt-1"><i class="bi bi-clock me-1"></i> Fixed in @job.ResponseTimeMinutes minutes</div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
+                        <p>You have not reported any faults yet.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── Camera Integration ──────────────────────────────────────────────
+        let stream = null;
+
+        function openCamera() {
+            const video = document.getElementById('videoElement');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (s) {
+                        stream = s;
+                        video.srcObject = s;
+                        video.play();
+                        video.style.display = 'block';
+                        document.getElementById('captureBtn').style.display = 'inline';
+                    })
+                    .catch(function (err) {
+                        alert('Camera not available: ' + err.message);
+                    });
+            } else {
+                alert('Camera not supported in this browser.');
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            // Show preview
+            document.getElementById('photoPreview').src = dataUrl;
+            document.getElementById('photoPreview').style.display = 'block';
+            document.getElementById('uploadPlaceholder').style.display = 'none';
+
+            // Set hidden input for base64 data
+            document.getElementById('photoData').value = dataUrl;
+
+            // Stop camera
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                video.style.display = 'none';
+            }
+            document.getElementById('captureBtn').style.display = 'none';
+        }
+
+        // ── File Upload Preview ─────────────────────────────────────────────
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('photoPreview').src = e.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ── Priority Guide ──────────────────────────────────────────────────
+        var guides = {
+            'Emergency': '🔴 EMERGENCY — Fix within 1 HOUR.',
+            'High': '🟡 HIGH — Must be fixed by end of today.',
+            'Medium': '🔵 MEDIUM — Will be scheduled within 3 days.',
+            'Low': '🟢 LOW — Will be completed within this week.'
+        };
+
+        document.getElementById('prioritySelect').addEventListener('change', function () {
+            var guide = document.getElementById('priorityGuide');
+            var val = this.value;
+            if (val && guides[val]) {
+                guide.style.display = 'block';
+                guide.textContent = guides[val];
+                guide.className = 'alert alert-' + (val === 'Emergency' ? 'danger' : val === 'High' ? 'warning' : val === 'Medium' ? 'info' : 'success');
+            } else {
+                guide.style.display = 'none';
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

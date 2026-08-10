@@ -1,0 +1,288 @@
+﻿@model Michaelhouse.Models.Asset
+@{
+    ViewBag.Title = "Asset Details";
+    Layout = null; // Public scan page — no sidebar, works even when not logged in
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.AssetName — Michaelhouse Maintenance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #f7f7f7;
+            padding: 20px 12px;
+        }
+
+        .scan-card {
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border: 1px solid #eee;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        }
+
+        .scan-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+            .scan-header h1 {
+                font-family: 'Playfair Display', serif;
+                font-size: 1.4rem;
+                margin: 0;
+            }
+
+        .scan-code {
+            font-family: monospace;
+            font-size: 12px;
+            color: #C21E2E;
+            background: #fff5f5;
+            padding: 4px 10px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .scan-body {
+            padding: 24px;
+        }
+
+        .scan-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f2f2f2;
+            font-size: 14px;
+        }
+
+            .scan-row span:first-child {
+                color: #999;
+                font-weight: 600;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+        .health-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .health-fill {
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .action-primary {
+            background: #C21E2E;
+            color: white;
+        }
+
+            .action-primary:hover {
+                background: #1a1a1a;
+                color: white;
+            }
+
+        .action-outline {
+            background: white;
+            border: 1px solid #1a1a1a;
+            color: #1a1a1a;
+        }
+
+            .action-outline:hover {
+                background: #1a1a1a;
+                color: white;
+            }
+
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f2f2f2;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scan-card">
+
+        <!-- Header -->
+        <div class="scan-header">
+            <div style="font-size:11px;letter-spacing:2px;color:#C21E2E;text-transform:uppercase">
+                <i class="bi bi-qr-code-scan me-1"></i> Scanned Asset
+            </div>
+            <h1 class="mt-2">@Model.AssetName</h1>
+            <div class="scan-code">@Model.QrCode</div>
+        </div>
+
+        <div class="scan-body">
+
+            <!-- Asset Info -->
+            <div class="scan-row">
+                <span>Category</span>
+                <span><strong>@Model.Category</strong></span>
+            </div>
+            <div class="scan-row">
+                <span>Location</span>
+                <span>
+                    @Model.LocationBuilding
+                    @if (!string.IsNullOrEmpty(Model.LocationRoom))
+                    {
+                        <span> — @Model.LocationRoom</span>
+                    }
+                </span>
+            </div>
+            <div class="scan-row">
+                <span>Condition</span>
+                @{
+                    var condColor = Model.ConditionRating == "Good" ? "#155724" :
+                                    Model.ConditionRating == "Fair" ? "#856404" : "#721c24";
+                    var condBg = Model.ConditionRating == "Good" ? "#d4edda" :
+                                    Model.ConditionRating == "Fair" ? "#fff3cd" : "#f8d7da";
+                }
+                <span>
+                    <span style="background:@condBg;color:@condColor;padding:3px 10px;font-size:11px;font-weight:700">
+                        @Model.ConditionRating
+                    </span>
+                </span>
+            </div>
+            <div class="scan-row">
+                <span>Status</span>
+                <span>
+                    @{
+                        var statusColor = Model.Status == "Active" ? "success" :
+                                          Model.Status == "Under Repair" ? "warning" : "secondary";
+                    }
+                    <span class="badge bg-@statusColor">@Model.Status</span>
+                </span>
+            </div>
+            <div class="scan-row">
+                <span>Fault Count</span>
+                <span style="color:@(Model.FaultCount >= 3 ? "#dc3545" : "inherit");font-weight:700">
+                    @Model.FaultCount
+                </span>
+            </div>
+
+            <!-- Health Score -->
+            <div class="mt-3 mb-4">
+                <div class="d-flex justify-content-between">
+                    <span style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#999;font-weight:600">
+                        Health Score
+                    </span>
+                    @{
+                        var hColor = Model.HealthScore > 70 ? "#28a745" :
+                                     Model.HealthScore > 40 ? "#ff8c00" : "#dc3545";
+                    }
+                    <span style="font-weight:700;color:@hColor">@Model.HealthScore%</span>
+                </div>
+                <div class="health-bar">
+                    <div class="health-fill" style="width:@Model.HealthScore%;background:@hColor"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions — change based on who's logged in -->
+            <div class="mt-4">
+
+                @if (!(bool)ViewBag.IsLoggedIn)
+                {
+                    <a href="@Url.Action("Login","Account", new { returnUrl = Request.Url.PathAndQuery })"
+                       class="action-btn action-primary">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Login to Report a Fault
+                    </a>
+                }
+                else
+                {
+                    string role = (string)ViewBag.UserRole;
+
+                    if (role == "FaultReporter" || role == "MaintenanceReporter" || role == "MaintenanceWorker" || role == "Student")
+                    {
+                        <a href="@Url.Action("ReportFault","Reporter", new { assetId = Model.Id })"
+                           class="action-btn action-primary">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Report a Fault on This Asset
+                        </a>
+                    }
+                    else if (role == "MaintenanceManager")
+                    {
+                        <a href="@Url.Action("ReportFault","Maintenance", new { assetId = Model.Id })"
+                           class="action-btn action-primary">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Report a Fault
+                        </a>
+                        <a href="@Url.Action("AssetDetail","Maintenance", new { id = Model.Id })"
+                           class="action-btn action-outline">
+                            <i class="bi bi-clipboard-data me-1"></i> View Full Asset Record
+                        </a>
+                        <a href="@Url.Action("EditAsset","Maintenance", new { id = Model.Id })"
+                           class="action-btn action-outline">
+                            <i class="bi bi-pencil-square me-1"></i> Update Condition
+                        </a>
+                    }
+                    else if (role == "MaintenanceWorker")
+                    {
+                        <a href="@Url.Action("MyJobs","Worker")"
+                           class="action-btn action-primary">
+                            <i class="bi bi-clipboard-check me-1"></i> View My Jobs
+                        </a>
+                        <a href="@Url.Action("ReportFault","Reporter", new { assetId = Model.Id })"
+                           class="action-btn action-outline">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Report Another Fault Here
+                        </a>
+                    }
+                }
+            </div>
+
+            <!-- Job History -->
+            @{
+                var history = (System.Collections.Generic.List<Michaelhouse.Models.JobCard>)ViewBag.JobHistory;
+            }
+            @if (history != null && history.Any())
+            {
+                <div class="mt-4">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#999;font-weight:700;margin-bottom:8px">
+                        Recent History
+                    </div>
+                    @foreach (var j in history)
+                    {
+                        <div class="history-item">
+                            <div class="d-flex justify-content-between">
+                                <strong>@j.Title</strong>
+                                <span class="badge bg-@(j.Status=="Completed"?"success":"secondary")">@j.Status</span>
+                            </div>
+                            <div style="color:#999;font-size:11px">
+                                @j.DateCreated.ToString("dd MMM yyyy")
+                                @if (j.AssignedTo != null)
+                                {
+                                    <span> · @j.AssignedTo.FullName</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+</body>
+</html>
