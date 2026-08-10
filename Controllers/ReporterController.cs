@@ -74,7 +74,7 @@ namespace Michaelhouse.Controllers
             JobCard jobCard,
             HttpPostedFileBase photoBefore,
             string photoData,
-            // ── NEW: Manual entry fields ────────────────────────────────────
+            // ── Manual entry fields ────────────────────────────────────
             string manualAssetName,
             string manualAssetLocation,
             string manualCategory)
@@ -86,24 +86,19 @@ namespace Michaelhouse.Controllers
 
             if (ModelState.IsValid)
             {
-                // ── Determine if this is a manual entry (no AssetId) ──────
+                // ── Determine if this is a manual entry ──────────────────
                 bool isManual = string.IsNullOrEmpty(jobCard.AssetId?.ToString()) ||
                                 jobCard.AssetId == 0;
 
-                // ── If manual, we ignore the AssetId and store manual details ──
                 if (isManual)
                 {
-                    // Store the manual info in the job card
                     jobCard.ManualAssetName = manualAssetName;
                     jobCard.ManualAssetLocation = manualAssetLocation;
                     jobCard.ManualCategory = manualCategory;
-
-                    // Set AssetId to null so EF knows not to link to an asset
                     jobCard.AssetId = null;
                 }
                 else
                 {
-                    // ── Regular asset-based fault report ────────────────────
                     var asset = db.Assets.Find(jobCard.AssetId);
                     if (asset == null)
                     {
@@ -126,13 +121,13 @@ namespace Michaelhouse.Controllers
                         return View("ReportFault", jobCard);
                     }
 
-                    // ── Update the asset (for linked reports) ──────────────
+                    // ── Update asset ─────────────────────────────────────
                     asset.FaultCount++;
                     asset.Status = "Under Repair";
                     asset.HealthScore = Math.Max(0, asset.HealthScore - 10);
                 }
 
-                // ── Handle photo — either an uploaded file OR a camera capture ──
+                // ── Handle photo ─────────────────────────────────────────
                 if (photoBefore != null && photoBefore.ContentLength > 0)
                 {
                     var ext = System.IO.Path.GetExtension(photoBefore.FileName);
@@ -145,11 +140,11 @@ namespace Michaelhouse.Controllers
                     photoBefore.SaveAs(savePath + fileName);
                     jobCard.PhotoBefore = fileName;
                 }
-                else if (!string.IsNullOrEmpty(photoData) && photoData.Contains(","))
+                else if (!string.IsNullOrEmpty(photoData) && photoData.StartsWith("data:image"))
                 {
                     try
                     {
-                        var base64 = photoData.Substring(photoData.IndexOf(",") + 1);
+                        var base64 = photoData.Substring(photoData.IndexOf(',') + 1);
                         var bytes = Convert.FromBase64String(base64);
                         var fileName = "before_" + DateTime.Now.Ticks + ".png";
                         var savePath = Server.MapPath("~/Content/JobPhotos/");
@@ -237,17 +232,16 @@ namespace Michaelhouse.Controllers
                 }
                 else
                 {
-                    // For manual entries, we don't auto‑assign (manager will handle)
+                    // For manual entries, no auto‑assign (manager will handle)
                     TempData["Success"] = "Your manual fault report has been submitted. "
                         + "Job Card " + jobCard.JobReference + " created. "
                         + "The Maintenance Manager will review and assign a worker.";
                 }
 
-                // ── Redirect back to the Reporter portal ────────────────────
                 return RedirectToAction("ReportFault");
             }
 
-            // ── Validation failed — reload the form with what they typed ────
+            // ── Validation failed — reload the form ──────────────────────────
             ViewBag.Assets = db.Assets
                 .Where(a => a.Status == "Active")
                 .OrderBy(a => a.LocationBuilding)
@@ -266,7 +260,6 @@ namespace Michaelhouse.Controllers
 
         // ══════════════════════════════════════════════════════════════════════
         // IN-APP QR SCANNER LOOKUP
-        // Called by the JavaScript camera scanner on the ReportFault page.
         // ══════════════════════════════════════════════════════════════════════
 
         [HttpGet]

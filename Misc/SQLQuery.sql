@@ -1071,3 +1071,7 @@ ALTER TABLE JobCards ADD ReceiptFileName NVARCHAR(MAX) NULL;
 ORDER BY t.name, c.column_id;
 
 select * from JobCards;
+
+delete from JobCards where Id = 9;
+
+ALTER TABLE JobCards ALTER COLUMN AssetId INT NULL;

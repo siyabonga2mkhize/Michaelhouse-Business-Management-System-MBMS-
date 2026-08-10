@@ -48,9 +48,7 @@
                 {
                     @Html.AntiForgeryToken()
 
-                    <!-- ════════════════════════════════════════════════════════════ -->
-                    <!-- MODE SELECTION: Scan QR / Select from List / Enter Manually -->
-                    <!-- ════════════════════════════════════════════════════════════ -->
+                    <!-- Mode Selection -->
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-uppercase text-muted">How do you want to identify the broken asset?</label>
                         <div class="d-flex gap-2 flex-wrap">
@@ -66,7 +64,7 @@
                         </div>
                     </div>
 
-                    <!-- ─── QR Scanner Section ─────────────────────────────────── -->
+                    <!-- QR Scanner -->
                     <div id="scanSection">
                         <div class="mb-3">
                             <button type="button" id="startScanBtn" class="btn btn-dark w-100" style="padding:12px;">
@@ -78,7 +76,6 @@
                                     <i class="bi bi-x-lg me-1"></i> Cancel Scan
                                 </button>
                             </div>
-                            <!-- Scan confirmation card -->
                             <div id="scanConfirm" style="display:none; margin-top:12px; padding:14px; border-radius:10px; background:#d4edda; border-left:4px solid #28a745;">
                                 <div style="font-size:11px; font-weight:700; color:#155724; text-transform:uppercase; letter-spacing:1px;">
                                     <i class="bi bi-check-circle me-1"></i> Asset Scanned
@@ -91,7 +88,7 @@
                         </div>
                     </div>
 
-                    <!-- ─── Asset Dropdown (for scan & select modes) ──────────── -->
+                    <!-- Asset Dropdown -->
                     <div id="assetSection" class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
                         <select name="AssetId" id="assetDropdown" class="form-select" required>
@@ -119,11 +116,15 @@
                                     </optgroup>
                                 }
                             }
+                            else
+                            {
+                                <option value="">No active assets found.</option>
+                            }
                         </select>
                         @Html.ValidationMessage("AssetId", "", new { @class = "text-danger small" })
                     </div>
 
-                    <!-- ─── Manual Entry Fields ────────────────────────────────── -->
+                    <!-- Manual Entry -->
                     <div id="manualSection" style="display:none;" class="mb-3">
                         <div class="row g-3">
                             <div class="col-12">
@@ -157,14 +158,14 @@
                         </div>
                     </div>
 
-                    <!-- ─── Title ─────────────────────────────────────────────────── -->
+                    <!-- Title -->
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
                         @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Burst pipe in bathroom" })
                         @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
                     </div>
 
-                    <!-- ─── Priority ─────────────────────────────────────────────── -->
+                    <!-- Priority -->
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
                         @Html.DropDownListFor(m => m.Priority,
@@ -175,25 +176,31 @@
                         <div id="priorityGuide" class="alert alert-secondary mt-2" style="display:none;"></div>
                     </div>
 
-                    <!-- ─── Description ───────────────────────────────────────────── -->
+                    <!-- Description -->
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
                         @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe exactly what you found..." })
                         @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
                     </div>
 
-                    <!-- ─── Photo Upload (evidence) ─────────────────────────────── -->
+                    <!-- Photo Upload + Camera Capture -->
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
-                        <div class="border p-3 text-center" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
+                        <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
+                            <i class="bi bi-camera me-1"></i> Open Camera
+                        </button>
+                        <video id="videoElement" style="display:none; width:100%; max-width:400px; border-radius:8px; background:#000;" autoplay></video>
+                        <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
+                            <i class="bi bi-camera me-1"></i> Capture Photo
+                        </button>
+                        <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
                             <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
                             <div id="uploadPlaceholder">
-                                <i class="bi bi-camera fs-2 d-block mb-2 text-secondary"></i>
+                                <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
                                 <span class="text-muted">Click to upload a photo</span>
                             </div>
                             <img id="photoPreview" src="#" alt="Preview" style="display:none; max-width:100%; border-radius:8px; margin-top:10px;" />
                         </div>
-                        <!-- Hidden field for base64 camera capture -->
                         <input type="hidden" id="photoData" name="photoData" />
                     </div>
 
@@ -208,7 +215,7 @@
         </div>
     </div>
 
-    <!-- ─── RIGHT: My Previous Reports ──────────────────────────────────── -->
+    <!-- Right Panel: Stats & My Reports -->
     <div class="col-lg-6">
         <div class="row g-3 mb-4">
             <div class="col-4">
@@ -283,7 +290,7 @@
 @section Scripts {
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        // ── Photo preview ──────────────────────────────────────────────────
+        // ── Photo preview (file upload) ──────────────────────────────────
         function previewPhoto(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -294,6 +301,50 @@
                 };
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        // ── Camera capture ────────────────────────────────────────────────
+        let stream = null;
+
+        function openCamera() {
+            const video = document.getElementById('videoElement');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (s) {
+                        stream = s;
+                        video.srcObject = s;
+                        video.play();
+                        video.style.display = 'block';
+                        document.getElementById('captureBtn').style.display = 'inline';
+                    })
+                    .catch(function (err) {
+                        alert('Camera not available: ' + err.message);
+                    });
+            } else {
+                alert('Camera not supported in this browser.');
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            document.getElementById('photoPreview').src = dataUrl;
+            document.getElementById('photoPreview').style.display = 'block';
+            document.getElementById('uploadPlaceholder').style.display = 'none';
+            document.getElementById('photoData').value = dataUrl;
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                video.style.display = 'none';
+            }
+            document.getElementById('captureBtn').style.display = 'none';
         }
 
         // ── Priority Guide ──────────────────────────────────────────────────
@@ -323,34 +374,52 @@
             }
         });
 
-        // ── Mode switching ──────────────────────────────────────────────────
+        // ── Mode switching with required attribute handling ──────────────
         var modeBtns = document.querySelectorAll('.mode-btn');
         var scanSection = document.getElementById('scanSection');
         var assetSection = document.getElementById('assetSection');
         var manualSection = document.getElementById('manualSection');
+        var assetDropdown = document.getElementById('assetDropdown');
+
+        function setMode(mode) {
+            // Reset buttons
+            modeBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.mode-btn[data-mode="' + mode + '"]').classList.add('active');
+
+            if (mode === 'scan') {
+                scanSection.style.display = 'block';
+                assetSection.style.display = 'block';
+                manualSection.style.display = 'none';
+                assetDropdown.removeAttribute('required');
+                assetDropdown.setAttribute('required', 'required'); // restore required
+                // Hide scanner box
+                document.getElementById('qrScannerBox').style.display = 'none';
+                document.getElementById('startScanBtn').style.display = 'block';
+            } else if (mode === 'select') {
+                scanSection.style.display = 'block';
+                assetSection.style.display = 'block';
+                manualSection.style.display = 'none';
+                assetDropdown.removeAttribute('required');
+                assetDropdown.setAttribute('required', 'required'); // restore required
+                document.getElementById('qrScannerBox').style.display = 'none';
+                document.getElementById('startScanBtn').style.display = 'block';
+            } else if (mode === 'manual') {
+                scanSection.style.display = 'none';
+                assetSection.style.display = 'none';
+                manualSection.style.display = 'block';
+                // Remove required from dropdown so form can submit
+                assetDropdown.removeAttribute('required');
+                // Clear any scanned selection
+                assetDropdown.value = '';
+                document.getElementById('scanConfirm').style.display = 'none';
+                document.getElementById('scanError').style.display = 'none';
+            }
+        }
 
         modeBtns.forEach(function(btn) {
             btn.addEventListener('click', function() {
-                modeBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
                 var mode = this.dataset.mode;
-                if (mode === 'scan') {
-                    scanSection.style.display = 'block';
-                    assetSection.style.display = 'block';
-                    manualSection.style.display = 'none';
-                } else if (mode === 'select') {
-                    scanSection.style.display = 'block';
-                    assetSection.style.display = 'block';
-                    manualSection.style.display = 'none';
-                    // hide QR scanner box if visible
-                    document.getElementById('qrScannerBox').style.display = 'none';
-                    document.getElementById('startScanBtn').style.display = 'block';
-                } else if (mode === 'manual') {
-                    scanSection.style.display = 'none';
-                    assetSection.style.display = 'none';
-                    manualSection.style.display = 'block';
-                }
+                setMode(mode);
             });
         });
 
@@ -395,7 +464,6 @@
         });
 
         function processScannedCode(decodedText) {
-            // Extract the QR code from the URL: e.g. /Scan/Index/MH-ASSET-0001
             var assetCode = decodedText.split('/').filter(Boolean).pop();
 
             fetch('@Url.Action("GetAssetByQrCode", "Reporter")?code=' + encodeURIComponent(assetCode))
@@ -403,23 +471,17 @@
                 .then(function (data) {
                     document.getElementById('startScanBtn').style.display = 'block';
                     if (data.success) {
-                        // Auto-select asset
                         var dropdown = document.getElementById('assetDropdown');
                         dropdown.value = data.id;
 
-                        // Show confirmation
                         document.getElementById('scanConfirmName').textContent = data.name;
                         document.getElementById('scanConfirmLocation').textContent =
                             data.building + (data.room ? ' — ' + data.room : '');
                         document.getElementById('scanConfirm').style.display = 'block';
                         document.getElementById('scanError').style.display = 'none';
 
-                        // Switch to 'select' mode to highlight the dropdown
-                        modeBtns.forEach(b => b.classList.remove('active'));
-                        document.querySelector('.mode-btn[data-mode="select"]').classList.add('active');
-                        scanSection.style.display = 'block';
-                        assetSection.style.display = 'block';
-                        manualSection.style.display = 'none';
+                        // Switch to 'select' mode
+                        setMode('select');
                     } else {
                         document.getElementById('scanError').style.display = 'block';
                         document.getElementById('scanError').textContent = data.message;
@@ -433,8 +495,12 @@
                         'Something went wrong looking up this asset. Please select it manually.';
                 });
         }
+
+        // ── Initial mode: scan (active by default) ─────────────────────────
+        setMode('scan');
     </script>
 }
+
 @section Styles {
     <style>
         .font-serif {

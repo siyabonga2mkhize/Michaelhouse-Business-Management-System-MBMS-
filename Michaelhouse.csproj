@@ -234,29 +234,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101752106_initialcreate.cs" />
-    <Compile Include="Migrations\202608101752106_initialcreate.Designer.cs">
-      <DependentUpon>202608101752106_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202608102200020_initialcreate.cs" />
+    <Compile Include="Migrations\202608102200020_initialcreate.Designer.cs">
+      <DependentUpon>202608102200020_initialcreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101837555_initialcreate1.cs" />
-    <Compile Include="Migrations\202608101837555_initialcreate1.Designer.cs">
-      <DependentUpon>202608101837555_initialcreate1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608102001165_initialcreate2.cs" />
-    <Compile Include="Migrations\202608102001165_initialcreate2.Designer.cs">
-      <DependentUpon>202608102001165_initialcreate2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608102007243_AddJobCardPhotos.cs" />
-    <Compile Include="Migrations\202608102007243_AddJobCardPhotos.Designer.cs">
-      <DependentUpon>202608102007243_AddJobCardPhotos.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608102015566_AddJobCardPhotos1.cs" />
-    <Compile Include="Migrations\202608102015566_AddJobCardPhotos1.Designer.cs">
-      <DependentUpon>202608102015566_AddJobCardPhotos1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608102039390_AddManualFaultFields.cs" />
-    <Compile Include="Migrations\202608102039390_AddManualFaultFields.Designer.cs">
-      <DependentUpon>202608102039390_AddManualFaultFields.cs</DependentUpon>
+    <Compile Include="Migrations\202608102213244_MakeAssetIdNullableInJobCard.cs" />
+    <Compile Include="Migrations\202608102213244_MakeAssetIdNullableInJobCard.Designer.cs">
+      <DependentUpon>202608102213244_MakeAssetIdNullableInJobCard.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Application.cs" />
@@ -1894,23 +1878,11 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <EmbeddedResource Include="Migrations\202608101752106_initialcreate.resx">
-      <DependentUpon>202608101752106_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608102200020_initialcreate.resx">
+      <DependentUpon>202608102200020_initialcreate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608101837555_initialcreate1.resx">
-      <DependentUpon>202608101837555_initialcreate1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608102001165_initialcreate2.resx">
-      <DependentUpon>202608102001165_initialcreate2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608102007243_AddJobCardPhotos.resx">
-      <DependentUpon>202608102007243_AddJobCardPhotos.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608102015566_AddJobCardPhotos1.resx">
-      <DependentUpon>202608102015566_AddJobCardPhotos1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608102039390_AddManualFaultFields.resx">
-      <DependentUpon>202608102039390_AddManualFaultFields.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608102213244_MakeAssetIdNullableInJobCard.resx">
+      <DependentUpon>202608102213244_MakeAssetIdNullableInJobCard.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Scripts\SQLQuery.sql" />
     <Content Include="Views\Transport\Drivers.cshtml" />
