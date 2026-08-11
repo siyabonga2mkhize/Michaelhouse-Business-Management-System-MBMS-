@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Michaelhouse.Models
@@ -10,6 +11,10 @@ namespace Michaelhouse.Models
         public int Step { get; set; }
         public string StudentName { get; set; }
     }
+
+    // ============================================================
+    // STEP 1 - BASIC
+    // ============================================================
 
     public class StudentProfileBasicViewModel : StudentProfileWizardBase
     {
@@ -34,6 +39,11 @@ namespace Michaelhouse.Models
         public string Nationality { get; set; }
     }
 
+
+    // ============================================================
+    // STEP 2 - ACADEMIC
+    // ============================================================
+
     public class StudentProfileAcademicViewModel : StudentProfileWizardBase
     {
         [Required]
@@ -49,13 +59,25 @@ namespace Michaelhouse.Models
         [Display(Name = "Learning Style")]
         public string LearningStyle { get; set; }
 
+        [Display(Name = "Academic Stream")]
         public string AcademicStream { get; set; }
     }
 
+
+    // ============================================================
+    // STEP 3 - ACTIVITIES
+    // ============================================================
+
     public class StudentProfileActivitiesViewModel : StudentProfileWizardBase
     {
+        [Display(Name = "Sport")]
         public string Sports { get; set; }
+
+        // Existing database value is still stored in StudentProfile.ClubsAndSocieties
         public string Clubs { get; set; }
+
+        // Used only by the form for multiple checkbox selections.
+        public List<string> ClubsSelected { get; set; } = new List<string>();
 
         [Display(Name = "Leadership Roles")]
         public string LeadershipRoles { get; set; }
@@ -64,9 +86,15 @@ namespace Michaelhouse.Models
         public string CulturalActivities { get; set; }
     }
 
+
+    // ============================================================
+    // STEP 4 - MEDICAL
+    // ============================================================
+
     public class StudentProfileMedicalViewModel : StudentProfileWizardBase
     {
         public string Allergies { get; set; }
+
         public string Disabilities { get; set; }
 
         [Display(Name = "Medical Conditions")]
@@ -90,6 +118,11 @@ namespace Michaelhouse.Models
         [Display(Name = "Medical Accommodation Notes")]
         public string MedicalAccommodationNotes { get; set; }
     }
+
+
+    // ============================================================
+    // STEP 5 - PERSONALITY
+    // ============================================================
 
     public class StudentProfilePersonalityViewModel : StudentProfileWizardBase
     {

@@ -213,7 +213,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="studentId" value="@student.StudentId" />
                                         <button type="submit" class="w-full text-left bg-transparent border border-[#10b981]/30 text-[#10b981] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canCheckIn ? "hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "opacity-30 cursor-not-allowed")" @(canCheckIn ? "" : "disabled")>
-                                            <i class="bi bi-box-arrow-in-right text-lg block mb-1"></i> Execute Check-In
+                                            <i class="bi bi-box-arrow-in-right text-lg block mb-1"></i> Sign In
                                         </button>
                                     }
 
@@ -222,7 +222,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="studentId" value="@student.StudentId" />
                                         <button type="submit" class="w-full text-left bg-transparent border border-[#C21E2E]/30 text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] transition-all duration-300 @(canCheckOut ? "hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)]" : "opacity-30 cursor-not-allowed")" @(canCheckOut ? "" : "disabled")>
-                                            <i class="bi bi-box-arrow-up-right text-lg block mb-1"></i> Execute Check-Out
+                                            <i class="bi bi-box-arrow-up-right text-lg block mb-1"></i> Sign Out
                                         </button>
                                     }
                                 </div>

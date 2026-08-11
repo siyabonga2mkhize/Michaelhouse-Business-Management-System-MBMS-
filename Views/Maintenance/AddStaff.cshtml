@@ -1,0 +1,108 @@
+﻿@model Michaelhouse.Models.MaintenanceStaff
+@{
+    ViewBag.Title = "Add Staff Member";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Add Staff Member</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Register a new maintenance worker</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("AddStaff", "Maintenance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Full Name *</label>
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "e.g. Sipho Dlamini" })
+                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Email *</label>
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "name@michaelhouse.org" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Phone *</label>
+                            @Html.TextBoxFor(m => m.Phone, new { @class = "form-control", placeholder = "073 100 1001" })
+                            @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Skill Type *</label>
+                            @Html.DropDownListFor(m => m.SkillType,
+                                new SelectList(new[] { "Plumbing", "Electrical", "HVAC", "Grounds", "Pool", "IT", "General" }),
+                                "-- Select Skill --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.SkillType, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Shift Start *</label>
+                            @Html.TextBoxFor(m => m.ShiftStart, new { @class = "form-control", type = "time" })
+                            @Html.ValidationMessageFor(m => m.ShiftStart, "", new { @class = "text-danger small" })
+                            <small class="text-muted">Morning: 06:00 &middot; Afternoon: 14:00</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Shift End *</label>
+                            @Html.TextBoxFor(m => m.ShiftEnd, new { @class = "form-control", type = "time" })
+                            @Html.ValidationMessageFor(m => m.ShiftEnd, "", new { @class = "text-danger small" })
+                            <small class="text-muted">Morning: 14:00 &middot; Afternoon: 22:00</small>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        When you save, a login account will be automatically created with the email and password <strong>Worker@123</strong>.
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Save Staff Member</button>
+                        <a href="@Url.Action("Staff", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Skill Guide</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var skill in new[] {
+                    ("Plumbing", "Pipes, taps, geysers, showers — 10 boarding houses"),
+                    ("Electrical", "Generators, lights, boards — all buildings"),
+                    ("HVAC", "Heaters and AC — cold KZN Midlands winters"),
+                    ("Grounds", "680 hectare estate — grass, trees, paths"),
+                    ("Pool", "Heated pool and water polo pool — daily checks"),
+                    ("IT", "Projectors, servers, PA in Schlesinger Theatre"),
+                    ("General", "Painting, carpentry, general repairs")
+                })
+                {
+                    <div class="d-flex border-bottom py-2">
+                        <span class="badge bg-secondary me-2" style="min-width:80px;">@skill.Item1</span>
+                        <small class="text-muted">@skill.Item2</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

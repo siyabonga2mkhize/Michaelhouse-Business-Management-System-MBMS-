@@ -1,0 +1,266 @@
+﻿@model dynamic
+@{
+    ViewBag.Title = "Maintenance Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance Overview</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Maintenance Dashboard</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Live status of the 680‑hectare estate</p>
+    </div>
+    <div class="text-right">
+        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">System Status</p>
+        <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-tighter">
+            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> Live
+        </span>
+    </div>
+</div>
+
+<!-- Low stock / overdue alerts -->
+@if ((int)ViewBag.LowStockCount > 0)
+{
+    <div class="alert alert-warning alert-dismissible fade show mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>@ViewBag.LowStockCount inventory item(s)</strong> are low on stock.
+        <a href="@Url.Action("Inventory", "Maintenance")" class="alert-link">View Inventory →</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if ((int)ViewBag.OverdueJobs > 0)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+        <i class="bi bi-clock-fill me-2"></i>
+        <strong>@ViewBag.OverdueJobs job(s)</strong> are overdue.
+        <a href="@Url.Action("JobCards", "Maintenance")" class="alert-link">View Job Cards →</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Stat Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Staff</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalStaff</h3>
+                    </div>
+                    <span class="badge bg-danger rounded-pill p-3"><i class="bi bi-people-fill fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Available: <span class="fw-bold text-success">@ViewBag.AvailableStaff</span></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Assets</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalAssets</h3>
+                    </div>
+                    <span class="badge bg-warning rounded-pill p-3"><i class="bi bi-qr-code fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Active campus-wide</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Open Jobs</h6>
+                        <h3 class="fw-bold mb-0 text-warning">@ViewBag.OpenJobs</h3>
+                    </div>
+                    <span class="badge bg-info rounded-pill p-3"><i class="bi bi-clipboard-check fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Emergency: <span class="fw-bold text-danger">@ViewBag.EmergencyJobs</span></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Overdue</h6>
+                        <h3 class="fw-bold mb-0 text-danger">@ViewBag.OverdueJobs</h3>
+                    </div>
+                    <span class="badge bg-danger rounded-pill p-3"><i class="bi bi-exclamation-circle fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Past due date</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Done Today</h6>
+                        <h3 class="fw-bold mb-0 text-success">@ViewBag.CompletedToday</h3>
+                    </div>
+                    <span class="badge bg-success rounded-pill p-3"><i class="bi bi-check-circle fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Completed today</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Low Stock</h6>
+                        <h3 class="fw-bold mb-0 text-danger">@ViewBag.LowStockCount</h3>
+                    </div>
+                    <span class="badge bg-warning rounded-pill p-3"><i class="bi bi-boxes fs-5"></i></span>
+                </div>
+                <p class="text-muted small mt-2">Items need restocking</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap gap-2">
+        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-dark btn-sm">+ Create Job Card</a>
+        <a href="@Url.Action("AddStaff", "Maintenance")" class="btn btn-outline-dark btn-sm">+ Add Staff</a>
+        <a href="@Url.Action("RegisterAsset", "Maintenance")" class="btn btn-outline-dark btn-sm">+ Register Asset</a>
+        <a href="@Url.Action("Inventory", "Maintenance")" class="btn btn-outline-secondary btn-sm">Inventory</a>
+        <a href="@Url.Action("Performance", "Maintenance")" class="btn btn-outline-secondary btn-sm">Performance</a>
+    </div>
+</div>
+
+<!-- Two-column layout -->
+<div class="row g-4">
+    <!-- Left: Recent Jobs -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recent Job Cards</h5>
+                <a href="@Url.Action("JobCards", "Maintenance")" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.RecentJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs).Any())
+                {
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Reference</th>
+                                <th>Title</th>
+                                <th>Priority</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs)
+                            {
+                                var isOverdue = job.DueDate.HasValue && job.DueDate.Value < DateTime.Now && job.Status != "Completed" && job.Status != "Cancelled";
+                                <tr class="@(isOverdue ? "table-danger" : "")">
+                                    <td><code class="text-danger">@job.JobReference</code></td>
+                                    <td><strong>@job.Title</strong></td>
+                                    <td>
+                                        <span class="badge bg-@(job.Priority=="Emergency"?"danger":job.Priority=="High"?"warning":job.Priority=="Medium"?"info":"secondary")">@job.Priority</span>
+                                    </td>
+                                    <td>@(job.AssignedTo != null ? job.AssignedTo.FullName : "Unassigned")</td>
+                                    <td>
+                                        <span class="badge bg-@(job.Status=="Completed"?"success":job.Status=="Assigned"||job.Status=="In Progress"?"warning":"secondary")">@job.Status</span>
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = job.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
+                        <p>No job cards yet.</p>
+                        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-primary btn-sm">Create First Job Card</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Building Health & Worker Status -->
+    <div class="col-lg-4">
+        <!-- Building Health -->
+        @if (ViewBag.BuildingHealth != null)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i>Building Health</h5>
+                </div>
+                <div class="card-body p-0">
+                    @foreach (var b in (List<Michaelhouse.Models.BuildingHealthModel>)ViewBag.BuildingHealth)
+                    {
+                        string color = b.OpenJobs == 0 ? "success" : b.OpenJobs <= 2 ? "warning" : "danger";
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <span>@b.Name</span>
+                            <span class="badge bg-@color rounded-pill">@b.OpenJobs open</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Worker Status -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Worker Status</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.WorkerStats != null)
+                {
+                    foreach (var w in (List<Michaelhouse.Models.WorkerStatModel>)ViewBag.WorkerStats)
+                    {
+                        string dotColor = w.Status == "Available" ? "bg-success" : w.Status == "On Job" ? "bg-warning" : "bg-secondary";
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <div>
+                                <span class="badge @dotColor rounded-pill me-2" style="width:10px;height:10px;display:inline-block;"></span>
+                                <span class="fw-bold">@w.Name</span>
+                                <span class="text-muted small d-block">@w.Skill</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary">@w.Status</span>
+                                <div class="small text-muted">@w.CompletedMonth done</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+
+        .tracking-wider {
+            letter-spacing: 0.1em;
+        }
+
+        .tracking-widest {
+            letter-spacing: 0.15em;
+        }
+    </style>
+}

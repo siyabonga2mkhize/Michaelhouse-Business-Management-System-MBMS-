@@ -1,57 +1,153 @@
 @model Michaelhouse.Models.Residence
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Residence Details";
+    ViewBag.Title = "Facility Profile - " + Model.Name;
 }
 
-<section class="p-8 max-w-6xl mx-auto">
-    <div class="flex items-start justify-between mb-6">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
-            <h1 class="text-4xl font-serif font-bold">@Model.Name</h1>
-            <p class="text-sm text-gray-500 mt-1">Residence overview, rooms, beds, and student allocation</p>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">@Model.Name</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Official Residence Operations Information</p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="@Url.Action("Edit", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Edit</a>
-            <a href="@Url.Action("Archive", new { id = Model.ResidenceId })" class="px-4 py-2 bg-red-600 text-white rounded">Archive</a>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase">Capacity</div>
-            <div class="mt-2 text-2xl font-bold">@Model.Capacity</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase">Occupied</div>
-            <div class="mt-2 text-2xl font-bold">@Model.OccupiedBeds</div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-sm text-gray-500 uppercase">Available</div>
-            <div class="mt-2 text-2xl font-bold">@Model.AvailableBeds</div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return 
+            </a>
         </div>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-6">
-        <a href="@Url.Action("Occupancy", new { id = Model.ResidenceId })" class="px-4 py-2 bg-[#C21E2E] text-white rounded">Occupancy</a>
-        <a href="@Url.Action("ViewRooms", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Rooms</a>
-        <a href="@Url.Action("ViewStudents", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Students</a>
-        <a href="@Url.Action("AIRecommendations", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Recommendations</a>
-        <a href="@Url.Action("EmergencyRollCall", new { id = Model.ResidenceId })" class="px-4 py-2 border rounded">Roll Call</a>
-    </div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
 
-    <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="font-bold mb-4">Rooms</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @foreach (var room in Model.Rooms ?? new System.Collections.Generic.List<Michaelhouse.Models.Room>())
-            {
-                <div class="p-4 border rounded">
-                    <div class="font-bold">Room @room.RoomNumber</div>
-                    <div class="text-sm text-gray-500">Capacity @room.Capacity - Occupied @room.OccupiedBeds</div>
-                    <div class="mt-2 flex gap-2">
-                        <a class="text-[#C21E2E]" href="@Url.Action("ViewBeds", new { roomId = room.RoomId })">Beds</a>
+        <div class="w-full max-w-6xl flex flex-col gap-6">
+
+            @* --- 1. RESIDENCY TELEMETRY MATRIX --- *@
+            <div class="bg-white border border-gray-200 shadow-sm relative overflow-hidden group">
+                <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] relative z-10 flex justify-between items-center">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-bar-chart-fill me-2 text-gray-500"></i> Residence Capacity Information</h5>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-100 relative z-10">
+                    <div class="p-8 text-center hover:bg-gray-50 transition-colors">
+                        <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Total Capacity</p>
+                        <p class="font-mono text-4xl font-bold text-gray-900">@Model.Capacity</p>
+                    </div>
+                    <div class="p-8 text-center hover:bg-gray-50 transition-colors">
+                        <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Occupied Units</p>
+                        <p class="font-mono text-4xl font-bold text-[#10b981]">@Model.OccupiedBeds</p>
+                    </div>
+                    <div class="p-8 text-center hover:bg-gray-50 transition-colors">
+                        <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Available Units</p>
+                        <p class="font-mono text-4xl font-bold text-[#C21E2E]">@Model.AvailableBeds</p>
                     </div>
                 </div>
-            }
+            </div>
+
+            @* --- 2. OPERATIONAL DIRECTIVES MODULE BAR --- *@
+            <div class="bg-white shadow-sm border border-gray-200 p-2 flex flex-wrap gap-2 relative z-10">
+                <a href="@Url.Action("Occupancy", new { id = Model.ResidenceId })" class="flex-1 text-center bg-[#C21E2E] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">
+                    <i class="bi bi-people-fill me-1 text-sm align-middle"></i> Occupancy Matrix
+                </a>
+                <a href="@Url.Action("ViewRooms", new { id = Model.ResidenceId })" class="flex-1 text-center bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-400 hover:bg-white transition-all">
+                    <i class="bi bi-door-open me-1 text-sm align-middle"></i> Spatial Sub-Units
+                </a>
+                <a href="@Url.Action("ViewStudents", new { id = Model.ResidenceId })" class="flex-1 text-center bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-400 hover:bg-white transition-all">
+                    <i class="bi bi-person-lines-fill me-1 text-sm align-middle"></i> Registered Students
+                </a>
+                <a href="@Url.Action("AIRecommendations", new { id = Model.ResidenceId })" class="flex-1 text-center bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all">
+                    <i class="bi bi-cpu me-1 text-sm align-middle"></i> AI Protocol Insights
+                </a>
+                <a href="@Url.Action("EmergencyRollCall", new { id = Model.ResidenceId })" class="flex-1 text-center bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-yellow-500 hover:text-white hover:border-yellow-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition-all">
+                    <i class="bi bi-exclamation-triangle-fill me-1 text-sm align-middle"></i> Emergency Roll Call
+                </a>
+            </div>
+
+            @* --- 3. SPATIAL SUB-UNITS (ROOMS) GRID --- *@
+            <div class="bg-white shadow-sm border border-gray-200 relative overflow-hidden group">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-building absolute -right-8 -bottom-10 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-grid-1x2 me-2 text-gray-400"></i> Facility Spatial Sub-Units</h5>
+                </div>
+
+                <div class="p-8 relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    @foreach (var room in Model.Rooms ?? new System.Collections.Generic.List<Michaelhouse.Models.Room>())
+                    {
+                        <div class="border border-gray-200 bg-white hover:border-[#C21E2E] hover:shadow-[0_10px_20px_rgba(0,0,0,0.05)] transition-all duration-300 flex flex-col group/room">
+                            <div class="p-4 border-b border-gray-50 text-center bg-gray-50/50 group-hover/room:bg-[#C21E2E]/5 transition-colors">
+                                <span class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 block mb-1">Room Reference</span>
+                                <span class="font-serif font-bold text-2xl text-gray-900">@room.RoomNumber</span>
+                            </div>
+                            <div class="p-4 flex justify-between items-center flex-grow">
+                                <div class="text-center w-1/2 border-r border-gray-100">
+                                    <span class="text-[8px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Capacity</span>
+                                    <span class="font-mono text-sm font-bold text-gray-800">@room.Capacity</span>
+                                </div>
+                                <div class="text-center w-1/2">
+                                    <span class="text-[8px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Occupied</span>
+                                    <span class="font-mono text-sm font-bold text-[#10b981]">@room.OccupiedBeds</span>
+                                </div>
+                            </div>
+                            <a href="@Url.Action("ViewBeds", new { roomId = room.RoomId })" class="block text-center border-t border-gray-100 py-3 text-[9px] uppercase tracking-[2px] font-bold text-gray-500 hover:text-[#C21E2E] hover:bg-gray-50 transition-colors">
+                                Inspect Beds <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                @* Security & Administrative Actions Footer *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-auto flex-shrink-0">
+                    <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono hidden md:block">
+                        <i class="bi bi-shield-lock me-2"></i> Facility Record ID: #@Model.ResidenceId
+                    </div>
+
+                    <div class="flex gap-3">
+                        <a href="@Url.Action("Edit", new { id = Model.ResidenceId })" class="text-center bg-transparent border border-white/20 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/10 hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-all duration-300">
+                            <i class="bi bi-pencil-square me-2 align-middle"></i> Edit
+                        </a>
+
+                        <a href="@Url.Action("Archive", new { id = Model.ResidenceId })" class="text-center bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all duration-300">
+                            <i class="bi bi-archive me-2 align-middle"></i> Archive Record
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-</section>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

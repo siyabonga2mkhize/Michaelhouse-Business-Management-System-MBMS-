@@ -1,0 +1,269 @@
+﻿@model Michaelhouse.Models.JobCard
+@{
+    ViewBag.Title = "Complete Job Card";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Complete Job</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">@Model.JobReference</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @Model.Title · Assigned to @(Model.AssignedTo?.FullName ?? "Unassigned")
+        </p>
+    </div>
+    <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Job
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("CompleteJobCard", "Maintenance", FormMethod.Post, new { enctype = "multipart/form-data", id = "completeJobForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Completion Notes *</label>
+                            <textarea name="completionNotes" class="form-control" rows="3" placeholder="Describe what was done, parts replaced, etc." required></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Final Condition *</label>
+                            <select name="finalCondition" class="form-select" required>
+                                <option value="">-- Select --</option>
+                                <option value="Fixed">Fixed</option>
+                                <option value="Replaced">Replaced</option>
+                                <option value="Repaired Temporarily">Repaired Temporarily</option>
+                                <option value="Cannot Fix">Cannot Fix (needs specialist)</option>
+                            </select>
+                        </div>
+
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- AFTER PHOTO SECTION (identical to Reporter's)         -->
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">After Photo (Proof of Completion)</label>
+
+                            <!-- Camera button -->
+                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openAfterCamera()">
+                                <i class="bi bi-camera me-1"></i> Open Camera
+                            </button>
+
+                            <!-- Video preview -->
+                            <video id="afterVideoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
+
+                            <!-- Capture button -->
+                            <button id="afterCaptureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="captureAfterPhoto()">
+                                <i class="bi bi-camera me-1"></i> Capture Photo
+                            </button>
+
+                            <!-- File upload fallback -->
+                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('afterPhotoInput').click();">
+                                <input type="file" name="photoAfter" id="afterPhotoInput" accept="image/*" style="display:none" onchange="previewAfterPhoto(this)" />
+                                <div id="afterUploadPlaceholder">
+                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
+                                    <span class="text-muted">Click to upload a photo</span>
+                                </div>
+                                <img id="afterPhotoPreview" src="#" alt="After Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
+                            </div>
+
+                            <!-- Hidden field for base64 camera capture -->
+                            <input type="hidden" id="afterPhotoData" name="afterPhotoData" />
+
+                            <!-- Optional: show compression message (hidden by default) -->
+                            <div id="compressingMsg" style="display:none;color:#666;font-size:0.9rem;margin-top:8px;">
+                                <i class="bi bi-arrow-repeat me-1"></i> Compressing image...
+                            </div>
+                        </div>
+
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        <!-- YOUR "PARTS USED" SECTION – KEEP IT HERE             -->
+                        <!-- (I’ve left a placeholder – you already have your code) -->
+                        <!-- ══════════════════════════════════════════════════════ -->
+                        @* 👇 Your existing parts-used table goes here (if any) *@
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Completing this job will update the asset's status and set the worker back to "Available".
+                        </div>
+
+                        <button type="submit" id="completeSubmitBtn" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Complete Job</button>
+                        <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Job Summary</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Reference</span>
+                        <code class="text-danger">@Model.JobReference</code>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Title</span>
+                        <span>@Model.Title</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Priority</span>
+                        <span class="badge bg-@(Model.Priority=="Emergency"?"danger":Model.Priority=="High"?"warning":Model.Priority=="Medium"?"info":"secondary")">@Model.Priority</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Asset</span>
+                        <span>@(Model.Asset?.AssetName ?? "—")</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Location</span>
+                        <span>@(Model.Asset?.LocationBuilding ?? "—")</span>
+                    </li>
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span class="text-muted">Created</span>
+                        <span>@Model.DateCreated.ToString("dd MMM yyyy HH:mm")</span>
+                    </li>
+                    @if (Model.DueDate.HasValue)
+                    {
+                        <li class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Due Date</span>
+                            <span>@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm")</span>
+                        </li>
+                    }
+                </ul>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mt-3">
+                        <h6 class="fw-bold"><i class="bi bi-quote me-2"></i>Description</h6>
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.PhotoBefore))
+                {
+                    <div class="mt-3">
+                        <h6 class="fw-bold"><i class="bi bi-camera me-2"></i>Before Photo</h6>
+                        <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="img-fluid rounded" style="max-height:200px;" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let afterStream = null;
+        const MAX_DIMENSION = 1280;
+        const JPEG_QUALITY = 0.75;
+
+        function compressCanvasToJpeg(sourceCanvasOrVideo, sourceWidth, sourceHeight) {
+            let targetWidth = sourceWidth;
+            let targetHeight = sourceHeight;
+
+            if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+                if (targetWidth > targetHeight) {
+                    targetHeight = Math.round((targetHeight / targetWidth) * MAX_DIMENSION);
+                    targetWidth = MAX_DIMENSION;
+                } else {
+                    targetWidth = Math.round((targetWidth / targetHeight) * MAX_DIMENSION);
+                    targetHeight = MAX_DIMENSION;
+                }
+            }
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = targetWidth;
+            outCanvas.height = targetHeight;
+            const ctx = outCanvas.getContext('2d');
+            ctx.drawImage(sourceCanvasOrVideo, 0, 0, targetWidth, targetHeight);
+
+            return outCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        }
+
+        function openAfterCamera() {
+            const video = document.getElementById('afterVideoElement');
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(function (s) {
+                        afterStream = s;
+                        video.srcObject = s;
+                        video.play();
+                        video.style.display = 'block';
+                        document.getElementById('afterCaptureBtn').style.display = 'inline';
+                    })
+                    .catch(function (err) {
+                        alert('Camera not available: ' + err.message);
+                    });
+            } else {
+                alert('Camera not supported in this browser.');
+            }
+        }
+
+        function captureAfterPhoto() {
+            const video = document.getElementById('afterVideoElement');
+            const dataUrl = compressCanvasToJpeg(video, video.videoWidth, video.videoHeight);
+
+            document.getElementById('afterPhotoPreview').src = dataUrl;
+            document.getElementById('afterPhotoPreview').style.display = 'block';
+            document.getElementById('afterUploadPlaceholder').style.display = 'none';
+
+            document.getElementById('afterPhotoData').value = dataUrl;
+
+            if (afterStream) {
+                afterStream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                video.style.display = 'none';
+            }
+            document.getElementById('afterCaptureBtn').style.display = 'none';
+        }
+
+        // ── File upload with compression ───────────────────────────────────
+        function previewAfterPhoto(input) {
+            if (!input.files || !input.files[0]) return;
+
+            document.getElementById('compressingMsg').style.display = 'block';
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onload = function () {
+                    var dataUrl = compressCanvasToJpeg(img, img.width, img.height);
+
+                    document.getElementById('afterPhotoPreview').src = dataUrl;
+                    document.getElementById('afterPhotoPreview').style.display = 'block';
+                    document.getElementById('afterUploadPlaceholder').style.display = 'none';
+                    document.getElementById('afterPhotoData').value = dataUrl;
+                    document.getElementById('compressingMsg').style.display = 'none';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        // Disable submit button after click to prevent double-submit
+        document.getElementById('completeJobForm').addEventListener('submit', function () {
+            var btn = document.getElementById('completeSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Saving...';
+        });
+    </script>
+}
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}
