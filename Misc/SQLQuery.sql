@@ -2,6 +2,7 @@
 
 select * from appusers
 
+update AppUsers set pashwordhash = 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=' where email = 'admin@michaelhouse.co.za' ;
 
 Select * from ClassSubjects
 
@@ -1107,3 +1108,20 @@ SET IDENTITY_INSERT Students ON;
 INSERT INTO Students (StudentId, FirstName, LastName, GradeLevel, DOB, ParentId, EnrollmentDate, IsBoarding, IsActive)
 VALUES (1, 'Test', 'Student', 8, '2010-01-01', (SELECT TOP 1 ParentId FROM Parents), GETDATE(), 1, 1);
 SET IDENTITY_INSERT Students OFF;
+
+
+-- Connect to master database first
+USE master;
+GO
+
+-- Drop the database
+DROP DATABASE schooldb;
+GO
+
+-- Recreate the database
+CREATE DATABASE schooldb;
+GO
+
+-- Switch back
+USE schooldb;
+GO
