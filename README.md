@@ -44,7 +44,7 @@ Below is a complete list of seeded users and their credentials.
 
 | Name            | Email                           | Password    |
 |-----------------|---------------------------------|-------------|
-| System Admin    | `admin@michaelhouse.co.za`      | `Password123` |
+| System Admin    | `admin@michaelhouse.co.za`      | `qwerty` |
 
 ---
 
