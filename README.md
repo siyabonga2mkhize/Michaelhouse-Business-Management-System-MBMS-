@@ -58,7 +58,7 @@ Below is a complete list of seeded users and their credentials.
 
 ### 👨‍👩‍👧‍👦 Parents
 
-All parents use their contact email as the login. The password for **all parents** is `Password123`.
+All parents use their contact email as the login. The password for **all parents** is `qwerty`.
 
 | Name               | Email                         |
 |--------------------|-------------------------------|
@@ -79,7 +79,7 @@ All parents use their contact email as the login. The password for **all parents
 
 ### 🎓 Students
 
-Students can log in using the email pattern: `firstname.lastname@student.michaelhouse.org` – password is `Password123` for **all students**.
+Students can log in using the email pattern: `firstname.lastname@student.michaelhouse.org` – password is `qwerty` for **all students**.
 
 **Examples:**
 - Thabo Nkosi → `thabo.nkosi@student.michaelhouse.org`
@@ -117,7 +117,7 @@ All drivers have the password `123456` (this differs from the default).
 
 ### 🧹 Maintenance Workers
 
-All workers have the password `Password123`.
+All workers have the password `Worker@123`.
 
 | Name               | Email                           |
 |--------------------|---------------------------------|
@@ -136,7 +136,7 @@ All workers have the password `Password123`.
 
 ### 🚨 Fault Reporters
 
-All reporters have the password `Password123`.
+All reporters have the password `Report@123`.
 
 | Name                    | Email                                 |
 |-------------------------|---------------------------------------|
