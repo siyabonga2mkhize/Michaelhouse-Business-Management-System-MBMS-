@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- 1. REFERENCE DATA: SUBJECTS (all non-null columns)
 -- ============================================================
 MERGE INTO Subjects AS target
@@ -75,48 +75,67 @@ UPDATE Parents SET EmergencyContactName = Name WHERE EmergencyContactName IS NUL
 -- ============================================================
 -- 4. STUDENTS (with EnrollmentDate = GETDATE())
 -- ============================================================
-INSERT INTO Students (FirstName, LastName, GradeLevel, DOB, ParentId, StudentNumber, EnrollmentDate)
-SELECT 
-    s.FirstName, s.LastName, s.GradeLevel, s.DOB, p.ParentId, s.StudentNumber, GETDATE()
+INSERT INTO Students (
+    FirstName,
+    LastName,
+    GradeLevel,
+    DOB,
+    ParentId,
+    StudentNumber,
+    EnrollmentDate,
+    IsBoarding,
+    IsActive,
+    HomeLanguage          -- optional, but you can set a default
+)
+SELECT
+    s.FirstName,
+    s.LastName,
+    s.GradeLevel,
+    s.DOB,
+    p.ParentId,
+    s.StudentNumber,
+    GETDATE(),
+    1,                    -- IsBoarding = 1 (boarding student)
+    1,                    -- IsActive = 1 (active)
+    'English'             -- default home language, adjust as needed
 FROM (
-    VALUES 
-    ('Thabo', 'Nkosi', 8, '2012-05-10', 'Thabo Parent', 1001),
-    ('Lerato', 'Molefe', 8, '2012-08-22', 'Lerato Parent', 1002),
-    ('Sipho', 'Dlamini', 8, '2012-02-15', 'Sipho Parent', 1003),
-    ('Zanele', 'Khumalo', 8, '2012-11-30', 'Zanele Parent', 1004),
-    ('Bongani', 'Ndlovu', 8, '2012-04-05', 'Busi Naidoo', NULL),
-    ('Nandi', 'Mokoena', 8, '2012-09-12', 'Busi Naidoo', NULL),
-    ('Sibusiso', 'Gumede', 8, '2012-01-20', 'Busi Naidoo', NULL),
-    ('Thandi', 'Mbatha', 8, '2012-06-18', 'Johannes Steyn', NULL),
-    ('Lethabo', 'Baloyi', 8, '2012-03-25', 'Johannes Steyn', NULL),
-    ('Melokuhle', 'Mabuza', 8, '2012-07-08', 'Johannes Steyn', NULL),
-    ('Bandile', 'Jacobs', 8, '2012-10-14', 'Lindiwe Mazibuko', NULL),
-    ('Palesa', 'Van Wyk', 8, '2012-12-05', 'Lindiwe Mazibuko', NULL),
-    ('Lubanzi', 'Mokoena', 9, '2011-04-12', 'Lindiwe Mazibuko', NULL),
-    ('Onalerona', 'Sibiya', 9, '2011-09-05', 'David Mokwena', NULL),
-    ('Nkazimulo', 'Zuma', 9, '2011-01-22', 'David Mokwena', NULL),
-    ('Zanokuhle', 'Buthelezi', 9, '2011-11-14', 'David Mokwena', NULL),
-    ('Enzokuhle', 'Mbewe', 10, '2010-06-30', 'Sarah Pillay', NULL),
-    ('Iminathi', 'Tshabalala', 10, '2010-02-18', 'Sarah Pillay', NULL),
-    ('Bandile', 'Mabaso', 10, '2010-08-09', 'Sarah Pillay', NULL),
-    ('Minenhle', 'Zwane', 10, '2010-12-25', 'Sarah Pillay', NULL),
-    ('Kungawo', 'Ndlovu', 8, '2012-03-15', 'Busi Naidoo', NULL),
-    ('Siyabonga', 'Mokoena', 8, '2012-07-22', 'Johannes Steyn', NULL),
-    ('Amahle', 'Dlamini', 8, '2012-11-05', 'Lindiwe Mazibuko', NULL),
-    ('Thandolwethu', 'Nkosi', 8, '2012-01-30', 'David Mokwena', NULL),
-    ('Bokamoso', 'Molefe', 8, '2012-05-14', 'Sarah Pillay', NULL),
-    ('Lethabo', 'Zuma', 8, '2012-09-02', 'Nomvula Zuma', NULL),
-    ('Onalerona', 'Zuma', 8, '2012-02-18', 'Nomvula Zuma', NULL),
-    ('Nkazimulo', 'Naidoo', 8, '2012-06-25', 'Kevin Naidoo', NULL),
-    ('Melokuhle', 'Naidoo', 8, '2012-10-10', 'Kevin Naidoo', NULL),
-    ('Zanokuhle', 'Naidoo', 8, '2012-04-12', 'Kevin Naidoo', NULL)
-) AS s(FirstName, LastName, GradeLevel, DOB, ParentName, StudentNumber)
-INNER JOIN Parents p ON p.Name = s.ParentName
+    VALUES
+        ('Thabo', 'Nkosi', 8, '2012-05-10', 'Thabo Parent', 1001),
+        ('Lerato', 'Molefe', 8, '2012-08-22', 'Lerato Parent', 1002),
+        ('Sipho', 'Dlamini', 8, '2012-02-15', 'Sipho Parent', 1003),
+        ('Zanele', 'Khumalo', 8, '2012-11-30', 'Zanele Parent', 1004),
+        ('Bongani', 'Ndlovu', 8, '2012-04-05', 'Busi Naidoo', NULL),
+        ('Nandi', 'Mokoena', 8, '2012-09-12', 'Busi Naidoo', NULL),
+        ('Sibusiso', 'Gumede', 8, '2012-01-20', 'Busi Naidoo', NULL),
+        ('Thandi', 'Mbatha', 8, '2012-06-18', 'Johannes Steyn', NULL),
+        ('Lethabo', 'Baloyi', 8, '2012-03-25', 'Johannes Steyn', NULL),
+        ('Melokuhle', 'Mabuza', 8, '2012-07-08', 'Johannes Steyn', NULL),
+        ('Bandile', 'Jacobs', 8, '2012-10-14', 'Lindiwe Mazibuko', NULL),
+        ('Palesa', 'Van Wyk', 8, '2012-12-05', 'Lindiwe Mazibuko', NULL),
+        ('Lubanzi', 'Mokoena', 9, '2011-04-12', 'Lindiwe Mazibuko', NULL),
+        ('Onalerona', 'Sibiya', 9, '2011-09-05', 'David Mokwena', NULL),
+        ('Nkazimulo', 'Zuma', 9, '2011-01-22', 'David Mokwena', NULL),
+        ('Zanokuhle', 'Buthelezi', 9, '2011-11-14', 'David Mokwena', NULL),
+        ('Enzokuhle', 'Mbewe', 10, '2010-06-30', 'Sarah Pillay', NULL),
+        ('Iminathi', 'Tshabalala', 10, '2010-02-18', 'Sarah Pillay', NULL),
+        ('Bandile', 'Mabaso', 10, '2010-08-09', 'Sarah Pillay', NULL),
+        ('Minenhle', 'Zwane', 10, '2010-12-25', 'Sarah Pillay', NULL),
+        ('Kungawo', 'Ndlovu', 8, '2012-03-15', 'Busi Naidoo', NULL),
+        ('Siyabonga', 'Mokoena', 8, '2012-07-22', 'Johannes Steyn', NULL),
+        ('Amahle', 'Dlamini', 8, '2012-11-05', 'Lindiwe Mazibuko', NULL),
+        ('Thandolwethu', 'Nkosi', 8, '2012-01-30', 'David Mokwena', NULL),
+        ('Bokamoso', 'Molefe', 8, '2012-05-14', 'Sarah Pillay', NULL),
+        ('Lethabo', 'Zuma', 8, '2012-09-02', 'Nomvula Zuma', NULL),
+        ('Onalerona', 'Zuma', 8, '2012-02-18', 'Nomvula Zuma', NULL),
+        ('Nkazimulo', 'Naidoo', 8, '2012-06-25', 'Kevin Naidoo', NULL),
+        ('Melokuhle', 'Naidoo', 8, '2012-10-10', 'Kevin Naidoo', NULL),
+        ('Zanokuhle', 'Naidoo', 8, '2012-04-12', 'Kevin Naidoo', NULL)
+    ) AS s(FirstName, LastName, GradeLevel, DOB, ParentName, StudentNumber)
+    INNER JOIN Parents p ON p.Name = s.ParentName
 WHERE NOT EXISTS (
-    SELECT 1 FROM Students st 
+    SELECT 1 FROM Students st
     WHERE st.FirstName = s.FirstName AND st.LastName = s.LastName AND st.DOB = s.DOB
 );
-
 -- Set ClassId for Grade 8 students to 1 (adjust if needed)
 UPDATE Students SET ClassId = 1 WHERE GradeLevel = 8 AND ClassId IS NULL;
 
@@ -180,6 +199,7 @@ FROM Drivers d
 INNER JOIN AppUsers u ON d.Email = u.Email
 WHERE d.UserId IS NULL;
 
+-- FIXED Vehicles MERGE (removed duplicate "AS source")
 MERGE INTO Vehicles AS target
 USING (VALUES 
     ('GP 123 456', 'Toyota Quantum', 'Bus', 14, 1, GETDATE(), '/Content/Images/Vehicles/quantum1.jpg'),
@@ -191,7 +211,6 @@ ON target.VehicleNumber = source.VehicleNumber
 WHEN NOT MATCHED THEN
     INSERT (VehicleNumber, Model, Type, Capacity, IsActive, DateAdded, ImageUrl)
     VALUES (source.VehicleNumber, source.Model, source.Type, source.Capacity, source.IsActive, source.DateAdded, source.ImageUrl);
-
 IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Email = 'transport@michaelhouse.co.za')
 BEGIN
     INSERT INTO AppUsers (Name, Email, PasswordHash, Role)

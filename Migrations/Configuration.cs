@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Michaelhouse.Migrations
-{
     internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
     {
         public Configuration()
@@ -19,18 +17,7 @@ namespace Michaelhouse.Migrations
 
         protected override void Seed(Michaelhouse.Models.DBContextClass context)
         {
-            // 1. Seed default admin account
-            if (!context.Users.Any(u => u.Role == "Admin"))
-            {
-                context.Users.Add(new AppUser
-                {
-                    Name = "Linda Smith",
-                    Email = "admin@michaelhouse.co.za",
-                    PasswordHash = HashPassword("Admin@123"),
-                    Role = "Admin"
-                });
-                context.SaveChanges();
-            }
+            //  This method will be called after migrating to the latest version.
 
             // ──────────────────────────────────────────────────────────────
             // Ensure a Teacher exists before seeding trips (from HEAD)

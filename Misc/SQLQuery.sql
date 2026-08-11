@@ -7,7 +7,7 @@ Select * from ClassSubjects
 
 select * from Subjects;
 
-
+f
 INSERT INTO Subjects (SubjectName, SubjectCode, Credits, GradeLevel)
 VALUES 
 ('Information Technology', 'ICT301', 12, 12),
@@ -1102,3 +1102,8 @@ set Status = 1 where Status = 0;
 
 
 DELETE FROM StudentSafetyConfirmations WHERE StudentId = 1005; -- (Use your test student's ID)
+
+SET IDENTITY_INSERT Students ON;
+INSERT INTO Students (StudentId, FirstName, LastName, GradeLevel, DOB, ParentId, EnrollmentDate, IsBoarding, IsActive)
+VALUES (1, 'Test', 'Student', 8, '2010-01-01', (SELECT TOP 1 ParentId FROM Parents), GETDATE(), 1, 1);
+SET IDENTITY_INSERT Students OFF;
