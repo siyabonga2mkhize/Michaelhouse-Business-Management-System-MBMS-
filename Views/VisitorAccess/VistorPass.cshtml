@@ -1,0 +1,40 @@
+﻿@model Michaelhouse.Models.VisitorAccessRequest
+@{
+    ViewBag.Title = "Michaelhouse Visitor Pass";
+}
+
+<div class="container py-5 text-center" style="max-width: 400px;">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white p-4">
+            <h3 class="text-uppercase mb-0" style="color: #C21E2E; font-family: 'Playfair Display', serif;">Michaelhouse</h3>
+            <span class="badge bg-success mt-2">Digital Gate Pass</span>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="fw-bold">@Model.VisitorFullName</h5>
+            <p class="text-muted small">Visit Date: @Model.VisitDate.ToString("dd MMM yyyy")</p>
+
+            <!-- This QR is generated dynamically with a fresh timestamp on page load -->
+            <img src="@Url.Action("GenerateQrImage", "VisitorAccess", new { id = Model.RequestId })"
+                 alt="Gate Pass QR" class="img-fluid" style="max-width: 220px;" />
+
+            <hr />
+            <div class="row text-start fs-6">
+                <div class="col-6">
+                    <span class="text-muted d-block small">Time:</span>
+                    <strong>@Model.StartTime - @Model.EndTime</strong>
+                </div>
+                <div class="col-6">
+                    <span class="text-muted d-block small">Zone:</span>
+                    <strong>@Model.FinalAssignedZone</strong>
+                </div>
+            </div>
+            <p class="small text-muted mt-3">
+                ⏰ This QR code is valid for <strong>4 minutes</strong> from the moment you open this page.
+                Show it to the gate guard immediately.
+            </p>
+        </div>
+        <div class="card-footer bg-light p-3 text-muted small">
+            🛡️ Show this QR to the gate guard for entry.
+        </div>
+    </div>
+</div>

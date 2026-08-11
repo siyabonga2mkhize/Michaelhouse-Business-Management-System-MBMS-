@@ -40,5 +40,6 @@ namespace Michaelhouse.Models
 
         [ForeignKey("ToRoomId")]
         public virtual Room ToRoom { get; set; }
+        public int? ToBedId { get; internal set; }
     }
 }

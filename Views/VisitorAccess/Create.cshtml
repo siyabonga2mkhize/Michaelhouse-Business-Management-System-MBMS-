@@ -1,0 +1,70 @@
+﻿@model Michaelhouse.Models.VisitorAccessRequest
+
+@{
+    ViewBag.Title = "Request Visitor Access";
+}
+
+<div class="container mt-4" style="max-width:700px;">
+    <h2 class="text-uppercase" style="color:#C21E2E;">Request Visitor Access</h2>
+    <hr />
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.StudentId)
+        @Html.HiddenFor(m => m.BoardingHouseName)
+
+        <div class="mb-3">
+            <label>Visitor Full Name</label>
+            @Html.EditorFor(m => m.VisitorFullName, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+        <div class="mb-3">
+            <label>Visitor Phone</label>
+            @Html.EditorFor(m => m.VisitorPhone, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+        <!-- NEW EMAIL FIELD ADDED BELOW -->
+        <div class="mb-3">
+            <label>Visitor Email</label>
+            @Html.EditorFor(m => m.VisitorEmail, new { htmlAttributes = new { @class = "form-control", @type = "email" } })
+            @Html.ValidationMessageFor(m => m.VisitorEmail, "", new { @class = "text-danger" })
+        </div>
+        <!-- END NEW EMAIL FIELD -->
+        <div class="mb-3">
+            <label>Relationship to Student</label>
+            @Html.EditorFor(m => m.RelationshipToBoy, new { htmlAttributes = new { @class = "form-control" } })
+        </div>
+
+        <div class="form-check mb-3">
+            @Html.CheckBoxFor(m => m.IsParentOrGuardian, new { @class = "form-check-input" })
+            <label class="form-check-label">Yes, this is a Parent/Guardian</label>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label>Visit Date</label>
+                @Html.EditorFor(m => m.VisitDate, new { htmlAttributes = new { @class = "form-control", @type = "date" } })
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>Start Time</label>
+                @Html.EditorFor(m => m.StartTime, new { htmlAttributes = new { @class = "form-control", @type = "time" } })
+            </div>
+            <div class="col-md-4 mb-3">
+                <label>End Time</label>
+                @Html.EditorFor(m => m.EndTime, new { htmlAttributes = new { @class = "form-control", @type = "time" } })
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label>Requested Zone</label>
+            @Html.EnumDropDownListFor(m => m.RequestedZone, "Select Zone", new { @class = "form-select" })
+        </div>
+
+        <div class="mb-3">
+            <label>Purpose of Visit</label>
+            @Html.TextAreaFor(m => m.PurposeOfVisit, new { @class = "form-control", rows = 3 })
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="background-color:#C21E2E;">Submit Request</button>
+        @Html.ActionLink("Cancel", "MyRequests", null, new { @class = "btn btn-secondary" })
+    }
+</div>

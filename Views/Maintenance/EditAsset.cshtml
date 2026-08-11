@@ -1,0 +1,119 @@
+﻿@model Michaelhouse.Models.Asset
+@{
+    ViewBag.Title = "Edit Asset";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Edit Asset</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">@Model.AssetName · @Model.QrCode</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("EditAsset", "Maintenance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(m => m.Id)
+                    @Html.HiddenFor(m => m.QrCode)
+                    @Html.HiddenFor(m => m.DateRegistered)
+                    @Html.HiddenFor(m => m.FaultCount)
+                    @Html.HiddenFor(m => m.RegisteredById)
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Asset Name *</label>
+                            @Html.TextBoxFor(m => m.AssetName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.AssetName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Category *</label>
+                            @Html.DropDownListFor(m => m.Category,
+                                new SelectList(new[] { "Electrical", "Plumbing", "HVAC", "Grounds", "Sports", "Building", "Safety", "IT", "Kitchen" }, Model.Category),
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.Category, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Condition *</label>
+                            @Html.DropDownListFor(m => m.ConditionRating,
+                                new SelectList(new[] { "Good", "Fair", "Poor" }, Model.ConditionRating),
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.ConditionRating, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Building / Location *</label>
+                            @Html.DropDownListFor(m => m.LocationBuilding,
+                                new SelectList(new[] {
+                                    "Founders House","East House","West House","Tatham House","Farfield House",
+                                    "Pascoe House","Baines House","Mackenzie House","Ralfe House","McCormick House",
+                                    "Main Classroom Block","Administration Block","Schlesinger Theatre","Dining Hall",
+                                    "Chapel","Indoor Sports Centre","Heated Swimming Pool","Water Polo Pool",
+                                    "Roy Gathorne Cricket Oval","Athletics Track","Gymnasium","Golf Driving Range",
+                                    "Van der Westhuyzen Dam","Campus Grounds"
+                                }, Model.LocationBuilding),
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.LocationBuilding, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Room / Area</label>
+                            @Html.TextBoxFor(m => m.LocationRoom, new { @class = "form-control", placeholder = "e.g. Bathroom 2" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Status</label>
+                            @Html.DropDownListFor(m => m.Status,
+                                new SelectList(new[] { "Active", "Under Repair", "Decommissioned" }, Model.Status),
+                                new { @class = "form-select" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Description</label>
+                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle me-2"></i> Changing the condition will recalculate health score: Good = 100%, Fair = 65%, Poor = 30%.
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Save Changes</button>
+                        <a href="@Url.Action("AssetDetail", "Maintenance", new { id = Model.Id })" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-qr-code me-2"></i>Asset Record</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <img src="@Url.Action("QrCode", "Maintenance", new { id = Model.Id })" alt="QR Code" style="width:120px;height:120px;" />
+                </div>
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Asset Code</span><code class="text-danger">@Model.QrCode</code></li>
+                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Fault Count</span><span class="fw-bold @(Model.FaultCount >= 3 ? "text-danger" : "text-success")">@Model.FaultCount</span></li>
+                    <li class="d-flex justify-content-between border-bottom py-2"><span class="text-muted">Health Score</span><span class="fw-bold text-@(Model.HealthScore > 70 ? "success" : Model.HealthScore > 40 ? "warning" : "danger")">@Model.HealthScore%</span></li>
+                    <li class="d-flex justify-content-between py-2"><span class="text-muted">Registered</span>@Model.DateRegistered.ToString("dd MMM yyyy")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

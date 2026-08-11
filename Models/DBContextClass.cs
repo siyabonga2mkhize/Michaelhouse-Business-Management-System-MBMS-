@@ -32,6 +32,7 @@ namespace Michaelhouse.Models
         public DbSet<Parent> Parents { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
+
         // ─── Application & Registration ──────────────────────────────────
         public DbSet<Application> Applications { get; set; }
         public DbSet<Document> Documents { get; set; }
@@ -80,6 +81,7 @@ namespace Michaelhouse.Models
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
+
         // ─── Trips Management ───────────────────────────────────────────────
         public DbSet<TripRequest> TripRequests { get; set; }
         public DbSet<TripSchedule> TripSchedules { get; set; }
@@ -110,6 +112,23 @@ namespace Michaelhouse.Models
         public DbSet<EmergencyAlert> EmergencyAlerts { get; set; }
         public DbSet<StudentSafetyConfirmation> StudentSafetyConfirmations { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
+
+        // ─── Visitor Access Management (Use Case 26) ─────────────────────
+        public DbSet<VisitorAccessRequest> VisitorAccessRequests { get; set; }
+        public DbSet<TermCalendar> TermCalendars { get; set; }
+        public DbSet<VisitorScanLog> VisitorScanLogs { get; set; }
+
+        // ─── Maintenance Management ───────────────────────────────────────
+        public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }
+        public DbSet<Asset> Assets { get; set; }
+        public DbSet<JobCard> JobCards { get; set; }
+        public DbSet<JobCardPhoto> JobCardPhotos { get; set; }
+        public DbSet<MaintenanceInventory> MaintenanceInventory { get; set; }
+        public DbSet<JobCardPart> JobCardParts { get; set; }
+        public DbSet<PreventiveSchedule> PreventiveSchedules { get; set; }
+        // ─── Maintenance Management – Advanced ──────────────────────────
+        public DbSet<ShiftPattern> ShiftPatterns { get; set; }
+        public DbSet<StaffShift> StaffShifts { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -353,6 +372,7 @@ namespace Michaelhouse.Models
                 .WithMany(t => t.TripStudents)   // explicitly reference the inverse collection
                 .HasForeignKey(ts => ts.TripScheduleId)
                 .WillCascadeOnDelete(false);
+
             // TripStudent -> Student (required)
             modelBuilder.Entity<TripStudent>()
                 .HasRequired(ts => ts.Student)
@@ -368,10 +388,10 @@ namespace Michaelhouse.Models
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<TripVehicleAssignment>()
-    .HasRequired(tva => tva.TripSchedule)
-    .WithMany(ts => ts.VehicleAssignments)
-    .HasForeignKey(tva => tva.TripScheduleId)
-    .WillCascadeOnDelete(true);
+                .HasRequired(tva => tva.TripSchedule)
+                .WithMany(ts => ts.VehicleAssignments)
+                .HasForeignKey(tva => tva.TripScheduleId)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<TripVehicleAssignment>()
                 .HasRequired(tva => tva.Driver)
@@ -397,7 +417,6 @@ namespace Michaelhouse.Models
                 .Property(t => t.Status).HasMaxLength(20);
             modelBuilder.Entity<TripSchedule>()
                 .Property(t => t.Notes).HasMaxLength(500);
-
 
             // ── Suppliers & PurchaseOrders ────────────────────────────────────────
             modelBuilder.Entity<SupplierProduct>()
@@ -518,8 +537,8 @@ namespace Michaelhouse.Models
             // StudentProfile
             // -------------------------
             modelBuilder.Entity<Student>()
-    .HasOptional(s => s.StudentProfile)
-    .WithRequired(sp => sp.Student);
+                .HasOptional(s => s.StudentProfile)
+                .WithRequired(sp => sp.Student);
 
             // -------------------------
             // StudentQRCode

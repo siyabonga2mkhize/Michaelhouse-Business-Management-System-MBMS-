@@ -1,0 +1,143 @@
+﻿@model List<Michaelhouse.Models.Asset>
+@{
+    ViewBag.Title = "Asset Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Asset Register</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">All physical assets campus-wide</p>
+    </div>
+    <a href="@Url.Action("RegisterAsset", "Maintenance")" class="btn btn-dark">+ Register Asset</a>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Total Assets</h6>
+                <h3 class="fw-bold">@ViewBag.TotalAssets</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Poor Condition</h6>
+                <h3 class="fw-bold text-danger">@ViewBag.PoorCondition</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Under Repair</h6>
+                <h3 class="fw-bold text-warning">@ViewBag.UnderRepair</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" action="@Url.Action("Assets", "Maintenance")" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Search</label>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Asset name or building..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var cat in new[] { "Electrical", "Plumbing", "HVAC", "Grounds", "Sports", "Building", "Safety", "IT", "Kitchen" })
+                    {
+                        <option value="@cat" @(ViewBag.Category == cat ? "selected" : "")>@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Condition</label>
+                <select name="condition" class="form-select">
+                    <option value="">All</option>
+                    <option value="Good" @(ViewBag.Condition == "Good" ? "selected" : "")>Good</option>
+                    <option value="Fair" @(ViewBag.Condition == "Fair" ? "selected" : "")>Fair</option>
+                    <option value="Poor" @(ViewBag.Condition == "Poor" ? "selected" : "")>Poor</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-qr-code me-2"></i>Registered Assets</h5>
+        <span class="text-muted small">@Model.Count asset(s)</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Asset Code</th>
+                        <th>Asset Name</th>
+                        <th>Category</th>
+                        <th>Location</th>
+                        <th>Condition</th>
+                        <th>Health</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+                            <td><code class="text-danger">@a.QrCode</code></td>
+                            <td><strong>@a.AssetName</strong> @if (a.FaultCount > 3)
+                            {<span class="text-danger" title="High fault count"><i class="bi bi-exclamation-circle"></i></span>}</td>
+                            <td><span class="badge bg-secondary">@a.Category</span></td>
+                            <td><i class="bi bi-geo-alt me-1"></i>@a.LocationBuilding</td>
+                            <td>
+                                <span class="badge bg-@(a.ConditionRating=="Good"?"success":a.ConditionRating=="Fair"?"warning":"danger")">@a.ConditionRating</span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height:8px;width:80px;">
+                                    <div class="progress-bar bg-@(a.HealthScore>70?"success":a.HealthScore>40?"warning":"danger")" style="width:@a.HealthScore%"></div>
+                                </div>
+                                <span class="small">@a.HealthScore%</span>
+                            </td>
+                            <td><span class="badge bg-@(a.Status=="Active"?"success":a.Status=="Under Repair"?"warning":"secondary")">@a.Status</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="@Url.Action("AssetDetail", "Maintenance", new { id = a.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                                    <a href="@Url.Action("EditAsset", "Maintenance", new { id = a.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <a href="@Url.Action("QrCode", "Maintenance", new { id = a.Id })" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-qr-code"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-cubes fs-1 d-block mb-2"></i>
+                <p>No assets found.</p>
+                <a href="@Url.Action("RegisterAsset", "Maintenance")" class="btn btn-primary btn-sm">Register First Asset</a>
+            </div>
+        }
+    </div>
+</div>

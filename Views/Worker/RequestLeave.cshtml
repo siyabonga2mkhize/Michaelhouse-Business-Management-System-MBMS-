@@ -1,0 +1,131 @@
+﻿@model Michaelhouse.Models.LeaveRequestViewModel
+@{
+    ViewBag.Title = "Request Leave";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Request Leave</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Submit a leave request for approval</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("RequestLeave", "Worker", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Leave Type *</label>
+                            @Html.DropDownListFor(m => m.Type,
+                                new SelectList(new[] { "Annual", "Sick", "Emergency", "Other" }),
+                                "-- Select Type --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.Type, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Start Date *</label>
+                            @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                            @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">End Date *</label>
+                            @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                            @Html.ValidationMessageFor(m => m.EndDate, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Reason</label>
+                            @Html.TextAreaFor(m => m.Reason, new { @class = "form-control", rows = 4, placeholder = "Optional: Provide more details about your leave request..." })
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Your leave balance is <strong>@(ViewBag.LeaveBalance ?? 15) days</strong>.
+                                The manager will review and approve your request.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Request</button>
+                            <a href="@Url.Action("MyJobs", "Worker")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>My Leave History</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.LeaveHistory != null && ((List<Michaelhouse.Models.LeaveRequest>)ViewBag.LeaveHistory).Any())
+                {
+                    foreach (var leave in (List<Michaelhouse.Models.LeaveRequest>)ViewBag.LeaveHistory)
+                    {
+                        string statusColor = leave.Status == "Approved" ? "success" : leave.Status == "Denied" ? "danger" : "warning";
+                        <div class="border-bottom p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>@leave.Type</strong>
+                                    <small class="text-muted d-block">@leave.StartDate.ToString("dd MMM") - @leave.EndDate.ToString("dd MMM yyyy")</small>
+                                </div>
+                                <span class="badge bg-@statusColor">@leave.Status</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(leave.Reason))
+                            {
+                                <small class="text-muted">Reason: @leave.Reason</small>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-check fs-1 d-block mb-2"></i>
+                        <p>No leave history found.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Ensure end date is not before start date
+        document.querySelector('input[name="StartDate"]').addEventListener('change', function() {
+            var startDate = this.value;
+            var endDateInput = document.querySelector('input[name="EndDate"]');
+            if (startDate) {
+                endDateInput.min = startDate;
+                if (endDateInput.value && endDateInput.value < startDate) {
+                    endDateInput.value = startDate;
+                }
+            }
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}
