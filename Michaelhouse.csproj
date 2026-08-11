@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
   <PropertyGroup>
     <SSDTUnitTestPath Condition="'$(SSDTUnitTestPath)' == ''">$(VsInstallRoot)\Common7\IDE\Extensions\Microsoft\SQLDB</SSDTUnitTestPath>
   </PropertyGroup>
@@ -62,10 +61,10 @@
       <HintPath>packages\Azure.Core.1.50.0\lib\net472\Azure.Core.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Identity.Core.2.2.4\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
@@ -115,8 +114,8 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="QRCoder, Version=1.4.3.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
-      <HintPath>packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+    <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
+      <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
     </Reference>
     <Reference Include="Stripe.net, Version=43.10.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -269,13 +268,11 @@
     <Compile Include="Controllers\TeacherDashboardController.cs" />
     <Compile Include="Controllers\DriverApplicationsController.cs" />
     <Compile Include="Controllers\TransportController.cs" />
+    <Compile Include="Controllers\VisitorAccessController.cs" />
+    <Compile Include="Controllers\VisitorAnalyticsController.cs" />
     <Compile Include="Controllers\WorkerController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608102346352_initialcreate.cs" />
-    <Compile Include="Migrations\202608102346352_initialcreate.Designer.cs">
-      <DependentUpon>202608102346352_initialcreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -369,6 +366,7 @@
     <Compile Include="Models\TeacherAttendanceRecordViewModel.cs" />
     <Compile Include="Models\Teacherservice.cs" />
     <Compile Include="Models\Teachersubjectgrade.cs" />
+    <Compile Include="Models\TermCalender.cs" />
     <Compile Include="Models\Termresult.cs" />
     <Compile Include="Models\Timetablegenerator .cs" />
     <Compile Include="Models\Timetablemodels.cs" />
@@ -383,6 +381,7 @@
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
+    <Compile Include="Models\VisitorAccessRequest.cs" />
     <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\TripController.cs" />
@@ -397,6 +396,7 @@
     <Compile Include="Services\CompatibilityScoringService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
     <Compile Include="Services\ResidenceAvailabilityService.cs" />
     <Compile Include="Services\StudentNumberService.cs" />
@@ -1962,6 +1962,7 @@
     <Content Include="Misc\SQLQuery.sql" />
     <Content Include="Scripts\app.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <None Include="Scripts\jquery-3.7.0-vsdoc.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -1972,6 +1973,14 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\SQLQuery.sql" />
+    <Content Include="Views\Transport\Drivers.cshtml" />
+    <Content Include="Views\Transport\CreateDriver.cshtml" />
+    <Content Include="Views\Transport\DeleteDriver.cshtml" />
+    <Content Include="Views\Driver\TripManifest.cshtml" />
+    <Content Include="Views\TransportManager\Details.cshtml" />
+    <Content Include="Views\TransportManager\Index.cshtml" />
+    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
     <Content Include="Views\StudentQRCode\Details.cshtml" />
     <Content Include="Views\StudentQRCode\_QRCodeCard.cshtml" />
     <Content Include="Views\StudentProfile\Basic.cshtml" />
@@ -2045,63 +2054,13 @@
     <Content Include="Views\Emergency\TriggerAlert.cshtml" />
     <Content Include="Views\Emergency\ViewAlertStatus.cshtml" />
     <Content Include="Views\Shared\_EmergencyLayout.cshtml" />
-    <Content Include="Views\Maintenance\Index.cshtml" />
-    <Content Include="Views\Maintenance\Staff.cshtml" />
-    <Content Include="Views\Maintenance\Assets.cshtml" />
-    <Content Include="Views\Maintenance\JobCards.cshtml" />
-    <Content Include="Views\Maintenance\Inventory.cshtml" />
-    <Content Include="Views\Maintenance\Schedules.cshtml" />
-    <Content Include="Views\Maintenance\Performance.cshtml" />
-    <Content Include="Views\Worker\MyJobs.cshtml" />
-    <Content Include="Views\Maintenance\AddStaff.cshtml" />
-    <Content Include="Views\Maintenance\EditStaff.cshtml" />
-    <Content Include="Views\Maintenance\RegisterAsset.cshtml" />
-    <Content Include="Views\Maintenance\EditAsset.cshtml" />
-    <Content Include="Views\Maintenance\AssetDetail.cshtml" />
-    <Content Include="Views\Maintenance\CreateJobCard.cshtml" />
-    <Content Include="Views\Maintenance\JobCardDetail.cshtml" />
-    <Content Include="Views\Maintenance\CompleteJobCard.cshtml" />
-    <Content Include="Views\Maintenance\ReportFault.cshtml" />
-    <Content Include="Views\Maintenance\AddInventory.cshtml" />
-    <Content Include="Views\Maintenance\AddSchedule.cshtml" />
-    <Content Include="Views\Worker\JobDetail.cshtml" />
-    <Content Include="Views\Reporter\ReportFault.cshtml" />
-    <Content Include="Views\Maintenance\StaffDetails.cshtml" />
-    <Content Include="Views\Worker\Profile.cshtml" />
-    <Content Include="Views\Worker\RequestLeave.cshtml" />
-    <Content Include="Views\Maintenance\ReportFaultFromScan.cshtml" />
-    <Content Include="Views\Scan\Index.cshtml" />
-    <Content Include="Views\Scan\Scanner.cshtml" />
-    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
-    <Content Include="Views\Trip\AttendanceError.cshtml" />
-    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
-    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
-    <Content Include="Views\Trip\TripQRCodes.cshtml" />
-    <Content Include="Views\Students\ScanQRCode.cshtml" />
-    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
-    <Content Include="Views\Shared\SingleQRCode.cshtml" />
-    <Content Include="Views\Transport\Drivers.cshtml" />
-    <Content Include="Views\Transport\CreateDriver.cshtml" />
-    <Content Include="Views\Transport\DeleteDriver.cshtml" />
-    <Content Include="Views\Driver\TripManifest.cshtml" />
-    <Content Include="Views\TransportManager\Details.cshtml" />
-    <Content Include="Views\TransportManager\Index.cshtml" />
-    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
-    <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
-    <Content Include="Views\Trip\AttendanceError.cshtml" />
-    <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
-    <Content Include="Views\Trip\StudentCheckIn.cshtml" />
-    <Content Include="Views\Trip\TripQRCodes.cshtml" />
-    <Content Include="Views\Students\ScanQRCode.cshtml" />
-    <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
-    <Content Include="Views\Shared\SingleQRCode.cshtml" />
-    <Content Include="Views\Transport\Drivers.cshtml" />
-    <Content Include="Views\Transport\CreateDriver.cshtml" />
-    <Content Include="Views\Transport\DeleteDriver.cshtml" />
-    <Content Include="Views\Driver\TripManifest.cshtml" />
-    <Content Include="Views\TransportManager\Details.cshtml" />
-    <Content Include="Views\TransportManager\Index.cshtml" />
-    <Content Include="Views\TransportManager\ReviewQueue.cshtml" />
+    <Content Include="Views\VisitorAccess\Create.cshtml" />
+    <Content Include="Views\VisitorAccess\MyRequests.cshtml" />
+    <Content Include="Views\VisitorAccess\HousemasterQueue.cshtml" />
+    <Content Include="Views\VisitorAccess\ScanGate.cshtml" />
+    <Content Include="Views\VisitorAccess\VistorPass.cshtml" />
+    <Content Include="Views\VisitorAnalytics\Index.cshtml" />
+    <Content Include="Views\VisitorAnalytics\ActiveVisitors.cshtml" />
     <Content Include="Views\Maintenance\Index.cshtml" />
     <Content Include="Views\Maintenance\Staff.cshtml" />
     <Content Include="Views\Maintenance\Assets.cshtml" />
@@ -2138,9 +2097,6 @@
     <Content Include="Views\Students\ScanQRCode.cshtml" />
     <Content Include="Views\Trip\ScanQRCodeForTrip.cshtml" />
     <Content Include="Views\Shared\SingleQRCode.cshtml" />
-    <WebConfigFile Include="Web.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </WebConfigFile>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -2306,11 +2262,7 @@
     <Folder Include="Data\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Leaverequestcontroller\" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608102346352_initialcreate.resx">
-      <DependentUpon>202608102346352_initialcreate.cs</DependentUpon>
-    </EmbeddedResource>
+    <Folder Include="Views\NewFolder1\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -2345,5 +2297,13 @@
   </PropertyGroup>
   <Import Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.Sql.UnitTesting.targets" Condition="$(VisualStudioVersion) != '15.0' And '$(SQLDBExtensionsRefPath)' == ''" />
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\EntityFramework.6.1.3\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.1.3\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets'))" />
+  </Target>
+  <Import Project="packages\EntityFramework.6.1.3\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.1.3\build\EntityFramework.targets')" />
+  <Import Project="packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" />
 </Project>
