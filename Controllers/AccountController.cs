@@ -79,6 +79,29 @@ namespace Michaelhouse.Controllers
 
 
 
+                // ── Maintenance Management: ensure MaintenanceStaffId is populated ──
+                // Same pattern as the Teacher check above, so refreshing the login
+                // page while already logged in as a worker doesn't cause redirect loops.
+                if (role == "MaintenanceWorker" && Session["MaintenanceStaffId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            if (userId > 0)
+                            {
+                                var staff = db.MaintenanceStaff.FirstOrDefault(s => s.UserId == userId);
+                                if (staff != null)
+                                {
+                                    Session["MaintenanceStaffId"] = staff.Id;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
                 return RedirectByRole(role);
             }
 
@@ -209,6 +232,17 @@ namespace Michaelhouse.Controllers
                         }
                     }
                 }
+                // ── Maintenance Management: Worker session setup ────────────────
+                else if (user.Role == "MaintenanceWorker")
+                {
+                    var staff = db.MaintenanceStaff.FirstOrDefault(s => s.UserId == user.UserId);
+                    if (staff != null)
+                    {
+                        Session["MaintenanceStaffId"] = staff.Id;
+                    }
+                }
+                // MaintenanceManager and MaintenanceReporter need no extra
+                // session data — same as how Admin needs none.
 
                 return RedirectByRole(user.Role);
             }
@@ -377,8 +411,6 @@ namespace Michaelhouse.Controllers
                     using (var db = new DBContextClass())
                     {
                         int userId = (int)Session["UserId"];
-
-                        // 1. FIND OR CREATE THE STUDENT RECORD (Guaranteed success)
                         var student = db.Students.FirstOrDefault(s => s.UserId == userId);
                         if (student == null)
                         {
@@ -386,45 +418,37 @@ namespace Michaelhouse.Controllers
                             var names = (user?.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                             var first = names.Length > 0 ? names[0] : user?.Name ?? "Student";
                             var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
-
                             student = new Student
                             {
                                 FirstName = first,
                                 LastName = last,
                                 UserId = userId,
-                                ParentId = 2, // Make sure this ID exists in your Parents table!
+                                ParentId = 2,
                                 IsActive = true,
                                 IsBoarding = true,
                                 GradeLevel = 8
                             };
                             db.Students.Add(student);
                             db.SaveChanges();
-
                             Session["StudentId"] = student.StudentId;
                         }
 
-                        // 2. Check for an Active Emergency Alert
                         var activeAlert = db.EmergencyAlerts
                             .Where(a => a.Status == AlertStatus.Active)
                             .OrderByDescending(a => a.AlertTime)
                             .FirstOrDefault();
 
-                        // 3. If there is an alert, check if they already confirmed
                         if (activeAlert != null)
                         {
                             bool alreadyConfirmed = db.StudentSafetyConfirmations
                                 .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
-
-                            // 4. If NOT confirmed, IMMEDIATELY redirect them to the red screen
                             if (!alreadyConfirmed)
-                            {
                                 return RedirectToAction("ConfirmSafety", "Emergency");
-                            }
                         }
                     }
                     return RedirectToAction("Dashboard", "Students");
                 case "Teacher":
-                    return RedirectToAction("Index", "TeacherDashboard"); // FIX: was "Teacher", must be "Teachers" (plural)
+                    return RedirectToAction("Index", "TeacherDashboard");
                 case "TransportManager":
                     return RedirectToAction("Dashboard", "Transport");
                 case "Driver":
@@ -432,10 +456,18 @@ namespace Michaelhouse.Controllers
                 case "HouseMaster":
                 case "Housemaster":
                     return RedirectToAction("Dashboard", "HouseMaster");
+                // ── Maintenance Management roles ──
+                case "MaintenanceManager":
+                    return RedirectToAction("Index", "Maintenance");
+                case "MaintenanceWorker":
+                    return RedirectToAction("MyJobs", "Worker");
+                case "MaintenanceReporter":   // backwards compatibility
+                case "FaultReporter":         // matches your seed
+                    return RedirectToAction("ReportFault", "Reporter");
+                case "Transport Manager":     // (if you need this variant)
+                    return RedirectToAction("Dashboard", "Transport");
                 default:
                     return RedirectToAction("Index", "Home");
-                case "Transport Manager":
-                    return RedirectToAction("Dashboard", "Transport");
             }
         }
 
@@ -470,7 +502,8 @@ namespace Michaelhouse.Controllers
                     UserRole = Session["UserRole"],
                     TeacherId = Session["TeacherId"],
                     ParentId = Session["ParentId"],
-                    StudentId = Session["StudentId"]
+                    StudentId = Session["StudentId"],
+                    MaintenanceStaffId = Session["MaintenanceStaffId"]
                 };
 
                 return Json(info, JsonRequestBehavior.AllowGet);
@@ -527,6 +560,91 @@ namespace Michaelhouse.Controllers
             }
 
             // To seed everything in one go, navigate to import_all.sql and execute the SQL script in your database.
+        }
+
+        // ─── Seed Maintenance Management ───────────────────────────────────────────
+        // Navigate to /Account/SeedMaintenance to create the Maintenance Manager
+        // and a full team of Maintenance Workers, all as AppUser accounts with
+        // linked MaintenanceStaff records — same pattern as SeedTransportManager.
+        public ActionResult SeedMaintenance()
+        {
+            using (var db = new DBContextClass())
+            {
+                if (db.Users.Any(u => u.Role == "MaintenanceManager"))
+                {
+                    TempData["Info"] = "Maintenance accounts already exist.";
+                    return RedirectToAction("Login");
+                }
+
+                // ── 1. Maintenance Manager ──────────────────────────────────────
+                var manager = new AppUser
+                {
+                    Name = "Mr. James Mokoena",
+                    Email = "maintenance@michaelhouse.co.za",
+                    PasswordHash = HashPassword("Manager@123"),
+                    Role = "MaintenanceManager"
+                };
+                db.Users.Add(manager);
+                db.SaveChanges();
+
+                // ── 2. Maintenance Workers ──────────────────────────────────────
+                var workersData = new[]
+                {
+                    new { Name = "Sipho Dlamini",   Email = "sipho.dlamini@michaelhouse.co.za",
+                          Skill = "Plumbing",   ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                    new { Name = "Eric Mthembu",    Email = "eric.mthembu@michaelhouse.co.za",
+                          Skill = "Electrical", ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                    new { Name = "Sifiso Khumalo",  Email = "sifiso.khumalo@michaelhouse.co.za",
+                          Skill = "Grounds",    ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                    new { Name = "Bongani Nkosi",   Email = "bongani.nkosi@michaelhouse.co.za",
+                          Skill = "Plumbing",   ShiftStart = new TimeSpan(14,0,0), ShiftEnd = new TimeSpan(22,0,0) },
+                    new { Name = "Thabo Zulu",      Email = "thabo.zulu@michaelhouse.co.za",
+                          Skill = "Electrical", ShiftStart = new TimeSpan(14,0,0), ShiftEnd = new TimeSpan(22,0,0) },
+                    new { Name = "Lungelo Mbatha",  Email = "lungelo.mbatha@michaelhouse.co.za",
+                          Skill = "HVAC",       ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                    new { Name = "Mandla Cele",     Email = "mandla.cele@michaelhouse.co.za",
+                          Skill = "Pool",       ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                    new { Name = "Sandile Ntanzi",  Email = "sandile.ntanzi@michaelhouse.co.za",
+                          Skill = "General",    ShiftStart = new TimeSpan(6,0,0),  ShiftEnd = new TimeSpan(14,0,0) },
+                };
+
+                int count = 1;
+                foreach (var w in workersData)
+                {
+                    var wUser = new AppUser
+                    {
+                        Name = w.Name,
+                        Email = w.Email,
+                        PasswordHash = HashPassword("Worker@123"),
+                        Role = "MaintenanceWorker"
+                    };
+                    db.Users.Add(wUser);
+                    db.SaveChanges();
+
+                    db.MaintenanceStaff.Add(new MaintenanceStaff
+                    {
+                        FullName = w.Name,
+                        StaffNumber = string.Format("MH-MAINT-{0:D3}", count),
+                        Email = w.Email,
+                        Phone = "073100" + (1000 + count),
+                        SkillType = w.Skill,
+                        ShiftStart = w.ShiftStart,
+                        ShiftEnd = w.ShiftEnd,
+                        CurrentStatus = "Available",
+                        IsActive = true,
+                        DateJoined = DateTime.Now,
+                        UserId = wUser.UserId
+                    });
+                    db.SaveChanges();
+                    count++;
+                }
+
+                TempData["Success"] = "Maintenance accounts created. "
+                    + "Manager: maintenance@michaelhouse.co.za / Manager@123. "
+                    + "Workers: [firstname].[lastname]@michaelhouse.co.za / Worker@123";
+
+                return RedirectToAction("Login");
+            }
         }
     }
 }

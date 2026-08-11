@@ -1,0 +1,135 @@
+﻿@model List<Michaelhouse.Models.MaintenanceStaff>
+@{
+    ViewBag.Title = "Staff Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Staff Management</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Manage maintenance team</p>
+    </div>
+    <a href="@Url.Action("AddStaff", "Maintenance")" class="btn btn-dark">+ Add Staff</a>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" action="@Url.Action("Staff", "Maintenance")" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Search</label>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Name or staff number..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Skill</label>
+                <select name="skill" class="form-select">
+                    <option value="">All Skills</option>
+                    @foreach (var s in new[] { "Plumbing", "Electrical", "HVAC", "Grounds", "Pool", "IT", "General" })
+                    {
+                        <option value="@s" @(ViewBag.Skill == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach (var s in new[] { "Available", "On Job", "Off Shift" })
+                    {
+                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Staff Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Maintenance Team</h5>
+        <span class="text-muted small">@Model.Count staff member(s)</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Staff No.</th>
+                        <th>Name</th>
+                        <th>Skill</th>
+                        <th>Shift</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Jobs Done</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        var completed = ViewData["completed_" + s.Id] ?? 0;
+                        var active = ViewData["active_" + s.Id] ?? 0;
+                        <tr>
+                            <td><code class="text-danger">@s.StaffNumber</code></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="bg-dark text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;font-weight:700;font-size:14px;">@s.FullName.Substring(0, 1)</span>
+                                    <div>
+                                        <strong>@s.FullName</strong>
+                                        <div class="small text-muted">@s.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-secondary">@s.SkillType</span></td>
+                            <td>@s.ShiftStart.ToString(@"hh\:mm") – @s.ShiftEnd.ToString(@"hh\:mm")</td>
+                            <td>@s.Phone</td>
+                            <td>
+                                <span class="badge bg-@(s.CurrentStatus=="Available"?"success":s.CurrentStatus=="On Job"?"warning":"secondary")">@s.CurrentStatus</span>
+                            </td>
+                            <td><span class="text-success">@completed</span> total · <span class="text-warning">@active</span> active</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="@Url.Action("EditStaff", "Maintenance", new { id = s.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                                    <button onclick="updateStatus(@s.Id,'Available')" class="btn btn-sm btn-outline-success"><i class="bi bi-check-lg"></i></button>
+                                    <form method="post" action="@Url.Action("DeactivateStaff", "Maintenance", new { id = s.Id })" onsubmit="return confirm('Deactivate @s.FullName?')" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-person-x"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 d-block mb-2"></i>
+                <p>No staff found.</p>
+                <a href="@Url.Action("AddStaff", "Maintenance")" class="btn btn-primary btn-sm">Add First Staff Member</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateStatus(id, status) {
+            fetch('@Url.Action("UpdateStatus", "Maintenance")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id + '&status=' + status
+            }).then(r => r.json()).then(data => { if (data.success) location.reload(); });
+        }
+    </script>
+}

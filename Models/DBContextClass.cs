@@ -118,6 +118,18 @@ namespace Michaelhouse.Models
         public DbSet<TermCalendar> TermCalendars { get; set; }
         public DbSet<VisitorScanLog> VisitorScanLogs { get; set; }
 
+        // ─── Maintenance Management ───────────────────────────────────────
+        public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }
+        public DbSet<Asset> Assets { get; set; }
+        public DbSet<JobCard> JobCards { get; set; }
+        public DbSet<JobCardPhoto> JobCardPhotos { get; set; }
+        public DbSet<MaintenanceInventory> MaintenanceInventory { get; set; }
+        public DbSet<JobCardPart> JobCardParts { get; set; }
+        public DbSet<PreventiveSchedule> PreventiveSchedules { get; set; }
+        // ─── Maintenance Management – Advanced ──────────────────────────
+        public DbSet<ShiftPattern> ShiftPatterns { get; set; }
+        public DbSet<StaffShift> StaffShifts { get; set; }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
