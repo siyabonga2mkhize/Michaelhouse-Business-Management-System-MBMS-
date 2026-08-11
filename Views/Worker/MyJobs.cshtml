@@ -1,0 +1,241 @@
+﻿@model List<Michaelhouse.Models.JobCard>
+@{
+    ViewBag.Title = "My Jobs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">My Jobs</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Welcome, @(ViewBag.Staff?.FullName ?? Session["UserName"]?.ToString()) · @(ViewBag.Staff?.SkillType ?? "Worker")</p>
+    </div>
+</div>
+
+<!-- ── Stats Cards ─────────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-primary">@Model.Count(j => j.Status != "Completed" && j.Status != "Cancelled")</h2>
+                <span class="text-muted small">Open Jobs</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-success">@ViewBag.TotalCompleted</h2>
+                <span class="text-muted small">Total Completed</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-info">@ViewBag.CompletedThisMonth</h2>
+                <span class="text-muted small">Completed This Month</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="fw-bold text-warning">@ViewBag.AvgResponseTime <small class="text-muted">mins</small></h2>
+                <span class="text-muted small">Avg Response Time</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- ── Open Jobs ──────────────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>My Open Jobs</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Any(j => j.Status != "Completed" && j.Status != "Cancelled"))
+                {
+                    foreach (var job in Model.Where(j => j.Status != "Completed" && j.Status != "Cancelled"))
+                    {
+                        string priorityColor = job.Priority == "Emergency" ? "danger" : job.Priority == "High" ? "warning" : job.Priority == "Medium" ? "info" : "secondary";
+                        <div class="border-bottom p-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <code class="text-danger">@job.JobReference</code>
+                                    <div class="fw-bold">@job.Title</div>
+                                    <small class="text-muted">
+                                        @(job.Asset != null ? job.Asset.LocationBuilding : "No asset") ·
+                                        @job.DateCreated.ToString("dd MMM yyyy HH:mm")
+                                        @if (job.DueDate.HasValue)
+                                        {
+                                            <span class="ms-2">Due: @job.DueDate.Value.ToString("dd MMM yyyy")</span>
+                                            if (job.DueDate.Value < DateTime.Now)
+                                            {
+                                                <span class="badge bg-danger ms-1">Overdue!</span>
+                                            }
+                                        }
+                                    </small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-@priorityColor me-1">@job.Priority</span>
+                                    <span class="badge bg-secondary">@job.Status</span>
+                                    <a href="@Url.Action("JobDetail", "Worker", new { id = job.Id })" class="btn btn-sm btn-outline-primary ms-2">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    @if (job.Status == "Assigned" || job.Status == "In Progress")
+                                    {
+                                        <a href="@Url.Action("CompleteJob", "Worker", new { id = job.Id })" class="btn btn-sm btn-success ms-1">
+                                            <i class="bi bi-check-circle"></i> Complete
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                        <p>No open jobs assigned to you. Great job!</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── Recently Completed ────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recently Completed</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.CompletedJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs).Any())
+                {
+                    foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs)
+                    {
+                        <div class="border-bottom p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <code class="text-muted">@job.JobReference</code>
+                                    <div>@job.Title</div>
+                                    <small class="text-muted">Completed @job.DateCompleted?.ToString("dd MMM yyyy")</small>
+                                </div>
+                                <span class="badge bg-success">✓ Done</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3 text-muted">
+                        <small>No completed jobs yet.</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Right Sidebar ────────────────────────────────────────────────── -->
+    <div class="col-lg-4">
+        <!-- ── My Schedule ────────────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2"></i>My Schedule</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.UpcomingShifts != null && ((List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts).Any())
+                {
+                    foreach (var shift in (List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts)
+                    {
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span>@shift.Date.ToString("ddd dd MMM")</span>
+                            <span class="badge bg-primary">@shift.ShiftPattern.Name</span>
+                            <span class="text-muted small">@shift.ShiftPattern.StartTime.ToString(@"hh\:mm") - @shift.ShiftPattern.EndTime.ToString(@"hh\:mm")</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3 text-muted">
+                        <small>No shifts scheduled.</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ── Quick Actions ─────────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="@Url.Action("RequestLeave", "Worker")" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-calendar-plus me-1"></i> Request Leave
+                </a>
+                <a href="@Url.Action("Profile", "Worker")" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-person-gear me-1"></i> My Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- ── Status ─────────────────────────────────────────────────────── -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-circle-fill me-2 text-@(ViewBag.Staff?.CurrentStatus == "Available" ? "success" : ViewBag.Staff?.CurrentStatus == "On Job" ? "warning" : "secondary")"></i>My Status</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Current Status: <strong>@(ViewBag.Staff?.CurrentStatus ?? "Unknown")</strong></p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success" onclick="updateStatus('Available')">
+                        <i class="bi bi-check-circle"></i> Available
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="updateStatus('On Job')">
+                        <i class="bi bi-clock"></i> On Job
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="updateStatus('Off Shift')">
+                        <i class="bi bi-hourglass"></i> Off Shift
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateStatus(status) {
+            var staffId = @(ViewBag.Staff?.Id ?? 0);
+            if (staffId === 0) return;
+
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "Worker")',
+                type: 'POST',
+                data: { id: staffId, status: status },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to update status.');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred.');
+                }
+            });
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

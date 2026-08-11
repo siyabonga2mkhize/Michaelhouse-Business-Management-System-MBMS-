@@ -1,0 +1,112 @@
+﻿@model Michaelhouse.Models.MaintenanceInventory
+@{
+    ViewBag.Title = "Add Inventory Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Add Inventory Item</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Add a part or material to the storeroom</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                @using (Html.BeginForm("AddInventory", "Maintenance", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Item Name *</label>
+                            @Html.TextBoxFor(m => m.ItemName, new { @class = "form-control", placeholder = "e.g. LED Bulb 18W / PVC Pipe 20mm" })
+                            @Html.ValidationMessageFor(m => m.ItemName, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Category *</label>
+                            @Html.DropDownListFor(m => m.Category,
+                                new SelectList(new[] { "Plumbing", "Electrical", "HVAC", "Grounds", "Pool", "Safety", "General" }),
+                                "-- Select Category --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.Category, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Unit of Measure *</label>
+                            @Html.DropDownListFor(m => m.Unit,
+                                new SelectList(new[] { "pieces", "metres", "litres", "kg", "bags", "boxes", "tins" }),
+                                "-- Select Unit --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(m => m.Unit, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Starting Stock *</label>
+                            @Html.TextBoxFor(m => m.StockLevel, new { @class = "form-control", type = "number", min = "0" })
+                            @Html.ValidationMessageFor(m => m.StockLevel, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Min Stock *</label>
+                            @Html.TextBoxFor(m => m.MinimumStock, new { @class = "form-control", type = "number", min = "1" })
+                            @Html.ValidationMessageFor(m => m.MinimumStock, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Unit Cost (R) *</label>
+                            @Html.TextBoxFor(m => m.UnitCost, new { @class = "form-control", type = "number", step = "0.01", placeholder = "0.00" })
+                            @Html.ValidationMessageFor(m => m.UnitCost, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Supplier</label>
+                            @Html.TextBoxFor(m => m.Supplier, new { @class = "form-control", placeholder = "e.g. Builders Warehouse PMB" })
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary mt-3">
+                        <i class="bi bi-bell me-2"></i> When stock drops to or below the minimum level, a red alert will appear on the dashboard.
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Add to Inventory</button>
+                        <a href="@Url.Action("Inventory", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Category Guide</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var cat in new[] {
+                    ("Plumbing", "Pipes, fittings, taps, geysers"),
+                    ("Electrical", "Bulbs, switches, cable, breakers"),
+                    ("HVAC", "Filters, refrigerant gas, belts"),
+                    ("Grounds", "Fertilizer, seeds, paint markers"),
+                    ("Pool", "Chlorine, pH chemicals, filters"),
+                    ("Safety", "Extinguisher powder, batteries"),
+                    ("General", "Paint, screws, sandpaper, tools")
+                })
+                {
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span class="badge bg-secondary">@cat.Item1</span>
+                        <small class="text-muted">@cat.Item2</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .font-serif {
+            font-family: 'Playfair Display', serif !important;
+        }
+    </style>
+}

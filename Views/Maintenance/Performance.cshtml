@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "Performance Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Performance Dashboard</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">KPI overview — @DateTime.Now.ToString("MMMM yyyy")</p>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Jobs This Month</h6>
+                <h3 class="fw-bold">@ViewBag.JobsThisMonth</h3>
+                <small class="text-muted">@(ViewBag.JobsThisMonth > ViewBag.JobsLastMonth ? "↑" : "↓") @Math.Abs((int)(ViewBag.JobsThisMonth - ViewBag.JobsLastMonth)) vs last month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Avg Response (mins)</h6>
+                <h3 class="fw-bold text-success">@ViewBag.AvgResponseTime</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Emergencies</h6>
+                <h3 class="fw-bold text-danger">@ViewBag.EmergencyCount</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold">Overdue Jobs</h6>
+                <h3 class="fw-bold text-warning">@(((List<Michaelhouse.Models.JobCard>)ViewBag.OverdueJobs).Count)</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Priority Bars -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2"></i>Jobs by Priority – This Month</h5>
+            </div>
+            <div class="card-body">
+                @{
+                    int total = (int)ViewBag.JobsThisMonth;
+                    int em = (int)ViewBag.EmergencyCount;
+                    int hi = (int)ViewBag.HighCount;
+                    int me = (int)ViewBag.MediumCount;
+                    int lo = (int)ViewBag.LowCount;
+                    var priorities = new[] {
+                        new { Label = "Emergency", Count = em, Color = "danger" },
+                        new { Label = "High", Count = hi, Color = "warning" },
+                        new { Label = "Medium", Count = me, Color = "info" },
+                        new { Label = "Low", Count = lo, Color = "success" }
+                    };
+                }
+                @foreach (var p in priorities)
+                {
+                    int pct = total > 0 ? (int)((p.Count * 100.0) / total) : 0;
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-@p.Color">@p.Label</span>
+                            <span>@p.Count jobs (@pct%)</span>
+                        </div>
+                        <div class="progress" style="height:12px;">
+                            <div class="progress-bar bg-@p.Color" style="width:@pct%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Worker Performance -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Worker Performance – This Month</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.WorkerPerformance != null)
+                {
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Rank</th>
+                                <th>Worker</th>
+                                <th>Skill</th>
+                                <th>Completed</th>
+                                <th>Avg Response</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rank = 1; }
+                            @foreach (var w in (List<Michaelhouse.Models.WorkerPerformanceModel>)ViewBag.WorkerPerformance)
+                            {
+                                string medal = rank == 1 ? "🥇" : rank == 2 ? "🥈" : rank == 3 ? "🥉" : rank.ToString();
+                                int stars = w.Completed >= 10 ? 5 : w.Completed >= 7 ? 4 : w.Completed >= 4 ? 3 : w.Completed >= 1 ? 2 : 1;
+                                <tr>
+                                    <td>@medal</td>
+                                    <td><strong>@w.Name</strong></td>
+                                    <td><span class="badge bg-secondary">@w.Skill</span></td>
+                                    <td><span class="fw-bold text-success">@w.Completed</span></td>
+                                    <td>@(w.AvgTime > 0 ? w.AvgTime + " mins" : "—")</td>
+                                    <td>@for (int i = 0; i < stars; i++)
+                                    {<span class="text-warning">★</span>}</td>
+                                </tr>
+                                rank++;
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <!-- High Fault Assets -->
+        @if (ViewBag.HighFaultAssets != null && ((List<Michaelhouse.Models.Asset>)ViewBag.HighFaultAssets).Any())
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>High Fault Assets</h5>
+                </div>
+                <div class="card-body p-0">
+                    @foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.HighFaultAssets)
+                    {
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                            <div>
+                                <div class="fw-bold">@a.AssetName</div>
+                                <small class="text-muted">@a.LocationBuilding</small>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">@a.FaultCount faults</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Monthly Summary -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-month me-2"></i>Monthly Summary</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="d-flex justify-content-between border-bottom pb-2 mb-2"><span class="text-muted">Total jobs this month</span><strong>@ViewBag.JobsThisMonth</strong></li>
+                    <li class="d-flex justify-content-between border-bottom pb-2 mb-2"><span class="text-muted">Last month</span><strong>@ViewBag.JobsLastMonth</strong></li>
+                    <li class="d-flex justify-content-between border-bottom pb-2 mb-2"><span class="text-muted">Avg response time</span><strong class="text-success">@ViewBag.AvgResponseTime mins</strong></li>
+                    <li class="d-flex justify-content-between"><span class="text-muted">Emergencies this month</span><strong class="text-danger">@ViewBag.EmergencyCount</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
