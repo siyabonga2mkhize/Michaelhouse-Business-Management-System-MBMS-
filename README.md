@@ -52,7 +52,7 @@ Below is a complete list of seeded users and their credentials.
 
 | Name          | Email                           | Password    |
 |---------------|---------------------------------|-------------|
-| John Staff    | `j.staff@michaelhouse.org`      | `Password123` |
+| John Staff    | `j.staff@michaelhouse.org`      | `??` |
 
 ---
 
@@ -109,9 +109,9 @@ All drivers have the password `123456` (this differs from the default).
 
 | Role                | Name              | Email                           | Password    |
 |---------------------|-------------------|---------------------------------|-------------|
-| Transport Manager   | Greg Johnson      | `transport@michaelhouse.co.za`  | `Password123` |
-| Inventory Manager   | Andre Van Kok     | `inventory@michaelhouse.co.za`  | `Password123` |
-| Maintenance Manager | Mr. James Mokoena | `j.mokoena@michaelhouse.org`    | `Password123` |
+| Transport Manager   | Greg Johnson      | `transport@michaelhouse.co.za`  | `??` |
+| Inventory Manager   | Andre Van Kok     | `inventory@michaelhouse.co.za`  | `??` |
+| Maintenance Manager | Mr. James Mokoena | `j.mokoena@michaelhouse.org`    | `??` |
 
 ---
 
@@ -149,7 +149,7 @@ All reporters have the password `Report@123`.
 
 ### 🏠 House Masters
 
-All house masters have the password `Password123`.
+All house masters have the password `??`.
 
 | Name                     | Email                                 |
 |--------------------------|---------------------------------------|
