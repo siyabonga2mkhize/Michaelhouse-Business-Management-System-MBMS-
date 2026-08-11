@@ -1,4 +1,20 @@
 -- ============================================================
+-- 0. ADMIN USER
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM AppUsers WHERE Email = 'admin@michaelhouse.co.za')
+BEGIN
+    INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+    VALUES ('System Admin', 'admin@michaelhouse.co.za', 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=', 'Admin');
+END
+ELSE
+BEGIN
+    -- Update password hash if admin already exists
+    UPDATE AppUsers 
+    SET PasswordHash = 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U='
+    WHERE Email = 'admin@michaelhouse.co.za';
+END
+
+-- ============================================================
 -- 1. REFERENCE DATA: SUBJECTS (all non-null columns)
 -- ============================================================
 MERGE INTO Subjects AS target
