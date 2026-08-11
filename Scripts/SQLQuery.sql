@@ -64,7 +64,7 @@ WHERE t.Email = 'j.staff@michaelhouse.org'
   );
 
 -- ============================================================
--- 3. PARENTS
+-- 3. PARENTS & PARENT APPUSER ACCOUNTS
 -- ============================================================
 MERGE INTO Parents AS target
 USING (VALUES 
@@ -87,6 +87,25 @@ WHEN NOT MATCHED THEN
 
 -- Update emergency contacts for existing parents
 UPDATE Parents SET EmergencyContactName = Name WHERE EmergencyContactName IS NULL;
+
+-- Create AppUser for each parent (if not exists)
+INSERT INTO AppUsers (Name, Email, PasswordHash, Role)
+SELECT 
+    p.Name,
+    p.Contact,
+    'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=',  -- default password: Password123
+    'Parent'
+FROM Parents p
+WHERE NOT EXISTS (
+    SELECT 1 FROM AppUsers u WHERE u.Email = p.Contact
+);
+
+-- Link Parents to UserId
+UPDATE p
+SET p.UserId = u.UserId
+FROM Parents p
+INNER JOIN AppUsers u ON u.Email = p.Contact
+WHERE p.UserId IS NULL;
 
 -- ============================================================
 -- 4. STUDENTS (with EnrollmentDate = GETDATE())
