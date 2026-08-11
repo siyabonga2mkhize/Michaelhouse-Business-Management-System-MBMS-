@@ -1,6 +1,6 @@
 ﻿select * from SchoolClasses
-
-select * from appusers
+ 
+select * from appusers;
 
 update AppUsers set pashwordhash = 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=' where email = 'admin@michaelhouse.co.za' ;
 
@@ -305,6 +305,8 @@ DELETE FROM TeacherAttendances where TeacherAttendanceId = 1006;
 
 
 Select * from Students;
+
+select * from parents;
 
 
 Select * from StudentSubjects;
