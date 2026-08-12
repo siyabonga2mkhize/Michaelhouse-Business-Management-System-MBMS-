@@ -109,9 +109,9 @@ All drivers have the password `123456` (this differs from the default).
 
 | Role                | Name              | Email                           | Password    |
 |---------------------|-------------------|---------------------------------|-------------|
-| Transport Manager   | Greg Johnson      | `transport@michaelhouse.co.za`  | `??` |
-| Inventory Manager   | Andre Van Kok     | `inventory@michaelhouse.co.za`  | `??` |
-| Maintenance Manager | Mr. James Mokoena | `j.mokoena@michaelhouse.org`    | `??` |
+| Transport Manager   | Greg Johnson      | `transport@michaelhouse.co.za`  | `Transport@123` |
+| Inventory Manager   | Andre Van Kok     | `inventory@michaelhouse.co.za`  | `Stock@123` |
+| Maintenance Manager | Mr. James Mokoena | `j.mokoena@michaelhouse.org`    | `Manager@123` |
 
 ---
 
@@ -149,7 +149,7 @@ All reporters have the password `Report@123`.
 
 ### 🏠 House Masters
 
-All house masters have the password `??`.
+All house masters have the password `HouseMaster@123`.
 
 | Name                     | Email                                 |
 |--------------------------|---------------------------------------|
