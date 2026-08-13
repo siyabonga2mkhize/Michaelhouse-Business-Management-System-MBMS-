@@ -46,7 +46,11 @@ C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBu
 "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" Michaelhouse.sln /t:Clean,Build /v:normal /flp1:logfile=errorsonly.txt;errorsonly /flp2:logfile=Misc\buildlog.txt
 
 
-## Restore
+## Restore	x
+Package Manager Console 
+
+~ Update-Package -reinstall
+
 cd /d "C:\Users\thesm\source\repos\Michaelhouse Business Management System (MBMS)\Michaelhouse"
 nuget restore Michaelhouse.sln
 
@@ -64,3 +68,28 @@ curl -X POST https://api.nexar.com/oauth2/token \ -H "Content-Type: application/
 curl -X POST "https://api.nexar.com/auth/realms/nexar/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials&client_id=7d9354b4-3444-49aa-91ed-f407af4d964b&client_secret=NLVy6AyENx2LrYgDAPlbwsFr258EnvDRlQK9"
 
 @copilot resolve the merge conflicts in this pull request
+
+cd C:\home\site\wwwroot\bin
+powershell
+Get-ChildItem -Filter *.dll | ForEach-Object { $file = $_.FullName $ver = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($file)[PSCustomObject]@{ Name = $_.Name Version = $ver.FileVersion ProductVersion = $ver.ProductVersion Size = $_.Length Modified = $_.LastWriteTime }} | Format-Table -AutoSize
+
+
+local structure without 
+dir /s /a | findstr /V /I /C:".github" /C:".gitignore"
+
+
+
+##PM 
+Update webconfig 
+Get-Project -All | Add-BindingRedirect
+
+Get package verison
+Get-Package -ProjectName "Michaelhouse" | Select-Object Id, 
+
+
+
+type ErrorPage000029.htm >. C:\home\site\wwwroot\Misc\latest_error_log.txt
+
+type eventlog.xml >> C:\home\site\wwwroot\Misc\latest_error_log.txt
+
+type eventlog.prev.xml >> C:\home\site\wwwroot\Misc\latest_error_log.txt

@@ -2,9 +2,11 @@
 using Michaelhouse.Models;
 using Michaelhouse.Models.ViewModels;
 using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Security;
 
@@ -111,15 +113,16 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginViewModel vm)
+        public async Task<ActionResult> Login(LoginViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
 
             using (var db = new DBContextClass())
             {
                 var hash = HashPassword(vm.Password);
-                var user = db.Users.FirstOrDefault(u =>
-                    u.Email == vm.Email && u.PasswordHash == hash);
+
+                // 1. Async user lookup
+                var user = await db.Users.FirstOrDefaultAsync(u => u.Email == vm.Email && u.PasswordHash == hash);
 
                 if (user == null)
                 {
@@ -127,34 +130,50 @@ namespace Michaelhouse.Controllers
                     return View(vm);
                 }
 
-                // Set Core Session Data
+                // 2. Set session (synchronous, but fast)
                 Session["UserId"] = user.UserId;
                 Session["UserName"] = user.Name;
                 Session["UserRole"] = user.Role;
                 FormsAuthentication.SetAuthCookie(user.Email, false);
 
-                // Store role-specific identifiers in session for easy access
+                // 3. Role-specific logic (with async queries)
                 if (user.Role == "Parent")
                 {
-                    var parent = db.Parents.FirstOrDefault(p => p.UserId == user.UserId);
+                    var parent = await db.Parents.FirstOrDefaultAsync(p => p.UserId == user.UserId);
                     if (parent != null) Session["ParentId"] = parent.ParentId;
                 }
                 else if (user.Role == "Student")
                 {
-                    var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
-                    if (student != null) Session["StudentId"] = student.StudentId;
+                    var student = await db.Students.FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                    if (student == null)
+                    {
+                        // create minimal student
+                        var names = (user.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        var first = names.Length > 0 ? names[0] : user.Name ?? "Student";
+                        var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
+                        student = new Student
+                        {
+                            FirstName = first,
+                            LastName = last,
+                            UserId = user.UserId,
+                            ParentId = 2, // adjust if needed
+                            IsActive = true,
+                            IsBoarding = true,
+                            GradeLevel = 8
+                        };
+                        db.Students.Add(student);
+                        await db.SaveChangesAsync();
+                    }
+                    Session["StudentId"] = student.StudentId;
                 }
                 else if (user.Role == "Teacher")
                 {
-                    // Ensure a Teacher record exists for this AppUser. If missing, create
-                    // a minimal Teacher entry so the TeacherDashboard can find it.
-                    var teacher = db.Teachers.FirstOrDefault(t => t.UserId == user.UserId);
+                    var teacher = await db.Teachers.FirstOrDefaultAsync(t => t.UserId == user.UserId);
                     if (teacher == null)
                     {
                         var names = (user.Name ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         var first = names.Length > 0 ? names[0] : user.Name ?? "";
                         var last = names.Length > 1 ? string.Join(" ", names.Skip(1)) : "";
-
                         teacher = new Teacher
                         {
                             FirstName = first,
@@ -164,20 +183,13 @@ namespace Michaelhouse.Controllers
                             UserId = user.UserId
                         };
                         db.Teachers.Add(teacher);
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
                     }
-
                     Session["TeacherId"] = teacher.TeacherId;
-                }
-                else if (user.Role == "InventoryManager")
-                {
-                    // Send them straight to the new dashboard!
-                    return RedirectToAction("Index", "Inventory");
                 }
                 else if (user.Role == "Driver")
                 {
-                    var driver = db.Drivers.FirstOrDefault(d => d.UserId == user.UserId);
-
+                    var driver = await db.Drivers.FirstOrDefaultAsync(d => d.UserId == user.UserId);
                     if (driver == null)
                     {
                         driver = new Driver
@@ -188,61 +200,44 @@ namespace Michaelhouse.Controllers
                             IsActive = true,
                             DateCreated = DateTime.Now
                         };
-
                         db.Drivers.Add(driver);
-                        db.SaveChanges();
+                        await db.SaveChangesAsync();
                     }
-
-                    // IMPORTANT: store correct key (Id, not DriverId)
                     Session["DriverId"] = driver.Id;
                 }
                 else if (user.Role == "HouseMaster" || user.Role == "Housemaster")
                 {
-                    var houseMaster = db.HouseMasters.FirstOrDefault(h =>
+                    var houseMaster = await db.HouseMasters.FirstOrDefaultAsync(h =>
                         h.ContactEmail == user.Email || h.FullName == user.Name);
-                    if (houseMaster != null)
-                    {
-                        Session["HouseMasterId"] = houseMaster.HouseMasterId;
-                    }
+                    if (houseMaster != null) Session["HouseMasterId"] = houseMaster.HouseMasterId;
                 }
-                // Inside [HttpPost] Login, right before "return RedirectByRole(user.Role);"
+                else if (user.Role == "MaintenanceWorker")
+                {
+                    var staff = await db.MaintenanceStaff.FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                    if (staff != null) Session["MaintenanceStaffId"] = staff.Id;
+                }
+
+                // 4. Emergency alert check (only for Students)
                 if (user.Role == "Student")
                 {
+                    var student = await db.Students.FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                    if (student != null)
                     {
-                        var activeAlert = db.EmergencyAlerts
+                        var activeAlert = await db.EmergencyAlerts
                             .Where(a => a.Status == AlertStatus.Active)
                             .OrderByDescending(a => a.AlertTime)
-                            .FirstOrDefault();
-
+                            .FirstOrDefaultAsync();
                         if (activeAlert != null)
                         {
-                            var student = db.Students.FirstOrDefault(s => s.UserId == user.UserId);
-                            if (student != null)
+                            bool alreadyConfirmed = await db.StudentSafetyConfirmations
+                                .AnyAsync(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+                            if (!alreadyConfirmed)
                             {
-                                // CRITICAL: Check if they confirmed for THIS specific alert ID
-                                bool alreadyConfirmed = db.StudentSafetyConfirmations
-                                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
-
-                                if (!alreadyConfirmed)
-                                {
-                                    // Immediately force the redirect and stop the login flow
-                                    return RedirectToAction("ConfirmSafety", "Emergency");
-                                }
+                                return RedirectToAction("ConfirmSafety", "Emergency");
                             }
                         }
                     }
                 }
-                // ── Maintenance Management: Worker session setup ────────────────
-                else if (user.Role == "MaintenanceWorker")
-                {
-                    var staff = db.MaintenanceStaff.FirstOrDefault(s => s.UserId == user.UserId);
-                    if (staff != null)
-                    {
-                        Session["MaintenanceStaffId"] = staff.Id;
-                    }
-                }
-                // MaintenanceManager and MaintenanceReporter need no extra
-                // session data — same as how Admin needs none.
 
                 return RedirectByRole(user.Role);
             }

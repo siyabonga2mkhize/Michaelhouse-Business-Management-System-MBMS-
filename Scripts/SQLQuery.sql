@@ -253,3 +253,96 @@ BEGIN
 END
 
 SELECT 'Script completed successfully.' AS Status;
+
+
+-- ============================================================
+-- APPLICATION DATA (with Registrations & Invoices)
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- 1. Ensure we have at least one parent and one student to link to
+--    (if they don't exist, create minimal test ones)
+-- ------------------------------------------------------------
+-- (Skip if you already have parents/students from earlier scripts)
+
+IF NOT EXISTS (SELECT 1 FROM Parents)
+BEGIN
+    INSERT INTO Parents (Name, Contact, CellPhone, EmergencyContactName)
+    VALUES ('Test Parent', 'test@example.com', '0810000000', 'Test Parent');
+END
+
+IF NOT EXISTS (SELECT 1 FROM Students)
+BEGIN
+    -- Insert a minimal student for testing
+    DECLARE @ParentId INT = (SELECT TOP 1 ParentId FROM Parents);
+    INSERT INTO Students (FirstName, LastName, DOB, GradeLevel, ParentId, IsBoarding, IsActive, EnrollmentDate)
+    VALUES ('Test', 'Student', '2008-01-01', 8, @ParentId, 1, 1, GETDATE());
+END
+
+-- ------------------------------------------------------------
+-- 2. Insert Applications for existing students (limit to 3)
+-- ------------------------------------------------------------
+DECLARE @AppYear INT = YEAR(GETDATE());
+DECLARE @Status INT = 1;  -- 1 = Submitted (adjust as per your enum)
+
+-- For each student that doesn't already have an application
+INSERT INTO Applications (ParentId, StudentId, Date, ApplicationYear, GradeApplying, Status, AdditionalNotes)
+SELECT 
+    s.ParentId,
+    s.StudentId,
+    GETDATE(),
+    @AppYear,
+    s.GradeLevel,
+    @Status,
+    'Test application for ' + s.FirstName + ' ' + s.LastName
+FROM Students s
+WHERE s.StudentId IN (
+    SELECT TOP 3 StudentId FROM Students ORDER BY StudentId
+)
+AND NOT EXISTS (
+    SELECT 1 FROM Applications a WHERE a.StudentId = s.StudentId
+);
+
+-- ------------------------------------------------------------
+-- 3. Insert Registrations for each new Application
+-- ------------------------------------------------------------
+INSERT INTO Registrations (AppId, StudentId, GradeEnrolling, Status, CreatedAt, Notes)
+SELECT 
+    a.AppId,
+    a.StudentId,
+    a.GradeApplying,
+    1,  -- status: 1 = Pending/New
+    GETDATE(),
+    'Registration from application'
+FROM Applications a
+WHERE NOT EXISTS (
+    SELECT 1 FROM Registrations r WHERE r.AppId = a.AppId
+);
+
+-- ------------------------------------------------------------
+-- 4. Insert Invoices for each Registration
+-- ------------------------------------------------------------
+-- Generate invoice numbers
+INSERT INTO Invoices (InvoiceNumber, RegistrationId, StudentId, ParentId, InvoiceType, Amount, Description, CreatedDate, DueDate, Status)
+SELECT 
+    'INV-' + CAST(r.RegistrationId AS VARCHAR) + '-' + FORMAT(GETDATE(), 'yyyyMMdd'),
+    r.RegistrationId,
+    r.StudentId,
+    a.ParentId,
+    'Registration',
+    5000.00,   -- example amount
+    'Registration fee for student ' + s.FirstName + ' ' + s.LastName,
+    GETDATE(),
+    DATEADD(month, 1, GETDATE()),
+    'Pending'
+FROM Registrations r
+INNER JOIN Applications a ON r.AppId = a.AppId
+INNER JOIN Students s ON r.StudentId = s.StudentId
+WHERE NOT EXISTS (
+    SELECT 1 FROM Invoices i WHERE i.RegistrationId = r.RegistrationId
+);
+
+SELECT '? Application data seeded.' AS Status;
+
+
+

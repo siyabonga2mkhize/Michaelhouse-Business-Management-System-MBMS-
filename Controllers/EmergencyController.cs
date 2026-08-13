@@ -15,7 +15,12 @@ namespace Michaelhouse.Controllers
     {
         private DBContextClass db = new DBContextClass();
         private EmergencyService _emergencyService;
-
+        private bool IsAuthorizedStaff()
+        {
+            if (Session["UserId"] == null) return false;
+            string role = Session["UserRole"]?.ToString();
+            return role == "Admin" || role == "Teacher" || role == "HouseMaster" || role == "Housemaster";
+        }
         public EmergencyController()
         {
             _emergencyService = new EmergencyService(db);
@@ -27,6 +32,8 @@ namespace Michaelhouse.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> LatestAlertStatus()
         {
+            if (!IsAuthorizedStaff())
+                return new HttpUnauthorizedResult();
             var activeAlert = await db.EmergencyAlerts
                 .Where(a => a.Status == AlertStatus.Active)   // fully qualified if needed
                 .OrderByDescending(a => a.AlertTime)
@@ -42,15 +49,31 @@ namespace Michaelhouse.Controllers
         }
 
         // ============= STAFF: TRIGGER EMERGENCY =============
+        // ============= STAFF: TRIGGER EMERGENCY =============
+
         [HttpGet]
-        [AllowAnonymous]
         public ActionResult TriggerAlert()
         {
+            if (!IsAuthorizedStaff())
+                return new HttpUnauthorizedResult();
+
+            // 1. Check for an existing active alert
+            var activeAlert = db.EmergencyAlerts
+                .FirstOrDefault(a => a.Status == AlertStatus.Active);
+
+            if (activeAlert != null)
+            {
+                TempData["Warning"] = "An active emergency alert already exists. You can view it below.";
+                return RedirectToAction("ViewAlertStatus", new { id = activeAlert.AlertId });
+            }
+
+            // 2. Pre‑fill the form with default values
             var model = new EmergencyAlert
             {
                 AlertTime = DateTime.Now,
-                AssemblyLatitude = -29.8587,
-                AssemblyLongitude = 30.8762,
+                AlertMessage = "Emergency alert – proceed to assembly point",
+                AssemblyLatitude = -29.3985,
+                AssemblyLongitude = 30.0500,
                 AssemblyPointName = "Main Assembly Point",
                 GeofenceRadiusMeters = 150,
                 Status = AlertStatus.Active
@@ -60,14 +83,28 @@ namespace Michaelhouse.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AllowAnonymous]
         public async Task<ActionResult> TriggerAlert(EmergencyAlert alert)
         {
+            if (!IsAuthorizedStaff())
+                return new HttpUnauthorizedResult();
+
             try
             {
+                // 1. Validate the model
                 if (!ModelState.IsValid)
                     return View(alert);
 
+                // 2. Check again for an existing active alert (race condition)
+                var existingActive = await db.EmergencyAlerts
+                    .FirstOrDefaultAsync(a => a.Status == AlertStatus.Active);
+
+                if (existingActive != null)
+                {
+                    TempData["Error"] = "An active emergency alert already exists. Resolve it first.";
+                    return RedirectToAction("ViewAlertStatus", new { id = existingActive.AlertId });
+                }
+
+                // 3. Get the logged‑in user
                 int? userId = Session["UserId"] as int?;
                 if (userId == null)
                 {
@@ -76,6 +113,7 @@ namespace Michaelhouse.Controllers
                 }
                 var currentUser = db.Users.Find(userId.Value);
 
+                // 4. Set the alert properties
                 alert.InitiatedByStaffId = currentUser.UserId;
                 alert.AlertTime = DateTime.Now;
                 alert.CreatedDate = DateTime.Now;
@@ -84,12 +122,12 @@ namespace Michaelhouse.Controllers
                 db.EmergencyAlerts.Add(alert);
                 await db.SaveChangesAsync();
 
-                // Get boarding students – using IsBoarding and IsActive from Student model
+                // 5. Get boarding students
                 var students = db.Students
                     .Where(s => s.IsActive && s.IsBoarding)
                     .ToList();
 
-                // Create pending confirmations
+                // 6. Create pending confirmations for each student
                 foreach (var student in students)
                 {
                     var confirmation = new StudentSafetyConfirmation
@@ -106,7 +144,7 @@ namespace Michaelhouse.Controllers
                 }
                 await db.SaveChangesAsync();
 
-                // Send notifications – student.UserId is int, not nullable
+                // 7. Send notifications (if the student has a UserId)
                 foreach (var student in students)
                 {
                     if (student.UserId > 0)
@@ -322,6 +360,14 @@ namespace Michaelhouse.Controllers
         {
             try
             {
+                if (!IsAuthorizedStaff())
+                    return Content("Unauthorised.");
+
+                var existingActive = await db.EmergencyAlerts
+                    .FirstOrDefaultAsync(a => a.Status == AlertStatus.Active);
+
+                if (existingActive != null)
+                    return Content($"An active alert already exists (ID: {existingActive.AlertId}). Resolve it first.");
                 int? userId = Session["UserId"] as int?;
                 if (userId == null)
                     return Content("User not found in session. Please log in again.");
@@ -332,8 +378,8 @@ namespace Michaelhouse.Controllers
                     InitiatedByStaffId = currentUser.UserId,
                     AlertTime = DateTime.Now,
                     AlertMessage = $"SIMULATED: {message}",
-                    AssemblyLatitude = -29.8587,
-                    AssemblyLongitude = 30.8762,
+                    AssemblyLatitude = -29.3985,
+                    AssemblyLongitude = 30.0500,
                     AssemblyPointName = "Main Assembly Point",
                     GeofenceRadiusMeters = radius,
                     Status = AlertStatus.Active,
@@ -451,9 +497,10 @@ namespace Michaelhouse.Controllers
 
                 if (activeAlert == null)
                     return Json(new { hasActiveAlert = false }, JsonRequestBehavior.AllowGet);
-
                 bool alreadyConfirmed = db.StudentSafetyConfirmations
-                    .Any(c => c.AlertId == activeAlert.AlertId && c.StudentId == student.StudentId);
+    .Any(c => c.AlertId == activeAlert.AlertId
+              && c.StudentId == student.StudentId
+              && (c.Status == SafetyStatus.Confirmed || c.Status == SafetyStatus.OutsideZone));
 
                 return Json(new
                 {
@@ -464,9 +511,11 @@ namespace Michaelhouse.Controllers
         }
     }
 
+
     public class ConfirmSafeRequest
     {
         public double Latitude { get; set; }
         public double Longitude { get; set; }
     }
+
 }
