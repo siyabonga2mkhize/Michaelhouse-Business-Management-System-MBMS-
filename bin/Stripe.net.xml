@@ -75638,6 +75638,11 @@
             Unique identifier for the event.
             </summary>
         </member>
+        <member name="P:Stripe.V2.Core.EventNotification.Object">
+            <summary>
+            String representing the object's type. Objects of the same type share the same value.
+            </summary>
+        </member>
         <member name="P:Stripe.V2.Core.EventNotification.Type">
             <summary>
             The type of the event.
@@ -75667,8 +75672,8 @@
             <summary>
             Helper for constructing an Event Notification. Doesn't perform signature validation, so you
             should use <see cref="M:Stripe.StripeClient.ParseEventNotification(System.String,System.String,System.String,System.Int64)"/> instead for
-            initial handling. This is useful in unit tests and working with EventNotifications that you've
-            already validated the authenticity of.
+            initial handling. This is useful in unit tests and working with EventNotifications
+            whose authenticity you've already validated.
             </summary>
             <param name="payload">JSON body for an EventNotification.</param>
             <param name="client">A StripeClient instance that will be used to make requests.</param>
@@ -84576,6 +84581,12 @@
             | WriteAsString)]</c> attribute applied to the same fields.
             </summary>
         </member>
+        <member name="T:Stripe.Infrastructure.DiscriminatedUnionConverter">
+            <summary>
+            Deserializes a discriminated union interface by reading the discriminator property
+            from the JSON payload and dispatching to the matching variant type.
+            </summary>
+        </member>
         <member name="T:Stripe.Infrastructure.EventConverter">
             <summary>
             This converter is used to deserialize event objects regardless of which API version they're
@@ -84783,6 +84794,12 @@
             <param name="writer">The <see cref="T:System.Text.Json.Utf8JsonWriter"/> to write to.</param>
             <param name="value">The value.</param>
             <param name="options">The calling serializer's options.</param>
+        </member>
+        <member name="T:Stripe.Infrastructure.STJDiscriminatedUnionConverterFactory">
+            <summary>
+            System.Text.Json converter factory for discriminated union interfaces.
+            Reads the discriminator property from the JSON and dispatches to the correct variant type.
+            </summary>
         </member>
         <member name="T:Stripe.Infrastructure.STJEnumerableObjectConverter">
             <summary>
@@ -85709,9 +85726,10 @@
         </member>
         <member name="M:Stripe.StripeClient.ParseEventNotification(System.String,System.String,System.String,System.Int64)">
             <summary>
-            Parses a JSON string from a Stripe webhook into a <see cref="T:Stripe.V2.Core.EventNotification"/> object, while
-            verifying the <a href="https://stripe.com/docs/webhooks/signatures">webhook's
-            signature</a>.
+            Constructs a <see href="https://docs.stripe.com/event-destinations#thin-payload">thin event notification</see>
+            from an incoming webhook after verifying its authenticity. To work with a webhook that
+            has already been verified (i.e. one from a cloud provider, an asynchronous queue, or
+            during testing), see <see cref="M:Stripe.StripeClient.ParseEventNotificationWithoutVerification(System.String)"/>.
             </summary>
             <param name="json">The JSON string to parse.</param>
             <param name="stripeSignatureHeader">
@@ -85724,6 +85742,17 @@
             Thrown if the signature verification fails for any reason, of if the API version of the
             event doesn't match Stripe.net's default API version.
             </exception>
+        </member>
+        <member name="M:Stripe.StripeClient.ParseEventNotificationWithoutVerification(System.String)">
+            <summary>
+            Constructs a <see href="https://docs.stripe.com/event-destinations#thin-payload">thin event notification</see>
+            from an incoming webhook without first verifying its authenticity. Should be used after
+            calling <see cref="M:Stripe.EventUtility.ValidateSignature(System.String,System.String,System.String,System.Int64)"/> or with input from a trusted source
+            (such as <see href="https://docs.stripe.com/event-destinations/eventbridge">AWS EventBridge</see>,
+            or <see href="https://docs.stripe.com/event-destinations/eventgrid">Azure Event Grid</see>
+            payload). Or, to verify &amp; parse in a single call, use
+            <see cref="M:Stripe.StripeClient.ParseEventNotification(System.String,System.String,System.String,System.Int64)"/> instead.
+            </summary>
         </member>
         <member name="T:Stripe.StripeClientOptions">
             <summary>
@@ -85774,6 +85803,12 @@
         </member>
         <member name="P:Stripe.StripeConfiguration.ApiVersion">
             <summary>API version used by Stripe.net.</summary>
+        </member>
+        <member name="P:Stripe.StripeConfiguration.MajorApiVersion">
+            <summary>
+            The major API version that this SDK uses. Objects retrieved using the same major version
+            are compatible. Is an empty string in preview versions of the SDK.
+            </summary>
         </member>
         <member name="P:Stripe.StripeConfiguration.ApiKey">
             <summary>Gets or sets the API key.</summary>
@@ -86183,6 +86218,34 @@
             <param name="request">The parameters of the request to send.</param>
             <param name="cancellationToken">The cancellation token to cancel operation.</param>
             <returns>The task object representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:Stripe.StripeDiscriminatedUnionAttribute">
+            <summary>
+            Marks an interface or class as a discriminated union. The property
+            will be deserialized by inspecting the JSON discriminator field and
+            dispatching to the appropriate variant type.
+            </summary>
+        </member>
+        <member name="P:Stripe.StripeDiscriminatedUnionAttribute.DiscriminatorPropertyName">
+            <summary>
+            Gets the JSON property name used as the discriminator (e.g. "model", "type").
+            </summary>
+        </member>
+        <member name="T:Stripe.StripeUnionVariantAttribute">
+            <summary>
+            Maps a discriminator value to a concrete variant type for a discriminated union.
+            Applied to the interface or base class multiple times, once per variant.
+            </summary>
+        </member>
+        <member name="P:Stripe.StripeUnionVariantAttribute.VariantType">
+            <summary>
+            Gets the concrete type to deserialize into when the discriminator matches.
+            </summary>
+        </member>
+        <member name="P:Stripe.StripeUnionVariantAttribute.DiscriminatorValue">
+            <summary>
+            Gets the discriminator value that maps to this variant type.
+            </summary>
         </member>
         <member name="M:Stripe.AccountCapabilityService.Get(System.String,System.String,Stripe.AccountCapabilityGetOptions,Stripe.RequestOptions)">
             <summary>
@@ -94169,9 +94232,10 @@
         </member>
         <member name="M:Stripe.EventUtility.ConstructEvent(System.String,System.String,System.String,System.Int64,System.Boolean)">
             <summary>
-            Parses a JSON string from a Stripe webhook into a <see cref="T:Stripe.Event"/> object, while
-            verifying the <a href="https://stripe.com/docs/webhooks/signatures">webhook's
-            signature</a>.
+            Constructs an a <see cref="T:Stripe.Event"/>
+            from an incoming <see href="https://docs.stripe.com/event-destinations#snapshot-payload">webhook</see> after verifying its authenticity. To work with a webhook that
+            has already been verified (i.e. one from a cloud provider, an asynchronous queue, or
+            during testing), see <see cref="M:Stripe.EventUtility.ConstructEventWithoutVerification(System.String,System.Boolean)"/>.
             </summary>
             <param name="json">The JSON string to parse.</param>
             <param name="stripeSignatureHeader">
@@ -94192,9 +94256,10 @@
         </member>
         <member name="M:Stripe.EventUtility.ConstructEvent(System.String,System.String,System.String,System.Int64,System.Int64,System.Boolean)">
             <summary>
-            Parses a JSON string from a Stripe webhook into a <see cref="T:Stripe.Event"/> object, while
-            verifying the <a href="https://stripe.com/docs/webhooks/signatures">webhook's
-            signature</a>.
+            Constructs a <see href="https://docs.stripe.com/event-destinations#snapshot-payload">snapshot event</see>
+            from an incoming webhook after verifying its authenticity. To work with a webhook that
+            has already been verified (i.e. one from a cloud provider, an asynchronous queue, or
+            during testing), see <see cref="M:Stripe.EventUtility.ConstructEventWithoutVerification(System.String,System.Boolean)"/>.
             </summary>
             <param name="json">The JSON string to parse.</param>
             <param name="stripeSignatureHeader">
@@ -94214,6 +94279,39 @@
             event doesn't match Stripe.net's default API version.
             </exception>
         </member>
+        <member name="M:Stripe.EventUtility.ValidateSignature(System.String,System.String,System.String,System.Int64)">
+            <summary>
+            Verifies the authenticity (and recency) of a webhook, throwing a
+            <see cref="T:Stripe.StripeException"/> if there's a mismatch. Useful for quickly validating
+            incoming webhooks before storing them for later processing (at which time you can use
+            the <c>*WithoutVerification</c> methods for parsing).
+            </summary>
+        </member>
+        <member name="M:Stripe.EventUtility.ValidateSignature(System.String,System.String,System.String,System.Int64,System.Int64)">
+            <summary>
+            Verifies the authenticity (and recency) of a webhook, throwing a
+            <see cref="T:Stripe.StripeException"/> if there's a mismatch. Useful for quickly validating
+            incoming webhooks before storing them for later processing (at which time you can use
+            the <c>*WithoutVerification</c> methods for parsing).
+            </summary>
+        </member>
+        <member name="M:Stripe.EventUtility.ConstructEventWithoutVerification(System.String,System.Boolean)">
+            <summary>
+            Constructs a <see href="https://docs.stripe.com/event-destinations#snapshot-payload">snapshot event</see>
+            from an incoming webhook without first verifying its authenticity. Should be used after
+            calling <see cref="M:Stripe.EventUtility.ValidateSignature(System.String,System.String,System.String,System.Int64)"/> or with input from a trusted source (such as
+            <see href="https://docs.stripe.com/event-destinations/eventbridge">AWS EventBridge</see>,
+            or <see href="https://docs.stripe.com/event-destinations/eventgrid">Azure Event Grid</see>
+            payload). Or, to verify &amp; construct in a single call, use
+            <see cref="M:Stripe.EventUtility.ConstructEvent(System.String,System.String,System.String,System.Int64,System.Boolean)"/> instead.
+            </summary>
+            <param name="json">The JSON string to parse.</param>
+            <param name="throwOnApiVersionMismatch">
+            If <c>true</c>, the method will throw a <see cref="T:Stripe.StripeException"/> if the
+            API version of the event doesn't match Stripe.net's default API version.
+            Defaults to <c>false</c> since cloud provider payloads may not match the SDK version.
+            </param>
+        </member>
         <member name="M:Stripe.EventUtility.ComputeSignature(System.String,System.String,System.String)">
             <summary>
             Computes the signature for a given payload.
@@ -94222,6 +94320,12 @@
             <param name="timestamp">The timestamp of the payload.</param>
             <param name="payload">The payload to compute the signature for.</param>
             <returns>The computed signature.</returns>
+        </member>
+        <member name="M:Stripe.EventUtility.GenerateSignatureHeader(System.String,System.String,System.Nullable{System.Int64})">
+            <summary>
+            Compute the <c>Stripe-Signature</c> header for a given webhook body &amp; secret.
+            Useful for signing payloads in unit tests.
+            </summary>
         </member>
         <member name="P:Stripe.FileLinkCreateOptions.ExpiresAt">
             <summary>

@@ -183,3 +183,53 @@ SELECT COUNT(*) AS TotalBeds FROM Beds WHERE IsOccupied = 0 AND IsArchived = 0;
 
 -- QR codes generated
 SELECT COUNT(*) AS QRCodes FROM StudentQRCodes;
+
+
+
+
+
+
+
+-- ============================================================
+-- SEED APPLICATIONS FOR EXISTING STUDENTS (LINK TO PARENTS)
+-- ============================================================
+
+INSERT INTO Applications (
+    ParentId,
+    StudentId,
+    Date,
+    ApplicationYear,
+    GradeApplying,
+    Status,
+    AiReviewSummary,
+    AiRecommendation,
+    AdditionalNotes
+)
+SELECT 
+    s.ParentId,
+    s.StudentId,
+    GETDATE(),
+    YEAR(GETDATE()),          -- current year
+    s.GradeLevel,             -- applying for current grade
+    CASE 
+        WHEN s.StudentId % 3 = 0 THEN 2   -- Approved
+        WHEN s.StudentId % 3 = 1 THEN 1   -- Pending
+        ELSE 3                            -- Rejected
+    END AS Status,
+    'AI review summary placeholder',
+    'AI recommendation placeholder',
+    'Additional notes placeholder'
+FROM Students s
+WHERE s.ParentId IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 
+      FROM Applications a 
+      WHERE a.StudentId = s.StudentId
+  );
+
+
+ 
+
+select * from Applications;
+
+select * from Invoices;

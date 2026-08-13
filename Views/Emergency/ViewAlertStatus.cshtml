@@ -269,59 +269,57 @@
             });
         });
             // ====== LIVE MAP RENDERER ======
-    $(function() {
-        var alertLat = @Model.Alert.AssemblyLatitude;
-        var alertLng = @Model.Alert.AssemblyLongitude;
-        var radius = @Model.Alert.GeofenceRadiusMeters;
+$(function() {
+    var alertLat = @Model.Alert.AssemblyLatitude;
+    var alertLng = @Model.Alert.AssemblyLongitude;
+    var radius = @Model.Alert.GeofenceRadiusMeters;
 
-        // Initialize map, center it on assembly point
-        var map = L.map('emergencyMap').setView([alertLat, alertLng], 15);
+    var map = L.map('emergencyMap').setView([alertLat, alertLng], 15);
 
-        // Add tile layer (free OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    // --- Satellite tile layer (Esri) ---
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19
+    }).addTo(map);
 
-        // 1. Draw the Geofence Circle (150m radius)
-        L.circle([alertLat, alertLng], {
-            color: '#dc3545',
-            fillColor: '#f03',
-            fillOpacity: 0.15,
-            radius: radius // Radius in meters
-        }).addTo(map);
+    // --- Geofence circle ---
+    L.circle([alertLat, alertLng], {
+        color: '#dc3545',
+        fillColor: '#f03',
+        fillOpacity: 0.15,
+        radius: radius
+    }).addTo(map);
 
-        // 2. Mark the Assembly Point
-        L.marker([alertLat, alertLng], {
-            icon: L.divIcon({
-                className: 'text-danger',
-                html: '<i class="bi bi-geo-alt-fill" style="font-size: 28px; color: #C21E2E;"></i>',
-                iconSize: [28, 28],
-                iconAnchor: [14, 28]
-            })
-        }).addTo(map).bindPopup("<strong>Assembly Point</strong><br>Main Point");
+    // --- Assembly point marker ---
+    L.marker([alertLat, alertLng], {
+        icon: L.divIcon({
+            className: 'text-danger',
+            html: '<i class="bi bi-geo-alt-fill" style="font-size: 28px; color: #C21E2E;"></i>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        })
+    }).addTo(map).bindPopup("<strong>Assembly Point</strong><br>Main Point");
 
-        // 3. Plot the Students
-        var students = @Html.Raw(Json.Encode(Model.Confirmations));
-        for (var i = 0; i < students.length; i++) {
-            var s = students[i];
-            if (s.StudentLatitude > 0 && s.StudentLongitude > 0) {
-                var markerColor = 'green';
-                if (s.Status == 1) { // OutsideZone
-                    markerColor = '#dc3545';
-                }
-                L.circleMarker([s.StudentLatitude, s.StudentLongitude], {
-                    color: markerColor,
-                    radius: 6,
-                    fillColor: markerColor,
-                    fillOpacity: 0.8
-                }).addTo(map).bindPopup("<strong>" + s.StudentName + "</strong><br>Status: " + s.Status);
+    // --- Student markers ---
+    var students = @Html.Raw(Json.Encode(Model.Confirmations));
+    for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        if (s.StudentLatitude > 0 && s.StudentLongitude > 0) {
+            var markerColor = 'green';
+            if (s.Status == 1) { // OutsideZone
+                markerColor = '#dc3545';
             }
+            L.circleMarker([s.StudentLatitude, s.StudentLongitude], {
+                color: markerColor,
+                radius: 6,
+                fillColor: markerColor,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup("<strong>" + s.StudentName + "</strong><br>Status: " + s.Status);
         }
+    }
 
-        // Update map view to fit markers if possible
-        setTimeout(function() { map.invalidateSize(); }, 200);
-    });
+    setTimeout(function() { map.invalidateSize(); }, 200);
+});
     </script>
 
 }
