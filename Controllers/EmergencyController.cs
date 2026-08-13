@@ -118,6 +118,7 @@ namespace Michaelhouse.Controllers
                 alert.AlertTime = DateTime.Now;
                 alert.CreatedDate = DateTime.Now;
                 alert.Status = AlertStatus.Active;
+                alert.SirenStopped = false;
 
                 db.EmergencyAlerts.Add(alert);
                 await db.SaveChangesAsync();
@@ -175,6 +176,21 @@ namespace Michaelhouse.Controllers
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return View(alert);
             }
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public ActionResult GetActiveAlertState()
+        {
+            var activeAlert = db.EmergencyAlerts
+                .Where(a => a.Status == AlertStatus.Active)
+                .OrderByDescending(a => a.AlertTime)
+                .FirstOrDefault();
+
+            return Json(new
+            {
+                hasActiveAlert = activeAlert != null,
+                sirenStopped = activeAlert?.SirenStopped ?? true // true if no alert
+            }, JsonRequestBehavior.AllowGet);
         }
 
         // ============= VIEW: REAL-TIME DASHBOARD =============
@@ -334,6 +350,11 @@ namespace Michaelhouse.Controllers
                 confirmation.DistanceFromAssemblyPointMeters = distance;
                 confirmation.Status = isWithinGeofence ? SafetyStatus.Confirmed : SafetyStatus.OutsideZone;
 
+                if (isWithinGeofence)
+                {
+                    alert.SirenStopped = true;
+                }
+
                 await db.SaveChangesAsync();
 
                 return Json(new
@@ -433,6 +454,7 @@ namespace Michaelhouse.Controllers
                 alert.Status = AlertStatus.Resolved;
                 alert.ResolvedDate = DateTime.Now;
                 alert.ResolvedNotes = notes;
+                alert.SirenStopped = true;
 
                 db.Entry(alert).State = EntityState.Modified;
                 await db.SaveChangesAsync();
@@ -505,7 +527,8 @@ namespace Michaelhouse.Controllers
                 return Json(new
                 {
                     hasActiveAlert = true,
-                    alreadyConfirmed = alreadyConfirmed
+                    alreadyConfirmed = alreadyConfirmed,
+                    sirenStopped = activeAlert.SirenStopped
                 }, JsonRequestBehavior.AllowGet);
             }
         }

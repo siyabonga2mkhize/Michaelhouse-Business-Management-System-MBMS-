@@ -953,15 +953,15 @@
                         </a>
 
                         @*<a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i>
-                <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i>
+                                <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                         @*<div class="sidebar-label text-truncate">Settings</div>
-            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-               href="@Url.Action("Profile", "Account")">
-                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-            </a>*@
+                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                               href="@Url.Action("Profile", "Account")">
+                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+                            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -1375,8 +1375,8 @@ function checkEmergencyStatus() {
     if (!isLoggedIn) return;
 
     // Only run for Students (to prevent redirects for teachers, admins, etc.)
-    var role = '@Session["UserRole"]';
-    if (role !== 'Student') return;
+    @*var role = '@Session["UserRole"]';
+    if (role !== 'Student') return;*@
 
     $.ajax({
         url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
@@ -1389,7 +1389,113 @@ function checkEmergencyStatus() {
         },
         error: function() { /* silent fail */ }
     });
-}
+        }
+
+        // ============================================================
+        // 3. SIREN CONTROL (HTML5 Audio)
+ // ============================================================
+    var sirenAudio = null;
+    var sirenStarted = false;
+
+    function playSiren() {
+        if (sirenStarted) return;
+        if (!sirenAudio) {
+            sirenAudio = new Audio('@Url.Content("~/Content/siren.mp3")');  // Ensure file exists in /Content/
+            sirenAudio.loop = true;
+        }
+        sirenAudio.play()
+            .then(() => {
+                sirenStarted = true;
+                hideSirenButton();
+            })
+            .catch(function(error) {
+                // Autoplay blocked – show a button
+                showSirenButton();
+            });
+    }
+
+    function stopSiren() {
+        if (sirenAudio) {
+            sirenAudio.pause();
+            sirenAudio.currentTime = 0;
+            sirenStarted = false;
+        }
+        hideSirenButton();
+    }
+
+    function showSirenButton() {
+        var btn = document.getElementById('sirenPlayBtn');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'sirenPlayBtn';
+            btn.innerHTML = '🔊 Play Alert Siren';
+            btn.style.position = 'fixed';
+            btn.style.bottom = '30px';
+            btn.style.right = '30px';
+            btn.style.zIndex = '9999';
+            btn.style.padding = '12px 24px';
+            btn.style.backgroundColor = '#C21E2E';
+            btn.style.color = '#fff';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '4px';
+            btn.style.cursor = 'pointer';
+            btn.style.fontWeight = 'bold';
+            btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            btn.onclick = function() {
+                playSiren();
+            };
+            document.body.appendChild(btn);
+        }
+        btn.style.display = 'block';
+    }
+
+    function hideSirenButton() {
+        var btn = document.getElementById('sirenPlayBtn');
+        if (btn) btn.style.display = 'none';
+    }
+
+// --- EXTEND EMERGENCY CHECK ---
+function checkEmergencyStatus() {
+    var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
+    if (!isLoggedIn) return;
+
+    // Only run for Students (to prevent redirects for teachers, admins, etc.)
+    var role = '@Session["UserRole"]';
+    if (role !== 'Student') return;
+
+    $.ajax({
+        url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
+        type: 'GET',
+        cache: false,
+        success: function (data) {
+            // 1. Redirect if needed (existing logic)
+            if (data.hasActiveAlert && !data.alreadyConfirmed) {
+                window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
+                return;
+            }
+
+            // 2. Siren control
+            if (data.hasActiveAlert && !data.sirenStopped) {
+                playSiren();
+            } else {
+                stopSiren();
+            }
+        },
+        error: function() { /* silent fail */ }
+    });
+
+    // ============================================================
+    // 5. INITIALISE
+    // ============================================================
+    $(function () {
+        // Notifications
+        loadNotifications();
+        setInterval(loadNotifications, 30000);
+
+        // Emergency check – run immediately and every 5 seconds
+        checkEmergencyStatus();
+        setInterval(checkEmergencyStatus, 5000);
+    });
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
