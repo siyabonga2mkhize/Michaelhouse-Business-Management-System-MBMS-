@@ -4,164 +4,225 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Complete Job</h5>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Complete Job</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">@Model.JobReference</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+                <span class="text-gray-800 font-bold">@Model.Title</span> · Assigned to @(Model.AssignedTo?.FullName ?? "Unassigned")
+            </p>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">@Model.JobReference</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
-            @Model.Title · Assigned to @(Model.AssignedTo?.FullName ?? "Unassigned")
-        </p>
+        <div class="flex gap-3">
+            <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back to Job
+            </a>
+        </div>
     </div>
-    <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back to Job
-    </a>
-</div>
 
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                @using (Html.BeginForm("CompleteJobCard", "Maintenance", FormMethod.Post, new { enctype = "multipart/form-data", id = "completeJobForm" }))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.HiddenFor(m => m.Id)
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Completion Notes *</label>
-                            <textarea name="completionNotes" class="form-control" rows="3" placeholder="Describe what was done, parts replaced, etc." required></textarea>
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Final Condition *</label>
-                            <select name="finalCondition" class="form-select" required>
-                                <option value="">-- Select --</option>
-                                <option value="Fixed">Fixed</option>
-                                <option value="Replaced">Replaced</option>
-                                <option value="Repaired Temporarily">Repaired Temporarily</option>
-                                <option value="Cannot Fix">Cannot Fix (needs specialist)</option>
-                            </select>
-                        </div>
+            @* --- LEFT: COMPLETION FORM --- *@
+            <div class="lg:col-span-7 flex flex-col">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
 
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <!-- AFTER PHOTO SECTION (identical to Reporter's)         -->
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">After Photo (Proof of Completion)</label>
+                    @* Ghost Watermark *@
+                    <i class="bi bi-check2-square absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
 
-                            <!-- Camera button -->
-                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openAfterCamera()">
-                                <i class="bi bi-camera me-1"></i> Open Camera
-                            </button>
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-pencil-square me-2 text-gray-500"></i> Execution Ledger</h5>
+                    </div>
 
-                            <!-- Video preview -->
-                            <video id="afterVideoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
+                    <div class="p-8 relative z-10">
+                        @using (Html.BeginForm("CompleteJobCard", "Maintenance", FormMethod.Post, new { enctype = "multipart/form-data", id = "completeJobForm", @class = "flex flex-col gap-6" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.HiddenFor(m => m.Id)
 
-                            <!-- Capture button -->
-                            <button id="afterCaptureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="captureAfterPhoto()">
-                                <i class="bi bi-camera me-1"></i> Capture Photo
-                            </button>
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Completion Notes *</label>
+                                <textarea name="completionNotes" class="w-full border border-gray-200 p-4 outline-none focus:border-[#10b981] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y" rows="4" placeholder="Describe what was done, parts replaced, etc." required></textarea>
+                            </div>
 
-                            <!-- File upload fallback -->
-                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('afterPhotoInput').click();">
-                                <input type="file" name="photoAfter" id="afterPhotoInput" accept="image/*" style="display:none" onchange="previewAfterPhoto(this)" />
-                                <div id="afterUploadPlaceholder">
-                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
-                                    <span class="text-muted">Click to upload a photo</span>
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Final Condition *</label>
+                                <div class="relative">
+                                    <select name="finalCondition" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#10b981] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8" required>
+                                        <option value="">-- Select --</option>
+                                        <option value="Fixed">Fixed</option>
+                                        <option value="Replaced">Replaced</option>
+                                        <option value="Repaired Temporarily">Repaired Temporarily</option>
+                                        <option value="Cannot Fix">Cannot Fix (needs specialist)</option>
+                                    </select>
+                                    <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                 </div>
-                                <img id="afterPhotoPreview" src="#" alt="After Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
                             </div>
 
-                            <!-- Hidden field for base64 camera capture -->
-                            <input type="hidden" id="afterPhotoData" name="afterPhotoData" />
+                            @* --- PHOTO EVIDENCE MODULE --- *@
+                            <div class="border-t border-gray-100 pt-6 mt-2">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-4">After Photo (Proof of Completion)</label>
 
-                            <!-- Optional: show compression message (hidden by default) -->
-                            <div id="compressingMsg" style="display:none;color:#666;font-size:0.9rem;margin-top:8px;">
-                                <i class="bi bi-arrow-repeat me-1"></i> Compressing image...
+                                <div class="bg-gray-50 border border-gray-200 p-4 shadow-inner">
+
+                                    <div class="flex gap-2 mb-4">
+                                        <button type="button" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-500 hover:text-gray-900 transition-all shadow-sm flex items-center" onclick="openAfterCamera()">
+                                            <i class="bi bi-camera me-2 text-sm"></i> Open Camera
+                                        </button>
+                                        <button id="afterCaptureBtn" type="button" class="hidden bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-all shadow-sm items-center" onclick="captureAfterPhoto()">
+                                            <i class="bi bi-record-circle me-2 text-sm"></i> Capture Photo
+                                        </button>
+                                    </div>
+
+                                    <video id="afterVideoElement" class="w-full max-w-[400px] border-4 border-[#1a1a1a] bg-black hidden mb-4"></video>
+
+                                    <!-- File upload fallback / Display Area -->
+                                    <div class="border-2 border-dashed border-gray-300 bg-white p-8 text-center cursor-pointer hover:border-[#10b981] hover:bg-green-50/20 transition-all group" onclick="document.getElementById('afterPhotoInput').click();">
+                                        <input type="file" name="photoAfter" id="afterPhotoInput" accept="image/*" class="hidden" onchange="previewAfterPhoto(this)" />
+
+                                        <div id="afterUploadPlaceholder">
+                                            <i class="bi bi-cloud-upload text-4xl text-gray-300 group-hover:text-[#10b981] transition-colors block mb-2"></i>
+                                            <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Click to upload a photo</span>
+                                        </div>
+
+                                        <img id="afterPhotoPreview" src="#" alt="After Preview" class="hidden max-w-full max-h-[300px] mx-auto border-4 border-white shadow-md object-contain" />
+                                    </div>
+
+                                    <input type="hidden" id="afterPhotoData" name="afterPhotoData" />
+
+                                    <div id="compressingMsg" class="hidden text-xs font-mono text-gray-500 uppercase tracking-widest mt-3">
+                                        <i class="bi bi-arrow-repeat me-1 animate-spin inline-block"></i> Compressing image...
+                                    </div>
+                                </div>
                             </div>
+
+                            @* --- PARTS USED SECTION PLACEHOLDER --- *@
+                            @* 👇 Your existing parts-used table goes here (if any) *@
+
+                            <div class="bg-yellow-50/80 border-l-4 border-yellow-500 p-4 mt-2">
+                                <p class="text-xs font-mono text-yellow-900 m-0 leading-relaxed">
+                                    <i class="bi bi-exclamation-triangle text-yellow-600 me-2 text-lg align-middle"></i>
+                                    Completing this job will update the asset's status and set the worker back to "Available".
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                                <button type="submit" id="completeSubmitBtn" class="flex-grow bg-[#10b981] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-green-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
+                                    <i class="bi bi-check-circle me-2"></i> Complete Job
+                                </button>
+                                <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="flex-grow sm:flex-grow-0 text-center bg-transparent border border-gray-300 text-gray-600 px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-gray-50 hover:text-gray-900 transition-all duration-300">
+                                    Cancel
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: DIAGNOSTICS & SUMMARY --- *@
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                @* Job Summary *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-info-circle me-2 text-gray-400"></i> Job Summary</h5>
+                    </div>
+                    <div class="p-6 flex flex-col gap-1">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Reference</span>
+                            <code class="font-mono text-xs font-bold text-[#C21E2E] bg-transparent">@Model.JobReference</code>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Title</span>
+                            <span class="font-serif text-sm text-gray-900">@Model.Title</span>
                         </div>
 
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <!-- YOUR "PARTS USED" SECTION – KEEP IT HERE             -->
-                        <!-- (I’ve left a placeholder – you already have your code) -->
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        @* 👇 Your existing parts-used table goes here (if any) *@
-
-                        <div class="alert alert-warning mt-3">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            Completing this job will update the asset's status and set the worker back to "Available".
+                        @{
+                            string priorityColor = Model.Priority == "Emergency" ? "bg-red-100 text-[#C21E2E] border-red-200" :
+                                                   Model.Priority == "High" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                   Model.Priority == "Medium" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-gray-50 text-gray-600 border-gray-200";
+                        }
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Priority</span>
+                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @priorityColor">@Model.Priority</span>
                         </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Asset</span>
+                            <span class="font-serif text-sm text-gray-800">@(Model.Asset?.AssetName ?? "—")</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Location</span>
+                            <span class="font-serif text-sm text-gray-800">@(Model.Asset?.LocationBuilding ?? "—")</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                            <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Created</span>
+                            <span class="font-mono text-sm text-gray-800">@Model.DateCreated.ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                        @if (Model.DueDate.HasValue)
+                        {
+                            <div class="flex justify-between items-center py-3 border-b border-gray-50">
+                                <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Due Date</span>
+                                <span class="font-mono text-sm text-gray-800">@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm")</span>
+                            </div>
+                        }
 
-                        <button type="submit" id="completeSubmitBtn" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Complete Job</button>
-                        <a href="@Url.Action("JobCardDetail", new { id = Model.Id })" class="btn btn-outline-secondary ms-2">Cancel</a>
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <div class="mt-4">
+                                <h6 class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2"><i class="bi bi-quote me-1"></i> Description</h6>
+                                <p class="font-serif italic text-sm text-gray-600 mb-0 bg-gray-50 p-3 border-l-2 border-gray-300">"@Model.Description"</p>
+                            </div>
+                        }
                     </div>
-                }
-            </div>
-        </div>
-    </div>
+                </div>
 
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Job Summary</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-unstyled">
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Reference</span>
-                        <code class="text-danger">@Model.JobReference</code>
-                    </li>
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Title</span>
-                        <span>@Model.Title</span>
-                    </li>
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Priority</span>
-                        <span class="badge bg-@(Model.Priority=="Emergency"?"danger":Model.Priority=="High"?"warning":Model.Priority=="Medium"?"info":"secondary")">@Model.Priority</span>
-                    </li>
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Asset</span>
-                        <span>@(Model.Asset?.AssetName ?? "—")</span>
-                    </li>
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Location</span>
-                        <span>@(Model.Asset?.LocationBuilding ?? "—")</span>
-                    </li>
-                    <li class="d-flex justify-content-between border-bottom py-2">
-                        <span class="text-muted">Created</span>
-                        <span>@Model.DateCreated.ToString("dd MMM yyyy HH:mm")</span>
-                    </li>
-                    @if (Model.DueDate.HasValue)
-                    {
-                        <li class="d-flex justify-content-between py-2">
-                            <span class="text-muted">Due Date</span>
-                            <span>@Model.DueDate.Value.ToString("dd MMM yyyy HH:mm")</span>
-                        </li>
-                    }
-                </ul>
-
-                @if (!string.IsNullOrEmpty(Model.Description))
-                {
-                    <div class="mt-3">
-                        <h6 class="fw-bold"><i class="bi bi-quote me-2"></i>Description</h6>
-                        <p class="text-muted">@Model.Description</p>
-                    </div>
-                }
-
+                @* Before Photo Summary *@
                 @if (!string.IsNullOrEmpty(Model.PhotoBefore))
                 {
-                    <div class="mt-3">
-                        <h6 class="fw-bold"><i class="bi bi-camera me-2"></i>Before Photo</h6>
-                        <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="img-fluid rounded" style="max-height:200px;" />
+                    <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-camera me-2 text-gray-400"></i> Before Photo</h5>
+                        </div>
+                        <div class="p-4 flex justify-center bg-gray-50/30">
+                            <img src="~/Content/JobPhotos/@Model.PhotoBefore" class="max-w-full max-h-[250px] object-contain border border-gray-200 p-1 bg-white shadow-sm" />
+                        </div>
                     </div>
                 }
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -200,8 +261,11 @@
                         afterStream = s;
                         video.srcObject = s;
                         video.play();
-                        video.style.display = 'block';
-                        document.getElementById('afterCaptureBtn').style.display = 'inline';
+                        video.classList.remove('hidden');
+
+                        const captureBtn = document.getElementById('afterCaptureBtn');
+                        captureBtn.classList.remove('hidden');
+                        captureBtn.classList.add('flex');
                     })
                     .catch(function (err) {
                         alert('Camera not available: ' + err.message);
@@ -215,25 +279,29 @@
             const video = document.getElementById('afterVideoElement');
             const dataUrl = compressCanvasToJpeg(video, video.videoWidth, video.videoHeight);
 
-            document.getElementById('afterPhotoPreview').src = dataUrl;
-            document.getElementById('afterPhotoPreview').style.display = 'block';
-            document.getElementById('afterUploadPlaceholder').style.display = 'none';
+            const preview = document.getElementById('afterPhotoPreview');
+            preview.src = dataUrl;
+            preview.classList.remove('hidden');
 
+            document.getElementById('afterUploadPlaceholder').classList.add('hidden');
             document.getElementById('afterPhotoData').value = dataUrl;
 
             if (afterStream) {
                 afterStream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
-                video.style.display = 'none';
+                video.classList.add('hidden');
             }
-            document.getElementById('afterCaptureBtn').style.display = 'none';
+
+            const captureBtn = document.getElementById('afterCaptureBtn');
+            captureBtn.classList.add('hidden');
+            captureBtn.classList.remove('flex');
         }
 
         // ── File upload with compression ───────────────────────────────────
         function previewAfterPhoto(input) {
             if (!input.files || !input.files[0]) return;
 
-            document.getElementById('compressingMsg').style.display = 'block';
+            document.getElementById('compressingMsg').classList.remove('hidden');
 
             var reader = new FileReader();
             reader.onload = function (e) {
@@ -241,11 +309,13 @@
                 img.onload = function () {
                     var dataUrl = compressCanvasToJpeg(img, img.width, img.height);
 
-                    document.getElementById('afterPhotoPreview').src = dataUrl;
-                    document.getElementById('afterPhotoPreview').style.display = 'block';
-                    document.getElementById('afterUploadPlaceholder').style.display = 'none';
+                    const preview = document.getElementById('afterPhotoPreview');
+                    preview.src = dataUrl;
+                    preview.classList.remove('hidden');
+
+                    document.getElementById('afterUploadPlaceholder').classList.add('hidden');
                     document.getElementById('afterPhotoData').value = dataUrl;
-                    document.getElementById('compressingMsg').style.display = 'none';
+                    document.getElementById('compressingMsg').classList.add('hidden');
                 };
                 img.src = e.target.result;
             };
@@ -256,14 +326,7 @@
         document.getElementById('completeJobForm').addEventListener('submit', function () {
             var btn = document.getElementById('completeSubmitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Saving...';
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-2 animate-spin inline-block"></i> Saving...';
         });
     </script>
-}
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-    </style>
 }

@@ -4,318 +4,411 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+                Logged in as <span class="font-bold text-gray-600">@Session["UserName"]</span> · @(Session["JobTitle"] ?? "Reporter")
+            </p>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
-            Logged in as @Session["UserName"] · @(Session["JobTitle"] ?? "Reporter")
-        </p>
     </div>
-</div>
 
-<!-- Alerts -->
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["Warning"] != null)
-{
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Warning"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle me-2"></i> @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
 
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data", id = "faultForm" }))
-                {
-                    @Html.AntiForgeryToken()
+        @* --- ALERTS --- *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center relative z-10">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-800 shadow-sm flex items-center relative z-10">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Warning"]</span>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center relative z-10">
+                <i class="bi bi-x-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
+            </div>
+        }
 
-                    <!-- Mode Selection -->
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-uppercase text-muted">How do you want to identify the broken asset?</label>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button type="button" class="btn btn-outline-secondary mode-btn active" data-mode="scan">
-                                <i class="bi bi-qr-code me-1"></i> Scan QR
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary mode-btn" data-mode="select">
-                                <i class="bi bi-list-ul me-1"></i> Select from List
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary mode-btn" data-mode="manual">
-                                <i class="bi bi-pencil me-1"></i> Enter Manually
-                            </button>
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            @* --- LEFT: REPORTING FORM --- *@
+            <div class="lg:col-span-7 flex flex-col">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                    @* Ghost Watermark *@
+                    <i class="bi bi-exclamation-octagon absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-pencil-square me-2 text-gray-500"></i> Incident Report Log</h5>
                     </div>
 
-                    <!-- QR Scanner -->
-                    <div id="scanSection">
-                        <div class="mb-3">
-                            <button type="button" id="startScanBtn" class="btn btn-dark w-100" style="padding:12px;">
-                                <i class="bi bi-camera me-1"></i> Open Camera & Scan QR Code
-                            </button>
-                            <div id="qrScannerBox" style="display:none; margin-top:12px;">
-                                <div id="qrReader" style="width:100%; border-radius:10px; overflow:hidden;"></div>
-                                <button type="button" id="cancelScanBtn" class="btn btn-outline-secondary w-100 mt-2">
-                                    <i class="bi bi-x-lg me-1"></i> Cancel Scan
-                                </button>
-                            </div>
-                            <div id="scanConfirm" style="display:none; margin-top:12px; padding:14px; border-radius:10px; background:#d4edda; border-left:4px solid #28a745;">
-                                <div style="font-size:11px; font-weight:700; color:#155724; text-transform:uppercase; letter-spacing:1px;">
-                                    <i class="bi bi-check-circle me-1"></i> Asset Scanned
+                    <div class="p-8 relative z-10">
+                        @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data", id = "faultForm", @class = "flex flex-col gap-6" }))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            @* --- MODE SELECTION --- *@
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-3">How do you want to identify the broken asset?</label>
+                                <div class="flex gap-2 flex-wrap">
+                                    <button type="button" class="mode-btn active bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[1px] transition-colors shadow-sm" data-mode="scan">
+                                        <i class="bi bi-qr-code me-1"></i> Scan QR
+                                    </button>
+                                    <button type="button" class="mode-btn bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[1px] transition-colors shadow-sm" data-mode="select">
+                                        <i class="bi bi-list-ul me-1"></i> Select from List
+                                    </button>
+                                    <button type="button" class="mode-btn bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[1px] transition-colors shadow-sm" data-mode="manual">
+                                        <i class="bi bi-pencil me-1"></i> Enter Manually
+                                    </button>
                                 </div>
-                                <div id="scanConfirmName" style="font-weight:700; color:#155724; margin-top:4px; font-size:15px;"></div>
-                                <div id="scanConfirmLocation" style="font-size:13px; color:#155724;"></div>
                             </div>
-                            <div id="scanError" style="display:none; margin-top:12px; padding:12px 14px; border-radius:10px; background:#f8d7da; border-left:4px solid #dc3545; color:#721c24; font-size:13px;"></div>
-                            <div class="text-center mt-2" style="font-size:12px; color:#999;">— or select the asset manually below —</div>
-                        </div>
-                    </div>
 
-                    <!-- Asset Dropdown -->
-                    <div id="assetSection" class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
-                        <select name="AssetId" id="assetDropdown" class="form-select" required>
-                            <option value="">-- Select the broken asset --</option>
-                            @if (ViewBag.Assets != null)
-                            {
-                                var assets = (List<Michaelhouse.Models.Asset>)ViewBag.Assets;
-                                var buildings = assets.Select(a => a.LocationBuilding).Distinct().OrderBy(b => b);
-                                int? selectedAssetId = ViewBag.SelectedAssetId;
+                            @* --- QR SCANNER SECTION --- *@
+                            <div id="scanSection" class="bg-gray-50/50 p-4 border border-gray-200">
+                                <button type="button" id="startScanBtn" class="w-full bg-[#1a1a1a] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-800 transition-all shadow-sm">
+                                    <i class="bi bi-camera me-2 text-sm align-middle"></i> Open Camera & Scan QR Code
+                                </button>
 
-                                foreach (var building in buildings)
-                                {
-                                    <optgroup label="@building">
-                                        @foreach (var a in assets.Where(x => x.LocationBuilding == building))
+                                <div id="qrScannerBox" class="hidden mt-4">
+                                    <div id="qrReader" class="w-full max-w-md mx-auto border-4 border-gray-900 bg-white shadow-sm overflow-hidden"></div>
+                                    <button type="button" id="cancelScanBtn" class="w-full bg-white border border-gray-300 text-gray-700 px-4 py-3 mt-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                                        <i class="bi bi-x-lg me-1"></i> Cancel Scan
+                                    </button>
+                                </div>
+
+                                <div id="scanConfirm" class="hidden mt-4 bg-green-50 border-l-4 border-green-500 p-4 shadow-sm">
+                                    <div class="text-[9px] font-bold text-green-800 uppercase tracking-widest mb-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Asset Scanned
+                                    </div>
+                                    <div id="scanConfirmName" class="font-serif font-bold text-gray-900 text-lg"></div>
+                                    <div id="scanConfirmLocation" class="font-mono text-xs text-gray-600 mt-1"></div>
+                                </div>
+
+                                <div id="scanError" class="hidden mt-4 bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] text-xs font-mono uppercase tracking-widest shadow-sm"></div>
+
+                                <div class="text-center mt-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">— or select the asset manually below —</div>
+                            </div>
+
+                            @* --- ASSET DROPDOWN --- *@
+                            <div id="assetSection">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Which asset is broken? *</label>
+                                <div class="relative">
+                                    <select name="AssetId" id="assetDropdown" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8" required>
+                                        <option value="">-- Select the broken asset --</option>
+                                        @if (ViewBag.Assets != null)
                                         {
-                                            var isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
-                                            <option value="@a.Id" data-name="@a.AssetName" data-building="@a.LocationBuilding" data-room="@a.LocationRoom" selected="@(isSelected ? "selected" : null)">
-                                                @a.AssetName
-                                                @if (!string.IsNullOrEmpty(a.LocationRoom))
-                                                {
-                                                    <text>— @a.LocationRoom</text>
-                                                }
-                                            </option>
-                                        }
-                                    </optgroup>
-                                }
-                            }
-                            else
-                            {
-                                <option value="">No active assets found.</option>
-                            }
-                        </select>
-                        @Html.ValidationMessage("AssetId", "", new { @class = "text-danger small" })
-                    </div>
+                                            var assets = (List<Michaelhouse.Models.Asset>)ViewBag.Assets;
+                                            var buildings = assets.Select(a => a.LocationBuilding).Distinct().OrderBy(b => b);
+                                            int? selectedAssetId = ViewBag.SelectedAssetId;
 
-                    <!-- Manual Entry -->
-                    <div id="manualSection" style="display:none;" class="mb-3">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">What is broken? *</label>
-                                <input type="text" name="manualAssetName" id="manualAssetName" class="form-control" placeholder="e.g. Broken window, leaking pipe" />
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">Where is it located? *</label>
-                                <input type="text" name="manualAssetLocation" id="manualAssetLocation" class="form-control" placeholder="e.g. Founders House, Room 12" />
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold text-uppercase text-muted">Category (optional)</label>
-                                <select name="manualCategory" id="manualCategory" class="form-select">
-                                    <option value="">-- Select Category --</option>
-                                    <option value="Electrical">Electrical</option>
-                                    <option value="Plumbing">Plumbing</option>
-                                    <option value="HVAC">HVAC</option>
-                                    <option value="Grounds">Grounds</option>
-                                    <option value="Sports">Sports</option>
-                                    <option value="Building">Building</option>
-                                    <option value="Safety">Safety</option>
-                                    <option value="IT">IT</option>
-                                    <option value="Kitchen">Kitchen</option>
-                                    <option value="General">General</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="alert alert-info mt-3">
-                            <i class="bi bi-info-circle me-2"></i>
-                            If this asset is important, the Maintenance Manager can register it later.
-                        </div>
-                    </div>
-
-                    <!-- Title -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
-                        @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Burst pipe in bathroom" })
-                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
-                    </div>
-
-                    <!-- Priority -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
-                        @Html.DropDownListFor(m => m.Priority,
-                            new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
-                            "-- Select Priority --",
-                            new { @class = "form-select", id = "prioritySelect" })
-                        @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
-                        <div id="priorityGuide" class="alert alert-secondary mt-2" style="display:none;"></div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
-                        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4, placeholder = "Describe exactly what you found..." })
-                        @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
-                    </div>
-
-                    <!-- Photo Upload + Camera Capture -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
-                        <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
-                            <i class="bi bi-camera me-1"></i> Open Camera
-                        </button>
-                        <video id="videoElement" style="display:none; width:100%; max-width:400px; border-radius:8px; background:#000;" autoplay></video>
-                        <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
-                            <i class="bi bi-camera me-1"></i> Capture Photo
-                        </button>
-                        <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
-                            <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
-                            <div id="uploadPlaceholder">
-                                <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
-                                <span class="text-muted">Click to upload a photo</span>
-                            </div>
-                            <img id="photoPreview" src="#" alt="Preview" style="display:none; max-width:100%; border-radius:8px; margin-top:10px;" />
-                        </div>
-                        <input type="hidden" id="photoData" name="photoData" />
-                    </div>
-
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-robot me-2"></i>
-                        After submission, the system automatically finds the right maintenance worker and assigns them.
-                    </div>
-
-                    <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Fault Report</button>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Right Panel: Stats & My Reports -->
-    <div class="col-lg-6">
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold">@ViewBag.TotalReported</h3><span class="text-muted small">Reported</span></div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold text-warning">@ViewBag.PendingCount</h3><span class="text-muted small">In Progress</span></div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold text-success">@ViewBag.FixedCount</h3><span class="text-muted small">Fixed</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2"></i>My Reported Faults</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (ViewBag.MyReports != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.MyReports).Any())
-                {
-                    foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.MyReports)
-                    {
-                        string statusColor = job.Status == "Completed" ? "success" : job.Status == "Assigned" ? "warning" : "secondary";
-                        <div class="border-bottom p-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <code class="text-danger">@job.JobReference</code>
-                                    <div class="fw-bold">@job.Title</div>
-                                    <small class="text-muted">
-                                        @if (job.Asset != null)
-                                        {
-                                            <span>@job.Asset.AssetName — @job.Asset.LocationBuilding</span>
-                                        }
-                                        else if (!string.IsNullOrEmpty(job.ManualAssetName))
-                                        {
-                                            <span>@job.ManualAssetName — @job.ManualAssetLocation</span>
+                                            foreach (var building in buildings)
+                                            {
+                                                <optgroup label="@building" class="font-sans font-bold bg-gray-50">
+                                                    @foreach (var a in assets.Where(x => x.LocationBuilding == building))
+                                                    {
+                                                        var isSelected = selectedAssetId.HasValue && selectedAssetId.Value == a.Id;
+                                                        <option value="@a.Id" data-name="@a.AssetName" data-building="@a.LocationBuilding" data-room="@a.LocationRoom" selected="@(isSelected ? "selected" : null)" class="font-serif text-gray-900">
+                                                            @a.AssetName
+                                                            @if (!string.IsNullOrEmpty(a.LocationRoom))
+                                                            {
+                                                                <text>— @a.LocationRoom</text>
+                                                            }
+                                                        </option>
+                                                    }
+                                                </optgroup>
+                                            }
                                         }
                                         else
                                         {
-                                            <span>Manual report</span>
+                                            <option value="">No active assets found.</option>
                                         }
-                                        · @job.DateCreated.ToString("dd MMM yyyy HH:mm")
-                                    </small>
+                                    </select>
+                                    <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                                 </div>
-                                <span class="badge bg-@statusColor">@job.Status</span>
+                                @Html.ValidationMessage("AssetId", "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
                             </div>
-                            @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
-                            {
-                                <div class="text-success small mt-1"><i class="bi bi-clock me-1"></i> Fixed in @job.ResponseTimeMinutes minutes</div>
-                            }
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
-                        <p>You have not reported any faults yet.</p>
+
+                            @* --- MANUAL ENTRY --- *@
+                            <div id="manualSection" class="hidden bg-gray-50/50 p-4 border border-gray-200 space-y-4">
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">What is broken? *</label>
+                                    <input type="text" name="manualAssetName" id="manualAssetName" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" placeholder="e.g. Broken window, leaking pipe" />
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Where is it located? *</label>
+                                    <input type="text" name="manualAssetLocation" id="manualAssetLocation" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" placeholder="e.g. Founders House, Room 12" />
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Category (optional)</label>
+                                    <div class="relative">
+                                        <select name="manualCategory" id="manualCategory" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8">
+                                            <option value="">-- Select Category --</option>
+                                            <option value="Electrical">Electrical</option>
+                                            <option value="Plumbing">Plumbing</option>
+                                            <option value="HVAC">HVAC</option>
+                                            <option value="Grounds">Grounds</option>
+                                            <option value="Sports">Sports</option>
+                                            <option value="Building">Building</option>
+                                            <option value="Safety">Safety</option>
+                                            <option value="IT">IT</option>
+                                            <option value="Kitchen">Kitchen</option>
+                                            <option value="General">General</option>
+                                        </select>
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 mt-2">
+                                    <p class="text-[10px] font-mono text-blue-900 uppercase tracking-widest m-0 leading-relaxed">
+                                        <i class="bi bi-info-circle-fill text-blue-500 me-2 text-sm align-middle"></i>
+                                        If this asset is important, the Maintenance Manager can register it later.
+                                    </p>
+                                </div>
+                            </div>
+
+                            @* --- TITLE --- *@
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">What is the problem? *</label>
+                                @Html.TextBoxFor(m => m.Title, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent", placeholder = "e.g. Burst pipe in bathroom" })
+                                @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            @* --- PRIORITY --- *@
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">How urgent? *</label>
+                                <div class="relative">
+                                    @Html.DropDownListFor(m => m.Priority,
+                                        new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                                        "-- Select Priority --",
+                                        new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8", id = "prioritySelect" })
+                                    <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                <div id="priorityGuide" class="hidden"></div>
+                            </div>
+
+                            @* --- DESCRIPTION --- *@
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Description *</label>
+                                @Html.TextAreaFor(m => m.Description, new { @class = "w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = 4, placeholder = "Describe exactly what you found..." })
+                                @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            @* --- PHOTO UPLOAD / CAMERA --- *@
+                            <div class="border-t border-gray-100 pt-6 mt-2">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-4">Photo (optional)</label>
+
+                                <div class="bg-gray-50 border border-gray-200 p-4 shadow-inner">
+                                    <div class="flex gap-2 mb-4">
+                                        <button type="button" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-500 hover:text-gray-900 transition-all shadow-sm flex items-center" onclick="openCamera()">
+                                            <i class="bi bi-camera me-2 text-sm"></i> Open Camera
+                                        </button>
+                                        <button id="captureBtn" type="button" class="hidden bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-all shadow-sm items-center" onclick="capturePhoto()">
+                                            <i class="bi bi-record-circle me-2 text-sm"></i> Capture Photo
+                                        </button>
+                                    </div>
+
+                                    <video id="videoElement" class="w-full max-w-[400px] border-4 border-[#1a1a1a] bg-black hidden mb-4 mx-auto"></video>
+
+                                    <!-- File upload fallback / Display Area -->
+                                    <div class="border-2 border-dashed border-gray-300 bg-white p-8 text-center cursor-pointer hover:border-[#C21E2E] hover:bg-red-50/20 transition-all group" onclick="document.getElementById('photoInput').click();">
+                                        <input type="file" name="photoBefore" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)" />
+
+                                        <div id="uploadPlaceholder">
+                                            <i class="bi bi-cloud-upload text-4xl text-gray-300 group-hover:text-[#C21E2E] transition-colors block mb-2"></i>
+                                            <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Click to upload a photo</span>
+                                        </div>
+
+                                        <img id="photoPreview" src="#" alt="Preview" class="hidden max-w-full max-h-[300px] mx-auto border-4 border-white shadow-md object-contain" />
+                                    </div>
+                                    <input type="hidden" id="photoData" name="photoData" />
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-2">
+                                <p class="text-xs font-mono text-blue-900 m-0 leading-relaxed uppercase tracking-widest">
+                                    <i class="bi bi-robot text-blue-500 me-2 text-lg align-middle"></i>
+                                    System auto-assigns relevant personnel upon submission.
+                                </p>
+                            </div>
+
+                            <button type="submit" class="w-full bg-[#C21E2E] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_20px_rgba(194,30,46,0.4)] transition-all duration-300 mt-2">
+                                Submit Fault Report <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        }
                     </div>
-                }
+                </div>
+            </div>
+
+            @* --- RIGHT: DIAGNOSTICS & MY REPORTS --- *@
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                @* Stats *@
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center relative overflow-hidden group">
+                        <h3 class="font-mono text-3xl font-bold text-gray-900 mb-1">@ViewBag.TotalReported</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">Reported</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center border-b-4 border-yellow-500 relative overflow-hidden group">
+                        <h3 class="font-mono text-3xl font-bold text-yellow-600 mb-1">@ViewBag.PendingCount</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">In Progress</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center border-b-4 border-[#10b981] relative overflow-hidden group">
+                        <h3 class="font-mono text-3xl font-bold text-[#10b981] mb-1">@ViewBag.FixedCount</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">Fixed</span>
+                    </div>
+                </div>
+
+                @* My Reported Faults *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-list-ul me-2 text-gray-400"></i> My Reported Faults</h5>
+                    </div>
+
+                    <div class="flex flex-col max-h-[600px] overflow-y-auto custom-scrollbar">
+                        @if (ViewBag.MyReports != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.MyReports).Any())
+                        {
+                            foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.MyReports)
+                            {
+                                string statusColor = job.Status == "Completed" ? "bg-green-100 text-green-800 border-green-200" :
+                                                     job.Status == "Assigned" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                     "bg-gray-100 text-gray-600 border-gray-200";
+
+                                <div class="p-5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors group">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <code class="font-mono text-xs font-bold text-[#C21E2E] bg-transparent p-0 block mb-1">@job.JobReference</code>
+                                            <div class="font-serif font-bold text-gray-900 text-base leading-tight group-hover:text-[#C21E2E] transition-colors">@job.Title</div>
+                                            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase tracking-widest">
+                                                @if (job.Asset != null)
+                                                {
+                                                    <span>@job.Asset.AssetName — @job.Asset.LocationBuilding</span>
+                                                }
+                                                else if (!string.IsNullOrEmpty(job.ManualAssetName))
+                                                {
+                                                    <span>@job.ManualAssetName — @job.ManualAssetLocation</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Manual report</span>
+                                                }
+                                                <br />@job.DateCreated.ToString("dd MMM yyyy HH:mm")
+                                            </div>
+                                        </div>
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @statusColor">
+                                            @job.Status
+                                        </span>
+                                    </div>
+
+                                    <div class="bg-white border border-gray-200 p-3 flex justify-between items-center shadow-sm">
+                                        <div class="flex gap-4">
+                                            <span class="text-[9px] font-mono text-gray-600 uppercase tracking-widest flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-[#10b981] me-1.5"></span>Reported</span>
+
+                                            <span class="text-[9px] font-mono uppercase tracking-widest flex items-center @(job.AssignedToId.HasValue ? "text-gray-900" : "text-gray-400")">
+                                                <span class="w-1.5 h-1.5 rounded-full @(job.AssignedToId.HasValue ? "bg-yellow-500" : "bg-gray-300") me-1.5"></span>
+                                                @(job.AssignedToId.HasValue ? "Assigned" : "Pending")
+                                            </span>
+
+                                            <span class="text-[9px] font-mono uppercase tracking-widest flex items-center @(job.Status == "Completed" ? "text-gray-900" : "text-gray-400")">
+                                                <span class="w-1.5 h-1.5 rounded-full @(job.Status == "Completed" ? "bg-[#10b981]" : "bg-gray-300") me-1.5"></span>
+                                                Fixed
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
+                                    {
+                                        <div class="text-[10px] font-mono font-bold text-[#10b981] mt-3 uppercase tracking-widest">
+                                            <i class="bi bi-stopwatch me-1 text-sm align-middle"></i> Fixed in @job.ResponseTimeMinutes minutes
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-16 text-muted">
+                                <i class="bi bi-clipboard text-gray-200 text-6xl d-block mb-4"></i>
+                                <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest">You have not reported any faults yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Custom active state for mode buttons */
+    .mode-btn.active {
+        background-color: #1a1a1a !important;
+        color: white !important;
+        border-color: #1a1a1a !important;
+    }
+
+    #qrReader video {
+        object-fit: cover !important;
+        width: 100% !important;
+    }
+</style>
 
 @section Scripts {
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        // ── Photo preview (file upload) ──────────────────────────────────
-        function previewPhoto(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photoPreview').src = e.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('uploadPlaceholder').style.display = 'none';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // ── Camera capture ────────────────────────────────────────────────
+        // ── Camera Integration ──────────────────────────────────────────────
         let stream = null;
 
         function openCamera() {
             const video = document.getElementById('videoElement');
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
                     .then(function (s) {
                         stream = s;
                         video.srcObject = s;
                         video.play();
                         video.style.display = 'block';
-                        document.getElementById('captureBtn').style.display = 'inline';
+                        const captureBtn = document.getElementById('captureBtn');
+                        captureBtn.classList.remove('hidden');
+                        captureBtn.classList.add('flex');
                     })
                     .catch(function (err) {
                         alert('Camera not available: ' + err.message);
@@ -344,37 +437,53 @@
                 video.srcObject = null;
                 video.style.display = 'none';
             }
-            document.getElementById('captureBtn').style.display = 'none';
+
+            const captureBtn = document.getElementById('captureBtn');
+            captureBtn.classList.add('hidden');
+            captureBtn.classList.remove('flex');
+        }
+
+        // ── File Upload Preview ─────────────────────────────────────────────
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('photoPreview').src = e.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         // ── Priority Guide ──────────────────────────────────────────────────
-        var priorityInfo = {
-            'Emergency': { bg:'#f8d7da', border:'#dc3545', color:'#721c24',
-                text:'🔴 EMERGENCY — Fix within 1 hour. Use for: burst pipes flooding, generator failure, fire alarm fault, dangerous electrical issues.' },
-            'High': { bg:'#fff3cd', border:'#ffc107', color:'#856404',
-                text:'🟡 HIGH — Fix same day. Use for: no hot water in a boarding house, broken window, projector not working before class.' },
-            'Medium': { bg:'#cce5ff', border:'#0d6efd', color:'#004085',
-                text:'🔵 MEDIUM — Fix within 3 days. Use for: dripping tap, damaged fence section, broken cupboard.' },
-            'Low': { bg:'#d4edda', border:'#28a745', color:'#155724',
-                text:'🟢 LOW — Fix this week. Use for: peeling paint, loose door handle, small crack in a pathway.' }
+        var guides = {
+            'Emergency': '<i class="bi bi-shield-fill-exclamation text-lg me-2 align-middle"></i> EMERGENCY — Fix within 1 HOUR. SMS alert will be sent.',
+            'High': '<i class="bi bi-exclamation-circle-fill text-lg me-2 align-middle"></i> HIGH — Must be fixed by end of today.',
+            'Medium': '<i class="bi bi-info-circle-fill text-lg me-2 align-middle"></i> MEDIUM — Will be scheduled within 3 days.',
+            'Low': '<i class="bi bi-check-circle-fill text-lg me-2 align-middle"></i> LOW — Will be completed within this week.'
         };
 
-        document.getElementById('prioritySelect').addEventListener('change', function() {
+        document.getElementById('prioritySelect').addEventListener('change', function () {
             var guide = document.getElementById('priorityGuide');
             var val = this.value;
-            if (val && priorityInfo[val]) {
-                var p = priorityInfo[val];
+
+            var baseClass = 'p-4 border-l-4 shadow-sm font-mono text-xs uppercase tracking-widest block mt-4 ';
+
+            if (val && guides[val]) {
                 guide.style.display = 'block';
-                guide.style.background = p.bg;
-                guide.style.borderLeft = '4px solid ' + p.border;
-                guide.style.color = p.color;
-                guide.innerHTML = '<strong>' + p.text + '</strong>';
+                guide.innerHTML = guides[val];
+
+                if (val === 'Emergency') guide.className = baseClass + 'bg-red-50 border-[#C21E2E] text-[#C21E2E]';
+                else if (val === 'High') guide.className = baseClass + 'bg-yellow-50 border-yellow-500 text-yellow-800';
+                else if (val === 'Medium') guide.className = baseClass + 'bg-blue-50 border-blue-500 text-blue-800';
+                else guide.className = baseClass + 'bg-green-50 border-green-500 text-green-800';
             } else {
                 guide.style.display = 'none';
             }
         });
 
-        // ── Mode switching with required attribute handling ──────────────
+        // ── Mode switching ──────────────────────────────────────────────────
         var modeBtns = document.querySelectorAll('.mode-btn');
         var scanSection = document.getElementById('scanSection');
         var assetSection = document.getElementById('assetSection');
@@ -382,34 +491,22 @@
         var assetDropdown = document.getElementById('assetDropdown');
 
         function setMode(mode) {
-            // Reset buttons
             modeBtns.forEach(b => b.classList.remove('active'));
             document.querySelector('.mode-btn[data-mode="' + mode + '"]').classList.add('active');
 
-            if (mode === 'scan') {
+            if (mode === 'scan' || mode === 'select') {
                 scanSection.style.display = 'block';
                 assetSection.style.display = 'block';
                 manualSection.style.display = 'none';
                 assetDropdown.removeAttribute('required');
-                assetDropdown.setAttribute('required', 'required'); // restore required
-                // Hide scanner box
-                document.getElementById('qrScannerBox').style.display = 'none';
-                document.getElementById('startScanBtn').style.display = 'block';
-            } else if (mode === 'select') {
-                scanSection.style.display = 'block';
-                assetSection.style.display = 'block';
-                manualSection.style.display = 'none';
-                assetDropdown.removeAttribute('required');
-                assetDropdown.setAttribute('required', 'required'); // restore required
+                assetDropdown.setAttribute('required', 'required');
                 document.getElementById('qrScannerBox').style.display = 'none';
                 document.getElementById('startScanBtn').style.display = 'block';
             } else if (mode === 'manual') {
                 scanSection.style.display = 'none';
                 assetSection.style.display = 'none';
                 manualSection.style.display = 'block';
-                // Remove required from dropdown so form can submit
                 assetDropdown.removeAttribute('required');
-                // Clear any scanned selection
                 assetDropdown.value = '';
                 document.getElementById('scanConfirm').style.display = 'none';
                 document.getElementById('scanError').style.display = 'none';
@@ -443,13 +540,10 @@
                         processScannedCode(decodedText);
                     });
                 },
-                function onScanFailure() {
-                    // ignore
-                }
+                function onScanFailure() {}
             ).catch(function (err) {
                 document.getElementById('scanError').style.display = 'block';
-                document.getElementById('scanError').textContent =
-                    'Could not access the camera. Please allow camera permission, or select the asset manually.';
+                document.getElementById('scanError').textContent = 'Could not access the camera. Please allow camera permission, or select the asset manually.';
                 document.getElementById('qrScannerBox').style.display = 'none';
                 document.getElementById('startScanBtn').style.display = 'block';
             });
@@ -475,12 +569,9 @@
                         dropdown.value = data.id;
 
                         document.getElementById('scanConfirmName').textContent = data.name;
-                        document.getElementById('scanConfirmLocation').textContent =
-                            data.building + (data.room ? ' — ' + data.room : '');
+                        document.getElementById('scanConfirmLocation').textContent = data.building + (data.room ? ' — ' + data.room : '');
                         document.getElementById('scanConfirm').style.display = 'block';
                         document.getElementById('scanError').style.display = 'none';
-
-                        // Switch to 'select' mode
                         setMode('select');
                     } else {
                         document.getElementById('scanError').style.display = 'block';
@@ -491,31 +582,11 @@
                 .catch(function () {
                     document.getElementById('startScanBtn').style.display = 'block';
                     document.getElementById('scanError').style.display = 'block';
-                    document.getElementById('scanError').textContent =
-                        'Something went wrong looking up this asset. Please select it manually.';
+                    document.getElementById('scanError').textContent = 'Something went wrong looking up this asset. Please select it manually.';
                 });
         }
 
-        // ── Initial mode: scan (active by default) ─────────────────────────
+        // Initialize mode
         setMode('scan');
     </script>
-}
-
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-
-        .mode-btn.active {
-            background-color: #C21E2E;
-            color: white;
-            border-color: #C21E2E;
-        }
-
-        #qrReader video {
-            border-radius: 10px;
-            width: 100%;
-        }
-    </style>
 }

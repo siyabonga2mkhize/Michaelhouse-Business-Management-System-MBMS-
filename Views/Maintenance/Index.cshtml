@@ -4,263 +4,332 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- Page Header -->
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance Overview</h5>
-        </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Maintenance Dashboard</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Live status of the 680‑hectare estate</p>
-    </div>
-    <div class="text-right">
-        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">System Status</p>
-        <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-tighter">
-            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span> Live
-        </span>
-    </div>
-</div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<!-- Low stock / overdue alerts -->
-@if ((int)ViewBag.LowStockCount > 0)
-{
-    <div class="alert alert-warning alert-dismissible fade show mb-4">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>@ViewBag.LowStockCount inventory item(s)</strong> are low on stock.
-        <a href="@Url.Action("Inventory", "Maintenance")" class="alert-link">View Inventory →</a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance & Infrastructure</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Command Console</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Live status of the 680‑hectare estate</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-2">System Status</p>
+            <span class="inline-flex items-center bg-green-50 border border-green-200 px-4 py-2 shadow-sm text-[10px] font-bold uppercase tracking-[2px] text-green-700">
+                <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse me-2"></span> Operations Live
+            </span>
+        </div>
     </div>
-}
-@if ((int)ViewBag.OverdueJobs > 0)
-{
-    <div class="alert alert-danger alert-dismissible fade show mb-4">
-        <i class="bi bi-clock-fill me-2"></i>
-        <strong>@ViewBag.OverdueJobs job(s)</strong> are overdue.
-        <a href="@Url.Action("JobCards", "Maintenance")" class="alert-link">View Job Cards →</a>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
 
-<!-- Stat Cards -->
-<div class="row g-4 mb-5">
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Staff</h6>
-                        <h3 class="fw-bold mb-0">@ViewBag.TotalStaff</h3>
-                    </div>
-                    <span class="badge bg-danger rounded-pill p-3"><i class="bi bi-people-fill fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Available: <span class="fw-bold text-success">@ViewBag.AvailableStaff</span></p>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Assets</h6>
-                        <h3 class="fw-bold mb-0">@ViewBag.TotalAssets</h3>
-                    </div>
-                    <span class="badge bg-warning rounded-pill p-3"><i class="bi bi-qr-code fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Active campus-wide</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Open Jobs</h6>
-                        <h3 class="fw-bold mb-0 text-warning">@ViewBag.OpenJobs</h3>
-                    </div>
-                    <span class="badge bg-info rounded-pill p-3"><i class="bi bi-clipboard-check fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Emergency: <span class="fw-bold text-danger">@ViewBag.EmergencyJobs</span></p>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Overdue</h6>
-                        <h3 class="fw-bold mb-0 text-danger">@ViewBag.OverdueJobs</h3>
-                    </div>
-                    <span class="badge bg-danger rounded-pill p-3"><i class="bi bi-exclamation-circle fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Past due date</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Done Today</h6>
-                        <h3 class="fw-bold mb-0 text-success">@ViewBag.CompletedToday</h3>
-                    </div>
-                    <span class="badge bg-success rounded-pill p-3"><i class="bi bi-check-circle fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Completed today</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-2 col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="text-uppercase text-muted small fw-bold tracking-wider">Low Stock</h6>
-                        <h3 class="fw-bold mb-0 text-danger">@ViewBag.LowStockCount</h3>
-                    </div>
-                    <span class="badge bg-warning rounded-pill p-3"><i class="bi bi-boxes fs-5"></i></span>
-                </div>
-                <p class="text-muted small mt-2">Items need restocking</p>
-            </div>
-        </div>
-    </div>
-</div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
 
-<!-- Quick Actions -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap gap-2">
-        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-dark btn-sm">+ Create Job Card</a>
-        <a href="@Url.Action("AddStaff", "Maintenance")" class="btn btn-outline-dark btn-sm">+ Add Staff</a>
-        <a href="@Url.Action("RegisterAsset", "Maintenance")" class="btn btn-outline-dark btn-sm">+ Register Asset</a>
-        <a href="@Url.Action("Inventory", "Maintenance")" class="btn btn-outline-secondary btn-sm">Inventory</a>
-        <a href="@Url.Action("Performance", "Maintenance")" class="btn btn-outline-secondary btn-sm">Performance</a>
-    </div>
-</div>
+        @* --- SECTOR 1: OPERATIONAL CONTROL (Alerts + Actions) --- *@
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-<!-- Two-column layout -->
-<div class="row g-4">
-    <!-- Left: Recent Jobs -->
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recent Job Cards</h5>
-                <a href="@Url.Action("JobCards", "Maintenance")" class="btn btn-sm btn-outline-secondary">View All</a>
+            @* Left: System Alerts Monitor *@
+            <div class="xl:col-span-2 bg-white shadow-sm border border-gray-200 flex flex-col">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a]">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-broadcast me-2 text-gray-500"></i> System Alerts</h5>
+                </div>
+                <div class="p-6 flex flex-col gap-3 flex-grow justify-center bg-gray-50/50 relative overflow-hidden">
+                    <i class="bi bi-shield-exclamation absolute -right-4 -bottom-4 text-7xl text-gray-200 opacity-20 pointer-events-none"></i>
+
+                    @if ((int)ViewBag.LowStockCount > 0)
+                    {
+                        <div class="bg-white border-l-4 border-yellow-500 p-4 shadow-sm flex justify-between items-center group relative z-10">
+                            <div class="flex items-center">
+                                <i class="bi bi-exclamation-triangle-fill text-yellow-500 me-4 text-xl"></i>
+                                <span class="text-sm font-serif text-gray-800"><strong>@ViewBag.LowStockCount inventory item(s)</strong> are critically low on stock.</span>
+                            </div>
+                            <a href="@Url.Action("Inventory", "Maintenance")" class="text-[10px] font-bold uppercase tracking-widest text-yellow-700 hover:text-yellow-900 border-b border-yellow-700 pb-0.5 transition-colors">
+                                View Inventory <i class="bi bi-arrow-right ms-1 transition-transform group-hover:translate-x-1"></i>
+                            </a>
+                        </div>
+                    }
+                    @if ((int)ViewBag.OverdueJobs > 0)
+                    {
+                        <div class="bg-white border-l-4 border-[#C21E2E] p-4 shadow-sm flex justify-between items-center group relative z-10">
+                            <div class="flex items-center">
+                                <i class="bi bi-clock-fill text-[#C21E2E] me-4 text-xl"></i>
+                                <span class="text-sm font-serif text-gray-800"><strong>@ViewBag.OverdueJobs job(s)</strong> have exceeded their operational deadline.</span>
+                            </div>
+                            <a href="@Url.Action("JobCards", "Maintenance")" class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-red-900 border-b border-[#C21E2E] pb-0.5 transition-colors">
+                                View Job Cards <i class="bi bi-arrow-right ms-1 transition-transform group-hover:translate-x-1"></i>
+                            </a>
+                        </div>
+                    }
+                    @if ((int)ViewBag.LowStockCount == 0 && (int)ViewBag.OverdueJobs == 0)
+                    {
+                        <div class="text-center py-4 relative z-10">
+                            <i class="bi bi-check2-circle text-green-500 text-3xl block mb-2"></i>
+                            <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">All systems nominal. No active alerts.</span>
+                        </div>
+                    }
+                </div>
             </div>
-            <div class="card-body p-0">
-                @if (ViewBag.RecentJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs).Any())
+
+            @* Right: Quick Actions Palette *@
+            <div class="xl:col-span-1 bg-white shadow-sm border border-gray-200 flex flex-col">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a]">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-lightning-charge me-2 text-gray-500"></i> Rapid Directives</h5>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-3 bg-gray-50/50 flex-grow content-start">
+                    <a href="@Url.Action("CreateJobCard", "Maintenance")" class="col-span-2 text-center bg-[#C21E2E] text-white px-4 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 shadow-sm transition-all">
+                        <i class="bi bi-plus-square me-1 align-middle"></i> Create Job Card
+                    </a>
+                    <a href="@Url.Action("AddStaff", "Maintenance")" class="text-center bg-white border border-gray-300 text-gray-700 px-3 py-3 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-500 transition-all shadow-sm">
+                        <i class="bi bi-person-plus me-1"></i> Add Staff
+                    </a>
+                    <a href="@Url.Action("RegisterAsset", "Maintenance")" class="text-center bg-white border border-gray-300 text-gray-700 px-3 py-3 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-500 transition-all shadow-sm">
+                        <i class="bi bi-qr-code-scan me-1"></i> Add Asset
+                    </a>
+                    <a href="@Url.Action("Inventory", "Maintenance")" class="text-center bg-white border border-gray-300 text-gray-700 px-3 py-3 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-500 transition-all shadow-sm">
+                        <i class="bi bi-box-seam me-1"></i> Inventory
+                    </a>
+                    <a href="@Url.Action("Performance", "Maintenance")" class="text-center bg-white border border-gray-300 text-gray-700 px-3 py-3 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-500 transition-all shadow-sm">
+                        <i class="bi bi-graph-up me-1"></i> Metrics
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @* --- SECTOR 2: GLOBAL TELEMETRY MATRIX (Unified Stat Block) --- *@
+        <div class="bg-white border border-gray-200 shadow-sm relative overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-cpu me-2 text-gray-500"></i> Global Telemetry</h5>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 divide-y md:divide-y-0 md:divide-x divide-gray-100 relative z-10">
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden">
+                    <i class="bi bi-people-fill absolute -right-2 -bottom-2 text-6xl text-gray-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2 relative z-10">Total Staff</p>
+                    <p class="font-mono text-4xl font-bold text-gray-900 mb-1 relative z-10">@ViewBag.TotalStaff</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Active: <span class="text-[#10b981] font-bold">@ViewBag.AvailableStaff</span></p>
+                </div>
+
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden">
+                    <i class="bi bi-qr-code absolute -right-2 -bottom-2 text-6xl text-gray-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2 relative z-10">Active Assets</p>
+                    <p class="font-mono text-4xl font-bold text-gray-900 mb-1 relative z-10">@ViewBag.TotalAssets</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Campus-Wide</p>
+                </div>
+
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden bg-blue-50/20">
+                    <i class="bi bi-clipboard-check absolute -right-2 -bottom-2 text-6xl text-blue-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-blue-800 mb-2 relative z-10">Open Jobs</p>
+                    <p class="font-mono text-4xl font-bold text-blue-700 mb-1 relative z-10">@ViewBag.OpenJobs</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Critical: <span class="text-[#C21E2E] font-bold">@ViewBag.EmergencyJobs</span></p>
+                </div>
+
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden bg-red-50/20">
+                    <i class="bi bi-exclamation-circle absolute -right-2 -bottom-2 text-6xl text-red-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-2 relative z-10">Overdue</p>
+                    <p class="font-mono text-4xl font-bold text-[#C21E2E] mb-1 relative z-10">@ViewBag.OverdueJobs</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Past Deadline</p>
+                </div>
+
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden bg-green-50/20">
+                    <i class="bi bi-check-circle absolute -right-2 -bottom-2 text-6xl text-green-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-green-800 mb-2 relative z-10">Done Today</p>
+                    <p class="font-mono text-4xl font-bold text-[#10b981] mb-1 relative z-10">@ViewBag.CompletedToday</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Resolved</p>
+                </div>
+
+                <div class="p-8 text-center hover:bg-gray-50 transition-colors group relative overflow-hidden bg-yellow-50/20">
+                    <i class="bi bi-boxes absolute -right-2 -bottom-2 text-6xl text-yellow-100 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <p class="text-[9px] uppercase tracking-[3px] font-bold text-yellow-700 mb-2 relative z-10">Low Stock</p>
+                    <p class="font-mono text-4xl font-bold text-yellow-600 mb-1 relative z-10">@ViewBag.LowStockCount</p>
+                    <p class="text-[9px] font-mono text-gray-500 uppercase tracking-widest relative z-10">Requires Order</p>
+                </div>
+            </div>
+        </div>
+
+        @* --- SECTOR 3: ACTIVE OPERATIONS WORKSPACE --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+
+            @* Left: Recent Job Cards Ledger *@
+            <div class="lg:col-span-8 flex flex-col">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow relative overflow-hidden h-full">
+
+                    <i class="bi bi-clipboard-data absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] pointer-events-none z-0"></i>
+
+                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-card-list me-2 text-gray-400"></i> Active Job Cards</h5>
+                        <a href="@Url.Action("JobCards", "Maintenance")" class="inline-block bg-white border border-gray-200 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:text-[#C21E2E] transition-all shadow-sm text-gray-600">
+                            View All Jobs
+                        </a>
+                    </div>
+
+                    <div class="table-responsive flex-grow overflow-x-auto relative z-10">
+                        @if (ViewBag.RecentJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs).Any())
+                        {
+                            <table class="table table-hover mb-0 align-middle w-full">
+                                <thead class="bg-gray-50/80">
+                                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200">
+                                        <th class="ps-6 py-4">Ref</th>
+                                        <th class="border-l border-gray-100 ps-4">Directive</th>
+                                        <th class="border-l border-gray-100 ps-4">Priority</th>
+                                        <th class="border-l border-gray-100 ps-4">Personnel</th>
+                                        <th class="border-l border-gray-100 ps-4">Status</th>
+                                        <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs)
+                                    {
+                                        var isOverdue = job.DueDate.HasValue && job.DueDate.Value < DateTime.Now && job.Status != "Completed" && job.Status != "Cancelled";
+
+                                        string rowClass = isOverdue ? "bg-red-50/30 border-l-2 border-l-[#C21E2E]" : "border-l-2 border-l-transparent";
+                                        string priorityColor = job.Priority == "Emergency" ? "bg-red-100 text-[#C21E2E] border-red-200" :
+                                                               job.Priority == "High" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                               job.Priority == "Medium" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                                                               "bg-gray-100 text-gray-600 border-gray-200";
+                                        string statusColor = job.Status == "Completed" ? "bg-green-100 text-green-800 border-green-200" :
+                                                             (job.Status == "Assigned" || job.Status == "In Progress") ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                             "bg-gray-100 text-gray-600 border-gray-200";
+
+                                        <tr class="@rowClass hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0">
+                                            <td class="ps-6 py-4">
+                                                <code class="font-mono text-xs font-bold text-[#C21E2E] bg-transparent">@job.JobReference</code>
+                                            </td>
+                                            <td class="border-l border-gray-50 ps-4">
+                                                <strong class="font-serif text-sm text-gray-900">@job.Title</strong>
+                                            </td>
+                                            <td class="border-l border-gray-50 ps-4">
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @priorityColor">
+                                                    @job.Priority
+                                                </span>
+                                            </td>
+                                            <td class="border-l border-gray-50 ps-4">
+                                                <span class="font-serif text-xs text-gray-700">@(job.AssignedTo != null ? job.AssignedTo.FullName : "Unassigned")</span>
+                                            </td>
+                                            <td class="border-l border-gray-50 ps-4">
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @statusColor">
+                                                    @job.Status
+                                                </span>
+                                            </td>
+                                            <td class="pe-6 border-l border-gray-50 text-end">
+                                                <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = job.Id })" class="inline-block bg-white border border-gray-300 text-gray-500 px-3 py-1 text-[10px] hover:border-[#C21E2E] hover:text-[#C21E2E] hover:bg-red-50 transition-all shadow-sm">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-16 text-muted">
+                                <i class="bi bi-inbox text-gray-200 text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">Queue Clear</h4>
+                                <p class="text-[11px] font-mono text-gray-400 mt-2">No active job cards in the system.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* Right: Diagnostics & Status Panels *@
+            <div class="lg:col-span-4 flex flex-col gap-6">
+
+                @* Building Health Panel *@
+                @if (ViewBag.BuildingHealth != null)
                 {
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Reference</th>
-                                <th>Title</th>
-                                <th>Priority</th>
-                                <th>Assigned To</th>
-                                <th>Status</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.RecentJobs)
+                    <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                        <div class="p-4 border-b border-gray-100 bg-[#1a1a1a]">
+                            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-building me-2 text-gray-500"></i> Building Health</h5>
+                        </div>
+                        <div class="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar">
+                            @foreach (var b in (List<Michaelhouse.Models.BuildingHealthModel>)ViewBag.BuildingHealth)
                             {
-                                var isOverdue = job.DueDate.HasValue && job.DueDate.Value < DateTime.Now && job.Status != "Completed" && job.Status != "Cancelled";
-                                <tr class="@(isOverdue ? "table-danger" : "")">
-                                    <td><code class="text-danger">@job.JobReference</code></td>
-                                    <td><strong>@job.Title</strong></td>
-                                    <td>
-                                        <span class="badge bg-@(job.Priority=="Emergency"?"danger":job.Priority=="High"?"warning":job.Priority=="Medium"?"info":"secondary")">@job.Priority</span>
-                                    </td>
-                                    <td>@(job.AssignedTo != null ? job.AssignedTo.FullName : "Unassigned")</td>
-                                    <td>
-                                        <span class="badge bg-@(job.Status=="Completed"?"success":job.Status=="Assigned"||job.Status=="In Progress"?"warning":"secondary")">@job.Status</span>
-                                    </td>
-                                    <td>
-                                        <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = job.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
-                                    </td>
-                                </tr>
+                                string colorClass = b.OpenJobs == 0 ? "bg-green-50 text-green-700 border-green-200" :
+                                                    b.OpenJobs <= 2 ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                                                    "bg-red-50 text-[#C21E2E] border-red-200";
+
+                                <div class="flex justify-between items-center p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                    <span class="font-serif font-bold text-gray-800 text-sm">@b.Name</span>
+                                    <span class="inline-flex items-center text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @colorClass">
+                                        @b.OpenJobs Active
+                                    </span>
+                                </div>
                             }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
-                        <p>No job cards yet.</p>
-                        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-primary btn-sm">Create First Job Card</a>
+                        </div>
                     </div>
                 }
-            </div>
-        </div>
-    </div>
 
-    <!-- Right: Building Health & Worker Status -->
-    <div class="col-lg-4">
-        <!-- Building Health -->
-        @if (ViewBag.BuildingHealth != null)
-        {
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white border-0">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-building me-2"></i>Building Health</h5>
-                </div>
-                <div class="card-body p-0">
-                    @foreach (var b in (List<Michaelhouse.Models.BuildingHealthModel>)ViewBag.BuildingHealth)
-                    {
-                        string color = b.OpenJobs == 0 ? "success" : b.OpenJobs <= 2 ? "warning" : "danger";
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <span>@b.Name</span>
-                            <span class="badge bg-@color rounded-pill">@b.OpenJobs open</span>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
+                @* Worker Status Panel *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow">
+                    <div class="p-4 border-b border-gray-100 bg-[#1a1a1a]">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-people me-2 text-gray-500"></i> Personnel Logistics</h5>
+                    </div>
+                    <div class="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar">
+                        @if (ViewBag.WorkerStats != null)
+                        {
+                            foreach (var w in (List<Michaelhouse.Models.WorkerStatModel>)ViewBag.WorkerStats)
+                            {
+                                string dotColor = w.Status == "Available" ? "bg-[#10b981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" :
+                                                  w.Status == "On Job" ? "bg-yellow-500" : "bg-gray-400";
 
-        <!-- Worker Status -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Worker Status</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (ViewBag.WorkerStats != null)
-                {
-                    foreach (var w in (List<Michaelhouse.Models.WorkerStatModel>)ViewBag.WorkerStats)
-                    {
-                        string dotColor = w.Status == "Available" ? "bg-success" : w.Status == "On Job" ? "bg-warning" : "bg-secondary";
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <div>
-                                <span class="badge @dotColor rounded-pill me-2" style="width:10px;height:10px;display:inline-block;"></span>
-                                <span class="fw-bold">@w.Name</span>
-                                <span class="text-muted small d-block">@w.Skill</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-secondary">@w.Status</span>
-                                <div class="small text-muted">@w.CompletedMonth done</div>
-                            </div>
-                        </div>
-                    }
-                }
+                                <div class="flex justify-between items-center p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-2 w-2 rounded-full @dotColor flex-shrink-0"></div>
+                                        <div>
+                                            <span class="font-serif font-bold text-gray-900 text-sm block leading-tight">@w.Name</span>
+                                            <span class="text-[9px] font-mono text-gray-400 uppercase tracking-widest block mt-0.5">@w.Skill</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="inline-block text-[8px] font-bold uppercase tracking-widest px-2 py-1 bg-gray-50 text-gray-600 border border-gray-200 mb-1 shadow-sm">
+                                            @w.Status
+                                        </span>
+                                        <div class="text-[9px] font-mono text-gray-400">@w.CompletedMonth done</div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-        .tracking-wider {
-            letter-spacing: 0.1em;
-        }
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
 
-        .tracking-widest {
-            letter-spacing: 0.15em;
+    /* Institutional Table Aesthetics */
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
-    </style>
-}
+</style>
