@@ -346,3 +346,6 @@ SELECT '? Application data seeded.' AS Status;
 
 
 
+
+
+select * from VisitorAccessRequests;
