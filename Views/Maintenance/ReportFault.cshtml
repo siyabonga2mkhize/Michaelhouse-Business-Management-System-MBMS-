@@ -4,171 +4,244 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Fault Reporting</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Logged in as <span class="font-bold text-gray-600">@Session["UserName"]</span> · @(Session["JobTitle"] ?? "Reporter")</p>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Report a Fault</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Logged in as @Session["UserName"] · @(Session["JobTitle"] ?? "Reporter")</p>
     </div>
-</div>
 
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">What is the problem? *</label>
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Burst pipe in bathroom" })
-                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
-                        </div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Which asset is broken? *</label>
-                            <select name="AssetId" class="form-select">
-                                <option value="">-- Select Asset --</option>
-                                @if (ViewBag.Assets != null)
-                                {
-                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
-                                    {
-                                        <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
-                                    }
-                                }
-                            </select>
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">How urgent? *</label>
-                            @Html.DropDownListFor(m => m.Priority,
-                                new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
-                                "-- Select Priority --",
-                                new { @class = "form-select", id = "prioritySelect" })
-                            @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
-                        </div>
+            @* --- LEFT: FAULT REPORTING FORM --- *@
+            <div class="lg:col-span-7 flex flex-col">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
 
-                        <div class="col-12">
-                            <div id="priorityGuide" class="alert alert-secondary" style="display:none;"></div>
-                        </div>
+                    @* Ghost Watermark *@
+                    <i class="bi bi-exclamation-triangle absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Description *</label>
-                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe exactly what you found..." })
-                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
-                        </div>
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-pencil-square me-2 text-gray-500"></i> Incident Report Log</h5>
+                    </div>
 
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <!-- PHOTO SECTION WITH CAMERA INTEGRATION                -->
-                        <!-- ══════════════════════════════════════════════════════ -->
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Photo (optional)</label>
+                    <div class="p-8 relative z-10">
+                        @using (Html.BeginForm("SubmitFault", "Reporter", FormMethod.Post, new { enctype = "multipart/form-data", @class = "flex flex-col gap-6" }))
+                        {
+                            @Html.AntiForgeryToken()
 
-                            <!-- Camera Button -->
-                            <button type="button" class="btn btn-outline-secondary mb-2" onclick="openCamera()">
-                                <i class="bi bi-camera me-1"></i> Open Camera
-                            </button>
-
-                            <!-- Video element for camera -->
-                            <video id="videoElement" width="100%" style="max-width:400px; border-radius:8px; background:#000; display:none;" autoplay></video>
-
-                            <!-- Capture button -->
-                            <button id="captureBtn" type="button" class="btn btn-primary mt-2" style="display:none;" onclick="capturePhoto()">
-                                <i class="bi bi-camera me-1"></i> Capture Photo
-                            </button>
-
-                            <!-- File upload as fallback -->
-                            <div class="border p-3 text-center mt-2" style="cursor:pointer; background:#f8f9fa;" onclick="document.getElementById('photoInput').click();">
-                                <input type="file" name="photoBefore" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
-                                <div id="uploadPlaceholder">
-                                    <i class="bi bi-cloud-upload fs-2 d-block mb-2 text-secondary"></i>
-                                    <span class="text-muted">Click to upload a photo</span>
-                                </div>
-                                <img id="photoPreview" src="#" alt="Preview" style="display:none;max-width:100%;border-radius:8px;margin-top:10px;" />
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">What is the problem? *</label>
+                                @Html.TextBoxFor(m => m.Title, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent", placeholder = "e.g. Burst pipe in bathroom" })
+                                @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
                             </div>
 
-                            <!-- Hidden field for base64 photo data -->
-                            <input type="hidden" id="photoData" name="photoData" />
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-robot me-2"></i> After submission, the system automatically finds the right maintenance worker and assigns them.
-                    </div>
-
-                    <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Submit Fault Report</button>
-                }
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <!-- Stats Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold">@ViewBag.TotalReported</h3><span class="text-muted small">Reported</span></div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold text-warning">@ViewBag.PendingCount</h3><span class="text-muted small">In Progress</span></div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 shadow-sm text-center">
-                    <div class="card-body"><h3 class="fw-bold text-success">@ViewBag.FixedCount</h3><span class="text-muted small">Fixed</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- My Reported Faults -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2"></i>My Reported Faults</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (ViewBag.MyReports != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.MyReports).Any())
-                {
-                    foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.MyReports)
-                    {
-                        string statusColor = job.Status == "Completed" ? "success" : job.Status == "Assigned" ? "warning" : "secondary";
-                        <div class="border-bottom p-3">
-                            <div class="d-flex justify-content-between">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <code class="text-danger">@job.JobReference</code>
-                                    <div class="fw-bold">@job.Title</div>
-                                    <small class="text-muted">@(job.Asset != null ? job.Asset.LocationBuilding : "") · @job.DateCreated.ToString("dd MMM yyyy HH:mm")</small>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Which asset is broken? *</label>
+                                    <div class="relative">
+                                        <select name="AssetId" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8">
+                                            <option value="">-- Select Asset --</option>
+                                            @if (ViewBag.Assets != null)
+                                            {
+                                                foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
+                                                {
+                                                    <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
+                                                }
+                                            }
+                                        </select>
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
                                 </div>
-                                <span class="badge bg-@statusColor">@job.Status</span>
+
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">How urgent? *</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.Priority,
+                                            new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                                            "-- Select Priority --",
+                                            new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8", id = "prioritySelect" })
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
                             </div>
-                            <div class="mt-2 d-flex justify-content-between small text-muted">
-                                <span>🟢 Reported</span>
-                                <span class="text-@(job.AssignedToId.HasValue ? "success" : "secondary")">🟡 @(job.AssignedToId.HasValue ? "Assigned" : "Pending")</span>
-                                <span class="text-@(job.Status == "Completed" ? "success" : "secondary")">✅ @(job.Status == "Completed" ? "Fixed" : "Fixed")</span>
+
+                            <div id="priorityGuide" class="hidden"></div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Description *</label>
+                                @Html.TextAreaFor(m => m.Description, new { @class = "w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = 4, placeholder = "Describe exactly what you found..." })
+                                @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
                             </div>
-                            @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
-                            {
-                                <div class="text-success small mt-1"><i class="bi bi-clock me-1"></i> Fixed in @job.ResponseTimeMinutes minutes</div>
-                            }
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
-                        <p>You have not reported any faults yet.</p>
+
+                            @* --- PHOTO EVIDENCE MODULE --- *@
+                            <div class="border-t border-gray-100 pt-6 mt-2">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-4">Photo (optional)</label>
+
+                                <div class="bg-gray-50 border border-gray-200 p-4 shadow-inner">
+
+                                    <div class="flex gap-2 mb-4">
+                                        <button type="button" class="bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-500 hover:text-gray-900 transition-all shadow-sm flex items-center" onclick="openCamera()">
+                                            <i class="bi bi-camera me-2 text-sm"></i> Open Camera
+                                        </button>
+                                        <button id="captureBtn" type="button" class="hidden bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-all shadow-sm flex items-center" onclick="capturePhoto()">
+                                            <i class="bi bi-record-circle me-2 text-sm"></i> Capture Photo
+                                        </button>
+                                    </div>
+
+                                    <video id="videoElement" class="w-full max-w-[400px] border-4 border-[#1a1a1a] bg-black hidden mb-4"></video>
+
+                                    <!-- File upload as fallback / Display Area -->
+                                    <div class="border-2 border-dashed border-gray-300 bg-white p-8 text-center cursor-pointer hover:border-[#C21E2E] hover:bg-red-50/20 transition-all group" onclick="document.getElementById('photoInput').click();">
+                                        <input type="file" name="photoBefore" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)" />
+
+                                        <div id="uploadPlaceholder">
+                                            <i class="bi bi-cloud-upload text-4xl text-gray-300 group-hover:text-[#C21E2E] transition-colors block mb-2"></i>
+                                            <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Click to upload a photo</span>
+                                        </div>
+
+                                        <img id="photoPreview" src="#" alt="Preview" class="hidden max-w-full max-h-[300px] mx-auto border-4 border-white shadow-md object-contain" />
+                                    </div>
+
+                                    <input type="hidden" id="photoData" name="photoData" />
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50/50 border-l-4 border-blue-500 p-4 mt-2">
+                                <p class="text-xs font-mono text-blue-900 m-0 leading-relaxed">
+                                    <i class="bi bi-robot text-blue-500 me-2 text-lg align-middle"></i>
+                                    After submission, the system automatically finds the right maintenance worker and assigns them.
+                                </p>
+                            </div>
+
+                            <button type="submit" class="w-full bg-[#1a1a1a] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-all duration-300 mt-2">
+                                Submit Fault Report <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        }
                     </div>
-                }
+                </div>
+            </div>
+
+            @* --- RIGHT: DIAGNOSTICS & HISTORY --- *@
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                @* My Stats *@
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center">
+                        <h3 class="font-mono text-3xl font-bold text-gray-900 mb-1">@ViewBag.TotalReported</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">Reported</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center border-b-4 border-yellow-500">
+                        <h3 class="font-mono text-3xl font-bold text-yellow-600 mb-1">@ViewBag.PendingCount</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">In Progress</span>
+                    </div>
+                    <div class="bg-white border border-gray-200 shadow-sm p-4 text-center border-b-4 border-[#10b981]">
+                        <h3 class="font-mono text-3xl font-bold text-[#10b981] mb-1">@ViewBag.FixedCount</h3>
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block">Fixed</span>
+                    </div>
+                </div>
+
+                @* My Reported Faults Ledger *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-list-ul me-2 text-gray-400"></i> My Reported Faults</h5>
+                    </div>
+
+                    <div class="flex flex-col max-h-[600px] overflow-y-auto custom-scrollbar">
+                        @if (ViewBag.MyReports != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.MyReports).Any())
+                        {
+                            foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.MyReports)
+                            {
+                                string statusColor = job.Status == "Completed" ? "bg-green-100 text-green-800 border-green-200" :
+                                                     job.Status == "Assigned" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                     "bg-gray-100 text-gray-600 border-gray-200";
+
+                                <div class="p-5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors group">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <code class="font-mono text-xs font-bold text-[#C21E2E] bg-transparent p-0 block mb-1">@job.JobReference</code>
+                                            <div class="font-serif font-bold text-gray-900 text-base leading-tight group-hover:text-[#C21E2E] transition-colors">@job.Title</div>
+                                            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase tracking-widest">
+                                                @(job.Asset != null ? job.Asset.LocationBuilding : "") · @job.DateCreated.ToString("dd MMM yy HH:mm")
+                                            </div>
+                                        </div>
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @statusColor">
+                                            @job.Status
+                                        </span>
+                                    </div>
+
+                                    <div class="bg-white border border-gray-200 p-3 flex justify-between items-center shadow-sm">
+                                        <div class="flex gap-4">
+                                            <span class="text-[9px] font-mono text-gray-600 uppercase tracking-widest flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-[#10b981] me-1.5"></span>Reported</span>
+
+                                            <span class="text-[9px] font-mono uppercase tracking-widest flex items-center @(job.AssignedToId.HasValue ? "text-gray-900" : "text-gray-400")">
+                                                <span class="w-1.5 h-1.5 rounded-full @(job.AssignedToId.HasValue ? "bg-yellow-500" : "bg-gray-300") me-1.5"></span>
+                                                @(job.AssignedToId.HasValue ? "Assigned" : "Pending")
+                                            </span>
+
+                                            <span class="text-[9px] font-mono uppercase tracking-widest flex items-center @(job.Status == "Completed" ? "text-gray-900" : "text-gray-400")">
+                                                <span class="w-1.5 h-1.5 rounded-full @(job.Status == "Completed" ? "bg-[#10b981]" : "bg-gray-300") me-1.5"></span>
+                                                Fixed
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    @if (job.Status == "Completed" && job.ResponseTimeMinutes.HasValue)
+                                    {
+                                        <div class="text-[10px] font-mono font-bold text-[#10b981] mt-3 uppercase tracking-widest">
+                                            <i class="bi bi-stopwatch me-1"></i> Fixed in @job.ResponseTimeMinutes minutes
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-16 text-muted">
+                                <i class="bi bi-clipboard text-gray-200 text-6xl d-block mb-4"></i>
+                                <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest">You have not reported any faults yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -183,8 +256,9 @@
                         stream = s;
                         video.srcObject = s;
                         video.play();
-                        video.style.display = 'block';
-                        document.getElementById('captureBtn').style.display = 'inline';
+                        video.classList.remove('hidden');
+                        document.getElementById('captureBtn').classList.remove('hidden');
+                        document.getElementById('captureBtn').classList.add('flex');
                     })
                     .catch(function (err) {
                         alert('Camera not available: ' + err.message);
@@ -205,8 +279,8 @@
 
             // Show preview
             document.getElementById('photoPreview').src = dataUrl;
-            document.getElementById('photoPreview').style.display = 'block';
-            document.getElementById('uploadPlaceholder').style.display = 'none';
+            document.getElementById('photoPreview').classList.remove('hidden');
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
 
             // Set hidden input for base64 data
             document.getElementById('photoData').value = dataUrl;
@@ -215,9 +289,10 @@
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
-                video.style.display = 'none';
+                video.classList.add('hidden');
             }
-            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('captureBtn').classList.remove('flex');
         }
 
         // ── File Upload Preview ─────────────────────────────────────────────
@@ -226,8 +301,8 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     document.getElementById('photoPreview').src = e.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
-                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('photoPreview').classList.remove('hidden');
+                    document.getElementById('uploadPlaceholder').classList.add('hidden');
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -235,30 +310,29 @@
 
         // ── Priority Guide ──────────────────────────────────────────────────
         var guides = {
-            'Emergency': '🔴 EMERGENCY — Fix within 1 HOUR.',
-            'High': '🟡 HIGH — Must be fixed by end of today.',
-            'Medium': '🔵 MEDIUM — Will be scheduled within 3 days.',
-            'Low': '🟢 LOW — Will be completed within this week.'
+            'Emergency': '<i class="bi bi-shield-fill-exclamation text-lg me-2 align-middle"></i> EMERGENCY — Fix within 1 HOUR.',
+            'High': '<i class="bi bi-exclamation-circle-fill text-lg me-2 align-middle"></i> HIGH — Must be fixed by end of today.',
+            'Medium': '<i class="bi bi-info-circle-fill text-lg me-2 align-middle"></i> MEDIUM — Will be scheduled within 3 days.',
+            'Low': '<i class="bi bi-check-circle-fill text-lg me-2 align-middle"></i> LOW — Will be completed within this week.'
         };
 
         document.getElementById('prioritySelect').addEventListener('change', function () {
             var guide = document.getElementById('priorityGuide');
             var val = this.value;
+
+            var baseClass = 'p-4 border-l-4 shadow-sm font-mono text-xs uppercase tracking-widest block mb-6 ';
+
             if (val && guides[val]) {
-                guide.style.display = 'block';
-                guide.textContent = guides[val];
-                guide.className = 'alert alert-' + (val === 'Emergency' ? 'danger' : val === 'High' ? 'warning' : val === 'Medium' ? 'info' : 'success');
+                guide.classList.remove('hidden');
+                guide.innerHTML = guides[val];
+
+                if (val === 'Emergency') guide.className = baseClass + 'bg-red-50 border-[#C21E2E] text-[#C21E2E]';
+                else if (val === 'High') guide.className = baseClass + 'bg-yellow-50 border-yellow-500 text-yellow-800';
+                else if (val === 'Medium') guide.className = baseClass + 'bg-blue-50 border-blue-500 text-blue-800';
+                else guide.className = baseClass + 'bg-green-50 border-green-500 text-green-800';
             } else {
-                guide.style.display = 'none';
+                guide.classList.add('hidden');
             }
         });
     </script>
-}
-
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-    </style>
 }
