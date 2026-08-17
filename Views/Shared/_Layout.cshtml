@@ -1,5 +1,4 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html lang="en">
 
@@ -83,13 +82,6 @@
         }
 
         /* --- DYNAMIC MAIN WRAPPER --- */
-        /*.app-shell {
-            display: flex;
-            flex: 1;*/ /* Fills remaining vertical space */
-        /*height: calc(100vh - var(--nav-height));
-            overflow: hidden;
-        }*/
-
         .app-shell {
             display: flex;
             width: 100%;
@@ -107,37 +99,68 @@
         }
 
 
-
+        /* --- FLOATING TRANSPARENT SIDEBAR --- */
         #sidebar {
-            background: #fdfdfd;
+            background: rgba(255, 255, 255, 0.85); /* Semi-transparent */
+            backdrop-filter: blur(12px); /* Frosted glass effect */
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 5px 0 25px rgba(0,0,0,0.08); /* Drop shadow for floating effect */
+
             width: var(--sidebar-width);
             min-width: var(--sidebar-width);
-            border-right: 1px solid #eee;
-            /* Smoothly disappear */
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), flex-basis 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 0 0 var(--sidebar-width);
+            height: calc(100vh - 73px);
+            position: sticky;
+            top: 73px;
+            border-right: 1px solid rgba(238, 238, 238, 0.5);
             overflow-x: hidden;
             overflow-y: auto;
             white-space: nowrap;
-            flex: 0 0 var(--sidebar-width);
-            height: 100%;
+            box-sizing: border-box;
+            transition: width 0.25s ease, min-width 0.25s ease, flex-basis 0.25s ease;
+            z-index: 1040; /* Keeps it above the main content for the shadow */
         }
 
-            /* COLLAPSED = COMPLETELY HIDDEN */
+            /* Collapsed sidebar: keep the icons visible and hide the labels/text. */
             #sidebar.collapsed {
-                width: 0;
-                min-width: 0;
-                flex-basis: 0;
-                border-right: none;
+                width: 78px !important;
+                min-width: 78px !important;
+                flex-basis: 78px !important;
             }
 
-                /* Hide everything inside while collapsed */
                 #sidebar.collapsed .sidebar-label,
-                #sidebar.collapsed .nav-link,
-                #sidebar.collapsed .sidebar-divider {
-                    opacity: 0;
-                    pointer-events: none;
+                #sidebar.collapsed .sidebar-divider,
+                #sidebar.collapsed .link-text,
+                #sidebar.collapsed .nav-link-content span,
+                #sidebar.collapsed .nav-badge,
+                #sidebar.collapsed .cart-badge {
+                    display: none !important;
                 }
 
+                #sidebar.collapsed .nav-link {
+                    justify-content: center;
+                    padding: 12px 8px;
+                    margin-left: 8px;
+                    margin-right: 8px;
+                    font-size: 0;
+                }
+
+                    #sidebar.collapsed .nav-link i {
+                        margin-right: 0;
+                        min-width: 0;
+                        font-size: 1.25rem;
+                    }
+
+                #sidebar.collapsed .nav-link-content {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                }
+
+                    #sidebar.collapsed .nav-link-content i {
+                        margin-right: 0;
+                    }
 
 
         .sidebar .nav-link {
@@ -190,22 +213,6 @@
 
 
         /* Content Area */
-
-        border-color: rgba(255,255,255,0.1);
-
-        margin: 8px 16px;
-        }
-
-
-
-        /*.main-content {
-            flex: 1;
-            min-width: 0;
-            transition: all 0.3s;
-            background: #fff;
-            position: relative;
-            z-index: 1;
-        }*/
         .main-content {
             flex: 1 1 0%;
             width: 100%;
@@ -216,24 +223,11 @@
             z-index: 1;
             overflow-x: auto;
             box-sizing: border-box;
+            /* Apply the animation to the main content area */
+            animation: smoothFadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
 
-        /*
-        .full-width {
-            padding: 0 !important;
-        }*/
-
-
-
-        /*#sidebarCollapse {
-            background: none;
-            border: none;
-            color: var(--mh-red);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0 15px;
-        }*/
         #sidebarCollapse {
             background: none;
             border: none;
@@ -279,6 +273,19 @@
 
             .clickable-link:hover {
                 color: #0a58ca;
+            }
+
+        /* --- HIDE SCROLLBARS GLOBALLY --- */
+        body, #sidebar, .main-content, .app-shell {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+
+            body::-webkit-scrollbar,
+            #sidebar::-webkit-scrollbar,
+            .main-content::-webkit-scrollbar,
+            .app-shell::-webkit-scrollbar {
+                display: none; /* Chrome, Safari and Opera */
             }
     </style>
 
@@ -336,7 +343,7 @@
 
             {
 
-                <button type="button" id="sidebarCollapse">
+                <button type="button" id="sidebarCollapse" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">
 
                     <i class="bi bi-list"></i>
 
@@ -346,58 +353,53 @@
 
 
 
-            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+            <!-- Center: brand logo + text -->
+            <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
+                <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
+                <span class="d-none d-sm-inline">Michaelhouse</span>
+            </a>
 
-                @*<img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" />*@
+            <!-- Right: notification, user pill, logout -->
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <!-- Notification bell (child action) -->
+                @Html.Action("NotificationBadge", "Notification")
 
-                <!-- Center: brand logo + text -->
-                <a class="navbar-brand position-absolute start-50 translate-middle-x" href="@Url.Action("Index", "Home")">
-                    <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" class="nav-logo" style="height: 40px;" />
-                    <span class="d-none d-sm-inline">Michaelhouse</span>
+                <!-- User info pill (only when logged in) -->
+                @if (isLoggedIn)
 
-                </a>
+                {
 
-                <!-- Right: notification, user pill, logout -->
-                <div class="ms-auto d-flex align-items-center gap-3">
-                    <!-- Notification bell (child action) -->
-                    @Html.Action("NotificationBadge", "Notification")
+                    <div class="user-pill d-none d-md-block">
 
-                    <!-- User info pill (only when logged in) -->
-                    @if (isLoggedIn)
+                        <i class="bi bi-person-circle me-1"></i>
 
-                    {
+                        <span class="fw-bold">@userName</span>
 
-                        <div class="user-pill d-none d-md-block">
+                        <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
 
-                            <i class="bi bi-person-circle me-1"></i>
+                    </div>
+                }
 
-                            <span class="fw-bold">@userName</span>
+                <!-- Logout button (only when logged in) -->
+                @if (isLoggedIn)
+                {
+                    <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
 
-                            <span class="ms-2 badge bg-danger text-white rounded-pill small">@userRole</span>
+                        <i class="bi bi-box-arrow-right fs-5"></i>
 
-                        </div>
-                    }
+                    </a>
 
-                    <!-- Logout button (only when logged in) -->
-                    @if (isLoggedIn)
-                    {
-                        <a href="@Url.Action("Logout", "Account")" class="text-secondary hover:text-danger">
+                }
 
-                            <i class="bi bi-box-arrow-right fs-5"></i>
+                else if (!isHomePage)
 
-                        </a>
+                {
 
-                    }
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
 
-                    else if (!isHomePage)
+                }
 
-                    {
-
-                        <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-danger px-4 rounded-0 fw-bold small">Login</a>
-
-                    }
-
-                </div>
+            </div>
 
         </div>
 
@@ -1184,41 +1186,6 @@
                             <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
                         </a>
                     }
-                    else if (userRole == "MaintenanceManager")
-                    {
-                        <div class="sidebar-label">Maintenance Management</div>
-                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Index" ? "active" : "")"
-                           href="@Url.Action("Index", "Maintenance")">
-                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
-                        </a>
-                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Staff" ? "active" : "")"
-                           href="@Url.Action("Staff", "Maintenance")">
-                            <i class="bi bi-people"></i> <span class="link-text">Staff Management</span>
-                        </a>
-                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "Assets" || currentAction == "AssetDetail" || currentAction == "RegisterAsset") ? "active" : "")"
-                           href="@Url.Action("Assets", "Maintenance")">
-                            <i class="bi bi-qr-code"></i> <span class="link-text">Asset Register</span>
-                        </a>
-                        <a class="nav-link @(currentController == "Maintenance" && (currentAction == "JobCards" || currentAction == "JobCardDetail" || currentAction == "CreateJobCard") ? "active" : "")"
-                           href="@Url.Action("JobCards", "Maintenance")">
-                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Job Cards</span>
-                        </a>
-
-                        <hr class="sidebar-divider" />
-                        <div class="sidebar-label">Planning</div>
-                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Schedules" ? "active" : "")"
-                           href="@Url.Action("Schedules", "Maintenance")">
-                            <i class="bi bi-calendar3"></i> <span class="link-text">Preventive Schedules</span>
-                        </a>
-                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Inventory" ? "active" : "")"
-                           href="@Url.Action("Inventory", "Maintenance")">
-                            <i class="bi bi-boxes"></i> <span class="link-text">Inventory</span>
-                        </a>
-                        <a class="nav-link @(currentController == "Maintenance" && currentAction == "Performance" ? "active" : "")"
-                           href="@Url.Action("Performance", "Maintenance")">
-                            <i class="bi bi-graph-up"></i> <span class="link-text">Performance</span>
-                        </a>
-                    }
                     else if (userRole == "MaintenanceWorker")
                     {
                         <div class="sidebar-label">Worker Portal</div>
@@ -1300,25 +1267,40 @@
 
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
+        // ============================================================
+        // SIDEBAR TOGGLE
+        // ============================================================
         document.addEventListener("DOMContentLoaded", function () {
+            var btn = document.getElementById("sidebarCollapse");
+            var sidebar = document.getElementById("sidebar");
 
-            const btn = document.getElementById("sidebarCollapse");
-            const sidebar = document.getElementById("sidebar");
+            if (btn && sidebar) {
+                var collapsed = localStorage.getItem("mhSidebarCollapsed") === "true";
 
-            if (!btn || !sidebar) {
-                return;
+                if (collapsed) {
+                    sidebar.classList.add("collapsed");
+                    btn.setAttribute("aria-expanded", "false");
+                }
+
+                btn.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    var isCollapsed = sidebar.classList.toggle("collapsed");
+                    btn.setAttribute("aria-expanded", (!isCollapsed).toString());
+                    localStorage.setItem("mhSidebarCollapsed", isCollapsed.toString());
+                });
             }
-
-            btn.addEventListener("click", function () {
-
-                sidebar.classList.toggle("collapsed");
-
-            });
-
         });
-        // --- 1. EXISTING NOTIFICATION LOGIC ---
+
+        // ============================================================
+        // NOTIFICATIONS
+        // ============================================================
         function loadNotifications() {
+            if (typeof $ === "undefined") return;
+
             $.get('@Url.Action("GetNotificationsPartial", "Notification")', function(data) {
                 $('#notificationList').html(data);
                 updateBadge();
@@ -1326,6 +1308,8 @@
         }
 
         function updateBadge() {
+            if (typeof $ === "undefined") return;
+
             $.get('@Url.Action("GetUnreadCount", "Notification")', function(count) {
                 if (count > 0) {
                     $('#notificationBadge').text(count).show();
@@ -1333,62 +1317,6 @@
                     $('#notificationBadge').hide();
                 }
             });
-        }
-
-        // --- 2. NEW: EMERGENCY OVERRIDE LOGIC (CRITICAL) ---
-        function checkEmergencyStatus() {
-            // Only perform this check if the user is logged in (to save server resources)
-            var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
-            if (!isLoggedIn) return;
-
-            $.ajax({
-                url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
-                type: 'GET',
-                cache: false,
-                success: function (data) {
-                    // If there is an ACTIVE alert AND they haven't confirmed it yet:
-                    if (data.hasActiveAlert && !data.alreadyConfirmed) {
-                        // BAM! Immediate screen takeover
-                        window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
-                    }
-                },
-                error: function() {
-                    // Silently fail - we don't want error pop-ups for students.
-                }
-            });
-        }
-
-        // --- 3. TRIGGER THE CHECKS ---
-        $(function() {
-            // Start the notification listener
-            loadNotifications();
-            setInterval(loadNotifications, 30000); // 30 seconds
-
-            // Start the Emergency Override listener
-            // It runs IMMEDIATELY on page load, and repeats every 5 seconds while they browse.
-            checkEmergencyStatus();
-            setInterval(checkEmergencyStatus, 5000); // 5 seconds
-        });
-        // --- 2. NEW: EMERGENCY OVERRIDE LOGIC (CRITICAL) ---
-function checkEmergencyStatus() {
-    var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
-    if (!isLoggedIn) return;
-
-    // Only run for Students (to prevent redirects for teachers, admins, etc.)
-    @*var role = '@Session["UserRole"]';
-    if (role !== 'Student') return;*@
-
-    $.ajax({
-        url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
-        type: 'GET',
-        cache: false,
-        success: function (data) {
-            if (data.hasActiveAlert && !data.alreadyConfirmed) {
-                window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
-            }
-        },
-        error: function() { /* silent fail */ }
-    });
         }
 
         // ============================================================
@@ -1454,53 +1382,49 @@ function checkEmergencyStatus() {
         if (btn) btn.style.display = 'none';
     }
 
-// --- EXTEND EMERGENCY CHECK ---
-function checkEmergencyStatus() {
-    var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
-    if (!isLoggedIn) return;
+        // ============================================================
+        // EMERGENCY STATUS + SIREN
+        // ============================================================
+        function checkEmergencyStatus() {
+            var isLoggedIn = @(Session["UserId"] != null ? "true" : "false");
+            if (!isLoggedIn || typeof $ === "undefined") return;
 
-    // Only run for Students (to prevent redirects for teachers, admins, etc.)
-    var role = '@Session["UserRole"]';
-    if (role !== 'Student') return;
+            var role = '@Session["UserRole"]';
+            if (role !== 'Student') return;
 
-    $.ajax({
-        url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
-        type: 'GET',
-        cache: false,
-        success: function (data) {
-            // 1. Redirect if needed (existing logic)
-            if (data.hasActiveAlert && !data.alreadyConfirmed) {
-                window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
-                return;
-            }
+            $.ajax({
+                url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
+                type: 'GET',
+                cache: false,
+                success: function (data) {
+                    if (data.hasActiveAlert && !data.alreadyConfirmed) {
+                        window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
+                        return;
+                    }
 
-            // 2. Siren control
-            if (data.hasActiveAlert && !data.sirenStopped) {
-                playSiren();
-            } else {
-                stopSiren();
-            }
-        },
-        error: function() { /* silent fail */ }
-    });
+                    if (data.hasActiveAlert && !data.sirenStopped) {
+                        playSiren();
+                    } else {
+                        stopSiren();
+                    }
+                },
+                error: function () {
+                    // Silent failure by design.
+                }
+            });
+        }
 
-    // ============================================================
-    // 5. INITIALISE
-    // ============================================================
-    $(function () {
-        // Notifications
-        loadNotifications();
-        setInterval(loadNotifications, 30000);
+        // ============================================================
+        // INITIALISE AFTER JQUERY IS LOADED
+        // ============================================================
+        $(function () {
+            loadNotifications();
+            setInterval(loadNotifications, 30000);
 
-        // Emergency check – run immediately and every 5 seconds
-        checkEmergencyStatus();
-        setInterval(checkEmergencyStatus, 5000);
-    });
+            checkEmergencyStatus();
+            setInterval(checkEmergencyStatus, 5000);
+        });
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-
     @RenderSection("Scripts", required: false)
 
 </body>
