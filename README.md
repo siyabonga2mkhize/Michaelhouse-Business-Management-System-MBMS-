@@ -1,4 +1,5 @@
-# 🏫 Michaelhouse Business Management System (MBMS)
+# [Michaelhouse Business Management System (MBMS)](https://mbms-ewbjhzh7fzdnd2d0.southafricanorth-01.azurewebsites.net/)
+
 
 Welcome to the **Michaelhouse MBMS** – a comprehensive school management system built with ASP.NET MVC 5, Entity Framework, and Azure SQL.
 
