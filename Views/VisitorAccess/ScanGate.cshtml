@@ -1,24 +1,119 @@
 ﻿@{
     ViewBag.Title = "Security Gate QR Scanner";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container text-center mt-5" style="max-width: 500px;">
-    <h2 class="text-uppercase" style="color: #C21E2E; font-family: 'Playfair Display', serif;">Michaelhouse</h2>
-    <h4>Security Gate QR Scanner</h4>
-    <hr />
-    <p class="text-muted">Point the camera at the visitor's QR code.</p>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <!-- The scanner renders inside this container -->
-    <div id="qr-reader" class="overflow-hidden rounded border" style="width: 100%; margin-top: 10px; background-color: #f8f9fa;"></div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Security & Access Control</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Michaelhouse</h2>
+            <h4 class="text-2xl font-serif font-bold text-gray-800 mt-2">Security Gate QR Scanner</h4>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Point the camera at the visitor's QR code.</p>
+        </div>
+    </div>
 
-    <!-- The result message appears here -->
-    <div id="result-area" class="mt-4"></div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
 
-    <!-- Reset button to scan again without refreshing -->
-    <button id="reset-btn" class="btn btn-outline-dark mt-3 d-none" onclick="resetScanner()">
-        Scan Next Pass
-    </button>
+        <div class="w-full max-w-2xl flex flex-col h-full">
+
+            @* --- SCANNER MODULE CARD --- *@
+            <div class="bg-white shadow-2xl border-t-4 border-[#C21E2E] relative overflow-hidden group flex flex-col h-full min-h-[500px]">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-qr-code-scan absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div class="relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-camera-video me-2 text-gray-400"></i> Optical Scanner Module</h5>
+                    </div>
+                </div>
+
+                @* Scanner & Results Area *@
+                <div class="p-8 relative z-10 flex flex-col items-center flex-grow">
+
+                    <!-- The scanner renders inside this container (Now restricted to max-w-md so it doesn't stretch wildly) -->
+                    <div id="qr-reader" class="overflow-hidden border-4 border-gray-900 bg-white w-full max-w-md mx-auto shadow-sm relative group-hover:border-[#C21E2E] transition-colors duration-500"></div>
+
+                    <!-- The result message appears here -->
+                    <div id="result-area" class="mt-8 w-full max-w-md mx-auto"></div>
+                </div>
+
+                @* Security & Administrative Actions Footer *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-center items-center relative z-10 mt-auto flex-shrink-0">
+                    <!-- Reset button to scan again without refreshing -->
+                    <button id="reset-btn" class="hidden w-full sm:w-auto text-center bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300" onclick="resetScanner()">
+                        <i class="bi bi-arrow-clockwise me-2 align-middle text-sm"></i> Scan Next Pass
+                    </button>
+
+                    <div id="footer-text" class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono">
+                        <i class="bi bi-shield-lock me-2"></i> Awaiting Optical Input...
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* html5-qrcode override styling for cleaner integration */
+    #qr-reader {
+        border-radius: 0 !important;
+    }
+
+    #qr-reader__scan_region {
+        background-color: #f8f9fa !important;
+    }
+
+    /* Forces the internal video element to behave inside our container */
+    #qr-reader video {
+        object-fit: cover !important;
+    }
+
+    #qr-reader__dashboard_section_csr button {
+        background-color: #1a1a1a !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        font-family: 'Source Code Pro', monospace !important;
+        font-size: 10px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+        margin: 5px !important;
+    }
+</style>
 
 @section Scripts {
     <!-- Load the QR scanner library from CDN -->
@@ -41,7 +136,7 @@
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             } else {
                 document.getElementById('result-area').innerHTML =
-                    `<div class="alert alert-danger">QR library failed to load. Please refresh the page.</div>`;
+                    `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm font-serif">QR library failed to load. Please refresh the page.</div>`;
             }
         }
 
@@ -53,7 +148,9 @@
                 lastResult = decodedText;
 
                 const resultArea = document.getElementById('result-area');
-                resultArea.innerHTML = `<div class="alert alert-info fw-bold">⏳ Validating Gate Pass...</div>`;
+
+                // Show loading state using institutional aesthetic
+                resultArea.innerHTML = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm font-bold font-serif">⏳ Validating Gate Pass...</div>`;
 
                 if (html5QrcodeScanner) {
                     html5QrcodeScanner.pause(true);
@@ -65,43 +162,45 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            let zoneInfo = data.assignedZone ? `<br/><small><b>Zone:</b> ${data.assignedZone}</small>` : '';
+                            let zoneInfo = data.assignedZone ? `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Zone:</b> ${data.assignedZone}</small>` : '';
                             let durationInfo = data.visitDuration && data.visitDuration !== "N/A" ?
-                                `<br/><small><b>Visit Duration:</b> ${data.visitDuration}</small>` : '';
+                                `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Visit Duration:</b> ${data.visitDuration}</small>` : '';
                             let scanType = data.isExit ? '🚪 EXIT LOGGED' : '✅ ENTRY GRANTED';
-                            let cardClass = data.isExit ? 'alert-secondary' : 'alert-success';
+                            let cardClass = data.isExit ? 'bg-gray-100 border-l-4 border-gray-500 text-gray-800' : 'bg-green-50 border-l-4 border-green-500 text-green-800';
                             let visitorName = data.visitorName || 'Visitor';
 
                             resultArea.innerHTML = `
-                                <div class="alert ${cardClass} fs-5">
-                                    <strong>${scanType}</strong>
-                                    <br/><b>Visitor:</b> ${visitorName}
-                                    ${zoneInfo}
-                                    ${durationInfo}
-                                    <br/><span class="text-muted small">${data.message}</span>
+                                <div class="${cardClass} p-6 shadow-sm font-serif text-lg w-full">
+                                    <strong class="text-xl">${scanType}</strong>
+                                    <br/><div class="mt-2 text-gray-900"><b>Visitor:</b> ${visitorName}</div>
+                                    <div class="mt-1 text-gray-700">${zoneInfo}</div>
+                                    <div class="text-gray-700">${durationInfo}</div>
+                                    <br/><span class="text-gray-500 text-[10px] font-mono tracking-widest uppercase block border-t border-gray-200 pt-3 mt-2">${data.message}</span>
                                 </div>`;
                         } else {
-                            resultArea.innerHTML = `<div class="alert alert-danger fs-5">🚫 ${data.message}</div>`;
+                            resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-6 text-[#C21E2E] shadow-sm font-serif text-lg w-full">🚫 ${data.message}</div>`;
                         }
                     })
                     .catch(err => {
-                        resultArea.innerHTML = `<div class="alert alert-danger">⚠️ Server connection error. Please try again.</div>`;
+                        resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm font-serif">⚠️ Server connection error. Please try again.</div>`;
                     })
                     .finally(() => {
-                        document.getElementById('reset-btn').classList.remove('d-none');
+                        document.getElementById('reset-btn').classList.remove('hidden');
+                        document.getElementById('footer-text').classList.add('hidden');
                     });
             }
         }
 
         function onScanFailure(err) {
-            // ignore
+            // ignore continuous scanning noise
         }
 
         function resetScanner() {
             lastResult = "";
             isProcessing = false;
             document.getElementById('result-area').innerHTML = "";
-            document.getElementById('reset-btn').classList.add('d-none');
+            document.getElementById('reset-btn').classList.add('hidden');
+            document.getElementById('footer-text').classList.remove('hidden');
 
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.resume();

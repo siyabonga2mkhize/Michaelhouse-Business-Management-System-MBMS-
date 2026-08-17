@@ -1,70 +1,183 @@
 ﻿@model Michaelhouse.Models.VisitorAccessRequest
 
 @{
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Request Visitor Access";
 }
 
-<div class="container mt-4" style="max-width:700px;">
-    <h2 class="text-uppercase" style="color:#C21E2E;">Request Visitor Access</h2>
-    <hr />
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    @using (Html.BeginForm())
-    {
-        @Html.AntiForgeryToken()
-        @Html.HiddenFor(m => m.StudentId)
-        @Html.HiddenFor(m => m.BoardingHouseName)
-
-        <div class="mb-3">
-            <label>Visitor Full Name</label>
-            @Html.EditorFor(m => m.VisitorFullName, new { htmlAttributes = new { @class = "form-control" } })
-        </div>
-        <div class="mb-3">
-            <label>Visitor Phone</label>
-            @Html.EditorFor(m => m.VisitorPhone, new { htmlAttributes = new { @class = "form-control" } })
-        </div>
-        <!-- NEW EMAIL FIELD ADDED BELOW -->
-        <div class="mb-3">
-            <label>Visitor Email</label>
-            @Html.EditorFor(m => m.VisitorEmail, new { htmlAttributes = new { @class = "form-control", @type = "email" } })
-            @Html.ValidationMessageFor(m => m.VisitorEmail, "", new { @class = "text-danger" })
-        </div>
-        <!-- END NEW EMAIL FIELD -->
-        <div class="mb-3">
-            <label>Relationship to Student</label>
-            @Html.EditorFor(m => m.RelationshipToBoy, new { htmlAttributes = new { @class = "form-control" } })
-        </div>
-
-        <div class="form-check mb-3">
-            @Html.CheckBoxFor(m => m.IsParentOrGuardian, new { @class = "form-check-input" })
-            <label class="form-check-label">Yes, this is a Parent/Guardian</label>
-        </div>
-
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <label>Visit Date</label>
-                @Html.EditorFor(m => m.VisitDate, new { htmlAttributes = new { @class = "form-control", @type = "date" } })
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Visitor Management</h5>
             </div>
-            <div class="col-md-4 mb-3">
-                <label>Start Time</label>
-                @Html.EditorFor(m => m.StartTime, new { htmlAttributes = new { @class = "form-control", @type = "time" } })
-            </div>
-            <div class="col-md-4 mb-3">
-                <label>End Time</label>
-                @Html.EditorFor(m => m.EndTime, new { htmlAttributes = new { @class = "form-control", @type = "time" } })
-            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Request Visitor Access</h2>
         </div>
-
-        <div class="mb-3">
-            <label>Requested Zone</label>
-            @Html.EnumDropDownListFor(m => m.RequestedZone, "Select Zone", new { @class = "form-select" })
+        <div class="flex gap-3">
+            <a href="@Url.Action("MyRequests")" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Cancel
+            </a>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label>Purpose of Visit</label>
-            @Html.TextAreaFor(m => m.PurposeOfVisit, new { @class = "form-control", rows = 3 })
+    @* --- SCROLLABLE FORM SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+
+        <div class="w-full max-w-4xl">
+
+            @* --- OFFICIAL REQUEST FORM --- *@
+            @using (Html.BeginForm(null, null, FormMethod.Post, new { @class = "bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group/form" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.StudentId)
+                @Html.HiddenFor(m => m.BoardingHouseName)
+
+                @* Ghost Watermark *@
+                <i class="bi bi-person-badge absolute -right-8 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover/form:-rotate-12 group-hover/form:scale-[1.2] pointer-events-none z-0"></i>
+
+                @* Archival Dot Grid Header *@
+                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                    <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0 relative z-10"><i class="bi bi-ui-checks-grid me-2 text-gray-400"></i> Request Visitor Access</h5>
+                </div>
+
+                <div class="p-8 space-y-10 relative z-10">
+
+                    @* Visitor Information *@
+                    <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Visitor Full Name</label>
+                                @Html.EditorFor(m => m.VisitorFullName, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" } })
+                                @Html.ValidationMessageFor(m => m.VisitorFullName, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Visitor Phone</label>
+                                @Html.EditorFor(m => m.VisitorPhone, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" } })
+                                @Html.ValidationMessageFor(m => m.VisitorPhone, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Visitor Email</label>
+                                @Html.EditorFor(m => m.VisitorEmail, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", @type = "email" } })
+                                @Html.ValidationMessageFor(m => m.VisitorEmail, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Relationship to Student</label>
+                                @Html.EditorFor(m => m.RelationshipToBoy, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" } })
+                                @Html.ValidationMessageFor(m => m.RelationshipToBoy, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <label class="flex items-center gap-4 bg-gray-50/50 border border-gray-200 p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+                                @Html.CheckBoxFor(m => m.IsParentOrGuardian, new { @class = "w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer" })
+                                <span class="text-[10px] uppercase tracking-[2px] font-bold text-gray-700">Yes, this is a Parent/Guardian</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* Date and Time *@
+                    <div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Visit Date</label>
+                                @Html.EditorFor(m => m.VisitDate, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer", @type = "date" } })
+                                @Html.ValidationMessageFor(m => m.VisitDate, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Start Time</label>
+                                @Html.EditorFor(m => m.StartTime, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer", @type = "time" } })
+                                @Html.ValidationMessageFor(m => m.StartTime, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">End Time</label>
+                                @Html.EditorFor(m => m.EndTime, new { htmlAttributes = new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent cursor-pointer", @type = "time" } })
+                                @Html.ValidationMessageFor(m => m.EndTime, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Additional Details *@
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Requested Zone</label>
+                            <div class="relative">
+                                @Html.EnumDropDownListFor(m => m.RequestedZone, "Select Zone", new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none cursor-pointer pr-10" })
+                                <i class="bi bi-chevron-down absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            </div>
+                            @Html.ValidationMessageFor(m => m.RequestedZone, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Purpose of Visit</label>
+                            @Html.TextAreaFor(m => m.PurposeOfVisit, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent resize-y", rows = 3 })
+                            @Html.ValidationMessageFor(m => m.PurposeOfVisit, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                        </div>
+                    </div>
+                </div>
+
+                @* Institutional Footer Actions *@
+                <div class="bg-[#1a1a1a] p-6 flex justify-between items-center relative z-10 mt-4 flex-col sm:flex-row gap-4">
+                    <a href="@Url.Action("MyRequests")" class="w-full sm:w-auto inline-block bg-transparent border border-white/10 text-gray-400 px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 transition-all duration-300">
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="w-full sm:w-auto bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                        Submit Request <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            }
         </div>
-
-        <button type="submit" class="btn btn-primary" style="background-color:#C21E2E;">Submit Request</button>
-        @Html.ActionLink("Cancel", "MyRequests", null, new { @class = "btn btn-secondary" })
-    }
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Clean up native date/time picker indicators slightly */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        input[type="time"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+    /* Native Checkbox Accent Override */
+    input[type=checkbox] {
+        accent-color: #C21E2E;
+    }
+</style>
