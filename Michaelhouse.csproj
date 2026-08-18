@@ -292,10 +292,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608131425105_AddSirenStopped.cs" />
-    <Compile Include="Migrations\202608131425105_AddSirenStopped.Designer.cs">
-      <DependentUpon>202608131425105_AddSirenStopped.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -793,11 +789,6 @@
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608131425105_AddSirenStopped.resx">
-      <DependentUpon>202608131425105_AddSirenStopped.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
