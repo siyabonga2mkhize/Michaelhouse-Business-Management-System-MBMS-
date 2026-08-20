@@ -1399,3 +1399,49 @@ select * from invoices where Parentid = 11;
 UPDATE invoices 
 SET Status = 'Pending' 
 WHERE Invoiceid = 27;
+
+
+
+
+Select * from PreventiveSchedules;
+
+
+INSERT INTO PreventiveSchedules (
+    ScheduleName, AssetId, TaskDescription, Frequency, 
+    SkillRequired, StartDate, NextDueDate, LastCompletedDate, 
+    Status, ComplianceStatus, CreatedById, CreatedAt
+)
+VALUES (
+    'Grass Cutting', 
+    59, 
+    'Level 3', 
+    'Monthly', 
+    'HVAC', 
+    CAST(GETDATE() AS DATE),                        -- Starts today
+    DATEADD(month, 1, CAST(GETDATE() AS DATE)),    -- Due in 1 month
+    NULL,                                           -- Never completed
+    'Active', 
+    'Green', 
+    4, 
+    GETDATE()                                       -- Created exact current time
+);
+
+INSERT INTO PreventiveSchedules (
+    ScheduleName, AssetId, TaskDescription, Frequency, 
+    SkillRequired, StartDate, NextDueDate, LastCompletedDate, 
+    Status, ComplianceStatus, CreatedById, CreatedAt
+)
+VALUES (
+    'Grass Cutting', 
+    59, 
+    'Level 3', 
+    'Monthly', 
+    'HVAC', 
+    DATEADD(month, -1, CAST(GETDATE() AS DATE)),   -- Started 1 month ago
+    CAST(GETDATE() AS DATE),                       -- Due exactly today
+    NULL,                                          -- Never completed
+    'Active', 
+    'Green', 
+    4, 
+    GETDATE()                                      -- Created exact current time
+);
