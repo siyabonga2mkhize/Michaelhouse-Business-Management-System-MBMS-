@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Michaelhouse.Models.LeaveRequest>
 @{
+    ViewBag.Title = "Leave Requests Awaiting House Master Approval";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Pending Institutional Authorizations";
 }
 
 @* --- FULL SCREEN VIEWPORT CONTAINER --- *@
@@ -12,170 +12,150 @@
         <div>
             <div class="flex items-center gap-2 mb-3">
                 <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
-                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Boarding & Residence</h5>
             </div>
-            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Pending Requests</h2>
-            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Stage 2 Clearance Queue: House Master Review</p>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Housemaster Approval Queue</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Only requests pre-authorized by a Parent/Guardian appear here.</p>
         </div>
         <div class="flex gap-3">
-            <div class="inline-flex items-center bg-blue-50 border border-blue-200 px-4 py-2 shadow-sm">
-                <i class="bi bi-shield-check text-blue-600 me-2"></i>
-                <span class="text-[9px] font-bold uppercase tracking-[2px] text-blue-800">Guardian Approved Queue</span>
-            </div>
+            <span class="inline-flex items-center bg-yellow-50 border border-yellow-200 px-4 py-2 shadow-sm text-[10px] font-bold uppercase tracking-[2px] text-yellow-800">
+                @Model.Count() Pending
+            </span>
         </div>
     </div>
 
     @* --- SCROLLABLE DATA SECTION --- *@
-    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
-        @* --- ALERTS --- *@
-        @if (TempData["Success"] != null)
-        {
-            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
-                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
-                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
-            </div>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
-                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
-                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
-            </div>
-        }
+        <div class="w-full mx-auto flex flex-col gap-6">
 
-        @* --- QUEUE LEDGER --- *@
-        @if (!Model.Any())
-        {
-            <div class="bg-white border border-gray-200 p-16 text-center shadow-sm mt-4">
-                <i class="bi bi-inbox text-gray-200 text-6xl d-block mb-4"></i>
-                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">Queue Clear</h4>
-                <p class="text-[11px] font-mono text-gray-400 mt-2 mb-0">No leave requests are currently awaiting your final authorization.</p>
-            </div>
-        }
-        else
-        {
-            foreach (var item in Model)
+            @* --- ALERTS --- *@
+            @if (TempData["Success"] != null)
             {
-                <div class="bg-white border border-gray-200 shadow-sm relative flex flex-col transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.05)] hover:border-gray-300 group overflow-hidden">
-
-                    @* Ghost Watermark *@
-                    <i class="bi bi-building-check absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
-
-                    @* Record Header *@
-                    <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-start relative z-10">
-                        <div>
-                            <h4 class="font-serif font-bold text-gray-900 text-2xl leading-tight mb-1 group-hover:text-[#C21E2E] transition-colors duration-500">@(item.Student?.Name ?? "Unknown Student")</h4>
-                            <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-1">
-                                <i class="bi bi-building me-1"></i> @(item.Residence?.Name ?? "Unassigned")
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Ref ID</span>
-                            <span class="font-mono text-gray-800 text-xs bg-white border border-gray-200 px-2 py-1">REQ-@item.LeaveRequestId</span>
-                        </div>
-                    </div>
-
-                    @* Record Body *@
-                    <div class="p-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-                        @* Left Column: Logistics & Rationale *@
-                        <div class="flex flex-col gap-6">
-                            <div>
-                                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Proposed Logistics</h6>
-                                <dl class="space-y-4">
-                                    <div>
-                                        <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Destination Address</dt>
-                                        <dd class="text-sm font-bold text-gray-800">
-                                            @item.Destination
-                                            <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(item.Destination ?? "")" target="_blank" rel="noopener" class="block mt-2 text-[9px] font-bold uppercase tracking-[2px] text-blue-600 hover:text-blue-800 transition-colors">
-                                                <i class="bi bi-geo-alt-fill me-1"></i> View External Map
-                                            </a>
-                                        </dd>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Departure</dt>
-                                            <dd class="text-xs font-mono font-bold text-[#C21E2E]">@item.DepartureDateTime.ToString("dd MMM yyyy HH:mm")</dd>
-                                        </div>
-                                        <div>
-                                            <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Expected Return</dt>
-                                            <dd class="text-xs font-mono font-bold text-[#10b981]">@item.ExpectedReturnDateTime.ToString("dd MMM yyyy HH:mm")</dd>
-                                        </div>
-                                    </div>
-                                </dl>
-                            </div>
-
-                            <div>
-                                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Student Rationale</h6>
-                                <div class="bg-gray-50 p-5 border-l-2 border-gray-200">
-                                    <div class="text-sm font-serif italic text-gray-700 leading-relaxed">"@item.Reason"</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        @* Right Column: Stage 1 Clearance Data *@
-                        <div>
-                            <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Stage 1: Guardian Clearance</h6>
-                            <div class="bg-blue-50/50 border border-blue-100 p-5 rounded-sm h-full">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <i class="bi bi-check-circle-fill text-blue-600 text-lg"></i>
-                                    <div>
-                                        <div class="text-[10px] font-bold uppercase tracking-[2px] text-blue-800">Status: Verified</div>
-                                        <div class="text-[10px] font-mono text-gray-500">Timestamp: @item.ParentDecisionAt?.ToString("dd MMM yyyy HH:mm")</div>
-                                    </div>
-                                </div>
-
-                                @if (!string.IsNullOrWhiteSpace(item.ParentComments))
-                                {
-                                    <div class="mt-4 pt-4 border-t border-blue-100">
-                                        <div class="text-[9px] uppercase tracking-[2px] font-bold text-blue-600 mb-1">Guardian Remarks:</div>
-                                        <div class="text-sm font-serif italic text-blue-900">"@item.ParentComments"</div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="mt-4 pt-4 border-t border-blue-100">
-                                        <div class="text-[9px] uppercase tracking-[2px] font-bold text-blue-400 mb-1">Guardian Remarks:</div>
-                                        <div class="text-sm font-mono text-gray-400">No additional remarks provided.</div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    @* Control Panel Footer (Stage 2 Action) *@
-                    <div class="bg-[#1a1a1a] p-6 relative z-10 mt-auto">
-                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-800 pb-3 mb-5">Stage 2: Final Institutional Authorization</h6>
-
-                        @using (Html.BeginForm("HouseMasterDecision", "LeaveRequest", FormMethod.Post, new { @class = "w-full" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            @Html.Hidden("id", item.LeaveRequestId)
-
-                            <div class="mb-6">
-                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Institutional Remarks / Conditions (Optional)</label>
-                                <textarea name="comments" class="w-full border-b border-gray-700 bg-transparent py-2 text-white text-sm font-serif italic focus:border-[#10b981] outline-none transition-colors resize-y" rows="1" placeholder="Add conditions or internal notes regarding this authorization..."></textarea>
-                            </div>
-
-                            <div class="flex flex-wrap gap-3">
-                                <button type="submit" name="approve" value="true" class="flex-1 bg-transparent border border-[#10b981]/40 text-[#10b981] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all duration-300">
-                                    <i class="bi bi-check2-all me-1 text-lg align-middle"></i> Authorize Departure
-                                </button>
-
-                                <button type="submit" name="approve" value="false" class="flex-1 bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all duration-300">
-                                    <i class="bi bi-x-octagon me-1 text-lg align-middle"></i> Reject Request
-                                </button>
-
-                                <a href="@Url.Action("Details", new { id = item.LeaveRequestId })" class="flex-1 text-center bg-transparent border border-white/10 text-gray-400 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-white/5 hover:text-white hover:border-white/40 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)] transition-all duration-300">
-                                    <i class="bi bi-folder2-open me-1 text-lg align-middle"></i> View Record
-                                </a>
-                            </div>
-                        }
-                    </div>
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
+                    <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
                 </div>
             }
-        }
+            @if (TempData["Error"] != null)
+            {
+                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
+                    <i class="bi bi-x-circle-fill me-3 text-xl"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
+                </div>
+            }
+
+            @* --- QUEUE LEDGER --- *@
+            @if (!Model.Any())
+            {
+                <div class="bg-white border border-gray-100 p-20 text-center shadow-sm w-full mt-3 flex flex-col items-center justify-center">
+                    <i class="bi bi-shield-check text-[#10b981] text-6xl d-block mb-4"></i>
+                    <h4 class="font-serif font-bold text-gray-800 text-2xl tracking-[1px] mb-2">Queue Clear</h4>
+                    <p class="text-sm font-mono text-gray-500 mt-2 mb-0 uppercase tracking-widest">No leave requests are currently awaiting your final approval.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    @foreach (var item in Model)
+                    {
+                        <div class="bg-white border border-gray-200 shadow-sm relative flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.05)] hover:border-gray-300 group overflow-hidden h-full">
+
+                            @* Ghost Watermark *@
+                            <i class="bi bi-box-arrow-right absolute -right-6 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                            @* Card Header (FIXED DYNAMIC PROXY BUG HERE) *@
+                            <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                                <strong class="font-serif text-xl text-white tracking-wide">@(item.Student != null ? item.Student.Name : "Unknown Student")</strong>
+                                <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-[2px] text-gray-400">
+                                    <i class="bi bi-building me-1"></i> @(item.Residence != null ? item.Residence.Name : "Unknown Residence")
+                                </span>
+                            </div>
+
+                            @* Card Body *@
+                            <div class="p-6 relative z-10 flex-grow flex flex-col gap-4">
+
+                                @if (item.HasCalendarConflict)
+                                {
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 mb-2 shadow-sm">
+                                        <span class="text-[10px] font-bold text-yellow-800 uppercase tracking-widest block mb-1">
+                                            <i class="bi bi-calendar-x me-1"></i> Calendar Conflict Detected
+                                        </span>
+                                        <p class="text-xs font-mono text-yellow-700 m-0">@item.CalendarConflictSummary</p>
+                                    </div>
+                                }
+
+                                <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Destination:</div>
+                                    <div class="col-span-2 font-serif text-sm text-gray-800">
+                                        <div class="mb-1 font-bold">@item.Destination</div>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(item.Destination)" target="_blank" rel="noopener" class="text-[9px] font-bold uppercase tracking-[2px] text-[#C21E2E] hover:underline">
+                                            <i class="bi bi-geo-alt me-1"></i> Open in Maps
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Departure:</div>
+                                    <div class="col-span-2 font-mono text-sm font-bold text-[#C21E2E]">@item.DepartureDateTime.ToString("dd MMM yyyy HH:mm")</div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Expected Return:</div>
+                                    <div class="col-span-2 font-mono text-sm font-bold text-[#10b981]">@item.ExpectedReturnDateTime.ToString("dd MMM yyyy HH:mm")</div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2 items-start border-b border-gray-50 pb-3 mt-1">
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mt-1">Reason:</div>
+                                    <div class="col-span-2 font-serif italic text-sm text-gray-600 bg-gray-50 p-3 border-l-2 border-gray-300">
+                                        @item.Reason
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2 items-start mt-1">
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-[#10b981] mt-1">
+                                        <i class="bi bi-shield-check me-1"></i> Parent / Guardian
+                                    </div>
+                                    <div class="col-span-2 font-mono text-sm text-gray-800">
+                                        <span class="bg-green-100 text-green-800 px-2 py-0.5 border border-green-200 text-[10px] uppercase tracking-widest me-2 shadow-sm">Approved</span>
+                                        @(item.ParentDecisionAt.HasValue ? item.ParentDecisionAt.Value.ToString("dd MMM yy HH:mm") : "N/A")
+                                        @if (!string.IsNullOrWhiteSpace(item.ParentComments))
+                                        {
+                                            <p class="font-serif italic text-sm text-gray-600 mt-2 mb-0 border-l-2 border-green-300 pl-2">"@item.ParentComments"</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* Action Footer *@
+                            <div class="bg-gray-50 border-t border-gray-100 p-5 relative z-10 mt-auto">
+                                @using (Html.BeginForm("HouseMasterDecision", "LeaveRequest", FormMethod.Post, new { @class = "flex flex-col gap-3 m-0" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", item.LeaveRequestId)
+
+                                    <div>
+                                        <textarea name="comments" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-white resize-y" rows="2" placeholder="Housemaster Comments (optional)..."></textarea>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="submit" name="approve" value="true" class="flex-grow bg-[#10b981] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all shadow-sm">
+                                            <i class="bi bi-check-lg me-1"></i> Approve
+                                        </button>
+                                        <button type="submit" name="approve" value="false" class="flex-grow bg-transparent border border-[#C21E2E] text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-all shadow-sm">
+                                            <i class="bi bi-x-lg me-1"></i> Reject
+                                        </button>
+                                        <a href="@Url.Action("Details", new { id = item.LeaveRequestId })" class="flex-grow text-center bg-[#1a1a1a] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                                            <i class="bi bi-card-text me-1"></i> Details
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
     </div>
 </div>
 
@@ -188,7 +168,6 @@
         font-family: 'Source Code Pro', monospace !important;
     }
 
-    /* Internal scrollbar custom styling */
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }

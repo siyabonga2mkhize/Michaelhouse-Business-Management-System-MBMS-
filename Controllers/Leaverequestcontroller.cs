@@ -6,6 +6,8 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using static Michaelhouse.Models.Schoolcalendarevent;
+using static Michaelhouse.Services.Calendarconflictservice;
 
 namespace Michaelhouse.Controllers
 {
@@ -120,7 +122,7 @@ namespace Michaelhouse.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequireLogin]
-        public ActionResult Create([Bind(Include = "Destination,DepartureDateTime,ExpectedReturnDateTime,Reason")] LeaveRequest model)
+        public ActionResult Create([Bind(Include = "Destination,DepartureDateTime,ExpectedReturnDateTime,Reason")] LeaveRequest model, bool acknowledgeConflict = false)
         {
             int studentId = GetCurrentStudentId();
             if (studentId == 0)
@@ -159,6 +161,21 @@ namespace Michaelhouse.Controllers
             if (model.ExpectedReturnDateTime <= model.DepartureDateTime)
                 ModelState.AddModelError("ExpectedReturnDateTime", "Expected return must be after the departure date and time.");
 
+            // Calendar conflict check - never trust the client's own
+            // AJAX result, recompute here. This is a recommendation, not a
+            // hard block: if a conflict exists the student must explicitly
+            // acknowledge it (tick the box) before the request goes through.
+            var conflicts = new List<CalendarConflict>();
+            if (ModelState.IsValid || (ModelState.IsValidField("DepartureDateTime") && ModelState.IsValidField("ExpectedReturnDateTime")))
+            {
+                conflicts = CalendarConflictService.GetConflicts(db, model.DepartureDateTime, model.ExpectedReturnDateTime);
+            }
+
+            if (conflicts.Any() && !acknowledgeConflict)
+            {
+                ModelState.AddModelError("", "Your selected dates overlap with a flagged school event (see the warning above). Please tick the acknowledgement box if you still wish to submit.");
+            }
+
             if (!ModelState.IsValid)
             {
                 if (assignment?.Residence != null)
@@ -175,12 +192,45 @@ namespace Michaelhouse.Controllers
             model.HouseMasterId = assignment.Residence.HouseMasterId;
             model.Status = LeaveRequestStatus.PendingParentApproval;
             model.SubmittedAt = DateTime.Now;
+            model.HasCalendarConflict = conflicts.Any();
+            model.CalendarConflictSummary = CalendarConflictService.BuildSummary(conflicts);
 
             db.LeaveRequests.Add(model);
             db.SaveChanges();
 
-            TempData["Success"] = "Your leave request has been submitted and sent to your parent/guardian for approval.";
+            TempData["Success"] = model.HasCalendarConflict
+                ? "Your leave request has been submitted (flagged as overlapping a school event) and sent to your parent/guardian for approval."
+                : "Your leave request has been submitted and sent to your parent/guardian for approval.";
             return RedirectToAction("MyRequests");
+        }
+
+        // GET: LeaveRequest/CheckDateConflicts?start=...&end=...
+        // AJAX endpoint used by the Create page to give the student a live
+        // recommendation as they pick dates. Purely advisory - the same
+        // check is re-run server-side in Create(POST) regardless of what
+        // this returns.
+        [RequireLogin]
+        public JsonResult CheckDateConflicts(DateTime? start, DateTime? end)
+        {
+            if (!start.HasValue || !end.HasValue)
+                return Json(new { hasConflict = false }, JsonRequestBehavior.AllowGet);
+
+            var conflicts = CalendarConflictService.GetConflicts(db, start.Value, end.Value);
+
+            var result = new
+            {
+                hasConflict = conflicts.Any(),
+                message = CalendarConflictService.BuildRecommendationMessage(conflicts),
+                conflicts = conflicts.Select(c => new
+                {
+                    c.Title,
+                    start = c.StartDate.ToString("dd MMM"),
+                    end = c.EndDate.ToString("dd MMM"),
+                    category = CalendarEventCategory.DisplayName(c.Category)
+                })
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         // GET: LeaveRequest/MyRequests

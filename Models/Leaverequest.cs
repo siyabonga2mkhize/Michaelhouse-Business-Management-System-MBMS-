@@ -98,6 +98,19 @@ namespace Michaelhouse.Models
         public DateTime SubmittedAt { get; set; } = DateTime.Now;
         public bool IsArchived { get; set; }
 
+        // ─── Calendar conflict snapshot (Use Case 27 enhancement) ──────────
+        // Computed server-side at submission time from SchoolCalendarEvent
+        // records flagged DiscourageLeave=true. Stored as a snapshot (not
+        // recalculated later) so parent/house master always see exactly
+        // what the student saw when they submitted, even if the calendar
+        // changes afterwards.
+        [Display(Name = "Overlaps a flagged school event")]
+        public bool HasCalendarConflict { get; set; }
+
+        [StringLength(1000)]
+        [Display(Name = "Conflicting Event(s)")]
+        public string CalendarConflictSummary { get; set; }
+
         // ─── Convenience (not mapped) ──────────────────────────────────────
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string StatusLabel

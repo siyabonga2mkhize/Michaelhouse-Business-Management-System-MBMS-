@@ -1,7 +1,7 @@
 ﻿@model Michaelhouse.Models.LeaveRequest
 @{
+    ViewBag.Title = "Leave Request Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Authorization Record Details";
 
     var role = Session["UserRole"] as string ?? "";
     var isAdmin = role.Equals("Admin", StringComparison.OrdinalIgnoreCase);
@@ -14,13 +14,130 @@
     bool canActAsHouseMaster = Model.Status == "PendingHouseMasterApproval" &&
                                (isAdmin || (sessionHouseMasterId.HasValue && sessionHouseMasterId.Value == Model.HouseMasterId));
 
-    string badgeBg = Model.Status == "Approved" ? "bg-green-50 border-green-200 text-green-700" :
-                     Model.Status == "Rejected" ? "bg-red-50 border-[#C21E2E]/30 text-[#C21E2E]" :
-                     "bg-yellow-50 border-yellow-200 text-yellow-700";
+    string badgeClass = Model.Status == "Approved" ? "bg-green-100 text-green-800 border-green-200" :
+                        Model.Status == "Rejected" ? "bg-red-100 text-[#C21E2E] border-red-200" :
+                        "bg-yellow-100 text-yellow-800 border-yellow-200";
 
-    string iconClass = Model.Status == "Approved" ? "bi-check-circle" :
-                       Model.Status == "Rejected" ? "bi-x-octagon" :
-                       "bi-hourglass-split";
+    string badgeIcon = Model.Status == "Approved" ? "bi-check-circle" :
+                       Model.Status == "Rejected" ? "bi-x-circle" : "bi-clock-history";
+}
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
+    <style>
+        /* --- HIGH-END INSTITUTIONAL CALENDAR OVERRIDES --- */
+        .fc {
+            font-family: 'Montserrat', sans-serif !important;
+            --fc-border-color: #f3f4f6;
+            --fc-button-bg-color: #1a1a1a;
+            --fc-button-border-color: #1a1a1a;
+            --fc-button-hover-bg-color: #C21E2E;
+            --fc-button-hover-border-color: #C21E2E;
+            --fc-button-active-bg-color: #C21E2E;
+            --fc-button-active-border-color: #C21E2E;
+            --fc-today-bg-color: #fef2f2;
+            --fc-page-bg-color: #ffffff;
+        }
+
+        /* Sharp Buttons */
+        .fc-button {
+            border-radius: 0 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 2px !important;
+            font-size: 9px !important;
+            font-weight: 700 !important;
+            padding: 8px 16px !important;
+            box-shadow: none !important;
+        }
+
+        /* Header Title */
+        .fc-toolbar-title {
+            font-family: 'Playfair Display', serif !important;
+            font-weight: 700 !important;
+            color: #1a1a1a;
+            font-size: 1.5rem !important;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Day Columns */
+        .fc-col-header-cell-cushion {
+            padding: 12px 0 !important;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #9ca3af !important;
+        }
+
+        /* Day Numbers */
+        .fc-daygrid-day-number {
+            font-family: 'Source Code Pro', monospace !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #1a1a1a !important;
+            padding: 8px !important;
+        }
+
+        /* Current Day Highlight */
+        .fc-day-today {
+            border-top: 3px solid #C21E2E !important;
+        }
+
+        /* Event Ledger Styling (Allowing Backend Colors to show) */
+        .fc-event {
+            border-radius: 0 !important;
+            border: none !important;
+            font-size: 9px !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            padding: 3px 6px;
+            margin: 2px !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .fc-event-main {
+            color: #ffffff !important; /* Ensure text is readable against the colored backgrounds */
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var calendarEl = document.getElementById("schoolCalendar");
+            if (calendarEl) {
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: "dayGridMonth",
+                    height: "auto", /* Allows the calendar to be dynamic instead of cramped */
+                    contentHeight: "auto",
+                    headerToolbar: {
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'today'
+                    },
+                    events: function (info, successCallback, failureCallback) {
+                        fetch("@Url.Action("Events", "SchoolCalendar")?start=" + info.startStr + "&end=" + info.endStr)
+                            .then(function (r) { return r.json(); })
+                            .then(successCallback)
+                            .catch(failureCallback);
+                    },
+                    eventDidMount: function (arg) {
+                        if (arg.event.extendedProps.description) {
+                            arg.el.setAttribute("title", arg.event.extendedProps.description);
+                        }
+                    }
+                });
+                calendar.render();
+
+                // Jump to the departure date to give immediate context
+                var depDate = new Date('@Model.DepartureDateTime.ToString("yyyy-MM-dd")');
+                calendar.gotoDate(depDate);
+            }
+        });
+    </script>
 }
 
 @* --- FULL SCREEN VIEWPORT CONTAINER --- *@
@@ -31,209 +148,248 @@
         <div>
             <div class="flex items-center gap-2 mb-3">
                 <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
-                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Pastoral Care & Residency</h5>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Boarding & Residence</h5>
             </div>
-            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Authorization Record</h2>
-            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Stage-Gated Departure Clearance Protocol</p>
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Leave Request</h2>
+                <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 @badgeClass">
+                    <i class="bi @badgeIcon me-2"></i> @Model.StatusLabel
+                </span>
+            </div>
         </div>
         <div class="flex gap-3">
-            <button onclick="window.history.back();" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
-                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            <button onclick="window.history.back();" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Go Back
             </button>
         </div>
     </div>
 
     @* --- SCROLLABLE DATA SECTION --- *@
-    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
-        <div class="w-full max-w-5xl">
+        @if (Model.HasCalendarConflict)
+        {
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 shadow-sm flex items-start gap-3">
+                <i class="bi bi-calendar-x text-yellow-600 text-xl mt-0.5"></i>
+                <div>
+                    <strong class="text-sm font-serif text-yellow-900 block mb-1">Calendar Conflict Detected</strong>
+                    <span class="text-xs font-mono text-yellow-800 uppercase tracking-widest">@Model.CalendarConflictSummary</span>
+                </div>
+            </div>
+        }
 
-            @* --- RECORD CONTAINER --- *@
-            <div class="bg-white border border-gray-200 shadow-sm relative overflow-hidden flex flex-col group">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 flex-grow">
 
-                @* Ghost Watermark *@
-                <i class="bi bi-file-earmark-text absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+            @* --- LEFT: REQUEST DETAILS, MAP & CALENDAR --- *@
+            <div class="xl:col-span-7 flex flex-col gap-6">
 
-                @* Record Header *@
-                <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-start relative z-10">
-                    <div>
-                        <h4 class="font-serif font-bold text-gray-900 text-3xl leading-tight mb-1">@(Model.Student?.Name ?? "Unknown Student")</h4>
-                        <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-1">
-                            <i class="bi bi-building me-1"></i> @(Model.Residence?.Name ?? "Unassigned") &middot; Master: @(Model.HouseMaster?.FullName ?? "Unassigned")
-                        </div>
+                @* Dossier Ledger *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                    <i class="bi bi-box-arrow-right absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-file-text me-2 text-gray-500"></i> Request Details</h5>
                     </div>
-                    <div class="text-right flex flex-col items-end">
-                        <span class="inline-flex items-center px-3 py-1 text-[10px] font-bold uppercase tracking-[2px] border @badgeBg shadow-sm mb-2">
-                            <i class="bi @iconClass me-2 text-sm"></i> @Model.StatusLabel
-                        </span>
-                        <div class="text-[9px] font-mono text-gray-400 uppercase tracking-widest">
-                            Submitted: @Model.SubmittedAt.ToString("dd MMM yyyy HH:mm")
+
+                    <div class="p-6 relative z-10 flex flex-col gap-1">
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Student</span>
+                            <span class="col-span-2 font-serif font-bold text-gray-900 text-sm">@(Model.Student != null ? Model.Student.Name : "—")</span>
+                        </div>
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Residence</span>
+                            <span class="col-span-2 font-serif text-gray-800 text-sm">@(Model.Residence != null ? Model.Residence.Name : "—")</span>
+                        </div>
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">House Master</span>
+                            <span class="col-span-2 font-serif text-gray-800 text-sm">@(Model.HouseMaster != null ? Model.HouseMaster.FullName : "Not assigned")</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Departure</span>
+                            <span class="col-span-2 font-mono text-sm font-bold text-[#C21E2E]">@Model.DepartureDateTime.ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Expected Return</span>
+                            <span class="col-span-2 font-mono text-sm font-bold text-[#10b981]">@Model.ExpectedReturnDateTime.ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50 items-start">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400 mt-1">Reason</span>
+                            <span class="col-span-2 font-serif italic text-sm text-gray-700 bg-gray-50 p-3 border-l-2 border-gray-300">
+                                @Model.Reason
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 py-3 border-b border-gray-50">
+                            <span class="col-span-1 text-[10px] uppercase tracking-[2px] font-bold text-gray-400">Submitted</span>
+                            <span class="col-span-2 font-mono text-xs text-gray-500">@Model.SubmittedAt.ToString("dd MMM yyyy HH:mm")</span>
                         </div>
                     </div>
                 </div>
 
-                @* Record Body *@
-                <div class="p-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-                    @* Left Column: Logistics & Rationale *@
-                    <div>
-                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-4">Proposed Logistics</h6>
-                        <dl class="space-y-4">
-                            <div>
-                                <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Destination Address</dt>
-                                <dd class="text-sm font-bold text-gray-800">@Model.Destination</dd>
-
-                                @* Integrated Institutional Map Embed *@
-                                <div class="mt-3 border-2 border-gray-100 p-1 bg-white shadow-sm relative group/map overflow-hidden">
-                                    <iframe width="100%" height="220" class="border-0 grayscale group-hover/map:grayscale-0 transition-all duration-700" loading="lazy" src="https://maps.google.com/maps?q=@Uri.EscapeDataString(Model.Destination ?? "")&output=embed"></iframe>
-                                    <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Destination ?? "")" target="_blank" rel="noopener" class="block w-full text-center bg-gray-50 border-t border-gray-100 py-2 text-[9px] font-bold uppercase tracking-[2px] text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                                        <i class="bi bi-geo-alt-fill me-1"></i> Open External Map
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4 pt-2">
-                                <div>
-                                    <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Departure</dt>
-                                    <dd class="text-xs font-mono font-bold text-[#C21E2E]">@Model.DepartureDateTime.ToString("dd MMM yyyy HH:mm")</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1">Expected Return</dt>
-                                    <dd class="text-xs font-mono font-bold text-[#10b981]">@Model.ExpectedReturnDateTime.ToString("dd MMM yyyy HH:mm")</dd>
-                                </div>
-                            </div>
-
-                            <div>
-                                <dt class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-1 mt-4">Student Rationale</dt>
-                                <dd class="text-sm font-serif italic text-gray-700 bg-gray-50 p-4 border-l-2 border-gray-200">"@Model.Reason"</dd>
-                            </div>
-                        </dl>
+                @* Geographic Map Panel *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-geo-alt me-2 text-gray-400"></i> Destination </h5>
+                        <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(Model.Destination)" target="_blank" rel="noopener" class="text-[9px] font-bold uppercase tracking-[2px] text-[#C21E2E] hover:underline">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Google Maps
+                        </a>
                     </div>
-
-                    @* Right Column: Clearance Protocol Status *@
-                    <div class="space-y-6">
-
-                        @* Stage 1: Guardian Clearance *@
-                        <div>
-                            <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-3">Stage 1: Guardian Clearance</h6>
-
-                            @if (Model.ParentDecisionAt.HasValue)
-                            {
-                                string parentColor = Model.ParentDecision == "Approved" ? "text-blue-600" : "text-[#C21E2E]";
-                                string parentBg = Model.ParentDecision == "Approved" ? "bg-blue-50/50 border-blue-100" : "bg-red-50/50 border-red-100";
-                                string parentIcon = Model.ParentDecision == "Approved" ? "bi-check-circle-fill" : "bi-x-circle-fill";
-
-                                <div class="@parentBg border p-4 rounded-sm shadow-sm">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <i class="bi @parentIcon @parentColor text-lg"></i>
-                                        <div>
-                                            <div class="text-[10px] font-bold uppercase tracking-[2px] @parentColor">Status: @Model.ParentDecision</div>
-                                            <div class="text-[10px] font-mono text-gray-500">Timestamp: @Model.ParentDecisionAt.Value.ToString("dd MMM yyyy HH:mm")</div>
-                                        </div>
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(Model.ParentComments))
-                                    {
-                                        <div class="mt-3 pt-3 border-t border-gray-200/50">
-                                            <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1">Guardian Remarks:</div>
-                                            <div class="text-sm font-serif italic text-gray-800">"@Model.ParentComments"</div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else if (canActAsParent)
-                            {
-                                <div class="bg-[#1a1a1a] p-5 shadow-sm relative overflow-hidden group/action">
-                                    <i class="bi bi-shield-check absolute -right-4 -bottom-4 text-7xl text-white opacity-[0.03] transition-transform duration-1000 group-hover/action:-rotate-12 group-hover/action:scale-[1.2] pointer-events-none z-0"></i>
-                                    @using (Html.BeginForm("ParentDecision", "LeaveRequest", FormMethod.Post, new { @class = "relative z-10" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        @Html.Hidden("id", Model.LeaveRequestId)
-                                        <div class="mb-4">
-                                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Remarks (Optional)</label>
-                                            <textarea name="comments" class="w-full border-b border-gray-600 bg-transparent py-2 text-white text-sm font-serif italic focus:border-blue-500 outline-none transition-colors resize-y" rows="2"></textarea>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button type="submit" name="approve" value="true" class="flex-1 bg-transparent border border-blue-500/40 text-blue-400 px-3 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-blue-500/10 hover:border-blue-500 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all">Authorize</button>
-                                            <button type="submit" name="approve" value="false" class="flex-1 bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-3 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">Reject</button>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="bg-gray-50 border border-gray-200 p-4 text-center shadow-sm">
-                                    <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0"><i class="bi bi-hourglass-split me-1"></i> Awaiting Guardian Review</p>
-                                </div>
-                            }
-                        </div>
-
-                        @* Stage 2: Institutional Clearance *@
-                        <div>
-                            <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-100 pb-2 mb-3">Stage 2: Institutional Clearance</h6>
-
-                            @if (Model.HouseMasterDecisionAt.HasValue)
-                            {
-                                string hmColor = Model.HouseMasterDecision == "Approved" ? "text-[#10b981]" : "text-[#C21E2E]";
-                                string hmBg = Model.HouseMasterDecision == "Approved" ? "bg-green-50/50 border-green-100" : "bg-red-50/50 border-red-100";
-                                string hmIcon = Model.HouseMasterDecision == "Approved" ? "bi-check-circle-fill" : "bi-x-circle-fill";
-
-                                <div class="@hmBg border p-4 rounded-sm shadow-sm">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <i class="bi @hmIcon @hmColor text-lg"></i>
-                                        <div>
-                                            <div class="text-[10px] font-bold uppercase tracking-[2px] @hmColor">Status: @Model.HouseMasterDecision</div>
-                                            <div class="text-[10px] font-mono text-gray-500">Timestamp: @Model.HouseMasterDecisionAt.Value.ToString("dd MMM yyyy HH:mm")</div>
-                                        </div>
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(Model.HouseMasterComments))
-                                    {
-                                        <div class="mt-3 pt-3 border-t border-gray-200/50">
-                                            <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1">House Master Remarks:</div>
-                                            <div class="text-sm font-serif italic text-gray-800">"@Model.HouseMasterComments"</div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else if (Model.Status == "Rejected" && !Model.ParentDecisionAt.HasValue)
-                            {
-                                <div class="bg-gray-50 border border-gray-200 p-4 text-center shadow-sm">
-                                    <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">N/A</p>
-                                </div>
-                            }
-                            else if (Model.Status == "Rejected" && Model.ParentDecision == "Rejected")
-                            {
-                                <div class="bg-red-50/30 border border-red-100 p-4 text-center shadow-sm">
-                                    <p class="text-[10px] font-mono text-[#C21E2E] uppercase tracking-widest mb-0"><i class="bi bi-shield-x me-1"></i> Protocol Halted at Stage 1</p>
-                                </div>
-                            }
-                            else if (canActAsHouseMaster)
-                            {
-                                <div class="bg-[#1a1a1a] p-5 shadow-sm relative overflow-hidden group/action">
-                                    <i class="bi bi-building-check absolute -right-4 -bottom-4 text-7xl text-white opacity-[0.03] transition-transform duration-1000 group-hover/action:-rotate-12 group-hover/action:scale-[1.2] pointer-events-none z-0"></i>
-                                    @using (Html.BeginForm("HouseMasterDecision", "LeaveRequest", FormMethod.Post, new { @class = "relative z-10" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        @Html.Hidden("id", Model.LeaveRequestId)
-                                        <div class="mb-4">
-                                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-400 mb-2">Remarks (Optional)</label>
-                                            <textarea name="comments" class="w-full border-b border-gray-600 bg-transparent py-2 text-white text-sm font-serif italic focus:border-[#10b981] outline-none transition-colors resize-y" rows="2"></textarea>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button type="submit" name="approve" value="true" class="flex-1 bg-transparent border border-[#10b981]/40 text-[#10b981] px-3 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#10b981]/10 hover:border-[#10b981] hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all">Authorize</button>
-                                            <button type="submit" name="approve" value="false" class="flex-1 bg-transparent border border-[#C21E2E]/40 text-[#C21E2E] px-3 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-[#C21E2E]/10 hover:border-[#C21E2E] hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">Reject</button>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="bg-gray-50 border border-gray-200 p-4 text-center shadow-sm">
-                                    <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0"><i class="bi bi-hourglass-split me-1"></i> Awaiting Institutional Review</p>
-                                </div>
-                            }
-                        </div>
+                    <div class="p-6">
+                        <p class="font-serif text-sm text-gray-900 mb-4 font-bold">@Model.Destination</p>
+                        <iframe width="100%" height="280" class="border-4 border-white shadow-md bg-gray-100" loading="lazy" src="https://maps.google.com/maps?q=@Uri.EscapeDataString(Model.Destination)&output=embed"></iframe>
                     </div>
                 </div>
+
+                @* Institutional Calendar Context Panel *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-calendar3 me-2 text-gray-500"></i> Institutional Calendar Context</h5>
+                    </div>
+                    <div class="p-6">
+                        <div id="schoolCalendar" class="w-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: APPROVAL WORKFLOWS --- *@
+            <div class="xl:col-span-5 flex flex-col gap-6">
+
+                @* 1. Parent/Guardian Ledger *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a]">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-person-heart me-2 text-gray-500"></i> Parent / Guardian Decision</h5>
+                    </div>
+                    <div class="p-6">
+                        @if (Model.ParentDecisionAt.HasValue)
+                        {
+                            string parentColor = Model.ParentDecision == "Approved" ? "text-[#10b981]" : "text-[#C21E2E]";
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Decision</span>
+                                    <strong class="font-mono text-lg @parentColor uppercase tracking-widest">@Model.ParentDecision</strong>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.ParentComments))
+                                {
+                                    <div>
+                                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Comments</span>
+                                        <p class="font-serif text-sm italic text-gray-700 m-0 border-l-2 border-gray-200 pl-3">"@Model.ParentComments"</p>
+                                    </div>
+                                }
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Decided At</span>
+                                    <span class="font-mono text-xs text-gray-600 block">@Model.ParentDecisionAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-6">
+                                <i class="bi bi-hourglass-split text-3xl text-gray-300 block mb-2"></i>
+                                <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Awaiting parent/guardian review</span>
+                            </div>
+                        }
+
+                        @* Action Form for Parent *@
+                        @if (canActAsParent)
+                        {
+                            <div class="mt-6 pt-6 border-t border-gray-100">
+                                @using (Html.BeginForm("ParentDecision", "LeaveRequest", FormMethod.Post, new { @class = "flex flex-col gap-4" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", Model.LeaveRequestId)
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Comments (optional)</label>
+                                        <textarea name="comments" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y" rows="2"></textarea>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <button type="submit" name="approve" value="true" class="flex-grow bg-[#10b981] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-sm">
+                                            <i class="bi bi-check-lg me-1"></i> Approve
+                                        </button>
+                                        <button type="submit" name="approve" value="false" class="flex-grow bg-transparent border border-[#C21E2E] text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-all shadow-sm">
+                                            <i class="bi bi-x-lg me-1"></i> Reject
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* 2. House Master Ledger *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a]">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-shield-lock me-2 text-gray-500"></i> House Master Decision</h5>
+                    </div>
+                    <div class="p-6">
+                        @if (Model.HouseMasterDecisionAt.HasValue)
+                        {
+                            string hmColor = Model.HouseMasterDecision == "Approved" ? "text-[#10b981]" : "text-[#C21E2E]";
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Decision</span>
+                                    <strong class="font-mono text-lg @hmColor uppercase tracking-widest">@Model.HouseMasterDecision</strong>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.HouseMasterComments))
+                                {
+                                    <div>
+                                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Comments</span>
+                                        <p class="font-serif text-sm italic text-gray-700 m-0 border-l-2 border-gray-200 pl-3">"@Model.HouseMasterComments"</p>
+                                    </div>
+                                }
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Decided At</span>
+                                    <span class="font-mono text-xs text-gray-600 block">@Model.HouseMasterDecisionAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        }
+                        else if (Model.Status == "Rejected" && !Model.ParentDecisionAt.HasValue)
+                        {
+                            <div class="text-center py-6">
+                                <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">N/A</span>
+                            </div>
+                        }
+                        else if (Model.Status == "Rejected" && Model.ParentDecision == "Rejected")
+                        {
+                            <div class="bg-gray-50 border border-gray-200 p-4 text-center">
+                                <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Not applicable — Blocked at Parent/Guardian level.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-6">
+                                <i class="bi bi-hourglass-split text-3xl text-gray-300 block mb-2"></i>
+                                <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Awaiting house master review</span>
+                            </div>
+                        }
+
+                        @* Action Form for Housemaster *@
+                        @if (canActAsHouseMaster)
+                        {
+                            <div class="mt-6 pt-6 border-t border-gray-100">
+                                @using (Html.BeginForm("HouseMasterDecision", "LeaveRequest", FormMethod.Post, new { @class = "flex flex-col gap-4" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", Model.LeaveRequestId)
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Comments (optional)</label>
+                                        <textarea name="comments" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y" rows="2"></textarea>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <button type="submit" name="approve" value="true" class="flex-grow bg-[#10b981] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-sm">
+                                            <i class="bi bi-check-lg me-1"></i> Approve
+                                        </button>
+                                        <button type="submit" name="approve" value="false" class="flex-grow bg-transparent border border-[#C21E2E] text-[#C21E2E] px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-all shadow-sm">
+                                            <i class="bi bi-x-lg me-1"></i> Reject
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -248,7 +404,6 @@
         font-family: 'Source Code Pro', monospace !important;
     }
 
-    /* Internal scrollbar custom styling */
     .custom-scrollbar::-webkit-scrollbar {
         width: 5px;
     }

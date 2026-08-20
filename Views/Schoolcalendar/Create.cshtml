@@ -1,0 +1,84 @@
+﻿@model Michaelhouse.Models.SchoolCalendarEvent
+@using System.Linq
+@using System.Web.Mvc
+@{
+    ViewBag.Title = "Add Calendar Event";
+}
+
+<h2>Add Calendar Event</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">@Html.ValidationSummary(false)</div>
+}
+
+@using (Html.BeginForm("Create", "SchoolCalendar", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Title)
+        @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Term 3 Exams" })
+        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Category)
+        @Html.DropDownListFor(m => m.Category,
+            Michaelhouse.Models.CalendarEventCategory.All.Select(c => new SelectListItem
+            {
+                Text = Michaelhouse.Models.CalendarEventCategory.DisplayName(c),
+                Value = c
+            }), new { @class = "form-control", id = "categorySelect" })
+    </div>
+
+    <div class="form-row" style="display:flex; gap:1rem;">
+        <div class="form-group" style="flex:1;">
+            @Html.LabelFor(m => m.StartDate)
+            @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "text-danger" })
+        </div>
+        <div class="form-group" style="flex:1;">
+            @Html.LabelFor(m => m.EndDate)
+            @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            @Html.ValidationMessageFor(m => m.EndDate, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Description)
+        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3 })
+    </div>
+
+    <div class="checkbox">
+        <label for="DiscourageLeave">
+            @Html.CheckBoxFor(m => m.DiscourageLeave, new { id = "discourageCheckbox" })
+            Discourage leave requests during this period
+        </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Event</button>
+    @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-default" })
+}
+
+<script>
+    // Nudge the DiscourageLeave checkbox to a sensible default when the
+    // category changes - admin can still override it manually either way.
+    (function () {
+        var defaults = {
+            "Exam": true,
+            "TestWeek": true,
+            "Sports": false,
+            "Cultural": false,
+            "Holiday": false,
+            "Other": false
+        };
+        var categorySelect = document.getElementById("categorySelect");
+        var discourageCheckbox = document.getElementById("discourageCheckbox");
+        categorySelect.addEventListener("change", function () {
+            if (defaults.hasOwnProperty(this.value)) {
+                discourageCheckbox.checked = defaults[this.value];
+            }
+        });
+    })();
+</script>
