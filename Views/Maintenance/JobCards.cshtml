@@ -4,157 +4,252 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Job Cards</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">All maintenance jobs</p>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Job Cards</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">All maintenance jobs</p>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ReportFault", "Maintenance")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-exclamation-triangle me-2 text-sm"></i> Report Fault
+            </a>
+            <a href="@Url.Action("CreateJobCard", "Maintenance")" class="inline-flex items-center justify-center bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                <i class="bi bi-plus-square me-2 text-sm"></i> Create Job Card
+            </a>
+        </div>
     </div>
-    <div>
-        <a href="@Url.Action("ReportFault", "Maintenance")" class="btn btn-dark me-2">Report Fault</a>
-        <a href="@Url.Action("CreateJobCard", "Maintenance")" class="btn btn-outline-dark">+ Create Job Card</a>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
+
+        @* --- STATS ROW --- *@
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Open Jobs</h6>
+                <h3 class="font-mono text-4xl font-bold text-gray-900 mb-0">@ViewBag.TotalOpen</h3>
+            </div>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden border-b-4 border-b-yellow-500">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">In Progress</h6>
+                <h3 class="font-mono text-4xl font-bold text-yellow-600 mb-0">@ViewBag.InProgress</h3>
+            </div>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden border-b-4 border-b-[#C21E2E]">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Emergency</h6>
+                <h3 class="font-mono text-4xl font-bold text-[#C21E2E] mb-0">@ViewBag.Emergency</h3>
+            </div>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden border-b-4 border-b-[#10b981]">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Done This Month</h6>
+                <h3 class="font-mono text-4xl font-bold text-[#10b981] mb-0">@ViewBag.CompletedMonth</h3>
+            </div>
+        </div>
+
+        @* --- FILTER BAR --- *@
+        <div class="bg-white shadow-sm border border-gray-200 p-5 relative z-10">
+            <form method="get" action="@Url.Action("JobCards", "Maintenance")" class="flex flex-col lg:flex-row gap-4 items-end m-0">
+                <div class="flex-grow w-full lg:w-auto">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Search</label>
+                    <input type="text" name="search" value="@ViewBag.Search" class="w-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:border-[#C21E2E] transition-colors font-mono bg-gray-50/50" placeholder="Reference or title..." />
+                </div>
+                <div class="w-full lg:w-40">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Priority</label>
+                    <select name="priority" class="w-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:border-[#C21E2E] transition-colors bg-gray-50/50">
+                        <option value="">All</option>
+                        @foreach (var p in new[] { "Emergency", "High", "Medium", "Low" })
+                        {
+                            <option value="@p" @(ViewBag.Priority == p ? "selected" : "")>@p</option>
+                        }
+                    </select>
+                </div>
+                <div class="w-full lg:w-48">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Status</label>
+                    <select name="status" class="w-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:border-[#C21E2E] transition-colors bg-gray-50/50">
+                        <option value="">All</option>
+                        @foreach (var s in new[] { "Pending", "Assigned", "In Progress", "On Hold", "Completed", "Cancelled" })
+                        {
+                            <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="w-full lg:w-40">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Type</label>
+                    <select name="jobType" class="w-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:border-[#C21E2E] transition-colors bg-gray-50/50">
+                        <option value="">All</option>
+                        <option value="Reactive" @(ViewBag.JobType == "Reactive" ? "selected" : "")>Reactive</option>
+                        <option value="Preventive" @(ViewBag.JobType == "Preventive" ? "selected" : "")>Preventive</option>
+                    </select>
+                </div>
+                <div class="w-full lg:w-auto">
+                    <button type="submit" class="w-full lg:w-auto bg-[#1a1a1a] text-white px-8 py-2 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-800 transition-all h-[38px]">
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @* --- JOB CARDS TABLE --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow min-h-0 relative overflow-hidden group">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-clipboard-check absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            @* Table Header *@
+            <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-list me-2 text-gray-400"></i> All Job Cards</h5>
+                <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">@Model.Count job(s)</span>
+            </div>
+
+            @* Table Container *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                @if (Model.Any())
+                {
+                    <table class="table table-hover mb-0 align-middle w-full">
+                        <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                                <th class="ps-6 py-4">Reference</th>
+                                <th class="border-l border-gray-100 ps-4">Title</th>
+                                <th class="border-l border-gray-100 ps-4">Asset</th>
+                                <th class="border-l border-gray-100 ps-4">Type</th>
+                                <th class="border-l border-gray-100 ps-4">Priority</th>
+                                <th class="border-l border-gray-100 ps-4">Assigned To</th>
+                                <th class="border-l border-gray-100 ps-4">Status</th>
+                                <th class="border-l border-gray-100 ps-4">Due Date</th>
+                                <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var j in Model)
+                            {
+                                var isOverdue = j.DueDate.HasValue && j.DueDate.Value < DateTime.Now && j.Status != "Completed" && j.Status != "Cancelled";
+
+                                string rowClass = isOverdue ? "bg-red-50/30 border-l-2 border-l-[#C21E2E]" : "border-l-2 border-l-transparent";
+
+                                string typeColor = j.JobType == "Reactive" ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200";
+
+                                string priorityColor = j.Priority == "Emergency" ? "bg-red-100 text-[#C21E2E] border-red-200" :
+                                                       j.Priority == "High" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                       j.Priority == "Medium" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                       "bg-gray-50 text-gray-600 border-gray-200";
+
+                                string statusColor = j.Status == "Completed" ? "bg-green-100 text-green-800 border-green-200" :
+                                                     (j.Status == "In Progress" || j.Status == "Assigned") ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                     "bg-gray-100 text-gray-600 border-gray-200";
+
+                                <tr class="@rowClass hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0 group/row">
+                                    <td class="ps-6 py-4">
+                                        <code class="font-mono text-sm font-bold text-[#C21E2E] bg-transparent">@j.JobReference</code>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <strong class="font-serif text-sm text-gray-900 group-hover/row:text-[#C21E2E] transition-colors">@j.Title</strong>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-serif text-xs text-gray-700">@(j.Asset != null ? j.Asset.AssetName : "—")</span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @typeColor">
+                                            @j.JobType
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @priorityColor">
+                                            @j.Priority
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-serif text-xs text-gray-700">@(j.AssignedTo != null ? j.AssignedTo.FullName : "Unassigned")</span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @statusColor">
+                                            @j.Status
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-mono text-xs @(isOverdue ? "text-[#C21E2E] font-bold" : "text-gray-600")">
+                                            @(j.DueDate.HasValue ? j.DueDate.Value.ToString("dd MMM HH:mm") : "—")
+                                        </span>
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        <div class="flex justify-end gap-1">
+                                            <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = j.Id })" class="inline-flex items-center justify-center w-8 h-8 bg-white border border-gray-300 text-gray-500 hover:border-gray-800 hover:text-gray-800 transition-colors shadow-sm" title="View Details">
+                                                <i class="bi bi-eye text-xs"></i>
+                                            </a>
+                                            @if (j.Status != "Completed" && j.Status != "Cancelled")
+                                            {
+                                                <a href="@Url.Action("CompleteJobCard", "Maintenance", new { id = j.Id })" class="inline-flex items-center justify-center w-8 h-8 bg-white border border-gray-300 text-green-600 hover:border-green-600 hover:bg-green-50 transition-colors shadow-sm" title="Complete Job">
+                                                    <i class="bi bi-check-lg text-xs"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center py-16 text-muted">
+                        <i class="bi bi-clipboard text-gray-200 text-6xl d-block mb-4"></i>
+                        <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No job cards found</h4>
+                        <a href="@Url.Action("ReportFault", "Maintenance")" class="inline-block mt-3 bg-[#1a1a1a] text-white px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-800 transition-all">
+                            Report First Fault
+                        </a>
+                    </div>
+                }
+            </div>
+
+            @* Footer *@
+            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0 relative z-10">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Maintenance Job Records
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<!-- Stats -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-muted small text-uppercase fw-bold">Open Jobs</h6>
-                <h3 class="fw-bold">@ViewBag.TotalOpen</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-muted small text-uppercase fw-bold">In Progress</h6>
-                <h3 class="fw-bold text-warning">@ViewBag.InProgress</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-muted small text-uppercase fw-bold">Emergency</h6>
-                <h3 class="fw-bold text-danger">@ViewBag.Emergency</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <h6 class="text-muted small text-uppercase fw-bold">Done This Month</h6>
-                <h3 class="fw-bold text-success">@ViewBag.CompletedMonth</h3>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-<!-- Filter -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-        <form method="get" action="@Url.Action("JobCards", "Maintenance")" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small fw-bold text-uppercase text-muted">Search</label>
-                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Reference or title..." />
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small fw-bold text-uppercase text-muted">Priority</label>
-                <select name="priority" class="form-select">
-                    <option value="">All</option>
-                    @foreach (var p in new[] { "Emergency", "High", "Medium", "Low" })
-                    {
-                        <option value="@p" @(ViewBag.Priority == p ? "selected" : "")>@p</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small fw-bold text-uppercase text-muted">Status</label>
-                <select name="status" class="form-select">
-                    <option value="">All</option>
-                    @foreach (var s in new[] { "Pending", "Assigned", "In Progress", "On Hold", "Completed", "Cancelled" })
-                    {
-                        <option value="@s" @(ViewBag.Status == s ? "selected" : "")>@s</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small fw-bold text-uppercase text-muted">Type</label>
-                <select name="jobType" class="form-select">
-                    <option value="">All</option>
-                    <option value="Reactive" @(ViewBag.JobType == "Reactive" ? "selected" : "")>Reactive</option>
-                    <option value="Preventive" @(ViewBag.JobType == "Preventive" ? "selected" : "")>Preventive</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-dark w-100">Filter</button>
-            </div>
-        </form>
-    </div>
-</div>
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
 
-<!-- Table -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0">
-        <h5 class="mb-0 fw-bold"><i class="bi bi-list me-2"></i>All Job Cards</h5>
-        <span class="text-muted small">@Model.Count job(s)</span>
-    </div>
-    <div class="card-body p-0">
-        @if (Model.Any())
-        {
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Reference</th>
-                        <th>Title</th>
-                        <th>Asset</th>
-                        <th>Type</th>
-                        <th>Priority</th>
-                        <th>Assigned To</th>
-                        <th>Status</th>
-                        <th>Due Date</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var j in Model)
-                    {
-                        var isOverdue = j.DueDate.HasValue && j.DueDate.Value < DateTime.Now && j.Status != "Completed" && j.Status != "Cancelled";
-                        <tr class="@(isOverdue ? "table-danger" : "")">
-                            <td><code class="text-danger">@j.JobReference</code></td>
-                            <td><strong>@j.Title</strong></td>
-                            <td>@(j.Asset != null ? j.Asset.AssetName : "—")</td>
-                            <td><span class="badge bg-@(j.JobType=="Reactive"?"danger":"success")">@j.JobType</span></td>
-                            <td><span class="badge bg-@(j.Priority=="Emergency"?"danger":j.Priority=="High"?"warning":j.Priority=="Medium"?"info":"secondary")">@j.Priority</span></td>
-                            <td>@(j.AssignedTo != null ? j.AssignedTo.FullName : "Unassigned")</td>
-                            <td><span class="badge bg-@(j.Status=="Completed"?"success":j.Status=="In Progress"||j.Status=="Assigned"?"warning":"secondary")">@j.Status</span></td>
-                            <td>@(j.DueDate.HasValue ? j.DueDate.Value.ToString("dd MMM HH:mm") : "—")</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="@Url.Action("JobCardDetail", "Maintenance", new { id = j.Id })" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
-                                    @if (j.Status != "Completed" && j.Status != "Cancelled")
-                                    {
-                                        <a href="@Url.Action("CompleteJobCard", "Maintenance", new { id = j.Id })" class="btn btn-sm btn-outline-success"><i class="bi bi-check-lg"></i></a>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
-        else
-        {
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-clipboard fs-1 d-block mb-2"></i>
-                <p>No job cards found.</p>
-                <a href="@Url.Action("ReportFault", "Maintenance")" class="btn btn-primary btn-sm">Report First Fault</a>
-            </div>
-        }
-    </div>
-</div>
+</style>

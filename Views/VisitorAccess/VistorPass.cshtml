@@ -1,0 +1,121 @@
+﻿@model Michaelhouse.Models.VisitorAccessRequest
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Michaelhouse Visitor Pass";
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Access Control</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight text-uppercase" style="color: #C21E2E;">Michaelhouse Visitor Pass</h2>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.history.back();" class="inline-block bg-white border border-gray-200 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm text-gray-600">
+                <i class="bi bi-arrow-left me-2"></i> Return to Registry
+            </button>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex items-center justify-center">
+
+        @* --- IDENTITY TOKEN CARD --- *@
+        <div class="w-full max-w-md bg-white shadow-2xl border-t-4 border-[#C21E2E] relative overflow-hidden group flex flex-col">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-qr-code absolute -right-8 -bottom-10 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+            @* Secure Header *@
+            <div class="p-6 border-b border-gray-800 bg-[#1a1a1a] flex justify-between items-center relative z-10 flex-shrink-0">
+                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="relative z-10">
+                    <h3 class="text-uppercase mb-0 text-2xl font-serif font-bold tracking-[2px]" style="color: #C21E2E;">Michaelhouse</h3>
+                </div>
+                <div class="relative z-10 text-right">
+                    <span class="inline-flex items-center text-[9px] font-mono font-bold text-green-100 bg-green-800/80 border border-green-600 px-3 py-1 shadow-sm uppercase tracking-widest">
+                        Digital Gate Pass
+                    </span>
+                </div>
+            </div>
+
+            @* Core Pass Data *@
+            <div class="p-8 relative z-10 flex-grow text-center flex flex-col items-center">
+
+                <h5 class="text-3xl font-serif font-bold text-gray-900 mb-1">@Model.VisitorFullName</h5>
+                <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mb-8">Visit Date: @Model.VisitDate.ToString("dd MMM yyyy")</p>
+
+                @* Optical Target Frame for QR *@
+                <div class="flex justify-center mb-8">
+                    <div class="p-3 border-4 border-gray-900 bg-white relative group-hover:border-[#C21E2E] transition-colors duration-500 shadow-sm inline-block">
+                        @* Corner Accents *@
+                        <div class="absolute -top-2 -left-2 w-4 h-4 border-t-4 border-l-4 border-[#C21E2E]"></div>
+                        <div class="absolute -top-2 -right-2 w-4 h-4 border-t-4 border-r-4 border-[#C21E2E]"></div>
+                        <div class="absolute -bottom-2 -left-2 w-4 h-4 border-b-4 border-l-4 border-[#C21E2E]"></div>
+                        <div class="absolute -bottom-2 -right-2 w-4 h-4 border-b-4 border-r-4 border-[#C21E2E]"></div>
+
+                        <!-- This QR is generated dynamically with a fresh timestamp on page load -->
+                        <img src="@Url.Action("GenerateQrImage", "VisitorAccess", new { id = Model.RequestId })" alt="Gate Pass QR" class="w-56 h-56 object-contain" />
+                    </div>
+                </div>
+
+                @* Temporal & Spatial Logistics *@
+                <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 w-full mb-6">
+                    <div class="border-r border-gray-100 text-left pl-2">
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Time:</span>
+                        <strong class="font-mono text-sm text-gray-900">@Model.StartTime - @Model.EndTime</strong>
+                    </div>
+                    <div class="text-left pl-4">
+                        <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Zone:</span>
+                        <strong class="font-serif text-sm font-bold text-[#C21E2E]">@Model.FinalAssignedZone</strong>
+                    </div>
+                </div>
+
+                @* Expiration Warning *@
+                <div class="bg-red-50/50 border border-red-100 p-4 w-full shadow-inner">
+                    <p class="text-[10px] font-mono text-[#C21E2E] leading-relaxed mb-0">
+                        ⏰ This QR code is valid for <strong class="font-bold text-red-800 uppercase tracking-widest bg-red-100 px-1">4 minutes</strong> from the moment you open this page. Show it to the gate guard immediately.
+                    </p>
+                </div>
+            </div>
+
+            @* Institutional Footer Note *@
+            <div class="bg-gray-50 border-t border-gray-100 p-5 text-center relative z-10 flex-shrink-0">
+                <p class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 font-mono mb-0">
+                    🛡️ Show this QR to the gate guard for entry.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    /* Internal scrollbar custom styling */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

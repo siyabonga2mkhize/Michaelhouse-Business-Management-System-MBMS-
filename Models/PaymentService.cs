@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Configuration;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
 using Michaelhouse.Models;
 using Stripe;
-using MHSInvoice = Michaelhouse.Models.Invoice;
+
+// Aliases to resolve ambiguity between Stripe.Invoice and Michaelhouse.Models.Invoice
+using StripeInvoice = Stripe.Invoice;
+using LocalInvoice = Michaelhouse.Models.Invoice;
 
 namespace Michaelhouse.Services
 {
@@ -133,15 +137,15 @@ namespace Michaelhouse.Services
             }
         }
 
-		// ─── HTML Proof of Payment ────────────────────────────────────────────────
+        // ─── HTML Proof of Payment ────────────────────────────────────────────────
 
-		private string BuildProofOfPaymentHtml(Michaelhouse.Models.Payment payment, Michaelhouse.Models.Invoice invoice, string parentName)
-		{
-			// Fixes the DynamicProxy name issue for the student in the email
-			string studentName = invoice.Student != null ? invoice.Student.Name : "Prospective Student";
-			string logoUrl = "https://i.postimg.cc/Ss8DWBVf/logo-svg.png"; // Replace with your actual hosted absolute URL
+        private string BuildProofOfPaymentHtml(Payment payment, LocalInvoice invoice, string parentName)
+        {
+            // Fixes the DynamicProxy name issue for the student in the email
+            string studentName = invoice.Student != null ? invoice.Student.Name : "Prospective Student";
+            string logoUrl = "https://i.postimg.cc/Ss8DWBVf/logo-svg.png"; // Replace with your actual hosted absolute URL
 
-			return $@"
+            return $@"
 <html>
 <head>
     <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600;700&display=swap' rel='stylesheet'>
@@ -223,11 +227,11 @@ namespace Michaelhouse.Services
     </table>
 </body>
 </html>";
-		}
+        }
 
-		// ─── Email helper ─────────────────────────────────────────────────────────
+        // ─── Email helper ─────────────────────────────────────────────────────────
 
-		private void SendEmail(string toEmail, string subject, string htmlBody)
+        private void SendEmail(string toEmail, string subject, string htmlBody)
         {
             var smtpHost = ConfigurationManager.AppSettings["Email:SmtpHost"] ?? "";
             var smtpPort = int.TryParse(ConfigurationManager.AppSettings["Email:SmtpPort"], out int p) ? p : 587;

@@ -35,6 +35,7 @@ namespace Michaelhouse.Models
 
         [Required]
         public AlertStatus Status { get; set; } = AlertStatus.Active;
+        public bool SirenStopped { get; set; } = false;
 
         [Required]
         public DateTime CreatedDate { get; set; } = DateTime.Now;

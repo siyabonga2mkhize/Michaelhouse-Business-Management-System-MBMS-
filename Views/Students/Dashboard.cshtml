@@ -185,23 +185,10 @@
 </style>
 @section Scripts {
     <script>
-        // --- CRITICAL DASHBOARD EMERGENCY OVERRIDE ---
-        // Checks every 10 seconds if an emergency has been triggered.
-        function checkEmergencyOverride() {
-            $.ajax({
-                url: '@Url.Action("GetActiveAlertForStudent", "Emergency")',
-                type: 'GET',
-                success: function (data) {
-                    // If the server says there's an active alert, and this student hasn't confirmed yet...
-                    if (data.hasActiveAlert && !data.alreadyConfirmed) {
-                        // Immediately redirect them to the red Critical Dashboard
-                        window.location.href = '@Url.Action("ConfirmSafety", "Emergency")';
-                    }
-                },
-                error: function() {
-                    // Silently fail – we don't want errors showing to the student.
-                }
-            });
+       // --- CRITICAL DASHBOARD EMERGENCY OVERRIDE ---
+function checkEmergencyOverride() {
+    var role = '@Session["UserRole"]';
+    if (role !== 'Student') return;
         }
 
         // Start the loop 5 seconds after the page loads, and repeat every 10 seconds.

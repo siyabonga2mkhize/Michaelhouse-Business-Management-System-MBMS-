@@ -1,0 +1,95 @@
+rmdir /s /q obj bin
+
+add-migration initialcreate
+update-database
+
+Update-Package -reinstall
+
+taskkill
+taskkill /f /im VBCSCompiler.exe
+taskkill /f /im MSBuild.exe
+
+
+
+dotnet clean
+dotnet build
+
+dotnet ef migrations remove
+dotnet ef migrations add InitialCreate
+
+# 2. Fresh migration
+dotnet ef database update
+
+dotnet run
+
+
+
+
+Admin:   admin@innodevs.com / Admin@123456
+Student: student@test.com / Student@123456
+Teacher: teacher@test.com / Teacher@123456
+
+
+# Use command line to create files (avoids encoding issues)
+echo "your content" > Views/Translation/SearchTranslations.cshtml
+
+
+taskkill
+taskkill /f /im VBCSCompiler.exe
+taskkill /f /im MSBuild.exe
+
+
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe
+
+"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" Michaelhouse.sln /flp1:logfile=errorsonly.txt;errorsonly /flp2:logfile=Misc\buildlog.txt
+
+"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" Michaelhouse.sln /t:Clean,Build /v:normal /flp1:logfile=errorsonly.txt;errorsonly /flp2:logfile=Misc\buildlog.txt
+
+
+## Restore	x
+Package Manager Console 
+
+~ Update-Package -reinstall
+
+cd /d "C:\Users\thesm\source\repos\Michaelhouse Business Management System (MBMS)\Michaelhouse"
+nuget restore Michaelhouse.sln
+
+
+--relationship
+sqlcmd -S (localdb)\MSSQLLocalDB -d MichaelHouse -E -Q "SET NOCOUNT ON; SELECT '--- BASE TABLES ---'; SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'; SELECT ''; SELECT '--- FOREIGN KEY RELATIONSHIPS ---'; SELECT fk.name AS ForeignKeyName, tp.name AS ParentTable, cp.name AS ParentColumn, tr.name AS ReferencedTable, cr.name AS ReferencedColumn FROM sys.foreign_keys AS fk INNER JOIN sys.foreign_key_columns AS fkc ON fk.object_id = fkc.constraint_object_id INNER JOIN sys.tables AS tp ON fkc.parent_object_id = tp.object_id INNER JOIN sys.columns AS cp ON fkc.parent_object_id = cp.object_id AND fkc.parent_column_id = cp.column_id INNER JOIN sys.tables AS tr ON fkc.referenced_object_id = tr.object_id INNER JOIN sys.columns AS cr ON fkc.referenced_object_id = cr.object_id AND fkc.referenced_column_id = cr.column_id;" -o "C:\Users\thesm\source\repos\Michaelhouse Business Management System (MBMS)\Michaelhouse\Misc\diagnosis.txt" -w 999
+
+
+--relationship with colum 
+sqlcmd -S (localdb)\MSSQLLocalDB -d MichaelHouse -E -Q "SET NOCOUNT ON; SELECT t.name AS TableName, c.name AS ColumnName, ty.name AS DataType, c.max_length AS MaxLength, c.precision AS Precision, c.scale AS Scale, CASE WHEN c.is_nullable = 1 THEN 'YES' ELSE 'NO' END AS IsNullable, CASE WHEN c.is_identity = 1 THEN 'YES' ELSE 'NO' END AS IsIdentity, CASE WHEN c.is_computed = 1 THEN 'YES' ELSE 'NO' END AS IsComputed FROM sys.tables t INNER JOIN sys.columns c ON t.object_id = c.object_id INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id ORDER BY t.name, c.column_id;" -o "C:\Users\thesm\source\repos\Michaelhouse Business Management System (MBMS)\Michaelhouse\Misc\columns_full.csv" -s "," -W -h-1
+
+
+curl -X POST https://api.nexar.com/oauth2/token \ -H "Content-Type: application/x-www-form-urlencoded" \ -d "grant_type=client_credentials&client_id=7d9354b4-3444-49aa-91ed-f407af4d964b&client_secret=NLVy6AyENx2LrYgDAPlbwsFr258EnvDRlQK9"
+
+curl -X POST "https://api.nexar.com/auth/realms/nexar/protocol/openid-connect/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials&client_id=7d9354b4-3444-49aa-91ed-f407af4d964b&client_secret=NLVy6AyENx2LrYgDAPlbwsFr258EnvDRlQK9"
+
+@copilot resolve the merge conflicts in this pull request
+
+cd C:\home\site\wwwroot\bin
+powershell
+Get-ChildItem -Filter *.dll | ForEach-Object { $file = $_.FullName $ver = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($file)[PSCustomObject]@{ Name = $_.Name Version = $ver.FileVersion ProductVersion = $ver.ProductVersion Size = $_.Length Modified = $_.LastWriteTime }} | Format-Table -AutoSize
+
+
+local structure without 
+dir /s /a | findstr /V /I /C:".github" /C:".gitignore"
+
+
+
+##PM 
+Update webconfig 
+Get-Project -All | Add-BindingRedirect
+
+Get package verison
+Get-Package -ProjectName "Michaelhouse" | Select-Object Id, 
+
+
+
+type ErrorPage000029.htm >. C:\home\site\wwwroot\Misc\latest_error_log.txt
+
+type eventlog.xml >> C:\home\site\wwwroot\Misc\latest_error_log.txt
+
+type eventlog.prev.xml >> C:\home\site\wwwroot\Misc\latest_error_log.txt

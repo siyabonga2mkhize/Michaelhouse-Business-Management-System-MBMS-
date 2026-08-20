@@ -251,6 +251,26 @@ namespace Michaelhouse.Controllers
 
                 if (student == null) return RedirectToAction("Login", "Account");
 
+                // ====== EMERGENCY OVERRIDE (SERVER‑SIDE) ======
+                var activeAlert = db.EmergencyAlerts
+                    .Where(a => a.Status == AlertStatus.Active)
+                    .OrderByDescending(a => a.AlertTime)
+                    .FirstOrDefault();
+
+                if (activeAlert != null)
+                {
+                    bool alreadyConfirmed = db.StudentSafetyConfirmations
+    .Any(c => c.AlertId == activeAlert.AlertId
+              && c.StudentId == student.StudentId
+              && (c.Status == SafetyStatus.Confirmed || c.Status == SafetyStatus.OutsideZone));
+
+                    if (!alreadyConfirmed)
+                    {
+                        // Redirect to the emergency safety confirmation page
+                        return RedirectToAction("ConfirmSafety", "Emergency");
+                    }
+                }
+
                 var reg = db.Registrations
                     .FirstOrDefault(r => r.StudentId == student.StudentId);
 

@@ -1,7 +1,7 @@
-﻿select * from SchoolClasses
+﻿ 
+select * from appusers;
 
-select * from appusers
-
+update AppUsers set pashwordhash = 'ZehL4zUy+3hMSBKWdfnv86aCsnFowOp0Syz1juAjN8U=' where email = 'admin@michaelhouse.co.za' ;
 
 Select * from ClassSubjects
 
@@ -305,6 +305,8 @@ DELETE FROM TeacherAttendances where TeacherAttendanceId = 1006;
 
 Select * from Students;
 
+select * from parents;
+
 
 Select * from StudentSubjects;
 
@@ -497,8 +499,6 @@ WHERE NOT EXISTS (
 )
 ORDER BY s.StudentId, sub.SubjectId;
 
-ALTER DATABASE MichaelHouse SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-DROP DATABASE MichaelHouse;
 
 
 select * from DriverApplications;
@@ -1102,3 +1102,300 @@ set Status = 1 where Status = 0;
 
 
 DELETE FROM StudentSafetyConfirmations WHERE StudentId = 1005; -- (Use your test student's ID)
+
+SET IDENTITY_INSERT Students ON;
+INSERT INTO Students (StudentId, FirstName, LastName, GradeLevel, DOB, ParentId, EnrollmentDate, IsBoarding, IsActive)
+VALUES (1, 'Test', 'Student', 8, '2010-01-01', (SELECT TOP 1 ParentId FROM Parents), GETDATE(), 1, 1);
+SET IDENTITY_INSERT Students OFF;
+
+
+-- Connect to master database first
+USE master;
+GO
+
+
+-- Recreate the database
+--CREATE DATABASE schooldb;
+
+
+-- Switch back
+--USE schooldb;
+
+
+
+-- Count students per residence
+SELECT r.Name, COUNT(ra.StudentId) AS Allocated
+FROM Residences r
+LEFT JOIN ResidenceAllocations ra ON r.ResidenceId = ra.ResidenceId AND ra.IsActive = 1
+GROUP BY r.Name;
+
+-- Check beds occupied
+-- Check beds occupied
+SELECT COUNT(*) AS OccupiedBeds FROM Beds WHERE IsOccupied = 1;
+
+-- QR codes generated
+SELECT COUNT(*) AS QRCodes FROM StudentQRCodes;
+
+
+
+-- ============================================================
+-- RESET & REASSIGN ALL BOARDING STUDENTS
+-- ============================================================
+
+BEGIN TRANSACTION;
+
+-- 1. Clear all existing allocations and reset bed occupancy
+DELETE FROM ResidenceAllocations WHERE 1=1;
+UPDATE Beds SET IsOccupied = 0, OccupiedByStudentId = NULL;
+
+-- 2. Update room and residence occupancy counts to zero
+UPDATE Rooms SET OccupiedBeds = 0;
+UPDATE Residences SET OccupiedBeds = 0;
+
+-- 3. Reassign every boarding student
+WITH BoardingStudents AS (
+    SELECT 
+        StudentId,
+        ROW_NUMBER() OVER (ORDER BY StudentId) AS RowNum
+    FROM Students
+    WHERE IsBoarding = 1
+),
+AvailableBeds AS (
+    SELECT 
+        b.BedId,
+        b.RoomId,
+        r.ResidenceId,
+        ROW_NUMBER() OVER (ORDER BY r.ResidenceId, b.BedId) AS BedSeq
+    FROM Beds b
+    INNER JOIN Rooms ro ON b.RoomId = ro.RoomId
+    INNER JOIN Residences r ON ro.ResidenceId = r.ResidenceId
+    WHERE b.IsOccupied = 0 AND b.IsArchived = 0
+)
+INSERT INTO ResidenceAllocations (StudentId, ResidenceId, RoomId, BedId, IsActive, AllocatedAt, CreatedBy, CreatedAt, IsArchived)
+SELECT 
+    bs.StudentId,
+    ab.ResidenceId,
+    ab.RoomId,
+    ab.BedId,
+    1,
+    GETDATE(),
+    'Seeder',
+    GETDATE(),
+    0
+FROM BoardingStudents bs
+INNER JOIN AvailableBeds ab ON bs.RowNum = ab.BedSeq;
+
+-- 4. Mark beds as occupied
+UPDATE b
+SET b.IsOccupied = 1, b.OccupiedByStudentId = ra.StudentId
+FROM Beds b
+INNER JOIN ResidenceAllocations ra ON b.BedId = ra.BedId
+WHERE ra.IsActive = 1;
+
+-- 5. Update room and residence counts
+UPDATE r SET r.OccupiedBeds = (SELECT COUNT(*) FROM Beds b WHERE b.RoomId = r.RoomId AND b.IsOccupied = 1)
+FROM Rooms r;
+
+UPDATE res SET res.OccupiedBeds = (SELECT COUNT(*) FROM Rooms ro WHERE ro.ResidenceId = res.ResidenceId AND ro.OccupiedBeds > 0)
+FROM Residences res;
+
+COMMIT TRANSACTION;
+
+SELECT '✅ All boarding students have been reassigned.' AS Status;
+
+
+
+15
+-- ============================================================
+-- RESET INFRASTRUCTURE TO EXACTLY 16 BEDS (8 ROOMS, 4 HOUSES)
+-- ============================================================
+BEGIN TRANSACTION;
+
+-- 1. Clear allocations and bed occupancy
+DELETE FROM ResidenceAllocations;
+UPDATE Beds SET IsOccupied = 0, OccupiedByStudentId = NULL;
+UPDATE Rooms SET OccupiedBeds = 0;
+UPDATE Residences SET OccupiedBeds = 0;
+
+-- 2. Delete existing Beds, Rooms (keep Residences and HouseMasters if you want)
+DELETE FROM Beds;
+DELETE FROM Rooms;
+
+-- 3. Recreate Rooms: 2 rooms per residence (total 8 rooms)
+DECLARE @ResId int, @ResName nvarchar(200), @RoomNum nvarchar(50), @Counter int = 1;
+
+DECLARE res_cursor CURSOR FOR SELECT ResidenceId, Name FROM Residences WHERE IsArchived = 0;
+OPEN res_cursor;
+FETCH NEXT FROM res_cursor INTO @ResId, @ResName;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @Counter = 1;
+    WHILE @Counter <= 2
+    BEGIN
+        SET @RoomNum = LEFT(@ResName, 1) + CAST(@Counter AS nvarchar(10));
+        INSERT INTO Rooms (RoomNumber, Capacity, OccupiedBeds, IsFull, Floor, IsGroundFloor, IsWheelchairAccessible, 
+                           NearBathroom, IsQuietStudyRoom, NeedsMaintenance, ResidenceId, IsArchived)
+        VALUES (@RoomNum, 2, 0, 0, 1, 1, 1, 1, 1, 0, @ResId, 0);
+        SET @Counter = @Counter + 1;
+    END
+    FETCH NEXT FROM res_cursor INTO @ResId, @ResName;
+END
+CLOSE res_cursor;
+DEALLOCATE res_cursor;
+
+-- 4. Create Beds: 2 per room (total 16 beds)
+DECLARE @RoomId int, @BedLabel char(1), @BedCnt int = 1;
+DECLARE room_cursor CURSOR FOR SELECT RoomId FROM Rooms;
+OPEN room_cursor;
+FETCH NEXT FROM room_cursor INTO @RoomId;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @BedCnt = 1;
+    WHILE @BedCnt <= 2
+    BEGIN
+        SET @BedLabel = CHAR(64 + @BedCnt); -- A, B
+        INSERT INTO Beds (RoomId, BedNumber, IsOccupied, Status, IsArchived)
+        VALUES (@RoomId, CAST(@RoomId AS nvarchar(10)) + '-' + @BedLabel, 0, 'Available', 0);
+        SET @BedCnt = @BedCnt + 1;
+    END
+    FETCH NEXT FROM room_cursor INTO @RoomId;
+END
+CLOSE room_cursor;
+DEALLOCATE room_cursor;
+
+COMMIT TRANSACTION;
+
+SELECT '✅ Infrastructure reset to exactly 16 beds across 4 residences (2 rooms each).' AS Status;
+
+
+select * from ResidenceAllocations where studentId = 1;
+
+select * from students;
+
+select * from Residences
+
+
+
+SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Users';
+
+
+-- Primary lookup by Email (and optionally combined with PasswordHash)
+CREATE NONCLUSTERED INDEX IX_AppUsers_Email ON AppUsers(Email);
+CREATE NONCLUSTERED INDEX IX_AppUsers_Email_PasswordHash ON AppUsers(Email, PasswordHash);
+
+-- Foreign key indexes on related tables
+CREATE NONCLUSTERED INDEX IX_Students_UserId ON Students(UserId);
+CREATE NONCLUSTERED INDEX IX_Teachers_UserId ON Teachers(UserId);
+CREATE NONCLUSTERED INDEX IX_Drivers_UserId ON Drivers(UserId);
+CREATE NONCLUSTERED INDEX IX_HouseMasters_UserId ON HouseMasters(UserId);
+
+SELECT name, type_desc, is_unique, index_id
+FROM sys.indexes
+WHERE object_id = OBJECT_ID('AppUsers');
+
+-- For AppUsers (already has IX_AppUsers_Email)
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('AppUsers') AND name LIKE 'IX_AppUsers%';
+
+-- For foreign‑key columns on related tables
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Students') AND name LIKE 'IX_Students_UserId';
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Teachers') AND name LIKE 'IX_Teachers_UserId';
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Drivers') AND name LIKE 'IX_Drivers_UserId';
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('HouseMasters') AND name LIKE 'IX_HouseMasters_UserId';
+
+
+SELECT t.name AS TableName, i.name AS IndexName, c.name AS ColumnName
+FROM sys.indexes i
+JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+JOIN sys.tables t ON i.object_id = t.object_id
+WHERE t.name IN ('Students', 'Teachers', 'Drivers', 'HouseMasters')
+  AND c.name LIKE '%User%'
+ORDER BY t.name;
+
+
+-- 1. Covering index on AppUsers.Email (includes PasswordHash, etc.)
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('AppUsers') AND name = 'IX_AppUsers_Email_Includes')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AppUsers_Email_Includes 
+        ON AppUsers(Email) 
+        INCLUDE (PasswordHash, UserId, Name, Role);
+END
+
+-- 2. Dynamic foreign-key indexes
+DECLARE @sql NVARCHAR(MAX) = '';
+DECLARE @tableName NVARCHAR(128);
+DECLARE @colName NVARCHAR(128);
+DECLARE @indexName NVARCHAR(128);
+
+-- Cursor over the four tables
+DECLARE cur CURSOR FOR 
+    SELECT 'Students' UNION ALL
+    SELECT 'Teachers' UNION ALL
+    SELECT 'Drivers' UNION ALL
+    SELECT 'HouseMasters';
+
+OPEN cur;
+FETCH NEXT FROM cur INTO @tableName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Find the column that contains 'User' and is of type int
+    SELECT @colName = COLUMN_NAME 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = @tableName 
+      AND DATA_TYPE = 'int' 
+      AND COLUMN_NAME LIKE '%User%';
+
+    IF @colName IS NOT NULL
+    BEGIN
+        SET @indexName = 'IX_' + @tableName + '_' + @colName;
+        -- Check if index already exists
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes 
+                       WHERE object_id = OBJECT_ID(@tableName) 
+                         AND name = @indexName)
+        BEGIN
+            SET @sql = @sql + 'CREATE NONCLUSTERED INDEX ' + QUOTENAME(@indexName) 
+                       + ' ON ' + QUOTENAME(@tableName) + '(' + QUOTENAME(@colName) + ');' + CHAR(13);
+        END
+    END
+
+    FETCH NEXT FROM cur INTO @tableName;
+END
+
+CLOSE cur;
+DEALLOCATE cur;
+
+-- Execute the generated script
+IF @sql <> '' 
+    EXEC sp_executesql @sql;
+ELSE
+    PRINT 'All required indexes already exist.';
+
+
+-- Execute the generated script
+IF @sql <> '' 
+    EXEC sp_executesql @sql;
+ELSE
+    PRINT 'All required indexes already exist or required columns are missing.';
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('AppUsers') AND name = 'IX_AppUsers_Email_Includes')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AppUsers_Email_Includes 
+        ON AppUsers(Email) 
+        INCLUDE (PasswordHash, UserId, Name, Role);
+END
+
+SELECT TABLE_NAME, COLUMN_NAME 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE COLUMN_NAME LIKE '%User%' 
+  AND TABLE_NAME IN ('Students', 'Teachers', 'Drivers', 'HouseMasters');
+
+SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('AppUsers') AND name LIKE '%Email%';
+
+select * from parents;
+
+select * from invoices where Parentid = 11;
+
+UPDATE invoices 
+SET Status = 'Pending' 
+WHERE Invoiceid = 27;

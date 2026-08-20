@@ -1,16 +1,133 @@
 ﻿@{
     ViewBag.Title = "No Active Emergency";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userRole = Session["UserRole"]?.ToString() ?? "";
+    bool isStaff = (userRole == "Admin" || userRole == "Teacher" || userRole == "HouseMaster" || userRole == "Housemaster");
 }
 
-<div class="container mt-5">
-    <div class="card border-info">
-        <div class="card-header bg-info text-white">
-            <h4>No Active Emergency Alert</h4>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/50">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 flex justify-between items-end border-b border-gray-100 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Emergency & Risk Management System</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">
+                @(isStaff ? "Emergency Monitor" : "Safety Status")
+            </h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-1 mb-0">
+                Real-Time Campus Monitoring • Live Status
+            </p>
         </div>
-        <div class="card-body">
-            <p class="lead">@ViewBag.Message</p>
-            <a href="@Url.Action("TriggerAlert")" class="btn btn-danger">Trigger New Alert</a>
+
+        @* Live System Indicator *@
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono font-bold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>All Systems Nominal</span>
+        </div>
+    </div>
+
+    @* --- MAIN CONTENT AREA --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 flex items-center justify-center">
+        <div class="max-w-2xl w-full">
+
+            <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+
+                @* Card Status Banner *@
+                <div class="p-4 border-b border-emerald-100 bg-emerald-50/60 flex justify-between items-center font-mono">
+                    <div class="flex items-center gap-2.5 text-emerald-900">
+                        <i class="bi bi-shield-check text-emerald-600 text-lg"></i>
+                        <span class="text-[11px] uppercase tracking-[3px] font-bold">
+                            @(isStaff ? "No Active Emergency Alert" : "All Clear – Campus Secure")
+                        </span>
+                    </div>
+                    <span class="text-[9px] uppercase tracking-wider font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 border border-emerald-200">
+                        Normal Operational State
+                    </span>
+                </div>
+
+                @* Card Body *@
+                <div class="p-8 space-y-6 text-center">
+
+                    @* Visual Graphic *@
+                    <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-600 text-2xl shadow-inner">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+
+                    @* Message Box *@
+                    <div class="space-y-2">
+                        <h4 class="font-serif font-bold text-gray-900 text-xl">Current Campus Status</h4>
+                        @if (ViewBag.Message != null)
+                        {
+                            <p class="text-sm font-sans text-gray-600 max-w-md mx-auto leading-relaxed">
+                                @ViewBag.Message
+                            </p>
+                        }
+                    </div>
+
+                    @* Role Specific Content & Actions *@
+                    @if (isStaff)
+                    {
+                        <div class="pt-4 border-t border-gray-100 space-y-4">
+                            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-wider">
+                                Staff Authorization Active • Crisis Protocol Control
+                            </p>
+
+                            <a href="@Url.Action("TriggerAlert")" class="inline-flex items-center gap-2 bg-[#C21E2E] hover:bg-red-800 text-white px-6 py-3 text-[10px] font-mono font-bold uppercase tracking-[2px] transition-all shadow-sm" style="text-decoration: none;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>Trigger Emergency Alert</span>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="pt-4 border-t border-gray-100 space-y-5">
+                            <div class="p-4 bg-emerald-50/50 border border-emerald-100 text-emerald-900 font-mono text-xs flex items-center justify-center gap-2">
+                                <i class="bi bi-info-circle text-emerald-600"></i>
+                                <span>Relax – there’s no emergency currently active. You can safely return to your dashboard.</span>
+                            </div>
+
+                            <a href="@Url.Action("Dashboard", "Students")" class="inline-flex items-center gap-2 bg-[#1a1a1a] hover:bg-gray-800 text-white px-6 py-3 text-[10px] font-mono font-bold uppercase tracking-[2px] transition-all shadow-sm" style="text-decoration: none;">
+                                <i class="bi bi-house-door"></i>
+                                <span>Return to Dashboard</span>
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                @* Card Footer *@
+                <div class="p-3 bg-gray-50/80 border-t border-gray-100 text-center font-mono text-[9px] text-gray-400 uppercase tracking-[2px]">
+                    Michaelhouse Safety System • Automated Geofence Monitoring
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

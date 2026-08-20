@@ -4,208 +4,286 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
-        </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">My Jobs</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Welcome, @(ViewBag.Staff?.FullName ?? Session["UserName"]?.ToString()) · @(ViewBag.Staff?.SkillType ?? "Worker")</p>
-    </div>
-</div>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<!-- ── Stats Cards ─────────────────────────────────────────────────────── -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h2 class="fw-bold text-primary">@Model.Count(j => j.Status != "Completed" && j.Status != "Cancelled")</h2>
-                <span class="text-muted small">Open Jobs</span>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Worker Portal</h5>
             </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h2 class="fw-bold text-success">@ViewBag.TotalCompleted</h2>
-                <span class="text-muted small">Total Completed</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h2 class="fw-bold text-info">@ViewBag.CompletedThisMonth</h2>
-                <span class="text-muted small">Completed This Month</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center">
-                <h2 class="fw-bold text-warning">@ViewBag.AvgResponseTime <small class="text-muted">mins</small></h2>
-                <span class="text-muted small">Avg Response Time</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        <!-- ── Open Jobs ──────────────────────────────────────────────────── -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>My Open Jobs</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (Model.Any(j => j.Status != "Completed" && j.Status != "Cancelled"))
-                {
-                    foreach (var job in Model.Where(j => j.Status != "Completed" && j.Status != "Cancelled"))
-                    {
-                        string priorityColor = job.Priority == "Emergency" ? "danger" : job.Priority == "High" ? "warning" : job.Priority == "Medium" ? "info" : "secondary";
-                        <div class="border-bottom p-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <code class="text-danger">@job.JobReference</code>
-                                    <div class="fw-bold">@job.Title</div>
-                                    <small class="text-muted">
-                                        @(job.Asset != null ? job.Asset.LocationBuilding : "No asset") ·
-                                        @job.DateCreated.ToString("dd MMM yyyy HH:mm")
-                                        @if (job.DueDate.HasValue)
-                                        {
-                                            <span class="ms-2">Due: @job.DueDate.Value.ToString("dd MMM yyyy")</span>
-                                            if (job.DueDate.Value < DateTime.Now)
-                                            {
-                                                <span class="badge bg-danger ms-1">Overdue!</span>
-                                            }
-                                        }
-                                    </small>
-                                </div>
-                                <div>
-                                    <span class="badge bg-@priorityColor me-1">@job.Priority</span>
-                                    <span class="badge bg-secondary">@job.Status</span>
-                                    <a href="@Url.Action("JobDetail", "Worker", new { id = job.Id })" class="btn btn-sm btn-outline-primary ms-2">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                    @if (job.Status == "Assigned" || job.Status == "In Progress")
-                                    {
-                                        <a href="@Url.Action("CompleteJob", "Worker", new { id = job.Id })" class="btn btn-sm btn-success ms-1">
-                                            <i class="bi bi-check-circle"></i> Complete
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
-                        <p>No open jobs assigned to you. Great job!</p>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <!-- ── Recently Completed ────────────────────────────────────────── -->
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Recently Completed</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (ViewBag.CompletedJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs).Any())
-                {
-                    foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs)
-                    {
-                        <div class="border-bottom p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <code class="text-muted">@job.JobReference</code>
-                                    <div>@job.Title</div>
-                                    <small class="text-muted">Completed @job.DateCompleted?.ToString("dd MMM yyyy")</small>
-                                </div>
-                                <span class="badge bg-success">✓ Done</span>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-3 text-muted">
-                        <small>No completed jobs yet.</small>
-                    </div>
-                }
-            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">My Jobs</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">
+                Welcome, <span class="font-bold text-gray-600">@(ViewBag.Staff?.FullName ?? Session["UserName"]?.ToString())</span> · @(ViewBag.Staff?.SkillType ?? "Worker")
+            </p>
         </div>
     </div>
 
-    <!-- ── Right Sidebar ────────────────────────────────────────────────── -->
-    <div class="col-lg-4">
-        <!-- ── My Schedule ────────────────────────────────────────────────── -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2"></i>My Schedule</h5>
-            </div>
-            <div class="card-body">
-                @if (ViewBag.UpcomingShifts != null && ((List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts).Any())
-                {
-                    foreach (var shift in (List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts)
-                    {
-                        <div class="d-flex justify-content-between border-bottom py-2">
-                            <span>@shift.Date.ToString("ddd dd MMM")</span>
-                            <span class="badge bg-primary">@shift.ShiftPattern.Name</span>
-                            <span class="text-muted small">@shift.ShiftPattern.StartTime.ToString(@"hh\:mm") - @shift.ShiftPattern.EndTime.ToString(@"hh\:mm")</span>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-3 text-muted">
-                        <small>No shifts scheduled.</small>
-                    </div>
-                }
-            </div>
-        </div>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
 
-        <!-- ── Quick Actions ─────────────────────────────────────────────── -->
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+        @* --- STATS ROW --- *@
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-clipboard-check absolute -right-4 -bottom-4 text-7xl text-blue-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Open Jobs</h6>
+                    <h3 class="font-mono text-4xl font-bold text-blue-600 mb-0">@Model.Count(j => j.Status != "Completed" && j.Status != "Cancelled")</h3>
+                </div>
             </div>
-            <div class="card-body">
-                <a href="@Url.Action("RequestLeave", "Worker")" class="btn btn-outline-primary w-100 mb-2">
-                    <i class="bi bi-calendar-plus me-1"></i> Request Leave
-                </a>
-                <a href="@Url.Action("Profile", "Worker")" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-person-gear me-1"></i> My Profile
-                </a>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-[#10b981] hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-check-circle absolute -right-4 -bottom-4 text-7xl text-green-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-green-700 mb-2">Total Completed</h6>
+                    <h3 class="font-mono text-4xl font-bold text-[#10b981] mb-0">@ViewBag.TotalCompleted</h3>
+                </div>
             </div>
-        </div>
-
-        <!-- ── Status ─────────────────────────────────────────────────────── -->
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-circle-fill me-2 text-@(ViewBag.Staff?.CurrentStatus == "Available" ? "success" : ViewBag.Staff?.CurrentStatus == "On Job" ? "warning" : "secondary")"></i>My Status</h5>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-blue-500 hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-calendar-check absolute -right-4 -bottom-4 text-7xl text-blue-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-blue-700 mb-2">Completed This Month</h6>
+                    <h3 class="font-mono text-4xl font-bold text-blue-600 mb-0">@ViewBag.CompletedThisMonth</h3>
+                </div>
             </div>
-            <div class="card-body">
-                <p class="mb-2">Current Status: <strong>@(ViewBag.Staff?.CurrentStatus ?? "Unknown")</strong></p>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-success" onclick="updateStatus('Available')">
-                        <i class="bi bi-check-circle"></i> Available
-                    </button>
-                    <button class="btn btn-sm btn-warning" onclick="updateStatus('On Job')">
-                        <i class="bi bi-clock"></i> On Job
-                    </button>
-                    <button class="btn btn-sm btn-secondary" onclick="updateStatus('Off Shift')">
-                        <i class="bi bi-hourglass"></i> Off Shift
-                    </button>
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-yellow-500 hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-stopwatch absolute -right-4 -bottom-4 text-7xl text-yellow-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-yellow-700 mb-2">Avg Response Time</h6>
+                    <h3 class="font-mono text-4xl font-bold text-yellow-600 mb-0">@ViewBag.AvgResponseTime <span class="text-sm text-yellow-800 font-mono tracking-widest uppercase">mins</span></h3>
                 </div>
             </div>
         </div>
+
+        @* --- TWO COLUMN LAYOUT --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+
+            @* --- LEFT: JOBS LEDGERS --- *@
+            <div class="lg:col-span-8 flex flex-col gap-6">
+
+                @* My Open Jobs *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                    <i class="bi bi-tools absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] pointer-events-none z-0"></i>
+
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-clipboard-check me-2 text-gray-500"></i> My Open Jobs</h5>
+                    </div>
+
+                    <div class="flex flex-col max-h-[500px] overflow-y-auto custom-scrollbar relative z-10 bg-white">
+                        @if (Model.Any(j => j.Status != "Completed" && j.Status != "Cancelled"))
+                        {
+                            foreach (var job in Model.Where(j => j.Status != "Completed" && j.Status != "Cancelled"))
+                            {
+                                string priorityColor = job.Priority == "Emergency" ? "bg-red-100 text-[#C21E2E] border-red-200" :
+                                                       job.Priority == "High" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                                       job.Priority == "Medium" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                       "bg-gray-100 text-gray-600 border-gray-200";
+
+                                bool isOverdue = job.DueDate.HasValue && job.DueDate.Value < DateTime.Now;
+
+                                <div class="p-5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                    <div class="flex justify-between items-start gap-4">
+                                        <div class="flex-grow">
+                                            <code class="font-mono text-xs font-bold text-[#C21E2E] bg-transparent p-0 block mb-1">@job.JobReference</code>
+                                            <div class="font-serif font-bold text-gray-900 text-lg leading-tight mb-1">@job.Title</div>
+
+                                            <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2 flex flex-wrap gap-2 items-center">
+                                                <span><i class="bi bi-geo-alt me-1"></i>@(job.Asset != null ? job.Asset.LocationBuilding : "No asset")</span>
+                                                <span>·</span>
+                                                <span><i class="bi bi-calendar me-1"></i>@job.DateCreated.ToString("dd MMM yy HH:mm")</span>
+
+                                                @if (job.DueDate.HasValue)
+                                                {
+                                                    <span>·</span>
+                                                    <span class="@(isOverdue ? "text-[#C21E2E] font-bold" : "text-gray-600")">
+                                                        Due: @job.DueDate.Value.ToString("dd MMM yyyy")
+                                                    </span>
+                                                    if (isOverdue)
+                                                    {
+                                                        <span class="bg-[#C21E2E] text-white px-1.5 py-0.5 rounded-sm text-[8px] tracking-widest ms-1 shadow-sm">OVERDUE</span>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                                            <div class="flex gap-1">
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm @priorityColor">
+                                                    @job.Priority
+                                                </span>
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm bg-gray-100 text-gray-700 border-gray-200">
+                                                    @job.Status
+                                                </span>
+                                            </div>
+
+                                            <div class="flex gap-2 mt-2">
+                                                <a href="@Url.Action("JobDetail", "Worker", new { id = job.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-800 hover:text-gray-900 transition-colors shadow-sm">
+                                                    <i class="bi bi-eye me-1"></i> View
+                                                </a>
+                                                @if (job.Status == "Assigned" || job.Status == "In Progress")
+                                                {
+                                                    <a href="@Url.Action("CompleteJob", "Worker", new { id = job.Id })" class="inline-flex items-center justify-center bg-[#10b981] border border-[#10b981] text-white px-4 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:bg-green-600 transition-colors shadow-sm">
+                                                        <i class="bi bi-check-circle me-1"></i> Complete
+                                                    </a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-16 text-muted">
+                                <i class="bi bi-check-circle text-[#10b981] text-6xl d-block mb-4"></i>
+                                <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">Queue Clear</h4>
+                                <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest">No open jobs assigned to you. Great job!</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* Recently Completed *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden flex-grow">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50 relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-clock-history me-2 text-gray-400"></i> Recently Completed</h5>
+                    </div>
+
+                    <div class="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar relative z-10">
+                        @if (ViewBag.CompletedJobs != null && ((List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs).Any())
+                        {
+                            foreach (var job in (List<Michaelhouse.Models.JobCard>)ViewBag.CompletedJobs)
+                            {
+                                <div class="p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <code class="font-mono text-[10px] font-bold text-gray-400 bg-transparent p-0">@job.JobReference</code>
+                                                <div class="font-serif font-bold text-gray-800 text-sm leading-tight">@job.Title</div>
+                                            </div>
+                                            <span class="text-[9px] font-mono text-gray-400 uppercase tracking-widest block">Completed @job.DateCompleted?.ToString("dd MMM yyyy")</span>
+                                        </div>
+                                        <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest bg-green-50 text-green-700 px-3 py-1 border border-green-200 shadow-sm flex-shrink-0">
+                                            <i class="bi bi-check me-1"></i> Done
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-10 text-muted">
+                                <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">No completed jobs yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+
+            @* --- RIGHT: SCHEDULE, ACTIONS & STATUS --- *@
+            <div class="lg:col-span-4 flex flex-col gap-6">
+
+                @* Worker Status Control *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-[#1a1a1a]">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">
+                            <i class="bi bi-circle-fill me-2 text-@(ViewBag.Staff?.CurrentStatus == "Available" ? "green-500" : ViewBag.Staff?.CurrentStatus == "On Job" ? "yellow-500" : "gray-500")"></i> My Status
+                        </h5>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-gray-50 border border-gray-200 p-4 mb-4 text-center">
+                            <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 block mb-1">Current Status</span>
+                            <strong class="font-mono text-lg text-gray-900 uppercase tracking-widest">@(ViewBag.Staff?.CurrentStatus ?? "Unknown")</strong>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <button class="w-full text-left bg-white border border-green-300 text-green-700 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-50 transition-all shadow-sm flex items-center" onclick="updateStatus('Available')">
+                                <i class="bi bi-check-circle me-3 text-sm"></i> Mark Available
+                            </button>
+                            <button class="w-full text-left bg-white border border-yellow-300 text-yellow-700 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-yellow-50 transition-all shadow-sm flex items-center" onclick="updateStatus('On Job')">
+                                <i class="bi bi-clock me-3 text-sm"></i> Mark On Job
+                            </button>
+                            <button class="w-full text-left bg-white border border-gray-300 text-gray-600 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:text-gray-900 hover:border-gray-500 transition-all shadow-sm flex items-center" onclick="updateStatus('Off Shift')">
+                                <i class="bi bi-hourglass me-3 text-sm"></i> Mark Off Shift
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @* My Schedule *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-calendar3 me-2 text-gray-400"></i> My Schedule</h5>
+                    </div>
+                    <div class="flex flex-col max-h-[250px] overflow-y-auto custom-scrollbar">
+                        @if (ViewBag.UpcomingShifts != null && ((List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts).Any())
+                        {
+                            foreach (var shift in (List<Michaelhouse.Models.StaffShift>)ViewBag.UpcomingShifts)
+                            {
+                                <div class="p-4 border-b border-gray-50 last:border-0 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                                    <div>
+                                        <span class="font-serif font-bold text-gray-800 text-sm block leading-tight">@shift.Date.ToString("ddd, dd MMM")</span>
+                                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-1 block">@shift.ShiftPattern.StartTime.ToString(@"hh\:mm") - @shift.ShiftPattern.EndTime.ToString(@"hh\:mm")</span>
+                                    </div>
+                                    <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 shadow-sm">
+                                        @shift.ShiftPattern.Name
+                                    </span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-8 text-muted">
+                                <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">No shifts scheduled.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* Quick Actions *@
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0"><i class="bi bi-lightning-charge me-2 text-gray-400"></i> Quick Actions</h5>
+                    </div>
+                    <div class="p-5 flex flex-col gap-3">
+                        <a href="@Url.Action("RequestLeave", "Worker")" class="w-full text-center bg-[#1a1a1a] text-white px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                            <i class="bi bi-calendar-plus me-1"></i> Request Leave
+                        </a>
+                        <a href="@Url.Action("Profile", "Worker")" class="w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:border-gray-500 hover:text-gray-900 transition-all shadow-sm">
+                            <i class="bi bi-person-gear me-1"></i> My Profile
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -230,12 +308,4 @@
             });
         }
     </script>
-}
-
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-    </style>
 }

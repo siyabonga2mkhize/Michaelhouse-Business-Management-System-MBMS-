@@ -4,132 +4,216 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="mb-10 d-flex justify-content-between align-items-end border-b border-gray-100 pb-8">
-    <div>
-        <div class="flex items-center gap-2 mb-3">
-            <div class="h-1 w-8 bg-[#C21E2E]"></div>
-            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Maintenance</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Create Job Card</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Log a new maintenance job</p>
         </div>
-        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Create Job Card</h2>
-        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Log a new maintenance job</p>
+        <div class="flex gap-3">
+            <a href="@Url.Action("JobCards", "Maintenance")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            @* --- LEFT: CREATE JOB FORM --- *@
+            <div class="lg:col-span-8 flex flex-col">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                    @* Ghost Watermark *@
+                    <i class="bi bi-tools absolute -right-8 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
+
+                    <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-clipboard-plus me-2 text-gray-500"></i> Job Parameters</h5>
+                    </div>
+
+                    <div class="p-8 relative z-10">
+                        @using (Html.BeginForm("CreateJobCard", "Maintenance", FormMethod.Post, new { @class = "flex flex-col gap-6" }))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Title *</label>
+                                @Html.TextBoxFor(m => m.Title, new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent", placeholder = "e.g. Leaking pipe in bathroom" })
+                                @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Asset *</label>
+                                    <div class="relative">
+                                        <select name="AssetId" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8">
+                                            <option value="">-- Select Asset --</option>
+                                            @if (ViewBag.Assets != null)
+                                            {
+                                                foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
+                                                {
+                                                    <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
+                                                }
+                                            }
+                                        </select>
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Priority *</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.Priority,
+                                            new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
+                                            "-- Select Priority --",
+                                            new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8", id = "prioritySelect" })
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-[#C21E2E] text-[9px] font-bold uppercase mt-2 block tracking-widest" })
+                                </div>
+                            </div>
+
+                            <div id="priorityGuide" class="hidden"></div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6 mt-2">
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Assign To (optional)</label>
+                                    <div class="relative">
+                                        <select name="AssignedToId" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#10b981] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8">
+                                            <option value="">-- Unassigned --</option>
+                                            @if (ViewBag.Staff != null)
+                                            {
+                                                foreach (var s in (List<Michaelhouse.Models.MaintenanceStaff>)ViewBag.Staff)
+                                                {
+                                                    <option value="@s.Id">@s.FullName — @s.SkillType</option>
+                                                }
+                                            }
+                                        </select>
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Job Type</label>
+                                    <div class="relative">
+                                        @Html.DropDownListFor(m => m.JobType,
+                                            new SelectList(new[] { "Reactive", "Preventive" }),
+                                            "-- Select Type --",
+                                            new { @class = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent appearance-none pr-8" })
+                                        <i class="bi bi-chevron-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-6 mt-2">
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Description</label>
+                                @Html.TextAreaFor(m => m.Description, new { @class = "w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = 4, placeholder = "Describe the problem in detail..." })
+                            </div>
+
+                            <div class="bg-blue-50/50 border-l-4 border-blue-500 p-4 mt-2">
+                                <p class="text-xs font-mono text-blue-900 m-0 leading-relaxed">
+                                    <i class="bi bi-robot text-blue-500 me-2 text-lg align-middle"></i>
+                                    If you don't assign a worker, the system will auto‑assign based on skill and availability.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-3 mt-2">
+                                <button type="submit" class="flex-grow bg-[#1a1a1a] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] transition-all duration-300">
+                                    <i class="bi bi-save me-2"></i> Create Job Card
+                                </button>
+                                <a href="@Url.Action("JobCards", "Maintenance")" class="flex-grow sm:flex-grow-0 text-center bg-transparent border border-gray-300 text-gray-600 px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-gray-50 hover:text-gray-900 transition-all duration-300">
+                                    Cancel
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* --- RIGHT: PRIORITY GUIDE --- *@
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="bg-white shadow-sm border border-gray-100 flex flex-col">
+                    <div class="p-4 border-b border-gray-100 bg-[#1a1a1a]">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-exclamation-triangle me-2 text-gray-500"></i> Priority Guide</h5>
+                    </div>
+                    <div class="p-6 flex flex-col gap-3">
+                        <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm font-mono text-xs uppercase tracking-widest leading-relaxed">
+                            <strong>Emergency</strong> — Fix within 1 hour (burst pipe, flood)
+                        </div>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-800 shadow-sm font-mono text-xs uppercase tracking-widest leading-relaxed">
+                            <strong>High</strong> — Fix same day (no hot water)
+                        </div>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm font-mono text-xs uppercase tracking-widest leading-relaxed">
+                            <strong>Medium</strong> — Fix within 3 days (dripping tap)
+                        </div>
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-800 shadow-sm font-mono text-xs uppercase tracking-widest leading-relaxed">
+                            <strong>Low</strong> — Fix this week (peeling paint)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                @using (Html.BeginForm("CreateJobCard", "Maintenance", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Title *</label>
-                            @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "e.g. Leaking pipe in bathroom" })
-                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Asset *</label>
-                            <select name="AssetId" class="form-select">
-                                <option value="">-- Select Asset --</option>
-                                @if (ViewBag.Assets != null)
-                                {
-                                    foreach (var a in (List<Michaelhouse.Models.Asset>)ViewBag.Assets)
-                                    {
-                                        <option value="@a.Id">@a.AssetName — @a.LocationBuilding</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Priority *</label>
-                            @Html.DropDownListFor(m => m.Priority,
-                                new SelectList(new[] { "Emergency", "High", "Medium", "Low" }),
-                                "-- Select Priority --",
-                                new { @class = "form-select", id = "prioritySelect" })
-                            @Html.ValidationMessageFor(m => m.Priority, "", new { @class = "text-danger small" })
-                        </div>
-                        <div class="col-12">
-                            <div id="priorityGuide" class="alert alert-secondary" style="display:none;"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Assign To (optional)</label>
-                            <select name="AssignedToId" class="form-select">
-                                <option value="">-- Unassigned --</option>
-                                @if (ViewBag.Staff != null)
-                                {
-                                    foreach (var s in (List<Michaelhouse.Models.MaintenanceStaff>)ViewBag.Staff)
-                                    {
-                                        <option value="@s.Id">@s.FullName — @s.SkillType</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Job Type</label>
-                            @Html.DropDownListFor(m => m.JobType,
-                                new SelectList(new[] { "Reactive", "Preventive" }),
-                                "-- Select Type --",
-                                new { @class = "form-select" })
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Description</label>
-                            @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 3, placeholder = "Describe the problem in detail..." })
-                        </div>
-                    </div>
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-robot me-2"></i> If you don't assign a worker, the system will auto‑assign based on skill and availability.
-                    </div>
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
 
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-dark"><i class="bi bi-save me-1"></i> Create Job Card</button>
-                        <a href="@Url.Action("JobCards", "Maintenance")" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i> Back</a>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Priority Guide</h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-danger"><strong>Emergency</strong> — Fix within 1 hour (burst pipe, flood)</div>
-                <div class="alert alert-warning"><strong>High</strong> — Fix same day (no hot water)</div>
-                <div class="alert alert-info"><strong>Medium</strong> — Fix within 3 days (dripping tap)</div>
-                <div class="alert alert-success"><strong>Low</strong> — Fix this week (peeling paint)</div>
-            </div>
-        </div>
-    </div>
-</div>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
         var guides = {
-            'Emergency': '🔴 EMERGENCY — Fix within 1 HOUR. SMS alert will be sent.',
-            'High': '🟡 HIGH — Must be fixed by end of today.',
-            'Medium': '🔵 MEDIUM — Will be scheduled within 3 days.',
-            'Low': '🟢 LOW — Will be completed within this week.'
+            'Emergency': '<i class="bi bi-shield-fill-exclamation text-lg me-2 align-middle"></i> EMERGENCY — Fix within 1 HOUR. SMS alert will be sent.',
+            'High': '<i class="bi bi-exclamation-circle-fill text-lg me-2 align-middle"></i> HIGH — Must be fixed by end of today.',
+            'Medium': '<i class="bi bi-info-circle-fill text-lg me-2 align-middle"></i> MEDIUM — Will be scheduled within 3 days.',
+            'Low': '<i class="bi bi-check-circle-fill text-lg me-2 align-middle"></i> LOW — Will be completed within this week.'
         };
-        document.getElementById('prioritySelect').addEventListener('change', function() {
+
+        document.getElementById('prioritySelect').addEventListener('change', function () {
             var guide = document.getElementById('priorityGuide');
             var val = this.value;
+
+            var baseClass = 'p-4 border-l-4 shadow-sm font-mono text-xs uppercase tracking-widest block mb-2 ';
+
             if (val && guides[val]) {
-                guide.style.display = 'block';
-                guide.textContent = guides[val];
-                guide.className = 'alert alert-' + (val === 'Emergency' ? 'danger' : val === 'High' ? 'warning' : val === 'Medium' ? 'info' : 'success');
+                guide.classList.remove('hidden');
+                guide.innerHTML = guides[val];
+
+                if (val === 'Emergency') guide.className = baseClass + 'bg-red-50 border-[#C21E2E] text-[#C21E2E]';
+                else if (val === 'High') guide.className = baseClass + 'bg-yellow-50 border-yellow-500 text-yellow-800';
+                else if (val === 'Medium') guide.className = baseClass + 'bg-blue-50 border-blue-500 text-blue-800';
+                else guide.className = baseClass + 'bg-green-50 border-green-500 text-green-800';
             } else {
-                guide.style.display = 'none';
+                guide.classList.add('hidden');
             }
         });
     </script>
-}
-@section Styles {
-    <style>
-        .font-serif {
-            font-family: 'Playfair Display', serif !important;
-        }
-    </style>
 }
