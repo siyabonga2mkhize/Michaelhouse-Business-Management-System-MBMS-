@@ -279,6 +279,7 @@
     <Compile Include="Controllers\ResidenceAssignmentController.cs" />
     <Compile Include="Controllers\ResidenceMovementController.cs" />
     <Compile Include="Controllers\RoomController.cs" />
+    <Compile Include="Controllers\SchoolcalendarController.cs" />
     <Compile Include="Controllers\StudentQRCodeController.cs" />
     <Compile Include="Controllers\StudentProfileController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
@@ -291,6 +292,10 @@
     <Compile Include="Controllers\WorkerController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608201914285_AddCalendar.cs" />
+    <Compile Include="Migrations\202608201914285_AddCalendar.Designer.cs">
+      <DependentUpon>202608201914285_AddCalendar.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -366,6 +371,7 @@
     <Compile Include="Models\ResidenceAllocation.cs" />
     <Compile Include="Models\ResidenceMovement.cs" />
     <Compile Include="Models\RoomCompatibilityResult.cs" />
+    <Compile Include="Models\Schoolcalendarevent.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
@@ -411,6 +417,7 @@
     <Compile Include="Services\AllocationRuleService.cs" />
     <Compile Include="Services\BoardingAccessService.cs" />
     <Compile Include="Services\BoardingProfileService.cs" />
+    <Compile Include="Services\Calendarconflictservice.cs" />
     <Compile Include="Services\CompatibilityScoringService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
@@ -610,6 +617,9 @@
     <Content Include="Views\Maintenance\ReportFaultFromScan.cshtml" />
     <Content Include="Views\Scan\Index.cshtml" />
     <Content Include="Views\Scan\Scanner.cshtml" />
+    <Content Include="Views\Schoolcalendar\Index.cshtml" />
+    <Content Include="Views\Schoolcalendar\Create.cshtml" />
+    <Content Include="Views\Schoolcalendar\Edit.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -785,10 +795,16 @@
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Leaverequestcontroller\" />
     <Folder Include="Views\NewFolder1\" />
+    <Folder Include="Views\Schoolcalendarcontroller\" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202608201914285_AddCalendar.resx">
+      <DependentUpon>202608201914285_AddCalendar.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -1,0 +1,74 @@
+﻿@model IEnumerable<Michaelhouse.Models.SchoolCalendarEvent>
+@{
+    ViewBag.Title = "School Calendar";
+}
+
+<h2>School Calendar</h2>
+<p class="text-muted">
+    Events marked <strong>"Discourage leave"</strong> will trigger a recommendation
+    warning on any leave request whose dates overlap them.
+</p>
+
+<p>@Html.ActionLink("+ Add Event", "Create", null, new { @class = "btn btn-primary" })</p>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (!Model.Any())
+{
+    <p>No calendar events yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Dates</th>
+                <th>Discourage Leave?</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <span style="display:inline-block; width:16px; height:16px; border-radius:3px; background-color:@Michaelhouse.Models.CalendarEventCategory.ColorHex(item.Category);"></span>
+                    </td>
+                    <td>@item.Title</td>
+                    <td>@Michaelhouse.Models.CalendarEventCategory.DisplayName(item.Category)</td>
+                    <td>
+                        @item.StartDate.ToString("dd MMM yyyy")
+                        @if (item.EndDate.Date != item.StartDate.Date)
+                        {
+                            <text> - @item.EndDate.ToString("dd MMM yyyy")</text>
+                        }
+                    </td>
+                    <td>
+                        @if (item.DiscourageLeave)
+                        {
+                            <span class="label label-warning">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="label label-default">No</span>
+                        }
+                    </td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = item.SchoolCalendarEventId }, new { @class = "btn btn-default btn-xs" })
+                        @using (Html.BeginForm("Archive", "SchoolCalendar", new { id = item.SchoolCalendarEventId }, FormMethod.Post, new { style = "display:inline;" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Remove this calendar event?');">Remove</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
