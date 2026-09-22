@@ -6,6 +6,7 @@ using System.Data.Entity.Migrations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Michaelhouse.Models.Cafeteria;
 
 internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Models.DBContextClass>
 {
@@ -381,6 +382,25 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             });
             context.SaveChanges();
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // Step 8: Seed CafeteriaManager
+        // Uses the existing MBMS AppUser/Role authentication pattern.
+        // ──────────────────────────────────────────────────────────────
+        if (!context.Users.Any(u => u.Role == "CafeteriaManager"))
+        {
+            context.Users.Add(new AppUser
+            {
+                Name = "Cafeteria Manager",
+                Email = "cafeteria@michaelhouse.co.za",
+                PasswordHash = HashPassword("Cafeteria@123"),
+                Role = "CafeteriaManager"
+            });
+            context.SaveChanges();
+
+        }
+        SeedMenuItems(context);
+        SeedRecipesAndIngredients(context);
 
         // ──────────────────────────────────────────────────────────────
         // Seed Categories & Products (from HEAD)
@@ -1318,6 +1338,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             context.SaveChanges();
         }
 
+
         // ──────────────────────────────────────────────────────────────
         // Seed Drivers (from HEAD) plus SQL script and Boarding House
         // ──────────────────────────────────────────────────────────────
@@ -1482,6 +1503,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
                 }
             };
 
+
         foreach (var house in houses)
         {
             var user = context.Users.FirstOrDefault(u => u.Email == house.Email);
@@ -1623,15 +1645,1557 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
 
             context.SaveChanges();
         }
+        // 3. Seed Campus Rules separately outside the loop
+        if (!context.CampusRules.Any())
+        {
+            context.CampusRules.AddOrUpdate(
+                cr => cr.CampusRuleId,
+                new CampusRule
+                {
+                    CampusRuleId = 1,
+                    RuleName = "Morning Prep & House Inspection",
+                    StartTime = new TimeSpan(7, 30, 0),
+                    EndTime = new TimeSpan(9, 0, 0),
+                    IsActive = true,
+                    IsStrictBlock = false
+                },
+                new CampusRule
+                {
+                    CampusRuleId = 2,
+                    RuleName = "Night House Curfew",
+                    StartTime = new TimeSpan(21, 0, 0),
+                    EndTime = new TimeSpan(23, 59, 0),
+                    IsActive = true,
+                    IsStrictBlock = true
+                },
+                new CampusRule
+                {
+                    CampusRuleId = 3,
+                    RuleName = "Evening Prep Window",
+                    StartTime = new TimeSpan(18, 30, 0),
+                    EndTime = new TimeSpan(20, 30, 0),
+                    IsActive = true,
+                    IsStrictBlock = false
+                }
+            );
+            context.SaveChanges();
+        }
+    }
+    private void SeedMenuItems(DBContextClass context)
+    {
+        var menuItems = new[]
+        {
+        // ============================================================
+        // BREAKFAST — 10
+        // ============================================================
+
+        new
+        {
+            Name = "Oats, Fruit & Yoghurt",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 420m,
+            ProteinGramsPerPortion = 18m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Scrambled Eggs & Toast",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 450m,
+            ProteinGramsPerPortion = 24m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Breakfast Wrap",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 510m,
+            ProteinGramsPerPortion = 25m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Weet-Bix, Banana & Milk",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 400m,
+            ProteinGramsPerPortion = 16m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Peanut Butter Toast & Fruit",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 470m,
+            ProteinGramsPerPortion = 17m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Vegetable Omelette & Toast",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 460m,
+            ProteinGramsPerPortion = 27m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Chicken Breakfast Muffin",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 490m,
+            ProteinGramsPerPortion = 30m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Greek Yoghurt, Granola & Berries",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 430m,
+            ProteinGramsPerPortion = 21m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "French Toast & Fresh Fruit",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 480m,
+            ProteinGramsPerPortion = 19m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Egg & Cheese Breakfast Bowl",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = true,
+            IsLunchItem = false,
+            IsDinnerItem = false,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 520m,
+            ProteinGramsPerPortion = 29m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        // ============================================================
+        // LUNCH — 10
+        // ============================================================
+
+        new
+        {
+            Name = "Farm Fresh Chicken & Vegetables",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 620m,
+            ProteinGramsPerPortion = 42m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Beef Pasta",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 680m,
+            ProteinGramsPerPortion = 38m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Vegetable Curry",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 510m,
+            ProteinGramsPerPortion = 18m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Grilled Fish & Rice",
+            DietaryClassification = "Pescatarian",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 590m,
+            ProteinGramsPerPortion = 45m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Chicken & Brown Rice Bowl",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 640m,
+            ProteinGramsPerPortion = 44m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Beef & Vegetable Stir-Fry",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 650m,
+            ProteinGramsPerPortion = 40m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Lentil & Vegetable Stew",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 530m,
+            ProteinGramsPerPortion = 23m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Chicken Pasta Primavera",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 660m,
+            ProteinGramsPerPortion = 43m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Chickpea & Rice Bowl",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 560m,
+            ProteinGramsPerPortion = 20m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Turkey & Couscous Bowl",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = true,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 610m,
+            ProteinGramsPerPortion = 42m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        // ============================================================
+        // DINNER — 10
+        // ============================================================
+
+        new
+        {
+            Name = "Chicken & Sweet Potato",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 630m,
+            ProteinGramsPerPortion = 44m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Beef & Vegetable Casserole",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 670m,
+            ProteinGramsPerPortion = 41m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Chickpea & Vegetable Curry",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 540m,
+            ProteinGramsPerPortion = 21m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Roast Chicken, Potatoes & Vegetables",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 690m,
+            ProteinGramsPerPortion = 46m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Baked Hake & Potato Wedges",
+            DietaryClassification = "Pescatarian",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = false,
+            CaloriesPerPortion = 610m,
+            ProteinGramsPerPortion = 43m,
+            FarmAvailablePortions = 0,
+            ExternalAvailablePortions = 150
+        },
+
+        new
+        {
+            Name = "Chicken & Vegetable Noodles",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 650m,
+            ProteinGramsPerPortion = 40m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Beef Lasagne & Garden Salad",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 720m,
+            ProteinGramsPerPortion = 39m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Vegetable & Bean Chilli",
+            DietaryClassification = "Vegetarian",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 570m,
+            ProteinGramsPerPortion = 24m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Herb Chicken, Rice & Broccoli",
+            DietaryClassification = "Standard",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 640m,
+            ProteinGramsPerPortion = 45m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        },
+
+        new
+        {
+            Name = "Fish, Rice & Mixed Vegetables",
+            DietaryClassification = "Pescatarian",
+            IsBreakfastItem = false,
+            IsLunchItem = false,
+            IsDinnerItem = true,
+            IsFarmGrownProduce = true,
+            CaloriesPerPortion = 600m,
+            ProteinGramsPerPortion = 42m,
+            FarmAvailablePortions = 150,
+            ExternalAvailablePortions = 100
+        }
+    };
+
+        foreach (var item in menuItems)
+        {
+            MenuItem existingItem = context.MenuItems
+                .FirstOrDefault(x => x.Name == item.Name);
+
+            if (existingItem == null)
+            {
+                context.MenuItems.Add(new MenuItem
+                {
+                    Name = item.Name,
+                    DietaryClassification = item.DietaryClassification,
+
+                    IsBreakfastItem = item.IsBreakfastItem,
+                    IsLunchItem = item.IsLunchItem,
+                    IsDinnerItem = item.IsDinnerItem,
+
+                    IsFarmGrownProduce = item.IsFarmGrownProduce,
+
+                    CaloriesPerPortion = item.CaloriesPerPortion,
+                    ProteinGramsPerPortion = item.ProteinGramsPerPortion,
+
+                    FarmAvailablePortions = item.FarmAvailablePortions,
+                    ExternalAvailablePortions = item.ExternalAvailablePortions,
+
+                    IsActive = true
+                });
+            }
+            else
+            {
+                existingItem.DietaryClassification =
+                    item.DietaryClassification;
+
+                existingItem.IsBreakfastItem =
+                    item.IsBreakfastItem;
+
+                existingItem.IsLunchItem =
+                    item.IsLunchItem;
+
+                existingItem.IsDinnerItem =
+                    item.IsDinnerItem;
+
+                existingItem.IsFarmGrownProduce =
+                    item.IsFarmGrownProduce;
+
+                existingItem.CaloriesPerPortion =
+                    item.CaloriesPerPortion;
+
+                existingItem.ProteinGramsPerPortion =
+                    item.ProteinGramsPerPortion;
+
+                existingItem.FarmAvailablePortions =
+                    item.FarmAvailablePortions;
+
+                existingItem.ExternalAvailablePortions =
+                    item.ExternalAvailablePortions;
+
+                existingItem.IsActive = true;
+            }
+        }
+
+        context.SaveChanges();
+    }
+    // =============================================================
+    // Recipe + Ingredient Foundation
+    // Links the 30 seeded MenuItems to reusable recipes and ingredients
+    // Used by Kitchen Requirements / Bill of Materials calculation
+    // =============================================================
+    private void SeedRecipesAndIngredients(DBContextClass context)
+    {
+        // =============================================================
+        // INGREDIENTS
+        // =============================================================
+
+        var ingredients = new[]
+        {
+        // Proteins
+        new
+        {
+            Name = "Chicken Breast",
+            Unit = "g",
+            CaloriesPerUnit = 1.65m,
+            ProteinGramsPerUnit = 0.31m,
+            CarbohydrateGramsPerUnit = 0m,
+            FatGramsPerUnit = 0.036m
+        },
+
+        new
+        {
+            Name = "Lean Beef",
+            Unit = "g",
+            CaloriesPerUnit = 2.50m,
+            ProteinGramsPerUnit = 0.26m,
+            CarbohydrateGramsPerUnit = 0m,
+            FatGramsPerUnit = 0.17m
+        },
+
+        new
+        {
+            Name = "Hake Fillet",
+            Unit = "g",
+            CaloriesPerUnit = 0.90m,
+            ProteinGramsPerUnit = 0.19m,
+            CarbohydrateGramsPerUnit = 0m,
+            FatGramsPerUnit = 0.01m
+        },
+
+        new
+        {
+            Name = "Turkey Breast",
+            Unit = "g",
+            CaloriesPerUnit = 1.35m,
+            ProteinGramsPerUnit = 0.29m,
+            CarbohydrateGramsPerUnit = 0m,
+            FatGramsPerUnit = 0.015m
+        },
+
+        // Grains / starches
+        new
+        {
+            Name = "White Rice",
+            Unit = "g",
+            CaloriesPerUnit = 1.30m,
+            ProteinGramsPerUnit = 0.027m,
+            CarbohydrateGramsPerUnit = 0.28m,
+            FatGramsPerUnit = 0.003m
+        },
+
+        new
+        {
+            Name = "Brown Rice",
+            Unit = "g",
+            CaloriesPerUnit = 1.23m,
+            ProteinGramsPerUnit = 0.027m,
+            CarbohydrateGramsPerUnit = 0.255m,
+            FatGramsPerUnit = 0.01m
+        },
+
+        new
+        {
+            Name = "Pasta",
+            Unit = "g",
+            CaloriesPerUnit = 1.31m,
+            ProteinGramsPerUnit = 0.05m,
+            CarbohydrateGramsPerUnit = 0.25m,
+            FatGramsPerUnit = 0.01m
+        },
+
+        new
+        {
+            Name = "Couscous",
+            Unit = "g",
+            CaloriesPerUnit = 1.12m,
+            ProteinGramsPerUnit = 0.038m,
+            CarbohydrateGramsPerUnit = 0.23m,
+            FatGramsPerUnit = 0.002m
+        },
+
+        new
+        {
+            Name = "Potato",
+            Unit = "g",
+            CaloriesPerUnit = 0.77m,
+            ProteinGramsPerUnit = 0.02m,
+            CarbohydrateGramsPerUnit = 0.17m,
+            FatGramsPerUnit = 0.001m
+        },
+
+        new
+        {
+            Name = "Sweet Potato",
+            Unit = "g",
+            CaloriesPerUnit = 0.86m,
+            ProteinGramsPerUnit = 0.016m,
+            CarbohydrateGramsPerUnit = 0.20m,
+            FatGramsPerUnit = 0.001m
+        },
+
+        new
+        {
+            Name = "Oats",
+            Unit = "g",
+            CaloriesPerUnit = 3.89m,
+            ProteinGramsPerUnit = 0.17m,
+            CarbohydrateGramsPerUnit = 0.66m,
+            FatGramsPerUnit = 0.07m
+        },
+
+        new
+        {
+            Name = "Granola",
+            Unit = "g",
+            CaloriesPerUnit = 4.50m,
+            ProteinGramsPerUnit = 0.10m,
+            CarbohydrateGramsPerUnit = 0.64m,
+            FatGramsPerUnit = 0.16m
+        },
+
+        // Dairy / eggs
+        new
+        {
+            Name = "Egg",
+            Unit = "g",
+            CaloriesPerUnit = 1.43m,
+            ProteinGramsPerUnit = 0.126m,
+            CarbohydrateGramsPerUnit = 0.007m,
+            FatGramsPerUnit = 0.095m
+        },
+
+        new
+        {
+            Name = "Milk",
+            Unit = "ml",
+            CaloriesPerUnit = 0.60m,
+            ProteinGramsPerUnit = 0.033m,
+            CarbohydrateGramsPerUnit = 0.048m,
+            FatGramsPerUnit = 0.032m
+        },
+
+        new
+        {
+            Name = "Greek Yoghurt",
+            Unit = "g",
+            CaloriesPerUnit = 0.73m,
+            ProteinGramsPerUnit = 0.10m,
+            CarbohydrateGramsPerUnit = 0.04m,
+            FatGramsPerUnit = 0.02m
+        },
+
+        new
+        {
+            Name = "Cheese",
+            Unit = "g",
+            CaloriesPerUnit = 4.00m,
+            ProteinGramsPerUnit = 0.25m,
+            CarbohydrateGramsPerUnit = 0.01m,
+            FatGramsPerUnit = 0.33m
+        },
+
+        // Bread / breakfast
+        new
+        {
+            Name = "Whole Wheat Bread",
+            Unit = "g",
+            CaloriesPerUnit = 2.50m,
+            ProteinGramsPerUnit = 0.13m,
+            CarbohydrateGramsPerUnit = 0.43m,
+            FatGramsPerUnit = 0.04m
+        },
+
+        new
+        {
+            Name = "Breakfast Wrap",
+            Unit = "g",
+            CaloriesPerUnit = 3.10m,
+            ProteinGramsPerUnit = 0.09m,
+            CarbohydrateGramsPerUnit = 0.52m,
+            FatGramsPerUnit = 0.08m
+        },
+
+        new
+        {
+            Name = "Peanut Butter",
+            Unit = "g",
+            CaloriesPerUnit = 5.88m,
+            ProteinGramsPerUnit = 0.25m,
+            CarbohydrateGramsPerUnit = 0.20m,
+            FatGramsPerUnit = 0.50m
+        },
+
+        new
+        {
+            Name = "Weet-Bix",
+            Unit = "g",
+            CaloriesPerUnit = 3.50m,
+            ProteinGramsPerUnit = 0.12m,
+            CarbohydrateGramsPerUnit = 0.69m,
+            FatGramsPerUnit = 0.03m
+        },
+
+        // Legumes
+        new
+        {
+            Name = "Chickpeas",
+            Unit = "g",
+            CaloriesPerUnit = 1.64m,
+            ProteinGramsPerUnit = 0.089m,
+            CarbohydrateGramsPerUnit = 0.27m,
+            FatGramsPerUnit = 0.026m
+        },
+
+        new
+        {
+            Name = "Lentils",
+            Unit = "g",
+            CaloriesPerUnit = 1.16m,
+            ProteinGramsPerUnit = 0.09m,
+            CarbohydrateGramsPerUnit = 0.20m,
+            FatGramsPerUnit = 0.004m
+        },
+
+        new
+        {
+            Name = "Kidney Beans",
+            Unit = "g",
+            CaloriesPerUnit = 1.27m,
+            ProteinGramsPerUnit = 0.089m,
+            CarbohydrateGramsPerUnit = 0.23m,
+            FatGramsPerUnit = 0.005m
+        },
+
+        // Vegetables
+        new
+        {
+            Name = "Carrots",
+            Unit = "g",
+            CaloriesPerUnit = 0.41m,
+            ProteinGramsPerUnit = 0.009m,
+            CarbohydrateGramsPerUnit = 0.096m,
+            FatGramsPerUnit = 0.002m
+        },
+
+        new
+        {
+            Name = "Peas",
+            Unit = "g",
+            CaloriesPerUnit = 0.81m,
+            ProteinGramsPerUnit = 0.054m,
+            CarbohydrateGramsPerUnit = 0.145m,
+            FatGramsPerUnit = 0.004m
+        },
+
+        new
+        {
+            Name = "Broccoli",
+            Unit = "g",
+            CaloriesPerUnit = 0.34m,
+            ProteinGramsPerUnit = 0.028m,
+            CarbohydrateGramsPerUnit = 0.07m,
+            FatGramsPerUnit = 0.004m
+        },
+
+        new
+        {
+            Name = "Mixed Vegetables",
+            Unit = "g",
+            CaloriesPerUnit = 0.45m,
+            ProteinGramsPerUnit = 0.02m,
+            CarbohydrateGramsPerUnit = 0.08m,
+            FatGramsPerUnit = 0.005m
+        },
+
+        new
+        {
+            Name = "Spinach",
+            Unit = "g",
+            CaloriesPerUnit = 0.23m,
+            ProteinGramsPerUnit = 0.029m,
+            CarbohydrateGramsPerUnit = 0.036m,
+            FatGramsPerUnit = 0.004m
+        },
+
+        new
+        {
+            Name = "Tomato",
+            Unit = "g",
+            CaloriesPerUnit = 0.18m,
+            ProteinGramsPerUnit = 0.009m,
+            CarbohydrateGramsPerUnit = 0.039m,
+            FatGramsPerUnit = 0.002m
+        },
+
+        new
+        {
+            Name = "Onion",
+            Unit = "g",
+            CaloriesPerUnit = 0.40m,
+            ProteinGramsPerUnit = 0.011m,
+            CarbohydrateGramsPerUnit = 0.093m,
+            FatGramsPerUnit = 0.001m
+        },
+
+        // Fruit
+        new
+        {
+            Name = "Banana",
+            Unit = "g",
+            CaloriesPerUnit = 0.89m,
+            ProteinGramsPerUnit = 0.011m,
+            CarbohydrateGramsPerUnit = 0.23m,
+            FatGramsPerUnit = 0.003m
+        },
+
+        new
+        {
+            Name = "Fresh Fruit",
+            Unit = "g",
+            CaloriesPerUnit = 0.60m,
+            ProteinGramsPerUnit = 0.006m,
+            CarbohydrateGramsPerUnit = 0.15m,
+            FatGramsPerUnit = 0.002m
+        },
+
+        new
+        {
+            Name = "Berries",
+            Unit = "g",
+            CaloriesPerUnit = 0.50m,
+            ProteinGramsPerUnit = 0.007m,
+            CarbohydrateGramsPerUnit = 0.12m,
+            FatGramsPerUnit = 0.003m
+        },
+
+        // Cooking ingredients
+        new
+        {
+            Name = "Cooking Oil",
+            Unit = "ml",
+            CaloriesPerUnit = 8.00m,
+            ProteinGramsPerUnit = 0m,
+            CarbohydrateGramsPerUnit = 0m,
+            FatGramsPerUnit = 0.90m
+        },
+
+        new
+        {
+            Name = "Curry Spice Mix",
+            Unit = "g",
+            CaloriesPerUnit = 3.00m,
+            ProteinGramsPerUnit = 0.10m,
+            CarbohydrateGramsPerUnit = 0.50m,
+            FatGramsPerUnit = 0.10m
+        },
+
+        new
+        {
+            Name = "Seasoning",
+            Unit = "g",
+            CaloriesPerUnit = 1.00m,
+            ProteinGramsPerUnit = 0m,
+            CarbohydrateGramsPerUnit = 0.20m,
+            FatGramsPerUnit = 0m
+        },
+
+        new
+        {
+            Name = "Tomato Sauce",
+            Unit = "g",
+            CaloriesPerUnit = 0.80m,
+            ProteinGramsPerUnit = 0.02m,
+            CarbohydrateGramsPerUnit = 0.15m,
+            FatGramsPerUnit = 0.01m
+        }
+    };
+
+        // Create/update ingredients.
+        foreach (var item in ingredients)
+        {
+            var ingredient = context.Ingredients
+                .FirstOrDefault(x => x.Name == item.Name);
+
+            if (ingredient == null)
+            {
+                ingredient = new Ingredient
+                {
+                    Name = item.Name,
+                    Unit = item.Unit,
+                    CaloriesPerUnit = item.CaloriesPerUnit,
+                    ProteinGramsPerUnit = item.ProteinGramsPerUnit,
+                    CarbohydrateGramsPerUnit = item.CarbohydrateGramsPerUnit,
+                    FatGramsPerUnit = item.FatGramsPerUnit,
+                    IsActive = true
+                };
+
+                context.Ingredients.Add(ingredient);
+            }
+            else
+            {
+                ingredient.Unit = item.Unit;
+                ingredient.CaloriesPerUnit = item.CaloriesPerUnit;
+                ingredient.ProteinGramsPerUnit = item.ProteinGramsPerUnit;
+                ingredient.CarbohydrateGramsPerUnit = item.CarbohydrateGramsPerUnit;
+                ingredient.FatGramsPerUnit = item.FatGramsPerUnit;
+                ingredient.IsActive = true;
+            }
+        }
+
+        context.SaveChanges();
+
+
+        // =============================================================
+        // RECIPES
+        // =============================================================
+
+        var recipes = new[]
+        {
+        // =========================================================
+        // BREAKFAST
+        // =========================================================
+
+        new
+        {
+            Name = "Oats, Fruit & Yoghurt",
+            PreparationNotes = "Prepare oats and serve with yoghurt and fresh fruit.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Oats", Quantity = 70m, Notes = "Cooked with water." },
+                new { Name = "Greek Yoghurt", Quantity = 150m, Notes = "Serve chilled." },
+                new { Name = "Fresh Fruit", Quantity = 100m, Notes = "Seasonal fruit." }
+            }
+        },
+
+        new
+        {
+            Name = "Scrambled Eggs & Toast",
+            PreparationNotes = "Scramble eggs and serve with toasted whole wheat bread.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Egg", Quantity = 180m, Notes = "Scrambled." },
+                new { Name = "Whole Wheat Bread", Quantity = 80m, Notes = "Toasted." },
+                new { Name = "Cooking Oil", Quantity = 5m, Notes = "For cooking eggs." }
+            }
+        },
+
+        new
+        {
+            Name = "Breakfast Wrap",
+            PreparationNotes = "Prepare egg and vegetable filling and serve in a breakfast wrap.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Breakfast Wrap", Quantity = 90m, Notes = "One wrap." },
+                new { Name = "Egg", Quantity = 100m, Notes = "Scrambled." },
+                new { Name = "Cheese", Quantity = 30m, Notes = "Grated." },
+                new { Name = "Tomato", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Spinach", Quantity = 30m, Notes = "Fresh." },
+                new { Name = "Cooking Oil", Quantity = 5m, Notes = "For cooking." }
+            }
+        },
+
+        new
+        {
+            Name = "Weet-Bix, Banana & Milk",
+            PreparationNotes = "Serve Weet-Bix with milk and sliced banana.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Weet-Bix", Quantity = 60m, Notes = "Two to three pieces." },
+                new { Name = "Milk", Quantity = 250m, Notes = "Cold." },
+                new { Name = "Banana", Quantity = 100m, Notes = "Sliced." }
+            }
+        },
+
+        new
+        {
+            Name = "Peanut Butter Toast & Fruit",
+            PreparationNotes = "Toast bread, spread with peanut butter and serve with fresh fruit.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Whole Wheat Bread", Quantity = 100m, Notes = "Toasted." },
+                new { Name = "Peanut Butter", Quantity = 30m, Notes = "Spread evenly." },
+                new { Name = "Fresh Fruit", Quantity = 120m, Notes = "Seasonal fruit." }
+            }
+        },
+
+        new
+        {
+            Name = "Vegetable Omelette & Toast",
+            PreparationNotes = "Prepare vegetable omelette and serve with toasted bread.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Egg", Quantity = 180m, Notes = "Omelette base." },
+                new { Name = "Tomato", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Spinach", Quantity = 30m, Notes = "Fresh." },
+                new { Name = "Onion", Quantity = 20m, Notes = "Diced." },
+                new { Name = "Whole Wheat Bread", Quantity = 80m, Notes = "Toasted." },
+                new { Name = "Cooking Oil", Quantity = 5m, Notes = "For cooking." }
+            }
+        },
+
+        new
+        {
+            Name = "Chicken Breakfast Muffin",
+            PreparationNotes = "Prepare chicken and egg filling in a toasted breakfast muffin.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 90m, Notes = "Cooked and sliced." },
+                new { Name = "Egg", Quantity = 60m, Notes = "Cooked." },
+                new { Name = "Whole Wheat Bread", Quantity = 80m, Notes = "Used as muffin/bread portion." },
+                new { Name = "Cheese", Quantity = 20m, Notes = "Sliced." }
+            }
+        },
+
+        new
+        {
+            Name = "Greek Yoghurt, Granola & Berries",
+            PreparationNotes = "Layer yoghurt with granola and berries.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Greek Yoghurt", Quantity = 200m, Notes = "Chilled." },
+                new { Name = "Granola", Quantity = 60m, Notes = "Serve dry." },
+                new { Name = "Berries", Quantity = 100m, Notes = "Fresh or frozen." }
+            }
+        },
+
+        new
+        {
+            Name = "French Toast & Fresh Fruit",
+            PreparationNotes = "Prepare French toast and serve with fresh fruit.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Whole Wheat Bread", Quantity = 100m, Notes = "Soaked in egg mixture." },
+                new { Name = "Egg", Quantity = 60m, Notes = "For French toast." },
+                new { Name = "Milk", Quantity = 50m, Notes = "For egg mixture." },
+                new { Name = "Fresh Fruit", Quantity = 120m, Notes = "Seasonal fruit." },
+                new { Name = "Cooking Oil", Quantity = 5m, Notes = "For frying." }
+            }
+        },
+
+        new
+        {
+            Name = "Egg & Cheese Breakfast Bowl",
+            PreparationNotes = "Prepare scrambled eggs with cheese and vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Egg", Quantity = 180m, Notes = "Scrambled." },
+                new { Name = "Cheese", Quantity = 30m, Notes = "Grated." },
+                new { Name = "Tomato", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Spinach", Quantity = 30m, Notes = "Fresh." },
+                new { Name = "Potato", Quantity = 100m, Notes = "Cooked cubes." },
+                new { Name = "Cooking Oil", Quantity = 5m, Notes = "For cooking." }
+            }
+        },
+
+
+        // =========================================================
+        // LUNCH / SHARED LUNCH-DINNER RECIPES
+        // =========================================================
+
+        new
+        {
+            Name = "Farm Fresh Chicken & Vegetables",
+            PreparationNotes = "Grill chicken and serve with seasonal vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 180m, Notes = "Grilled." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Steamed." },
+                new { Name = "Brown Rice", Quantity = 150m, Notes = "Cooked." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Beef Pasta",
+            PreparationNotes = "Prepare lean beef pasta with tomato sauce.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Lean Beef", Quantity = 150m, Notes = "Minced." },
+                new { Name = "Pasta", Quantity = 180m, Notes = "Cooked portion." },
+                new { Name = "Tomato Sauce", Quantity = 120m, Notes = "Sauce base." },
+                new { Name = "Onion", Quantity = 30m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Vegetable Curry",
+            PreparationNotes = "Cook mixed vegetables in a mild curry sauce and serve with rice.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Mixed Vegetables", Quantity = 250m, Notes = "Seasonal vegetables." },
+                new { Name = "White Rice", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "Onion", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Tomato", Quantity = 60m, Notes = "Diced." },
+                new { Name = "Curry Spice Mix", Quantity = 8m, Notes = "Mild curry." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." }
+            }
+        },
+
+        new
+        {
+            Name = "Grilled Fish & Rice",
+            PreparationNotes = "Grill hake and serve with rice and vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Hake Fillet", Quantity = 180m, Notes = "Grilled." },
+                new { Name = "White Rice", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 120m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Chicken & Brown Rice Bowl",
+            PreparationNotes = "Serve grilled chicken with brown rice and vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 180m, Notes = "Grilled." },
+                new { Name = "Brown Rice", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Carrots", Quantity = 80m, Notes = "Steamed." },
+                new { Name = "Peas", Quantity = 60m, Notes = "Cooked." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Beef & Vegetable Stir-Fry",
+            PreparationNotes = "Stir-fry beef with seasonal vegetables and serve with rice.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Lean Beef", Quantity = 170m, Notes = "Thinly sliced." },
+                new { Name = "Mixed Vegetables", Quantity = 200m, Notes = "Stir-fry vegetables." },
+                new { Name = "Brown Rice", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "Onion", Quantity = 30m, Notes = "Sliced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For stir-frying." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Lentil & Vegetable Stew",
+            PreparationNotes = "Slow cook lentils with vegetables and seasoning.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Lentils", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Diced." },
+                new { Name = "Potato", Quantity = 100m, Notes = "Cubed." },
+                new { Name = "Tomato", Quantity = 80m, Notes = "Diced." },
+                new { Name = "Onion", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Chicken Pasta Primavera",
+            PreparationNotes = "Combine grilled chicken, pasta and seasonal vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 170m, Notes = "Grilled." },
+                new { Name = "Pasta", Quantity = 190m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 150m, Notes = "Seasonal." },
+                new { Name = "Tomato", Quantity = 50m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Chickpea & Rice Bowl",
+            PreparationNotes = "Serve chickpeas with rice and mixed vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chickpeas", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "White Rice", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Carrots", Quantity = 70m, Notes = "Steamed." },
+                new { Name = "Peas", Quantity = 60m, Notes = "Cooked." },
+                new { Name = "Tomato", Quantity = 50m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Turkey & Couscous Bowl",
+            PreparationNotes = "Serve grilled turkey with couscous and vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Turkey Breast", Quantity = 180m, Notes = "Grilled." },
+                new { Name = "Couscous", Quantity = 180m, Notes = "Prepared." },
+                new { Name = "Mixed Vegetables", Quantity = 150m, Notes = "Steamed." },
+                new { Name = "Carrots", Quantity = 60m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+
+        // =========================================================
+        // DINNER
+        // =========================================================
+
+        new
+        {
+            Name = "Chicken & Sweet Potato",
+            PreparationNotes = "Roast chicken and sweet potato and serve with vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 180m, Notes = "Roasted." },
+                new { Name = "Sweet Potato", Quantity = 220m, Notes = "Roasted." },
+                new { Name = "Mixed Vegetables", Quantity = 150m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For roasting." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Beef & Vegetable Casserole",
+            PreparationNotes = "Slow cook beef with vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Lean Beef", Quantity = 180m, Notes = "Cubed." },
+                new { Name = "Potato", Quantity = 150m, Notes = "Cubed." },
+                new { Name = "Carrots", Quantity = 80m, Notes = "Sliced." },
+                new { Name = "Peas", Quantity = 60m, Notes = "Cooked." },
+                new { Name = "Tomato Sauce", Quantity = 100m, Notes = "Casserole base." },
+                new { Name = "Onion", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Chickpea & Vegetable Curry",
+            PreparationNotes = "Cook chickpeas and vegetables in a mild curry sauce.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chickpeas", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Seasonal." },
+                new { Name = "White Rice", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "Onion", Quantity = 40m, Notes = "Diced." },
+                new { Name = "Tomato", Quantity = 60m, Notes = "Diced." },
+                new { Name = "Curry Spice Mix", Quantity = 8m, Notes = "Mild curry." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." }
+            }
+        },
+
+        new
+        {
+            Name = "Roast Chicken, Potatoes & Vegetables",
+            PreparationNotes = "Roast chicken and potatoes and serve with vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 190m, Notes = "Roasted." },
+                new { Name = "Potato", Quantity = 220m, Notes = "Roasted." },
+                new { Name = "Carrots", Quantity = 80m, Notes = "Roasted." },
+                new { Name = "Peas", Quantity = 60m, Notes = "Cooked." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For roasting." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Baked Hake & Potato Wedges",
+            PreparationNotes = "Bake hake and potato wedges and serve with vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Hake Fillet", Quantity = 180m, Notes = "Baked." },
+                new { Name = "Potato", Quantity = 220m, Notes = "Wedges." },
+                new { Name = "Mixed Vegetables", Quantity = 120m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For baking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Chicken & Vegetable Noodles",
+            PreparationNotes = "Stir-fry chicken and vegetables with noodles.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 170m, Notes = "Sliced." },
+                new { Name = "Pasta", Quantity = 190m, Notes = "Noodle substitute." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Stir-fry vegetables." },
+                new { Name = "Carrots", Quantity = 50m, Notes = "Sliced." },
+                new { Name = "Onion", Quantity = 30m, Notes = "Sliced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For stir-frying." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Beef Lasagne & Garden Salad",
+            PreparationNotes = "Prepare beef lasagne and serve with garden salad.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Lean Beef", Quantity = 150m, Notes = "Minced." },
+                new { Name = "Pasta", Quantity = 180m, Notes = "Lasagne sheets." },
+                new { Name = "Tomato Sauce", Quantity = 120m, Notes = "Sauce." },
+                new { Name = "Cheese", Quantity = 40m, Notes = "Grated." },
+                new { Name = "Mixed Vegetables", Quantity = 100m, Notes = "Salad vegetables." },
+                new { Name = "Onion", Quantity = 30m, Notes = "Diced." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." }
+            }
+        },
+
+        new
+        {
+            Name = "Vegetable & Bean Chilli",
+            PreparationNotes = "Cook beans and vegetables in a mild chilli sauce.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Kidney Beans", Quantity = 180m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Diced." },
+                new { Name = "Tomato", Quantity = 100m, Notes = "Diced." },
+                new { Name = "Onion", Quantity = 40m, Notes = "Diced." },
+                new { Name = "White Rice", Quantity = 160m, Notes = "Cooked." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        },
+
+        new
+        {
+            Name = "Herb Chicken, Rice & Broccoli",
+            PreparationNotes = "Serve herb-seasoned chicken with rice and broccoli.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Chicken Breast", Quantity = 180m, Notes = "Herb grilled." },
+                new { Name = "White Rice", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Broccoli", Quantity = 120m, Notes = "Steamed." },
+                new { Name = "Carrots", Quantity = 60m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "Herb seasoning." }
+            }
+        },
+
+        new
+        {
+            Name = "Fish, Rice & Mixed Vegetables",
+            PreparationNotes = "Serve baked fish with rice and mixed vegetables.",
+            StandardPortionCount = 1,
+            Ingredients = new[]
+            {
+                new { Name = "Hake Fillet", Quantity = 180m, Notes = "Baked." },
+                new { Name = "White Rice", Quantity = 200m, Notes = "Cooked." },
+                new { Name = "Mixed Vegetables", Quantity = 180m, Notes = "Steamed." },
+                new { Name = "Cooking Oil", Quantity = 10m, Notes = "For cooking." },
+                new { Name = "Seasoning", Quantity = 5m, Notes = "To taste." }
+            }
+        }
+    };
+
+
+        // =============================================================
+        // CREATE / UPDATE RECIPES AND LINK MENU ITEMS
+        // =============================================================
+
+        foreach (var recipeData in recipes)
+        {
+            Recipe recipe = context.Recipes
+                .FirstOrDefault(r => r.Name == recipeData.Name);
+
+            if (recipe == null)
+            {
+                recipe = new Recipe
+                {
+                    Name = recipeData.Name,
+                    PreparationNotes = recipeData.PreparationNotes,
+                    StandardPortionCount = recipeData.StandardPortionCount,
+                    IsActive = true
+                };
+
+                context.Recipes.Add(recipe);
+                context.SaveChanges();
+            }
+            else
+            {
+                recipe.PreparationNotes = recipeData.PreparationNotes;
+                recipe.StandardPortionCount = recipeData.StandardPortionCount;
+                recipe.IsActive = true;
+            }
+
+
+            // Find the corresponding MenuItem.
+            MenuItem menuItem = context.MenuItems
+                .FirstOrDefault(m => m.Name == recipeData.Name);
+
+            if (menuItem != null)
+            {
+                menuItem.RecipeId = recipe.Id;
+            }
+
+
+            // =========================================================
+            // RECIPE INGREDIENTS
+            // =========================================================
+
+            foreach (var ingredientData in recipeData.Ingredients)
+            {
+                Ingredient ingredient = context.Ingredients
+                    .FirstOrDefault(i => i.Name == ingredientData.Name);
+
+                if (ingredient == null)
+                    continue;
+
+                RecipeIngredient recipeIngredient =
+                    context.RecipeIngredients.FirstOrDefault(
+                        ri => ri.RecipeId == recipe.Id &&
+                              ri.IngredientId == ingredient.Id);
+
+                if (recipeIngredient == null)
+                {
+                    recipeIngredient = new RecipeIngredient
+                    {
+                        RecipeId = recipe.Id,
+                        IngredientId = ingredient.Id,
+                        QuantityPerStandardPortion = ingredientData.Quantity,
+                        PreparationNotes = ingredientData.Notes
+                    };
+
+                    context.RecipeIngredients.Add(recipeIngredient);
+                }
+                else
+                {
+                    recipeIngredient.QuantityPerStandardPortion =
+                        ingredientData.Quantity;
+
+                    recipeIngredient.PreparationNotes =
+                        ingredientData.Notes;
+                }
+            }
+        }
+
+        context.SaveChanges();
     }
 
+
+
+    // =============================================================
+    // Password hashing helper
+    // IMPORTANT: This is OUTSIDE SeedMenuItems()
+    // =============================================================
     private string HashPassword(string password)
     {
-        using (var sha = System.Security.Cryptography.SHA256.Create())
+        using (var sha256 =
+            System.Security.Cryptography.SHA256.Create())
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-            var hash = sha.ComputeHash(bytes);
+            byte[] bytes =
+                System.Text.Encoding.UTF8.GetBytes(password);
+
+            byte[] hash =
+                sha256.ComputeHash(bytes);
+
             return Convert.ToBase64String(hash);
         }
     }
 }
+    

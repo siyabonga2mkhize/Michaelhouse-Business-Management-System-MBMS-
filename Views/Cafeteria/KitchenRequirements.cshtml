@@ -1,0 +1,350 @@
+﻿@using System
+@using System.Collections.Generic
+@model List<Michaelhouse.Services.MenuSchedulingService.IngredientRequirement>
+
+@{
+    ViewBag.Title = "Kitchen Requirements";
+
+    var menuId = ViewBag.MealMenuId;
+    var startDate = ViewBag.StartDate as DateTime?;
+    var endDate = ViewBag.EndDate as DateTime?;
+    var menuStatus = ViewBag.MenuStatus != null
+        ? ViewBag.MenuStatus.ToString()
+        : "Draft";
+
+    var ingredientCount = Model == null ? 0 : Model.Count;
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-clipboard-list"></i>
+                Kitchen Requirements
+            </h2>
+
+            <p class="text-muted mb-0">
+                Ingredient requirements generated from the scheduled weekly menu.
+            </p>
+        </div>
+
+        <div>
+            @if (menuId != null)
+            {
+                <a href="@Url.Action("Review", "Cafeteria", new { id = menuId })"
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Review
+                </a>
+            }
+        </div>
+
+    </div>
+
+
+    <!-- Menu Information -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt"></i>
+                Menu Information
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-4">
+                    <strong>Menu Period</strong>
+
+                    <div class="mt-1">
+                        @if (startDate.HasValue && endDate.HasValue)
+                        {
+                            @startDate.Value.ToString("dd MMM yyyy")
+                            <span class="mx-1">–</span>
+                            @endDate.Value.ToString("dd MMM yyyy")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not available</span>
+                        }
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <strong>Menu Status</strong>
+
+                    <div class="mt-1">
+                        @if (menuStatus == "Accepted")
+                        {
+                            <span class="badge badge-success">
+                                Accepted
+                            </span>
+                        }
+                        else if (menuStatus == "PendingReview")
+                        {
+                            <span class="badge badge-warning">
+                                Pending Review
+                            </span>
+                        }
+                        else if (menuStatus == "Rejected")
+                        {
+                            <span class="badge badge-danger">
+                                Rejected
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-secondary">
+                                @menuStatus
+                            </span>
+                        }
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <strong>Total Ingredients</strong>
+
+                    <div class="mt-1">
+                        <span class="badge badge-primary">
+                            @ingredientCount
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Explanation -->
+    <div class="alert alert-info">
+
+        <div class="d-flex">
+
+            <div class="mr-3">
+                <i class="fas fa-info-circle fa-lg"></i>
+            </div>
+
+            <div>
+                <strong>How the requirements are calculated</strong>
+
+                <p class="mb-0 mt-1">
+                    Ingredient quantities are calculated from the scheduled menu
+                    portions and the recipe quantity required for one standard
+                    portion.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Requirements Table -->
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                <i class="fas fa-boxes"></i>
+                Required Ingredients
+            </h5>
+
+            <span class="text-muted">
+                @ingredientCount ingredient(s)
+            </span>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="text-center py-5">
+
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+
+                    <h5>No ingredient requirements found</h5>
+
+                    <p class="text-muted mb-0">
+                        The scheduled menu does not currently have recipe
+                        ingredient requirements available.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover table-striped mb-0">
+
+                        <thead class="thead-dark">
+
+                            <tr>
+                                <th style="width: 55%;">
+                                    Ingredient
+                                </th>
+
+                                <th style="width: 25%;" class="text-right">
+                                    Required Quantity
+                                </th>
+
+                                <th style="width: 20%;">
+                                    Unit
+                                </th>
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var requirement in Model)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            @requirement.IngredientName
+                                        </strong>
+                                    </td>
+
+                                    <td class="text-right">
+
+                                        <strong>
+                                            @requirement.RequiredQuantity.ToString("N2")
+                                        </strong>
+
+                                    </td>
+
+                                    <td>
+                                        @requirement.Unit
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- Kitchen Workflow Information -->
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                    <h6>
+                        <i class="fas fa-utensils"></i>
+                        Recipe Based
+                    </h6>
+
+                    <p class="text-muted small mb-0">
+                        Requirements are derived from the recipes linked to
+                        scheduled menu items.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                    <h6>
+                        <i class="fas fa-calculator"></i>
+                        Portion Based
+                    </h6>
+
+                    <p class="text-muted small mb-0">
+                        Each scheduled item's calculated portion quantity is
+                        used when determining the required ingredients.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card h-100 shadow-sm">
+
+                <div class="card-body">
+
+                    <h6>
+                        <i class="fas fa-warehouse"></i>
+                        Kitchen Planning
+                    </h6>
+
+                    <p class="text-muted small mb-0">
+                        The resulting quantities provide the kitchen with a
+                        consolidated requirement list for preparation and
+                        stock planning.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .card-header {
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .table th {
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.45em 0.7em;
+    }
+</style>

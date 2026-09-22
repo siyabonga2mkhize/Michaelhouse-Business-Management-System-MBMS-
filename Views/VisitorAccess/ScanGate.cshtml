@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewBag.Title = "Security Gate QR Scanner";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -41,7 +41,7 @@
                 @* Scanner & Results Area *@
                 <div class="p-8 relative z-10 flex flex-col items-center flex-grow">
 
-                    <!-- The scanner renders inside this container (Now restricted to max-w-md so it doesn't stretch wildly) -->
+                    <!-- The scanner renders inside this container -->
                     <div id="qr-reader" class="overflow-hidden border-4 border-gray-900 bg-white w-full max-w-md mx-auto shadow-sm relative group-hover:border-[#C21E2E] transition-colors duration-500"></div>
 
                     <!-- The result message appears here -->
@@ -141,58 +141,99 @@
         }
 
         function onScanSuccess(decodedText, decodedResult) {
-            if (isProcessing) return;
+            console.log("✅ SCAN SUCCESS!");
+            console.log("🔍 Raw decoded text:", decodedText);
 
-            if (decodedText !== lastResult) {
-                isProcessing = true;
-                lastResult = decodedText;
-
-                const resultArea = document.getElementById('result-area');
-
-                // Show loading state using institutional aesthetic
-                resultArea.innerHTML = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm font-bold font-serif">⏳ Validating Gate Pass...</div>`;
-
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.pause(true);
+            // If the QR contains a URL (e.g., if you later switch to URL-based QR), extract the 'data' parameter.
+            let payloadData = decodedText;
+            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                try {
+                    const url = new URL(decodedText);
+                    payloadData = url.searchParams.get('data');
+                    if (!payloadData) throw new Error("No 'data' parameter");
+                    console.log("📦 Extracted payload from URL:", payloadData);
+                } catch (e) {
+                    console.warn("URL parsing failed, falling back to raw text:", e);
+                    payloadData = decodedText;
                 }
-
-                const targetUrl = '@Url.Action("ValidateGatePass", "VisitorAccess")' + '?data=' + encodeURIComponent(decodedText);
-
-                fetch(targetUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            let zoneInfo = data.assignedZone ? `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Zone:</b> ${data.assignedZone}</small>` : '';
-                            let durationInfo = data.visitDuration && data.visitDuration !== "N/A" ?
-                                `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Visit Duration:</b> ${data.visitDuration}</small>` : '';
-                            let scanType = data.isExit ? '🚪 EXIT LOGGED' : '✅ ENTRY GRANTED';
-                            let cardClass = data.isExit ? 'bg-gray-100 border-l-4 border-gray-500 text-gray-800' : 'bg-green-50 border-l-4 border-green-500 text-green-800';
-                            let visitorName = data.visitorName || 'Visitor';
-
-                            resultArea.innerHTML = `
-                                <div class="${cardClass} p-6 shadow-sm font-serif text-lg w-full">
-                                    <strong class="text-xl">${scanType}</strong>
-                                    <br/><div class="mt-2 text-gray-900"><b>Visitor:</b> ${visitorName}</div>
-                                    <div class="mt-1 text-gray-700">${zoneInfo}</div>
-                                    <div class="text-gray-700">${durationInfo}</div>
-                                    <br/><span class="text-gray-500 text-[10px] font-mono tracking-widest uppercase block border-t border-gray-200 pt-3 mt-2">${data.message}</span>
-                                </div>`;
-                        } else {
-                            resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-6 text-[#C21E2E] shadow-sm font-serif text-lg w-full">🚫 ${data.message}</div>`;
-                        }
-                    })
-                    .catch(err => {
-                        resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm font-serif">⚠️ Server connection error. Please try again.</div>`;
-                    })
-                    .finally(() => {
-                        document.getElementById('reset-btn').classList.remove('hidden');
-                        document.getElementById('footer-text').classList.add('hidden');
-                    });
             }
+
+            if (isProcessing) {
+                console.log("⏳ Already processing, ignoring duplicate.");
+                return;
+            }
+
+            if (payloadData === lastResult && isProcessing) {
+                console.log("🔄 Duplicate scan, ignoring.");
+                return;
+            }
+
+            isProcessing = true;
+            lastResult = payloadData;
+            const resultArea = document.getElementById('result-area');
+
+            // Show loading
+            resultArea.innerHTML = `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm font-bold font-serif">⏳ Validating Gate Pass...</div>`;
+
+            // Clear camera
+            if (html5QrcodeScanner) {
+                try {
+                    html5QrcodeScanner.clear();
+                } catch (e) {
+                    console.warn("Scanner clear error:", e);
+                }
+            }
+
+            // Build the validation URL
+            const baseUrl = '@Url.Action("ValidateGatePass", "VisitorAccess")';
+            const targetUrl = baseUrl + '?data=' + encodeURIComponent(payloadData);
+            console.log("🌐 Sending fetch to:", targetUrl);
+
+            fetch(targetUrl)
+                .then(response => {
+                    console.log("📡 Server responded with status:", response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("📨 Server returned JSON:", data);
+                    if (data.success) {
+                        let zoneInfo = data.assignedZone ? `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Zone:</b> ${data.assignedZone}</small>` : '';
+                        let durationInfo = data.visitDuration && data.visitDuration !== "N/A" ?
+                            `<br/><small class="font-mono text-xs uppercase tracking-widest"><b>Visit Duration:</b> ${data.visitDuration}</small>` : '';
+                        let scanType = data.isExit ? '🚪 EXIT LOGGED' : '✅ ENTRY GRANTED';
+                        let cardClass = data.isExit ? 'bg-gray-100 border-l-4 border-gray-500 text-gray-800' : 'bg-green-50 border-l-4 border-green-500 text-green-800';
+                        let visitorName = data.visitorName || 'Visitor';
+
+                        resultArea.innerHTML = `
+                            <div class="${cardClass} p-6 shadow-sm font-serif text-lg w-full">
+                                <strong class="text-xl">${scanType}</strong>
+                                <br/><div class="mt-2 text-gray-900"><b>Visitor:</b> ${visitorName}</div>
+                                <div class="mt-1 text-gray-700">${zoneInfo}</div>
+                                <div class="text-gray-700">${durationInfo}</div>
+                                <br/><span class="text-gray-500 text-[10px] font-mono tracking-widest uppercase block border-t border-gray-200 pt-3 mt-2">${data.message}</span>
+                            </div>`;
+                    } else {
+                        resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-6 text-[#C21E2E] shadow-sm font-serif text-lg w-full">🚫 ${data.message}</div>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ FETCH ERROR:", err);
+                    resultArea.innerHTML = `<div class="bg-red-50 border-l-4 border-[#C21E2E] p-6 text-[#C21E2E] shadow-sm font-serif text-lg w-full">⚠️ Network/Server Error: ${err.message}</div>`;
+                })
+                .finally(() => {
+                    document.getElementById('reset-btn').classList.remove('hidden');
+                    document.getElementById('footer-text').classList.add('hidden');
+                    isProcessing = false; // Allow scanning again
+                });
         }
 
         function onScanFailure(err) {
-            // ignore continuous scanning noise
+            // This fires constantly while the camera is looking – ignore it.
+            // Uncomment the next line only for heavy debugging.
+            // console.log("📷 Scan failure (normal):", err);
         }
 
         function resetScanner() {
@@ -202,9 +243,8 @@
             document.getElementById('reset-btn').classList.add('hidden');
             document.getElementById('footer-text').classList.remove('hidden');
 
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.resume();
-            }
+            // Re-initialize camera UI cleanly
+            startScanner();
         }
 
         document.addEventListener("DOMContentLoaded", function() {

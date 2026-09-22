@@ -1,8 +1,13 @@
-﻿using Stripe;
+﻿using Michaelhouse.Models;
+using Stripe;
 using System;
+using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Web.Security;
+using System.Linq;
 
 namespace Michaelhouse
 {
@@ -36,7 +41,54 @@ namespace Michaelhouse
             //SeedDrivers();
             //SeedMichaelhouseSystem();
         }
+        protected void Application_AuthenticateRequest(object sender, EventArgs e)
+        {
+            HttpApplication app = (HttpApplication)sender;
 
+            HttpCookie authCookie = app.Context.Request.Cookies[FormsAuthentication.FormsCookieName];
+
+            if (authCookie == null)
+            {
+                return;
+            }
+
+            FormsAuthenticationTicket ticket;
+
+            try
+            {
+                ticket = FormsAuthentication.Decrypt(authCookie.Value);
+            }
+            catch
+            {
+                return;
+            }
+
+            if (ticket == null || string.IsNullOrWhiteSpace(ticket.Name))
+            {
+                return;
+            }
+
+            using (var db = new DBContextClass())
+            {
+                var user = db.Users.FirstOrDefault(u => u.Email == ticket.Name);
+
+                if (user == null || string.IsNullOrWhiteSpace(user.Role))
+                {
+                    return;
+                }
+
+                var identity = new FormsIdentity(ticket);
+
+                var principal = new GenericPrincipal(
+                    identity,
+                    new[] { user.Role }
+                );
+
+                app.Context.User = principal;
+            }
+        }
+
+    
         // --- YOUR EXISTING DRIVER SEEDING ---
         //private void SeedDrivers()
         //{

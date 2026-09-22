@@ -1,0 +1,1281 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@model Michaelhouse.Models.ViewModels.ProposedMenuViewModel
+
+@{
+    ViewBag.Title = "Review Menu";
+
+    var menuItems =
+        ViewBag.MenuItems as IEnumerable<MenuItem>;
+
+    var scheduleItems =
+        Model.ScheduleItems != null
+            ? Model.ScheduleItems
+                .OrderBy(x => x.Date)
+                .ThenBy(x =>
+                    x.MealSlot == "Breakfast" ? 1 :
+                    x.MealSlot == "Lunch" ? 2 :
+                    x.MealSlot == "Dinner" ? 3 : 4)
+            : Enumerable.Empty<Michaelhouse.Models.ViewModels.MenuScheduleItemDisplay>();
+
+    var startDate = Model.StartDate.Date;
+    var endDate = Model.EndDate.Date;
+
+    var calendarDays = new List<DateTime>();
+
+    for (var day = startDate;
+         day <= endDate;
+         day = day.AddDays(1))
+    {
+        calendarDays.Add(day);
+    }
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ========================================================= -->
+    <!-- PAGE HEADER                                                -->
+    <!-- ========================================================= -->
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">
+                Proposed Menu
+            </h1>
+
+            <p class="text-muted mb-0">
+                @Model.StartDate.ToString("dd MMM yyyy")
+                –
+                @Model.EndDate.ToString("dd MMM yyyy")
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <a href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = Model.Id })"
+               class="btn btn-outline-success">
+
+                🍴 Kitchen Requirements
+
+            </a>
+
+            @switch (Model.MenuStatus)
+            {
+                case MenuStatus.Draft:
+
+                    <span class="badge bg-secondary fs-6">
+                        Draft
+                    </span>
+
+                    break;
+
+                case MenuStatus.PendingReview:
+
+                    <span class="badge bg-primary fs-6">
+                        Pending Review
+                    </span>
+
+                    break;
+
+                case MenuStatus.Accepted:
+
+                    <span class="badge bg-success fs-6">
+                        Accepted
+                    </span>
+
+                    break;
+
+                case MenuStatus.Rejected:
+
+                    <span class="badge bg-danger fs-6">
+                        Rejected
+                    </span>
+
+                    break;
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- ALERTS                                                     -->
+    <!-- ========================================================= -->
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- REJECTION REASON                                           -->
+    <!-- ========================================================= -->
+
+    @if (!string.IsNullOrWhiteSpace(Model.RejectionReason))
+    {
+        <div class="alert alert-warning">
+
+            <strong>
+                Rejection reason:
+            </strong>
+
+            @Model.RejectionReason
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- SPECIAL EVENT NOTES                                        -->
+    <!-- ========================================================= -->
+
+    @if (!string.IsNullOrWhiteSpace(Model.SpecialEventNotes))
+    {
+        <div class="alert alert-info">
+
+            <strong>
+                Special event notes:
+            </strong>
+
+            <div>
+                @Model.SpecialEventNotes
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- SUMMARY                                                    -->
+    <!-- ========================================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="small text-muted">
+                        Staff meals
+                    </div>
+
+                    <div class="display-6">
+                        @Model.StaffMeals
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="small text-muted">
+                        Confirmed
+                    </div>
+
+                    <div class="display-6 text-success">
+                        @Model.ConfirmedCount
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="small text-muted">
+                        Needs substitution
+                    </div>
+
+                    <div class="display-6 text-warning">
+                        @Model.NeedsSubstitutionCount
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-3">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="small text-muted">
+                        Needs review
+                    </div>
+
+                    <div class="display-6 text-danger">
+                        @Model.NeedsReviewCount
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MENU CALENDAR                                              -->
+    <!-- ========================================================= -->
+
+    <div class="card shadow-sm menu-calendar-card">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <strong class="fs-5">
+                        Weekly Menu
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+
+                        @Model.StartDate.ToString("dd MMM yyyy")
+                        –
+                        @Model.EndDate.ToString("dd MMM yyyy")
+
+                    </div>
+
+                </div>
+
+                <span class="text-muted">
+                    @Model.ScheduleItems.Count item(s)
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="menu-calendar-wrapper">
+
+                <div class="menu-calendar">
+
+
+                    <!-- ================================================= -->
+                    <!-- DAY HEADERS                                        -->
+                    <!-- ================================================= -->
+
+                    <div class="calendar-day-header-row">
+
+                        @foreach (var day in calendarDays)
+                        {
+                            <div class="calendar-day-header">
+
+                                <div class="calendar-day-name">
+                                    @day.ToString("dddd")
+                                </div>
+
+                                <div class="calendar-day-date">
+                                    @day.ToString("dd MMM yyyy")
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- DAY CELLS                                          -->
+                    <!-- ================================================= -->
+
+                    <div class="calendar-day-row">
+
+                        @foreach (var day in calendarDays)
+                        {
+                            var dayItems = scheduleItems
+                                .Where(x => x.Date.Date == day.Date)
+                                .OrderBy(x =>
+                                    x.MealSlot == "Breakfast" ? 1 :
+                                    x.MealSlot == "Lunch" ? 2 :
+                                    x.MealSlot == "Dinner" ? 3 : 4)
+                                .ToList();
+
+                            <div class="calendar-day-cell">
+
+                                <div class="calendar-number">
+
+                                    <span>
+                                        @day.Day
+                                    </span>
+
+                                </div>
+
+
+                                @foreach (var item in dayItems)
+                                {
+                                    var mealClass = "";
+
+                                    if (item.MealSlot == "Breakfast")
+                                    {
+                                        mealClass = "meal-breakfast";
+                                    }
+                                    else if (item.MealSlot == "Lunch")
+                                    {
+                                        mealClass = "meal-lunch";
+                                    }
+                                    else if (item.MealSlot == "Dinner")
+                                    {
+                                        mealClass = "meal-dinner";
+                                    }
+
+                                    var statusClass = "";
+
+                                    if (item.StatusText == "Confirmed")
+                                    {
+                                        statusClass = "meal-confirmed";
+                                    }
+                                    else if (item.StatusText == "Needs substitution")
+                                    {
+                                        statusClass = "meal-substitution";
+                                    }
+                                    else if (item.StatusText == "Needs review")
+                                    {
+                                        statusClass = "meal-review";
+                                    }
+
+                                    // ── Reason display logic ──────────────────
+                                    // Only show a reason when it actually adds
+                                    // information the reviewer needs.
+                                    var rawReason = item.TagReason ?? "";
+                                    var showReason = false;
+                                    var displayReason = "";
+
+                                    var isMatchContext =
+                                        rawReason.Contains("Match-day") ||
+                                        rawReason.Contains("Pre-match");
+
+                                    if (!string.IsNullOrWhiteSpace(rawReason))
+                                    {
+                                        if (isMatchContext)
+                                        {
+                                            // Trim "Match-day recovery (Rugby). Confirmed using..."
+                                            // down to just the context part.
+                                            var dotIdx = rawReason.IndexOf(". ");
+
+                                            displayReason = dotIdx > 0
+                                                ? rawReason.Substring(0, dotIdx)
+                                                : rawReason;
+
+                                            showReason = true;
+                                        }
+                                        else if (item.StatusText != "Confirmed")
+                                        {
+                                            // Flagged item → show the reason.
+                                            displayReason = rawReason;
+                                            showReason = true;
+                                        }
+                                    }
+
+                                    <div class="menu-meal-card @mealClass @statusClass">
+
+                                        <div class="meal-type">
+                                            @item.MealSlot
+                                        </div>
+
+                                        <div class="meal-name">
+                                            @item.MenuItemName
+                                        </div>
+
+                                        <div class="meal-dietary">
+                                            @item.DietaryClassification
+                                        </div>
+
+                                        <div class="meal-nutrition">
+
+                                            @item.CaloriesPerPortion.ToString("0")
+                                            kcal
+                                            ·
+                                            @item.ProteinGramsPerPortion.ToString("0.0")
+                                            g protein
+
+                                        </div>
+
+                                        @if (item.StatusText != "Confirmed")
+                                        {
+                                            <div class="meal-status">
+
+                                                <span class="badge @item.StatusCssClass">
+                                                    @item.StatusText
+                                                </span>
+
+                                            </div>
+                                        }
+
+                                        @if (showReason)
+                                        {
+                                            <div class="meal-reason">
+                                                @displayReason
+                                            </div>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(item.SubstitutionMenuItemName))
+                                        {
+                                            <div class="meal-substitution">
+
+                                                <strong>
+                                                    Substitute:
+                                                </strong>
+
+                                                @item.SubstitutionMenuItemName
+
+                                            </div>
+                                        }
+
+
+                                        <!-- MODIFY -->
+
+                                        @if (Model.MenuStatus != MenuStatus.Accepted)
+                                        {
+                                            <div class="meal-actions">
+
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-primary w-100"
+                                                        onclick="openUc12Modal('modifyModal-@item.Id')">
+
+                                                    Modify
+
+                                                </button>
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+
+                                @if (!dayItems.Any())
+                                {
+                                    <div class="no-meal">
+                                        No meal scheduled
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MODIFY MODALS                                              -->
+    <!-- ========================================================= -->
+
+    @if (Model.ScheduleItems != null && Model.ScheduleItems.Any())
+    {
+        foreach (var item in Model.ScheduleItems)
+        {
+            <div class="uc12-modal"
+                 id="modifyModal-@item.Id"
+                 aria-hidden="true">
+
+                <div class="uc12-modal-dialog">
+
+                    <div class="uc12-modal-content">
+
+                        <div class="uc12-modal-header">
+
+                            <h5 class="uc12-modal-title">
+                                Modify Menu Item
+                            </h5>
+
+                            <button type="button"
+                                    class="uc12-modal-close"
+                                    onclick="closeUc12Modal('modifyModal-@item.Id')"
+                                    aria-label="Close">
+
+                                &times;
+
+                            </button>
+
+                        </div>
+
+
+                        @using (Html.BeginForm(
+                            "ModifyItem",
+                            "Cafeteria",
+                            FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <div class="uc12-modal-body">
+
+                                <input type="hidden"
+                                       name="scheduleItemId"
+                                       value="@item.Id" />
+
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+                                        Replacement dish
+                                    </label>
+
+                                    <select name="newMenuItemId"
+                                            class="form-select"
+                                            required>
+
+                                        <option value="">
+                                            Select dish...
+                                        </option>
+
+                                        @if (menuItems != null)
+                                        {
+                                            foreach (var menuItem in menuItems)
+                                            {
+                                                <option value="@menuItem.Id">
+                                                    @menuItem.Name
+                                                </option>
+                                            }
+                                        }
+
+                                    </select>
+
+                                </div>
+
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+                                        Portions
+                                    </label>
+
+                                    <input type="number"
+                                           name="newPortions"
+                                           value="@item.CalculatedPortions"
+                                           min="1"
+                                           class="form-control"
+                                           required />
+
+                                </div>
+
+
+                                <div class="alert alert-light border">
+
+                                    <div class="small text-muted">
+                                        Current status
+                                    </div>
+
+                                    <strong>
+                                        @item.StatusText
+                                    </strong>
+
+                                    @if (!string.IsNullOrWhiteSpace(item.TagReason)
+                                         && item.StatusText != "Confirmed")
+                                    {
+                                        <div class="small mt-1">
+                                            @item.TagReason
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="uc12-modal-footer">
+
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        onclick="closeUc12Modal('modifyModal-@item.Id')">
+
+                                    Cancel
+
+                                </button>
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+
+                                    Save Modification
+
+                                </button>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- MENU ACTIONS                                               -->
+    <!-- ========================================================= -->
+
+    @if (Model.MenuStatus != MenuStatus.Accepted)
+    {
+        <div class="card shadow-sm mt-4">
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <!-- ACCEPT -->
+
+                    <div class="col-md-6">
+
+                        @using (Html.BeginForm(
+                            "Accept",
+                            "Cafeteria",
+                            FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@Model.Id" />
+
+                            <button type="submit"
+                                    class="btn btn-success w-100"
+                                    onclick="return confirm('Accept this menu?');">
+
+                                Accept Menu
+
+                            </button>
+                        }
+
+                    </div>
+
+
+                    <!-- REJECT -->
+
+                    <div class="col-md-6">
+
+                        <button type="button"
+                                class="btn btn-danger w-100"
+                                onclick="openUc12Modal('rejectModal')">
+
+                            Reject &amp; Regenerate
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- REJECTION MODAL                                               -->
+<!-- ============================================================= -->
+
+<div class="uc12-modal"
+     id="rejectModal"
+     aria-hidden="true">
+
+    <div class="uc12-modal-dialog">
+
+        <div class="uc12-modal-content">
+
+            <div class="uc12-modal-header">
+
+                <h5 class="uc12-modal-title">
+                    Reject Menu
+                </h5>
+
+                <button type="button"
+                        class="uc12-modal-close"
+                        onclick="closeUc12Modal('rejectModal')"
+                        aria-label="Close">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+
+            @using (Html.BeginForm(
+                "Reject",
+                "Cafeteria",
+                FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="uc12-modal-body">
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Reason for rejection
+                        </label>
+
+                        <textarea name="reason"
+                                  class="form-control"
+                                  rows="5"
+                                  required
+                                  maxlength="2000"
+                                  placeholder="Explain what needs to change..."></textarea>
+
+                    </div>
+
+                    <div class="alert alert-warning mb-0">
+
+                        Rejecting the menu will preserve the
+                        rejected proposal and generate a new
+                        proposal for the same period.
+
+                    </div>
+
+                </div>
+
+
+                <div class="uc12-modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="closeUc12Modal('rejectModal')">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        Reject &amp; Regenerate
+
+                    </button>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- UC12 MODAL JAVASCRIPT                                         -->
+<!-- ============================================================= -->
+
+<script>
+
+    function openUc12Modal(modalId) {
+
+        var modal = document.getElementById(modalId);
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add("uc12-modal-open");
+        modal.setAttribute("aria-hidden", "false");
+
+        document.body.classList.add("uc12-modal-body-open");
+
+        // Prevent the page from scrolling while a modal is open.
+        document.body.style.overflow = "hidden";
+    }
+
+
+    function closeUc12Modal(modalId) {
+
+        var modal = document.getElementById(modalId);
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove("uc12-modal-open");
+        modal.setAttribute("aria-hidden", "true");
+
+        document.body.classList.remove("uc12-modal-body-open");
+
+        document.body.style.overflow = "";
+    }
+
+
+    // Close when clicking directly on the dark backdrop.
+    document.addEventListener("click", function (event) {
+
+        if (event.target.classList.contains("uc12-modal")) {
+
+            closeUc12Modal(event.target.id);
+
+        }
+
+    });
+
+
+    // Close with the Escape key.
+    document.addEventListener("keydown", function (event) {
+
+        if (event.key === "Escape") {
+
+            var openModal =
+                document.querySelector(".uc12-modal.uc12-modal-open");
+
+            if (openModal) {
+
+                closeUc12Modal(openModal.id);
+
+            }
+
+        }
+
+    });
+
+</script>
+
+
+<!-- ============================================================= -->
+<!-- CALENDAR STYLING                                              -->
+<!-- ============================================================= -->
+
+<style>
+
+    .menu-calendar-card {
+        overflow: hidden;
+    }
+
+    .menu-calendar-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .menu-calendar {
+        width: 100%;
+        min-width: 1100px;
+    }
+
+
+    /* ========================================================= */
+    /* DAY HEADERS                                                */
+    /* ========================================================= */
+
+    .calendar-day-header-row {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        background: #212529;
+        color: #ffffff;
+    }
+
+    .calendar-day-header {
+        padding: 13px 8px;
+        text-align: center;
+        border-right: 1px solid rgba(255,255,255,0.15);
+    }
+
+        .calendar-day-header:last-child {
+            border-right: none;
+        }
+
+    .calendar-day-name {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .calendar-day-date {
+        margin-top: 3px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+
+    /* ========================================================= */
+    /* DAY ROW                                                    */
+    /* ========================================================= */
+
+    .calendar-day-row {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .calendar-day-cell {
+        min-height: 470px;
+        padding: 10px;
+        border-right: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        background: #ffffff;
+    }
+
+        .calendar-day-cell:last-child {
+            border-right: none;
+        }
+
+
+    /* ========================================================= */
+    /* DAY NUMBER                                                 */
+    /* ========================================================= */
+
+    .calendar-number {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+    }
+
+        .calendar-number span {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 700;
+            color: #495057;
+            background: #f1f3f5;
+        }
+
+
+    /* ========================================================= */
+    /* MEAL CARDS                                                  */
+    /* ========================================================= */
+
+    .menu-meal-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 9px;
+        margin-bottom: 8px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+
+    /* ========================================================= */
+    /* MEAL TYPE                                                   */
+    /* ========================================================= */
+
+    .meal-type {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+
+    /* ========================================================= */
+    /* MEAL NAME                                                   */
+    /* ========================================================= */
+
+    .meal-name {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 4px;
+    }
+
+
+    /* ========================================================= */
+    /* DIETARY                                                    */
+    /* ========================================================= */
+
+    .meal-dietary {
+        font-size: 10px;
+        color: #6c757d;
+        margin-bottom: 7px;
+    }
+
+
+    /* ========================================================= */
+    /* NUTRITION                                                   */
+    /* ========================================================= */
+
+    .meal-nutrition {
+        font-size: 10px;
+        color: #6c757d;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+
+
+    /* ========================================================= */
+    /* MEAL COLOUR ACCENTS                                         */
+    /* ========================================================= */
+
+    .meal-breakfast {
+        border-left: 4px solid #6f42c1;
+    }
+
+    .meal-lunch {
+        border-left: 4px solid #0d6efd;
+    }
+
+    .meal-dinner {
+        border-left: 4px solid #fd7e14;
+    }
+
+
+    /* ========================================================= */
+    /* STATUS ACCENTS                                              */
+    /* ========================================================= */
+
+    .meal-confirmed {
+        border-bottom-color: #b7dfc1;
+    }
+
+    .meal-substitution {
+        border-bottom-color: #ffe08a;
+    }
+
+    .meal-review {
+        border-bottom-color: #f1aeb5;
+    }
+
+
+    /* ========================================================= */
+    /* STATUS                                                      */
+    /* ========================================================= */
+
+    .meal-status {
+        margin-bottom: 6px;
+    }
+
+        .meal-status .badge {
+            font-size: 9px;
+        }
+
+
+    /* ========================================================= */
+    /* REASON                                                      */
+    /* ========================================================= */
+
+    .meal-reason {
+        padding-top: 6px;
+        border-top: 1px solid #eeeeee;
+        font-size: 9px;
+        line-height: 1.35;
+        color: #6c757d;
+        margin-bottom: 6px;
+    }
+
+
+    /* ========================================================= */
+    /* SUBSTITUTION                                                */
+    /* ========================================================= */
+
+    .meal-substitution {
+        padding: 5px;
+        border-radius: 5px;
+        background: #f8f9fa;
+        font-size: 9px;
+        line-height: 1.35;
+        margin-bottom: 6px;
+    }
+
+
+    /* ========================================================= */
+    /* ACTIONS                                                     */
+    /* ========================================================= */
+
+    .meal-actions {
+        margin-top: 7px;
+    }
+
+        .meal-actions .btn {
+            font-size: 10px;
+        }
+
+
+    /* ========================================================= */
+    /* EMPTY DAY                                                   */
+    /* ========================================================= */
+
+    .no-meal {
+        text-align: center;
+        color: #adb5bd;
+        font-size: 11px;
+        margin-top: 70px;
+    }
+
+
+    /* ========================================================= */
+    /* UC12 CUSTOM MODAL                                           */
+    /* ========================================================= */
+
+    .uc12-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.55);
+        padding: 40px 15px;
+    }
+
+
+        .uc12-modal.uc12-modal-open {
+            display: block;
+        }
+
+
+    .uc12-modal-dialog {
+        position: relative;
+        width: auto;
+        max-width: 600px;
+        margin: 0 auto;
+        pointer-events: none;
+    }
+
+
+    .uc12-modal-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        pointer-events: auto;
+        background-color: #ffffff;
+        background-clip: padding-box;
+        border: 1px solid rgba(0,0,0,.2);
+        border-radius: 0.5rem;
+        outline: 0;
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.35);
+    }
+
+
+    .uc12-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+
+    .uc12-modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+
+    .uc12-modal-close {
+        border: 0;
+        background: transparent;
+        font-size: 1.8rem;
+        line-height: 1;
+        padding: 0.25rem 0.5rem;
+        color: #000000;
+        opacity: 0.6;
+        cursor: pointer;
+    }
+
+
+        .uc12-modal-close:hover {
+            opacity: 1;
+        }
+
+
+    .uc12-modal-body {
+        position: relative;
+        flex: 1 1 auto;
+        padding: 1rem;
+    }
+
+
+    .uc12-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+
+    .uc12-modal-body-open {
+        overflow: hidden;
+    }
+
+
+    /* ========================================================= */
+    /* RESPONSIVE                                                  */
+    /* ========================================================= */
+
+    @@media (max-width: 1199px) {
+
+        .menu-calendar {
+            min-width: 1050px;
+        }
+
+        .calendar-day-cell {
+            min-height: 450px;
+        }
+    }
+
+
+    @@media (max-width: 767px) {
+
+        .menu-calendar {
+            min-width: 1000px;
+        }
+
+        .calendar-day-cell {
+            min-height: 430px;
+        }
+
+        .uc12-modal {
+            padding: 20px 10px;
+        }
+    }
+</style>
