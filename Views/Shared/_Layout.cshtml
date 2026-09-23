@@ -332,6 +332,21 @@
             }
             catch { /* swallow for startup safety */ }
         }
+
+        // Pending cafeteria review count (for the Coordinator's sidebar badge)
+        int pendingMenuCount = 0;
+        if (isLoggedIn && userRole == "CafeteriaManager")
+        {
+            try
+            {
+                using (var db = new Michaelhouse.Models.DBContextClass())
+                {
+                    pendingMenuCount = db.MealMenus
+                        .Count(x => x.MenuStatus == Michaelhouse.Models.Cafeteria.MenuStatus.PendingReview);
+                }
+            }
+            catch { /* swallow */ }
+        }
     }
 
 
@@ -1216,6 +1231,54 @@
                            href="@Url.Action("Index", "Scan")">
                             <i class="bi bi-qr-code-scan"></i>
                             <span class="link-text">Scan QR Code</span>
+                        </a>
+                    }
+                    else if (userRole == "CafeteriaManager")
+                    {
+                        <div class="sidebar-label">Cafeteria</div>
+
+                        <a class="nav-link @(currentController == "Cafeteria" && currentAction == "Dashboard" ? "active" : "")"
+                           href="@Url.Action("Dashboard", "Cafeteria")">
+                            <i class="bi bi-speedometer2"></i> <span class="link-text">Dashboard</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Cafeteria" && currentAction == "Schedule" ? "active" : "")"
+                           href="@Url.Action("Schedule", "Cafeteria")">
+                            <i class="bi bi-calendar-plus"></i> <span class="link-text">Schedule Menu</span>
+                        </a>
+
+                        <a class="nav-link @(currentController == "Cafeteria" && currentAction == "Dashboard" ? "" : "")"
+                           href="@Url.Action("Dashboard", "Cafeteria")">
+                            <i class="bi bi-list-check"></i> <span class="link-text">Review Queue</span>
+                            @if (pendingMenuCount > 0)
+                            {
+                                <span class="cart-badge">@pendingMenuCount</span>
+                            }
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+                    else if (userRole == "Chef")
+                    {
+                        <div class="sidebar-label">Kitchen</div>
+
+                        <a class="nav-link @(currentController == "Cafeteria" && currentAction == "ChefIndex" ? "active" : "")"
+                           href="@Url.Action("ChefIndex", "Cafeteria")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Review Queue</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
                         </a>
                     }
 

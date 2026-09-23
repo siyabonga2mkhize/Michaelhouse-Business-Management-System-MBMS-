@@ -570,6 +570,165 @@ namespace Michaelhouse.Services
 
             return scheduleItem;
         }
+        // ============================================================
+        // CHEF SUBSTITUTION LOOKUP
+        // Returns a pre-validated list of alternatives for a flagged
+        // schedule item. Only options that fit the meal slot are
+        // returned; each is tagged valid or invalid with a reason.
+        // ============================================================
+
+        public List<SubstituteOption> GetValidSubstitutes(int scheduleItemId)
+        {
+            // Load the flagged item
+            var item = _db.MenuScheduleItems
+                .Include(x => x.MealMenu)
+                .Include(x => x.MenuItem)
+                .FirstOrDefault(x => x.Id == scheduleItemId);
+
+            if (item == null)
+            {
+                throw new InvalidOperationException("Schedule item was not found.");
+            }
+
+            // Load candidates with their recipes + ingredients
+            var candidates = _db.MenuItems
+                .Where(x => x.IsActive)
+                .Include(x => x.Recipe.RecipeIngredients.Select(ri => ri.Ingredient))
+                .ToList();
+
+            // Ingredient stock (in-memory, not persisted)
+            var ingredientStock = _db.Ingredients
+                .Where(i => i.IsActive)
+                .ToDictionary(
+                    i => i.Id,
+                    i => new IngredientState
+                    {
+                        Ingredient = i,
+                        FarmAvailable = i.FarmAvailableQuantity,
+                        ExternalAvailable = i.ExternalAvailableQuantity
+                    });
+
+            // Subtract ingredients already used by the rest of this menu
+            var otherItems = _db.MenuScheduleItems
+                .Include(x => x.MenuItem.Recipe.RecipeIngredients)
+                .Where(x => x.MealMenuId == item.MealMenuId && x.Id != item.Id)
+                .ToList();
+
+            foreach (var other in otherItems)
+            {
+                DrawIngredientStock(
+                    other.MenuItem,
+                    other.CalculatedPortions,
+                    ingredientStock);
+            }
+
+            // Historical cooldown data — only from ACCEPTED menus
+            var cooldownStart = item.Date.Date.AddDays(-MealCooldownDays);
+
+            var historicalUsages = _db.MenuScheduleItems
+                .Where(x => x.MealMenu.MenuStatus == MenuStatus.Accepted)
+                .Where(x => x.Date >= cooldownStart && x.Date < item.Date.Date)
+                .Select(x => new { x.MenuItemId, x.Date, x.MealSlot })
+                .ToList();
+
+            var currentMenuUsages = otherItems
+                .Where(x => x.Date.Date >= cooldownStart && x.Date.Date < item.Date.Date)
+                .Select(x => new { x.MenuItemId, x.Date, x.MealSlot })
+                .ToList();
+
+            var allUsages = historicalUsages
+                .Concat(currentMenuUsages)
+                .ToList();
+
+            var results = new List<SubstituteOption>();
+
+            foreach (var candidate in candidates)
+            {
+                // Must fit the same meal slot
+                if (!IsCompatibleWithMealSlot(candidate, item.MealSlot))
+                {
+                    continue;
+                }
+
+                // Skip the item we're replacing
+                if (candidate.Id == item.MenuItemId)
+                {
+                    continue;
+                }
+
+                // Skip anything already scheduled the same day in this menu
+                bool sameDayUsed = otherItems.Any(x =>
+                    x.Date.Date == item.Date.Date &&
+                    x.MenuItemId == candidate.Id);
+
+                if (sameDayUsed)
+                {
+                    continue;
+                }
+
+                var option = new SubstituteOption
+                {
+                    MenuItemId = candidate.Id,
+                    Name = candidate.Name
+                };
+
+                // Cooldown check
+                bool cooldownOk = true;
+
+                if (IsCooldownMealSlot(item.MealSlot))
+                {
+                    cooldownOk = !allUsages.Any(u =>
+                        u.MenuItemId == candidate.Id &&
+                        IsCooldownMealSlot(u.MealSlot));
+                }
+
+                option.IsCooldownOk = cooldownOk;
+
+                // Ingredient-stock check
+                var shortages = GetIngredientShortages(
+                    candidate,
+                    item.CalculatedPortions,
+                    ingredientStock);
+
+                option.IsInStock = shortages.Count == 0;
+
+                // Build the reason string shown to the Chef
+                if (!cooldownOk && !option.IsInStock)
+                {
+                    option.IsValid = false;
+                    option.Reason = "used recently · ingredient short";
+                }
+                else if (!cooldownOk)
+                {
+                    option.IsValid = false;
+                    option.Reason = string.Format(
+                        "used within {0} days", MealCooldownDays);
+                }
+                else if (!option.IsInStock)
+                {
+                    option.IsValid = false;
+
+                    var firstShortage = shortages
+                        .OrderByDescending(s => s.Required - s.Available)
+                        .First();
+
+                    option.Reason = string.Format(
+                        "{0} short", firstShortage.Name);
+                }
+                else
+                {
+                    option.IsValid = true;
+                    option.Reason = "in stock · cooldown OK";
+                }
+
+                results.Add(option);
+            }
+
+            return results
+                .OrderByDescending(x => x.IsValid)
+                .ThenBy(x => x.Name)
+                .ToList();
+        }
 
         // ============================================================
         // PORTION CALCULATION

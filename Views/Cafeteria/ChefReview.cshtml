@@ -1,0 +1,337 @@
+﻿
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model Michaelhouse.Models.ViewModels.ProposedMenuViewModel
+
+@{
+    ViewBag.Title = "Chef Review";
+
+    var substitutesByItem =
+        ViewBag.SubstitutesByItem as Dictionary<int, List<Michaelhouse.Models.ViewModels.SubstituteOption>>
+        ?? new Dictionary<int, List<Michaelhouse.Models.ViewModels.SubstituteOption>>();
+
+    var ingredientRequirements =
+        ViewBag.IngredientRequirements as List<MenuSchedulingService.IngredientRequirement>
+        ?? new List<MenuSchedulingService.IngredientRequirement>();
+
+    var flaggedItems = Model.ScheduleItems
+        .Where(x => x.ItemTagStatus == ItemTagStatus.NeedsSubstitution)
+        .OrderBy(x => x.Date)
+        .ThenBy(x => x.MealSlot)
+        .ToList();
+
+    var canSignOff = flaggedItems.Count == 0;
+}
+
+<div class="container-fluid py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Kitchen Review</h1>
+            <p class="text-muted mb-0">
+                @Model.StartDate.ToString("dd MMM yyyy")
+                –
+                @Model.EndDate.ToString("dd MMM yyyy")
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            @if (Model.MenuStatus == MenuStatus.Accepted)
+            {
+                <span class="badge bg-success fs-6">Accepted</span>
+            }
+            else if (Model.MenuStatus == MenuStatus.PendingReview)
+            {
+                <span class="badge bg-primary fs-6">Pending Review</span>
+            }
+            else if (Model.MenuStatus == MenuStatus.Rejected)
+            {
+                <span class="badge bg-danger fs-6">Rejected</span>
+            }
+
+            @if (Model.IsKitchenReady)
+            {
+                <span class="badge bg-success fs-6">✓ Kitchen Ready</span>
+            }
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <!-- SUMMARY BAR -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Flagged Items</div>
+                    <div class="display-6 @(flaggedItems.Count > 0 ? "text-warning" : "text-success")">
+                        @flaggedItems.Count
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Total Meals</div>
+                    <div class="display-6">@Model.ScheduleItems.Count</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Ingredients</div>
+                    <div class="display-6">@ingredientRequirements.Count</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="flagged-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#flagged"
+                    type="button"
+                    role="tab">
+                Flagged Items (@flaggedItems.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="bom-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#bom"
+                    type="button"
+                    role="tab">
+                Kitchen Requirements
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- TAB 1: FLAGGED ITEMS -->
+        <div class="tab-pane fade show active" id="flagged" role="tabpanel">
+
+            @if (flaggedItems.Count == 0)
+            {
+                <div class="alert alert-success">
+                    <strong>All clear.</strong>
+                    Every meal in this proposal can be cooked with current stock.
+                </div>
+            }
+            else
+            {
+                foreach (var item in flaggedItems)
+                {
+                    var options = substitutesByItem.ContainsKey(item.Id)
+                        ? substitutesByItem[item.Id]
+                        : new List<Michaelhouse.Models.ViewModels.SubstituteOption>();
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+
+                            <!-- HEADER -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="small text-uppercase text-muted">
+                                        @item.Date.ToString("ddd dd MMM yyyy") · @item.MealSlot
+                                    </div>
+                                    <h5 class="mb-1">@item.MenuItemName</h5>
+                                    <span class="badge bg-warning text-dark">
+                                        Needs Substitution
+                                    </span>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    @item.CaloriesPerPortion.ToString("0") kcal ·
+                                    @item.ProteinGramsPerPortion.ToString("0.0") g protein
+                                </div>
+                            </div>
+
+                            <!-- REASON -->
+                            <div class="alert alert-warning small mb-3">
+                                @item.TagReason
+                            </div>
+
+                            <!-- SUBSTITUTE FORM -->
+                            @using (Html.BeginForm(
+                                "ConfirmSubstitution",
+                                "Cafeteria",
+                                FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="scheduleItemId"
+                                       value="@item.Id" />
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-uppercase text-muted">
+                                        Chef's Replacement
+                                    </label>
+
+                                    <select name="newMenuItemId"
+                                            class="form-select"
+                                            required>
+
+                                        <option value="">Select a substitute...</option>
+
+                                        @foreach (var opt in options)
+                                        {
+                                            if (opt.IsValid)
+                                            {
+                                                <option value="@opt.MenuItemId">
+                                                    ✓ @opt.Name — @opt.Reason
+                                                </option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@opt.MenuItemId" disabled>
+                                                    ✗ @opt.Name — @opt.Reason
+                                                </option>
+                                            }
+                                        }
+
+                                    </select>
+
+                                    <div class="form-text">
+                                        Only options marked ✓ will be accepted. The system
+                                        pre-validated each against stock and cooldown.
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Confirm Swap
+                                </button>
+                            }
+
+                        </div>
+                    </div>
+                }
+            }
+
+            <!-- KITCHEN READY BUTTON -->
+            @if (!Model.IsKitchenReady && Model.MenuStatus == MenuStatus.PendingReview)
+            {
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body text-center">
+
+                        @if (canSignOff)
+                        {
+                            <p class="mb-3">
+                                All flagged items are resolved. Ready to hand back to the
+                                Meal Coordinator.
+                            </p>
+
+                            using (Html.BeginForm(
+                                "MarkKitchenReady",
+                                "Cafeteria",
+                                new { id = Model.Id },
+                                FormMethod.Post))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-success btn-lg"
+                                        onclick="return confirm('Mark this menu Kitchen Ready?');">
+                                    ✓ Mark Kitchen Ready
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">
+                                Resolve all flagged items above before signing off.
+                            </p>
+
+                            <button type="button"
+                                    class="btn btn-secondary btn-lg mt-3"
+                                    disabled>
+                                ✓ Mark Kitchen Ready
+                            </button>
+                        }
+
+                    </div>
+                </div>
+            }
+            else if (Model.IsKitchenReady)
+            {
+                <div class="alert alert-success mt-4">
+                    <strong>✓ Kitchen Ready</strong> —
+                    the Meal Coordinator can now accept this menu.
+                </div>
+            }
+
+        </div>
+
+        <!-- TAB 2: KITCHEN REQUIREMENTS -->
+        <div class="tab-pane fade" id="bom" role="tabpanel">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <strong>Ingredient Requirements</strong>
+                    <span class="text-muted small ms-2">
+                        Live — recalculates as you confirm swaps
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (ingredientRequirements.Count == 0)
+                    {
+                        <div class="p-4 text-muted">
+                            No ingredient data available for this menu.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ingredient</th>
+                                        <th class="text-end">Required</th>
+                                        <th>Unit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var req in ingredientRequirements)
+                                    {
+                                        <tr>
+                                            <td>@req.IngredientName</td>
+                                            <td class="text-end">
+                                                @req.RequiredQuantity.ToString("N2")
+                                            </td>
+                                            <td>@req.Unit</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@if (false)
+{
+    <!-- Forces Razor to keep the using statements below if the tab JS needs them -->
+    <text>@Html.Raw("")</text>
+}

@@ -105,6 +105,9 @@ namespace Michaelhouse.Models.ViewModels
         public string SpecialEventNotes { get; set; }
 
         public MenuStatus MenuStatus { get; set; }
+        public bool IsKitchenReady { get; set; }
+
+        public DateTime? KitchenReadyDate { get; set; }
 
         public string RejectionReason { get; set; }
 
@@ -135,5 +138,15 @@ namespace Michaelhouse.Models.ViewModels
         [Range(1, 1000000)]
         [Display(Name = "New Portions")]
         public int NewPortions { get; set; }
+    }
+
+    public class SubstituteOption
+    {
+        public int MenuItemId { get; set; }
+        public string Name { get; set; }
+        public bool IsValid { get; set; }
+        public bool IsInStock { get; set; }
+        public bool IsCooldownOk { get; set; }
+        public string Reason { get; set; }
     }
 }

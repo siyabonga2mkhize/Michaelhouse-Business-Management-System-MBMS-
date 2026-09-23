@@ -48,6 +48,9 @@ namespace Michaelhouse.Models.Cafeteria
 
         public DateTime? LastModifiedDate { get; set; }
 
+        public bool IsKitchenReady { get; set; }
+
+        public DateTime? KitchenReadyDate { get; set; }
         public int? RegeneratedFromMenuId { get; set; }
 
         public virtual MealMenu RegeneratedFromMenu { get; set; }

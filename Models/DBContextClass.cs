@@ -53,6 +53,8 @@ namespace Michaelhouse.Models
         public DbSet<StudentMark> StudentMarks { get; set; }
         public DbSet<TermResult> TermResults { get; set; }
         public DbSet<YearResult> YearResults { get; set; }
+        public DbSet<SchoolClass> SchoolClasses { get; set; }
+
 
         // ─── Attendance & Timetable ───────────────────────────────────────
         public DbSet<Attendance> Attendances { get; set; }

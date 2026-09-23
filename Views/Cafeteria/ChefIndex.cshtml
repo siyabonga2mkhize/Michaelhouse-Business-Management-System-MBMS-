@@ -1,0 +1,132 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@{
+    ViewBag.Title = "Kitchen Review";
+
+    var pendingMenus = ViewBag.PendingMenus as List<MealMenu> ?? new List<MealMenu>();
+    var acceptedMenus = ViewBag.AcceptedMenus as List<MealMenu> ?? new List<MealMenu>();
+}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Kitchen Review</h1>
+        <p class="text-muted mb-0">
+            Menus awaiting your sign-off. Resolve flagged items, then mark each menu Kitchen Ready.
+        </p>
+    </div>
+
+    <!-- PENDING MENUS -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Pending Kitchen Review</strong>
+            <span class="badge bg-primary ms-2">@pendingMenus.Count</span>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!pendingMenus.Any())
+            {
+                <div class="p-4 text-muted">
+                    No menus awaiting review. The Meal Coordinator will generate one when ready.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Period</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var menu in pendingMenus)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">
+                                            @menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")
+                                        </div>
+                                    </td>
+                                    <td class="small text-muted">
+                                        @menu.CreatedDate.ToString("dd MMM yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        @if (menu.IsKitchenReady)
+                                        {
+                                            <span class="badge bg-success">Kitchen Ready</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Awaiting Chef</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("ChefReview", "Cafeteria", new { id = menu.Id })"
+                                           class="btn btn-sm btn-primary">
+                                            Open Review
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- RECENTLY ACCEPTED -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <strong>Recently Accepted</strong>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!acceptedMenus.Any())
+            {
+                <div class="p-4 text-muted">No accepted menus yet.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Period</th>
+                                <th>Accepted</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var menu in acceptedMenus)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">
+                                            @menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")
+                                        </div>
+                                    </td>
+                                    <td class="small text-muted">
+                                        @(menu.LastModifiedDate.HasValue ? menu.LastModifiedDate.Value.ToString("dd MMM yyyy HH:mm") : "-")
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = menu.Id })"
+                                           class="btn btn-sm btn-outline-success">
+                                            View Kitchen List
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+

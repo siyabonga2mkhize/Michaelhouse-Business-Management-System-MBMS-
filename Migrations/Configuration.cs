@@ -12,8 +12,8 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
 {
     public Configuration()
     {
-        AutomaticMigrationsEnabled = true;
-        AutomaticMigrationDataLossAllowed = true;
+        AutomaticMigrationsEnabled = false;
+        AutomaticMigrationDataLossAllowed = false;
     }
 
     protected override void Seed(Michaelhouse.Models.DBContextClass context)
@@ -398,6 +398,18 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             });
             context.SaveChanges();
 
+        }
+
+        if (!context.Users.Any(u => u.Role == "Chef"))
+        {
+            context.Users.Add(new AppUser
+            {
+                Name = "Head Chef",
+                Email = "chef@michaelhouse.co.za",
+                PasswordHash = HashPassword("Chef@123"),
+                Role = "Chef"
+            });
+            context.SaveChanges();
         }
         SeedMenuItems(context);
         SeedRecipesAndIngredients(context);

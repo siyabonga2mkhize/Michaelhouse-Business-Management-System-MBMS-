@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace Michaelhouse.Controllers
 {
-    [Authorize(Roles = "CafeteriaManager, Admin")]
+    [Authorize(Roles = "CafeteriaManager, Chef, Admin")]
     public class CafeteriaController : Controller
     {
         private readonly DBContextClass _db;
@@ -33,12 +33,37 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
+        // GET: Cafeteria/Dashboard
+        // ============================================================
+
+        [HttpGet]
+        public ActionResult Dashboard()
+        {
+            var pendingMenus = _db.MealMenus
+                .Where(x => x.MenuStatus == MenuStatus.PendingReview)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToList();
+
+            var acceptedMenus = _db.MealMenus
+                .Where(x => x.MenuStatus == MenuStatus.Accepted)
+                .OrderByDescending(x => x.LastModifiedDate)
+                .Take(5)
+                .ToList();
+
+            ViewBag.PendingMenus = pendingMenus;
+            ViewBag.AcceptedMenus = acceptedMenus;
+
+            return View();
+        }
+
+        // ============================================================
         // GET: Cafeteria/Schedule
         // ============================================================
 
         [HttpGet]
         public ActionResult Schedule()
         {
+           
             var model = new ScheduleMenuInputViewModel
             {
                 StartDate = DateTime.Today,
@@ -156,6 +181,22 @@ namespace Michaelhouse.Controllers
         {
             try
             {
+                // Workflow gate: Chef must sign off first
+                var menu = _db.MealMenus.FirstOrDefault(x => x.Id == id);
+
+                if (menu == null)
+                {
+                    return HttpNotFound();
+                }
+
+                if (!menu.IsKitchenReady)
+                {
+                    TempData["ErrorMessage"] =
+                        "The Chef must mark this menu Kitchen Ready before it can be accepted.";
+
+                    return RedirectToAction("Review", new { id = id });
+                }
+
                 _menuService.AcceptMenu(id);
 
                 TempData["SuccessMessage"] = "The menu has been accepted.";
@@ -244,6 +285,170 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
+        // GET: Cafeteria/ChefIndex
+        // Chef landing page — lists menus awaiting kitchen review
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult ChefIndex()
+        {
+            var pendingMenus = _db.MealMenus
+                .Where(x => x.MenuStatus == MenuStatus.PendingReview)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToList();
+
+            var acceptedMenus = _db.MealMenus
+                .Where(x => x.MenuStatus == MenuStatus.Accepted)
+                .OrderByDescending(x => x.LastModifiedDate)
+                .Take(5)
+                .ToList();
+
+            ViewBag.PendingMenus = pendingMenus;
+            ViewBag.AcceptedMenus = acceptedMenus;
+
+            return View();
+        }
+        // ============================================================
+        // GET: Cafeteria/ChefReview/5
+        // Chef's view of a proposed menu: flagged items + BOM tab
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult ChefReview(int id)
+        {
+            MealMenu menu = _menuService.GetMenu(id);
+
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = BuildProposedMenuViewModel(menu);
+
+            // Load substitute options for every flagged item
+            var flaggedIds = menu.ScheduleItems
+                .Where(x => x.ItemTagStatus == ItemTagStatus.NeedsSubstitution)
+                .Select(x => x.Id)
+                .ToList();
+
+            var substitutesByItem = new Dictionary<int, List<SubstituteOption>>();
+
+            foreach (var itemId in flaggedIds)
+            {
+                try
+                {
+                    substitutesByItem[itemId] =
+                        _menuService.GetValidSubstitutes(itemId);
+                }
+                catch
+                {
+                    substitutesByItem[itemId] = new List<SubstituteOption>();
+                }
+            }
+
+            ViewBag.SubstitutesByItem = substitutesByItem;
+
+            // Kitchen BOM for the whole proposed week
+            try
+            {
+                ViewBag.IngredientRequirements =
+                    _menuService.CalculateIngredientRequirements(id);
+            }
+            catch
+            {
+                ViewBag.IngredientRequirements =
+                    new List<MenuSchedulingService.IngredientRequirement>();
+            }
+
+            return View(model);
+        }
+
+        // ============================================================
+        // POST: Cafeteria/ConfirmSubstitution
+        // Chef swaps one flagged item for a validated alternative
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult ConfirmSubstitution(int scheduleItemId, int newMenuItemId)
+        {
+            try
+            {
+                MenuScheduleItem item = _menuService.ModifyItem(
+                    scheduleItemId,
+                    newMenuItemId,
+                    _db.MenuScheduleItems
+                        .Where(x => x.Id == scheduleItemId)
+                        .Select(x => x.CalculatedPortions)
+                        .FirstOrDefault());
+
+                TempData["SuccessMessage"] =
+                    "Substitution saved. Ingredient requirements recalculated.";
+
+                return RedirectToAction("ChefReview", new { id = item.MealMenuId });
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            var fallbackId = _db.MenuScheduleItems
+                .Where(x => x.Id == scheduleItemId)
+                .Select(x => x.MealMenuId)
+                .FirstOrDefault();
+
+            return RedirectToAction("ChefReview", new { id = fallbackId });
+        }
+
+        // ============================================================
+        // POST: Cafeteria/MarkKitchenReady/5
+        // Chef signs off — unlocks Accept for the coordinator
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult MarkKitchenReady(int id)
+        {
+            MealMenu menu = _menuService.GetMenu(id);
+
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            int unresolved = menu.ScheduleItems.Count(x =>
+                x.ItemTagStatus != ItemTagStatus.Confirmed);
+
+            if (unresolved > 0)
+            {
+                TempData["ErrorMessage"] = string.Format(
+                    "{0} item(s) still need substitution before the kitchen can sign off.",
+                    unresolved);
+
+                return RedirectToAction("ChefReview", new { id = id });
+            }
+
+            menu.IsKitchenReady = true;
+            menu.KitchenReadyDate = DateTime.UtcNow;
+
+            _db.SaveChanges();
+
+            TempData["SuccessMessage"] =
+                "Kitchen Ready. The Meal Coordinator can now accept the menu.";
+
+            return RedirectToAction("ChefReview", new { id = id });
+        }
+
+
+        // ============================================================
         // VIEWMODEL BUILDERS
         // ============================================================
 
@@ -257,8 +462,11 @@ namespace Michaelhouse.Controllers
                 StaffMeals = menu.StaffMeals,
                 SpecialEventNotes = menu.SpecialEventNotes,
                 MenuStatus = menu.MenuStatus,
+                IsKitchenReady = menu.IsKitchenReady,
+                KitchenReadyDate = menu.KitchenReadyDate,
                 RejectionReason = menu.RejectionReason
             };
+            
 
             model.ScheduleItems = menu.ScheduleItems
                 .OrderBy(x => x.Date)

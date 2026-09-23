@@ -366,6 +366,14 @@
     <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.Designer.cs">
       <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609231900592_SyncMissingTables.cs" />
+    <Compile Include="Migrations\202609231900592_SyncMissingTables.Designer.cs">
+      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.cs" />
+    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.Designer.cs">
+      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -704,6 +712,10 @@
     <Content Include="Views\Cafeteria\KitchenRequirements.cshtml" />
     <Content Include="Views\Cafeteria\Review.cshtml" />
     <Content Include="Views\Cafeteria\Schedule.cshtml" />
+    <Content Include="Views\Cafeteria\ChefReview.cshtml" />
+    <Content Include="Views\Cafeteria\ChefIndex.cshtml" />
+    <Content Include="Views\Dashboard.cshtml" />
+    <Content Include="Views\Cafeteria\Dashboard.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -911,6 +923,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609222004308_AddMenuItemNutritionCategory.resx">
       <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609231900592_SyncMissingTables.resx">
+      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609231931106_AddKitchenReadyFlag.resx">
+      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
