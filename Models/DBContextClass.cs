@@ -128,7 +128,9 @@ namespace Michaelhouse.Models
         public DbSet<ResidenceAllocation> ResidenceAllocations { get; set; }
         public DbSet<EmergencyAlert> EmergencyAlerts { get; set; }
         public DbSet<StudentSafetyConfirmation> StudentSafetyConfirmations { get; set; }
+        // ─── Leave Requests ─────────────────────
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
+        public DbSet<Schoolcalendarevent.SchoolCalendarEvent> SchoolCalendarEvents { get; set; }
 
         // ─── Visitor Access Management ───────────────────────────────────
         public DbSet<VisitorAccessRequest> VisitorAccessRequests { get; set; }

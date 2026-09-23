@@ -3197,5 +3197,309 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             return Convert.ToBase64String(hash);
         }
     }
+
+    private void SeedSchoolCalendar(Michaelhouse.Models.DBContextClass context)
+    {
+        var events = new[]
+        {
+        // ============================================================
+        // AUGUST 2026 - EVENTS FROM YOUR EXAMPLE CALENDAR
+        // ============================================================
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Bloemfontein PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 7, 28),
+            EndDate = new DateTime(2026, 7, 28),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Day at Michaelhouse - Option 1",
+            Description = "Prospective student day at Michaelhouse.",
+            StartDate = new DateTime(2026, 8, 10),
+            EndDate = new DateTime(2026, 8, 10),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Nottingham Road PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 8, 11),
+            EndDate = new DateTime(2026, 8, 11),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Hilton PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 8, 13),
+            EndDate = new DateTime(2026, 8, 13),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Half Term",
+            Description = "Half term school holiday.",
+            StartDate = new DateTime(2026, 8, 20),
+            EndDate = new DateTime(2026, 8, 20),
+            Category = Schoolcalendarevent.CalendarEventCategory.Holiday,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "M&M - M&M's at Michaelhouse",
+            Description = "School event.",
+            StartDate = new DateTime(2026, 8, 22),
+            EndDate = new DateTime(2026, 8, 22),
+            Category = Schoolcalendarevent.CalendarEventCategory.Cultural,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "North Coast PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 8, 26),
+            EndDate = new DateTime(2026, 8, 26),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Durban North PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 8, 27),
+            EndDate = new DateTime(2026, 8, 27),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Highway PIE - Prospective Parent Information",
+            Description = "Prospective parent event.",
+            StartDate = new DateTime(2026, 9, 1),
+            EndDate = new DateTime(2026, 9, 1),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Day at Michaelhouse - Option 2",
+            Description = "Prospective student day at Michaelhouse.",
+            StartDate = new DateTime(2026, 9, 3),
+            EndDate = new DateTime(2026, 9, 3),
+            Category = Schoolcalendarevent.CalendarEventCategory.Other,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+
+        // ============================================================
+        // ACADEMIC EVENTS - USEFUL FOR TESTING LEAVE RECOMMENDATIONS
+        // ============================================================
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Term 3 Test Week",
+            Description = "Important academic assessments for students.",
+            StartDate = new DateTime(2026, 9, 7),
+            EndDate = new DateTime(2026, 9, 11),
+            Category = Schoolcalendarevent.CalendarEventCategory.TestWeek,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Mathematics Test",
+            Description = "Mathematics assessment.",
+            StartDate = new DateTime(2026, 9, 9),
+            EndDate = new DateTime(2026, 9, 9),
+            Category = Schoolcalendarevent.CalendarEventCategory.Exam,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Science Test",
+            Description = "Science assessment.",
+            StartDate = new DateTime(2026, 9, 15),
+            EndDate = new DateTime(2026, 9, 15),
+            Category = Schoolcalendarevent.CalendarEventCategory.Exam,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Term 3 Examinations",
+            Description = "End-of-term examinations.",
+            StartDate = new DateTime(2026, 10, 19),
+            EndDate = new DateTime(2026, 10, 30),
+            Category = Schoolcalendarevent.CalendarEventCategory.Exam,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+
+        // ============================================================
+        // SPORTS
+        // ============================================================
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Inter-House Rugby",
+            Description = "Inter-house rugby fixtures.",
+            StartDate = new DateTime(2026, 9, 5),
+            EndDate = new DateTime(2026, 9, 5),
+            Category = Schoolcalendarevent.CalendarEventCategory.Sports,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Sports Day",
+            Description = "Annual school sports day.",
+            StartDate = new DateTime(2026, 9, 19),
+            EndDate = new DateTime(2026, 9, 19),
+            Category = Schoolcalendarevent.CalendarEventCategory.Sports,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Saturday Sports Fixtures",
+            Description = "School sports fixtures.",
+            StartDate = new DateTime(2026, 10, 3),
+            EndDate = new DateTime(2026, 10, 3),
+            Category = Schoolcalendarevent.CalendarEventCategory.Sports,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+
+        // ============================================================
+        // CULTURAL / SCHOOL EVENTS
+        // ============================================================
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Cultural Evening",
+            Description = "School cultural evening.",
+            StartDate = new DateTime(2026, 9, 25),
+            EndDate = new DateTime(2026, 9, 25),
+            Category = Schoolcalendarevent.CalendarEventCategory.Cultural,
+            DiscourageLeave = true,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "Music Festival",
+            Description = "Annual school music festival.",
+            StartDate = new DateTime(2026, 10, 10),
+            EndDate = new DateTime(2026, 10, 10),
+            Category = Schoolcalendarevent.CalendarEventCategory.Cultural,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        },
+
+
+        // ============================================================
+        // HOLIDAYS
+        // ============================================================
+
+        new Schoolcalendarevent.SchoolCalendarEvent
+        {
+            Title = "School Holiday",
+            Description = "School holiday.",
+            StartDate = new DateTime(2026, 9, 24),
+            EndDate = new DateTime(2026, 9, 24),
+            Category = Schoolcalendarevent.CalendarEventCategory.Holiday,
+            DiscourageLeave = false,
+            CreatedBy = "System",
+            CreatedAt = DateTime.Now,
+            IsArchived = false
+        }
+    };
+
+        foreach (var calendarEvent in events)
+        {
+            var exists = context.SchoolCalendarEvents.Any(e =>
+                e.Title == calendarEvent.Title &&
+                e.StartDate == calendarEvent.StartDate);
+
+            if (!exists)
+            {
+                context.SchoolCalendarEvents.Add(calendarEvent);
+            }
+        }
+
+        context.SaveChanges();
+    }
 }
-    
+
