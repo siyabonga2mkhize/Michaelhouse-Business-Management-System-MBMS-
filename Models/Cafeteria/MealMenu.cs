@@ -51,6 +51,11 @@ namespace Michaelhouse.Models.Cafeteria
         public bool IsKitchenReady { get; set; }
 
         public DateTime? KitchenReadyDate { get; set; }
+        public bool IsProductionConfirmed { get; set; }
+
+        public DateTime? ProductionConfirmedAt { get; set; }
+
+        public int? ProductionConfirmedByUserId { get; set; }
         public bool ChefChallengeRequested { get; set; }
 
         public string ChefChallengeReason { get; set; }

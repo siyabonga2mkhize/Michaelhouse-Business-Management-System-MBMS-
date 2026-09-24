@@ -301,6 +301,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CafeteriaController.cs" />
     <Compile Include="Controllers\CoachController.cs" />
+    <Compile Include="Controllers\DietitianController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
@@ -322,6 +323,7 @@
     <Compile Include="Controllers\RoomController.cs" />
     <Compile Include="Controllers\SchoolcalendarController.cs" />
     <Compile Include="Controllers\SchoolClassesController.cs" />
+    <Compile Include="Controllers\StudentMealPlanController.cs" />
     <Compile Include="Controllers\StudentQRCodeController.cs" />
     <Compile Include="Controllers\StudentProfileController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
@@ -383,6 +385,22 @@
     <Compile Include="Migrations\202609232310141_AddChefChallengeFields.Designer.cs">
       <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.cs" />
+    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.Designer.cs">
+      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240101119_AddMealPlans.cs" />
+    <Compile Include="Migrations\202609240101119_AddMealPlans.Designer.cs">
+      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.cs" />
+    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.Designer.cs">
+      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.cs" />
+    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.Designer.cs">
+      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -396,6 +414,7 @@
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Cafeteria\Ingredient.cs" />
     <Compile Include="Models\Cafeteria\MealMenu.cs" />
+    <Compile Include="Models\Cafeteria\MealPlan.cs" />
     <Compile Include="Models\Cafeteria\MenuItem.cs" />
     <Compile Include="Models\Cafeteria\MenuScheduleItem.cs" />
     <Compile Include="Models\Cafeteria\NutritionCategory.cs" />
@@ -500,6 +519,8 @@
     <Compile Include="Models\ViewModels\CafeteriaViewModels.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
+    <Compile Include="Models\ViewModels\MealPlanViewModels.cs" />
+    <Compile Include="Models\ViewModels\ProductionPlanViewModels.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
     <Compile Include="Models\VisitorAccessRequest.cs" />
     <Compile Include="Models\Yearresult.cs" />
@@ -517,6 +538,7 @@
     <Compile Include="Services\CompatibilityScoringService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MealPlanService.cs" />
     <Compile Include="Services\MenuSchedulingService.cs" />
     <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
@@ -729,6 +751,11 @@
     <Content Include="Views\Coach\Create.cshtml" />
     <Content Include="Views\Coach\Index.cshtml" />
     <Content Include="Views\Coach\Edit.cshtml" />
+    <Content Include="Views\StudentMealPlan\Index.cshtml" />
+    <Content Include="Views\Dietitian\Index.cshtml" />
+    <Content Include="Views\Dietitian\Review.cshtml" />
+    <Content Include="Views\Cafeteria\View.cshtml" />
+    <Content Include="Views\Cafeteria\ProductionPlan.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -948,6 +975,18 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609232310141_AddChefChallengeFields.resx">
       <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240044568_AddIngredientAllergens.resx">
+      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240101119_AddMealPlans.resx">
+      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240318188_AddRecipeKitchenTiming.resx">
+      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240340578_AddProductionConfirmation.resx">
+      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

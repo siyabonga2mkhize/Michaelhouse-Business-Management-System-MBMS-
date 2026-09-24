@@ -83,6 +83,10 @@ namespace Michaelhouse.Models
 
         public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
 
+        public DbSet<MealPlan> MealPlans { get; set; }
+
+        public DbSet<MealPlanItem> MealPlanItems { get; set; }
+
         // ─── Driver ───────────────────────────────────────────────────────
         public DbSet<DriverApplication> DriverApplications { get; set; }
         public DbSet<Driver> Drivers { get; set; }

@@ -364,6 +364,63 @@ namespace Michaelhouse.Controllers
 
             return View(model);
         }
+        // ============================================================
+        // GET: Cafeteria/ProductionPlan/5
+        // Chef + kitchen staff view: what to cook, when, where.
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Chef, CafeteriaManager, Admin")]
+        public ActionResult ProductionPlan(int id)
+        {
+            var menu = _db.MealMenus.FirstOrDefault(m => m.Id == id);
+
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            try
+            {
+                var plan = _menuService.BuildProductionPlan(id);
+                return View(plan);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Review", new { id = id });
+            }
+        }
+
+        // ============================================================
+        // POST: Cafeteria/ConfirmProduction/5
+        // Chef confirms the production sheet — human sign-off.
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult ConfirmProduction(int id)
+        {
+            var menu = _db.MealMenus.FirstOrDefault(m => m.Id == id);
+
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            menu.IsProductionConfirmed = true;
+            menu.ProductionConfirmedAt = DateTime.UtcNow;
+            menu.ProductionConfirmedByUserId = (int)(Session["UserId"] ?? 0);
+
+            _db.SaveChanges();
+
+            TempData["SuccessMessage"] =
+                "Production plan confirmed. The kitchen can now prepare to schedule.";
+
+            return RedirectToAction("ProductionPlan", new { id = id });
+        }
+
 
         // ============================================================
         // POST: Cafeteria/ConfirmSubstitution

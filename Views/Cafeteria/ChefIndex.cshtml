@@ -1,6 +1,7 @@
 ﻿@using System.Linq
 @using Michaelhouse.Models.Cafeteria
 @{
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Kitchen Review";
 
     var pendingMenus = ViewBag.PendingMenus as List<MealMenu> ?? new List<MealMenu>();
@@ -16,6 +17,15 @@
         </p>
     </div>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
     <!-- PENDING MENUS -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white">
@@ -24,7 +34,7 @@
         </div>
 
         <div class="card-body p-0">
-            @if (!pendingMenus.Any())
+            @if (pendingMenus.Count == 0)
             {
                 <div class="p-4 text-muted">
                     No menus awaiting review. The Meal Coordinator will generate one when ready.
@@ -69,6 +79,10 @@
                                            class="btn btn-sm btn-primary">
                                             Open Review
                                         </a>
+                                        <a href="@Url.Action("ProductionPlan", "Cafeteria", new { id = menu.Id })"
+                                           class="btn btn-sm btn-outline-success ms-1">
+                                            Production Plan
+                                        </a>
                                     </td>
                                 </tr>
                             }
@@ -86,7 +100,7 @@
         </div>
 
         <div class="card-body p-0">
-            @if (!acceptedMenus.Any())
+            @if (acceptedMenus.Count == 0)
             {
                 <div class="p-4 text-muted">No accepted menus yet.</div>
             }
@@ -114,9 +128,9 @@
                                         @(menu.LastModifiedDate.HasValue ? menu.LastModifiedDate.Value.ToString("dd MMM yyyy HH:mm") : "-")
                                     </td>
                                     <td class="text-end">
-                                        <a href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = menu.Id })"
+                                        <a href="@Url.Action("ProductionPlan", "Cafeteria", new { id = menu.Id })"
                                            class="btn btn-sm btn-outline-success">
-                                            View Kitchen List
+                                            Production Plan
                                         </a>
                                     </td>
                                 </tr>
@@ -129,4 +143,3 @@
     </div>
 
 </div>
-

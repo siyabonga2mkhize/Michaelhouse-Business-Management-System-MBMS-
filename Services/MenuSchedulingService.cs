@@ -864,7 +864,171 @@ namespace Michaelhouse.Services
                 .OrderBy(x => x.IngredientName)
                 .ToList();
         }
+        // ============================================================
+        // UC15: BUILD KITCHEN PRODUCTION PLAN
+        // Given an accepted menu, produce a day-by-day schedule
+        // showing what to cook, when to start, and at what time
+        // it will be ready.
+        // ============================================================
 
+        public ProductionPlanViewModel BuildProductionPlan(int mealMenuId)
+        {
+            var menu = _db.MealMenus
+                .Include(m => m.ScheduleItems.Select(s => s.MenuItem.Recipe.RecipeIngredients.Select(ri => ri.Ingredient)))
+                .FirstOrDefault(m => m.Id == mealMenuId);
+
+            if (menu == null)
+            {
+                throw new InvalidOperationException("Menu not found.");
+            }
+
+            var ingredientStock = _db.Ingredients
+                .Where(i => i.IsActive)
+                .ToDictionary(
+                    i => i.Id,
+                    i => i.FarmAvailableQuantity + i.ExternalAvailableQuantity);
+
+            var vm = new ProductionPlanViewModel
+            {
+                MenuId = menu.Id,
+                WeekStart = menu.StartDate.Date,
+                WeekEnd = menu.EndDate.Date,
+                IsProductionConfirmed = menu.IsProductionConfirmed,
+                ConfirmedAt = menu.ProductionConfirmedAt,
+                TotalMeals = menu.ScheduleItems.Count
+            };
+
+            var serveTimes = new Dictionary<MealSlot, TimeSpan>
+            {
+                { MealSlot.Breakfast, new TimeSpan(7, 0, 0) },
+                { MealSlot.Lunch, new TimeSpan(12, 30, 0) },
+                { MealSlot.Dinner, new TimeSpan(18, 0, 0) }
+            };
+
+            var weekTotals = new Dictionary<int, IngredientLineViewModel>();
+
+            for (var date = menu.StartDate.Date;
+                 date <= menu.EndDate.Date;
+                 date = date.AddDays(1))
+            {
+                var dayVm = new ProductionDayViewModel { Date = date };
+                var dayTotals = new Dictionary<int, IngredientLineViewModel>();
+
+                foreach (var slot in new[] { MealSlot.Breakfast, MealSlot.Lunch, MealSlot.Dinner })
+                {
+                    var scheduled = menu.ScheduleItems
+                        .FirstOrDefault(s => s.Date.Date == date.Date && s.MealSlot == slot);
+
+                    if (scheduled == null || scheduled.MenuItem == null)
+                    {
+                        continue;
+                    }
+
+                    var recipe = scheduled.MenuItem.Recipe;
+                    int portions = scheduled.CalculatedPortions;
+
+                    int prepMin = recipe != null ? recipe.PrepTimeMinutes : 0;
+                    int cookMin = recipe != null ? recipe.CookTimeMinutes : 0;
+                    string station = recipe != null && !string.IsNullOrWhiteSpace(recipe.Station)
+                        ? recipe.Station
+                        : "Line";
+
+                    TimeSpan serveTime = serveTimes[slot];
+                    TimeSpan startTime = serveTime.Subtract(TimeSpan.FromMinutes(prepMin + cookMin));
+                    TimeSpan readyTime = serveTime.Subtract(TimeSpan.FromMinutes(5));
+
+                    var task = new ProductionTaskViewModel
+                    {
+                        DishName = scheduled.MenuItem.Name,
+                        Station = station,
+                        Portions = portions,
+                        PrepMinutes = prepMin,
+                        CookMinutes = cookMin,
+                        StartTime = startTime,
+                        ReadyTime = readyTime
+                    };
+
+                    if (recipe != null && recipe.RecipeIngredients != null)
+                    {
+                        foreach (var ri in recipe.RecipeIngredients)
+                        {
+                            if (ri.Ingredient == null) continue;
+
+                            decimal required = ri.QuantityPerStandardPortion * portions;
+                            decimal available = ingredientStock.ContainsKey(ri.IngredientId)
+                                ? ingredientStock[ri.IngredientId]
+                                : 0m;
+
+                            var line = new IngredientLineViewModel
+                            {
+                                IngredientId = ri.IngredientId,
+                                IngredientName = ri.Ingredient.Name,
+                                Unit = ri.Ingredient.Unit,
+                                QuantityPerPortion = ri.QuantityPerStandardPortion,
+                                TotalRequired = required,
+                                StockAvailable = available,
+                                Shortfall = required > available ? required - available : 0m
+                            };
+
+                            task.Ingredients.Add(line);
+                            AddOrSum(dayTotals, line);
+                            AddOrSum(weekTotals, line);
+                        }
+                    }
+
+                    var slotVm = new ProductionSlotViewModel
+                    {
+                        MealSlot = slot.ToString(),
+                        ServeTime = serveTime,
+                        Portions = portions,
+                        Tasks = new List<ProductionTaskViewModel> { task }
+                    };
+
+                    dayVm.Slots.Add(slotVm);
+                }
+
+                dayVm.DayTotalIngredients = dayTotals.Values
+                    .OrderBy(x => x.IngredientName)
+                    .ToList();
+
+                vm.Days.Add(dayVm);
+            }
+
+            vm.WeekTotalIngredients = weekTotals.Values
+                .OrderBy(x => x.IngredientName)
+                .ToList();
+
+            return vm;
+        }
+
+        private void AddOrSum(
+            Dictionary<int, IngredientLineViewModel> bucket,
+            IngredientLineViewModel line)
+        {
+            if (bucket.ContainsKey(line.IngredientId))
+            {
+                var existing = bucket[line.IngredientId];
+                existing.TotalRequired += line.TotalRequired;
+                existing.Shortfall = existing.TotalRequired > existing.StockAvailable
+                    ? existing.TotalRequired - existing.StockAvailable
+                    : 0m;
+            }
+            else
+            {
+                bucket[line.IngredientId] = new IngredientLineViewModel
+                {
+                    IngredientId = line.IngredientId,
+                    IngredientName = line.IngredientName,
+                    Unit = line.Unit,
+                    QuantityPerPortion = line.QuantityPerPortion,
+                    TotalRequired = line.TotalRequired,
+                    StockAvailable = line.StockAvailable,
+                    Shortfall = line.Shortfall
+                };
+            }
+        }
+        
+   
         // ============================================================
         // MEAL SLOT COMPATIBILITY
         // ============================================================

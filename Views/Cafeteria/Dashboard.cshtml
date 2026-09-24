@@ -1,6 +1,7 @@
 ﻿@using System.Linq
 @using Michaelhouse.Models.Cafeteria
 @{
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Dashboard";
 
     var pendingMenus = ViewBag.PendingMenus as List<MealMenu> ?? new List<MealMenu>();

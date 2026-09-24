@@ -968,17 +968,22 @@
                         <a class="nav-link" href="@Url.Action("Create", "LeaveRequest")">
                             <i class="bi bi-truck"></i> <span class="link-text">Leave Request</span>
                         </a>
+                        <!-- ===== UC13: MY MEAL PLAN ===== -->
+                        <a class="nav-link @(currentController == "StudentMealPlan" ? "active" : "")"
+                           href="@Url.Action("Index", "StudentMealPlan")">
+                            <i class="bi bi-egg-fried"></i> <span class="link-text">My Meal Plan</span>
+                        </a>
 
                         @*<a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i>
-                                <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i>
+                <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                         @*<div class="sidebar-label text-truncate">Settings</div>
-                            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
-                               href="@Url.Action("Profile", "Account")">
-                                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
-                            </a>*@
+            <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+               href="@Url.Action("Profile", "Account")">
+                <i class="bi bi-person-gear"></i> <span class="link-text text-truncate">My Profile</span>
+            </a>*@
                     }
 
                     else if (userRole == "Teacher")
@@ -1281,7 +1286,40 @@
                             <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
                         </a>
                     }
+                    else if (userRole == "Dietitian")
+                    {
+                        <div class="sidebar-label">Dietitian</div>
 
+                        <a class="nav-link @(currentController == "Dietitian" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Dietitian")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Review Queue</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+                    else if (userRole == "Dietitian")
+                    {
+                        <div class="sidebar-label">Dietitian</div>
+
+                        <a class="nav-link @(currentController == "Dietitian" && currentAction == "Index" ? "active" : "")"
+                           href="@Url.Action("Index", "Dietitian")">
+                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Review Queue</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Settings</div>
+
+                        <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
+                           href="@Url.Action("Profile", "Account")">
+                            <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
                 </nav>
 
             </div>

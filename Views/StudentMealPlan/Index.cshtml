@@ -1,0 +1,555 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model Michaelhouse.Models.ViewModels.MealPlanBuildViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "My Meal Plan";
+
+    var statusText = "";
+    var statusClass = "";
+
+    if (Model.Status == MealPlanStatus.Draft) { statusText = "Draft"; statusClass = "bg-secondary"; }
+    else if (Model.Status == MealPlanStatus.SubmittedToDietitian) { statusText = "Awaiting Dietitian"; statusClass = "bg-warning text-dark"; }
+    else if (Model.Status == MealPlanStatus.Approved) { statusText = "Approved"; statusClass = "bg-success"; }
+    else if (Model.Status == MealPlanStatus.SentBack) { statusText = "Sent Back — Action Needed"; statusClass = "bg-danger"; }
+
+    var totalSlots = Model.Days.Count * 3;
+    int filledSlots = 0;
+    foreach (var d in Model.Days)
+    {
+        foreach (var s in d.Slots)
+        {
+            if (s.CurrentPickMenuItemId.HasValue) { filledSlots = filledSlots + 1; }
+        }
+    }
+}
+
+<style>
+    .mp-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .mp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .mp-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .mp-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .mp-meta strong {
+            color: #333;
+        }
+
+    .mp-banner {
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        border: 1px solid;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+        .mp-banner.warn {
+            background: #fff7ed;
+            border-color: #fed7aa;
+            color: #9a3412;
+        }
+
+        .mp-banner.info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .mp-banner.ok {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+    .mp-progress {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .mp-progress > div {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+        }
+
+        .mp-progress .label {
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #6b7280;
+            font-weight: 700;
+        }
+
+        .mp-progress .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin-top: .25rem;
+        }
+
+    .mp-day {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+    }
+
+    .mp-day-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .mp-day-header .date {
+            font-weight: 700;
+            font-size: .95rem;
+            color: #111827;
+        }
+
+        .mp-day-header .progress {
+            font-size: .78rem;
+            color: #6b7280;
+        }
+
+    .mp-slot {
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .mp-slot:last-child {
+            border-bottom: none;
+        }
+
+    .mp-slot-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: .75rem;
+    }
+
+    .mp-slot-name {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .mp-slot-tag {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+        .mp-slot-tag.matchday {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .mp-slot-tag.prematch {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .mp-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .75rem;
+    }
+
+    @@media (max-width: 900px) {
+        .mp-options {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .mp-option {
+        position: relative;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .9rem 1rem;
+        cursor: pointer;
+        transition: all .15s;
+        background: #fff;
+        display: block;
+    }
+
+        .mp-option:hover {
+            border-color: #C21E2E;
+        }
+
+        .mp-option input[type=radio] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .mp-option.selected {
+            border-color: #C21E2E;
+            background: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(194,30,46,0.15);
+        }
+
+        .mp-option .name {
+            font-weight: 600;
+            font-size: .9rem;
+            color: #111827;
+            margin-bottom: .15rem;
+        }
+
+        .mp-option .diet {
+            font-size: .72rem;
+            color: #9ca3af;
+            margin-bottom: .5rem;
+        }
+
+        .mp-option .stats {
+            font-size: .75rem;
+            color: #6b7280;
+        }
+
+        .mp-option .tags {
+            margin-top: .5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .3rem;
+        }
+
+        .mp-option .tag {
+            font-size: .65rem;
+            padding: .15rem .45rem;
+            border-radius: 3px;
+            font-weight: 600;
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+            .mp-option .tag.default {
+                background: #fee2e2;
+                color: #991b1b;
+            }
+
+            .mp-option .tag.protein {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .mp-option .tag.carb {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .mp-option .tag.farm {
+                background: #d1fae5;
+                color: #065f46;
+            }
+
+            .mp-option .tag.match {
+                background: #c7d2fe;
+                color: #3730a3;
+            }
+
+    .mp-actions {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+        margin: 2rem -1.5rem -1.5rem -1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+        .mp-actions .info {
+            font-size: .82rem;
+            color: #6b7280;
+        }
+
+            .mp-actions .info strong {
+                color: #111827;
+            }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mp-shell">
+
+        <div class="mp-header">
+            <div>
+                <h1>My Meal Plan</h1>
+                <div class="mp-meta">
+                    @Model.WeekStartDate.ToString("dd MMM") – @Model.WeekEndDate.ToString("dd MMM yyyy")
+                    &nbsp;·&nbsp;
+                    <strong>@filledSlots</strong> of <strong>@totalSlots</strong> meals chosen
+                </div>
+            </div>
+            <span class="badge @statusClass fs-6">@statusText</span>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (Model.Status == MealPlanStatus.SentBack && !string.IsNullOrWhiteSpace(Model.DietitianComment))
+        {
+            <div class="mp-banner warn">
+                <div style="font-size:1.5rem;">&larr;</div>
+                <div>
+                    <div style="font-weight:700; font-size:.95rem; margin-bottom:.15rem;">The Dietitian sent your plan back</div>
+                    <div style="font-size:.85rem;">@Model.DietitianComment</div>
+                    <div style="font-size:.78rem; margin-top:.35rem; opacity:.75;">Update your picks below and submit again.</div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Status == MealPlanStatus.Approved)
+        {
+            <div class="mp-banner ok">
+                <div style="font-size:1.5rem;">&check;</div>
+                <div>
+                    <div style="font-weight:700; font-size:.95rem;">Your plan has been approved</div>
+                    <div style="font-size:.85rem;">
+                        @if (!string.IsNullOrWhiteSpace(Model.DietitianComment))
+                        {
+                            @Model.DietitianComment
+                        }
+                        else
+                        {
+                            <text>You're all set for the week.</text>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Status == MealPlanStatus.SubmittedToDietitian)
+        {
+            <div class="mp-banner info">
+                <div style="font-size:1.5rem;">&hellip;</div>
+                <div>
+                    <div style="font-weight:700; font-size:.95rem;">Awaiting Dietitian review</div>
+                    <div style="font-size:.85rem;">
+                        Submitted
+                        @if (Model.SubmittedAt.HasValue)
+                        {
+                            <text>on @Model.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                        }
+                        — you'll see feedback here once they've reviewed it.
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Allergies)
+             || !string.IsNullOrWhiteSpace(Model.MedicalConditions)
+             || !string.IsNullOrWhiteSpace(Model.Sports))
+        {
+            <div class="mp-banner info">
+                <div style="font-size:1.5rem;">&#9881;</div>
+                <div>
+                    <div style="font-weight:700; font-size:.9rem;">How your plan is personalized</div>
+                    <div style="font-size:.8rem; margin-top:.25rem;">
+                        @if (!string.IsNullOrWhiteSpace(Model.Allergies))
+                        {
+                            <div><strong>Allergies:</strong> @Model.Allergies — these meals are excluded</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.MedicalConditions))
+                        {
+                            <div><strong>Medical conditions:</strong> @Model.MedicalConditions</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.Sports))
+                        {
+                            <div><strong>Sports:</strong> @Model.Sports — options ranked for athletic needs</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="mp-progress">
+            <div>
+                <div class="label">Picks made</div>
+                <div class="value">@filledSlots / @totalSlots</div>
+            </div>
+            <div>
+                <div class="label">Allergen-safe options</div>
+                <div class="value">@(totalSlots * 3)</div>
+            </div>
+            <div>
+                <div class="label">Status</div>
+                <div class="value" style="font-size:1rem;">@statusText</div>
+            </div>
+        </div>
+
+        <form action="@Url.Action("Save", "StudentMealPlan")" method="post" id="mealPlanForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="mealPlanId" value="@Model.MealPlanId" />
+
+            @foreach (var day in Model.Days)
+            {
+                int dayFilled = 0;
+                foreach (var s in day.Slots)
+                {
+                    if (s.CurrentPickMenuItemId.HasValue) { dayFilled = dayFilled + 1; }
+                }
+
+                <div class="mp-day">
+                    <div class="mp-day-header">
+                        <div class="date">@day.Date.ToString("dddd, dd MMMM")</div>
+                        <div class="progress">@dayFilled of 3 chosen</div>
+                    </div>
+
+                    @foreach (var slot in day.Slots)
+                    {
+                        var slotKey = day.Date.ToString("yyyy-MM-dd") + "|" + slot.MealSlot.ToString();
+
+                        <div class="mp-slot">
+                            <div class="mp-slot-header">
+                                <div class="mp-slot-name">@slot.MealSlot</div>
+
+                                @if (slot.IsMatchDay)
+                                {
+                                    <span class="mp-slot-tag matchday">@(string.IsNullOrEmpty(slot.MatchDescription) ? "Match day" : slot.MatchDescription)</span>
+                                }
+                                else if (slot.IsDayBeforeMatch)
+                                {
+                                    <span class="mp-slot-tag prematch">Pre-match</span>
+                                }
+                            </div>
+
+                            <div class="mp-options">
+                                @foreach (var opt in slot.Options)
+                                {
+                                    var isSelected = slot.CurrentPickMenuItemId == opt.MenuItemId;
+                                    var inputId = "pick_" + slotKey.Replace("-", "").Replace("|", "_") + "_" + opt.MenuItemId;
+
+                                    <label class="mp-option @(isSelected ? "selected" : "")" for="@inputId">
+                                        <input type="radio"
+                                               id="@inputId"
+                                               name="pick[@slotKey]"
+                                               value="@opt.MenuItemId"
+                                               @(isSelected ? "checked" : "")
+                                               onchange="selectOption(this);" />
+
+                                        <div class="name">@opt.Name</div>
+                                        <div class="diet">@opt.DietaryClassification</div>
+                                        <div class="stats">
+                                            @opt.CaloriesPerPortion.ToString("0") kcal ·
+                                            @opt.ProteinGramsPerPortion.ToString("0.0")g protein
+                                        </div>
+
+                                        <div class="tags">
+                                            @if (opt.IsDefault)
+                                            {
+                                                <span class="tag default">Chef's choice</span>
+                                            }
+                                            @if (opt.NutritionCategory == NutritionCategory.HighProtein)
+                                            {
+                                                <span class="tag protein">High protein</span>
+                                            }
+                                            @if (opt.NutritionCategory == NutritionCategory.HighCarb)
+                                            {
+                                                <span class="tag carb">High carb</span>
+                                            }
+                                            @if (opt.Tags.Contains("Match-day recovery"))
+                                            {
+                                                <span class="tag match">Match-day recovery</span>
+                                            }
+                                            @if (opt.Tags.Contains("Pre-match loading"))
+                                            {
+                                                <span class="tag match">Pre-match loading</span>
+                                            }
+                                            @if (opt.Tags.Contains("Farm-grown"))
+                                            {
+                                                <span class="tag farm">Farm-grown</span>
+                                            }
+                                        </div>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Model.IsEditable)
+            {
+                <div class="mp-actions">
+                    <div class="info">
+                        <strong>@filledSlots</strong> of <strong>@totalSlots</strong> picks made.
+                        @if (filledSlots < totalSlots)
+                        {
+                            <span>You must choose every slot before submitting.</span>
+                        }
+                    </div>
+                    <div style="display:flex; gap:.65rem;">
+                        <button type="submit"
+                                formaction="@Url.Action("Save", "StudentMealPlan")"
+                                class="btn btn-outline-secondary">
+                            Save Draft
+                        </button>
+                        <button type="submit"
+                                formaction="@Url.Action("Submit", "StudentMealPlan")"
+                                class="btn btn-success"
+                                onclick="return confirm('Submit this plan to the Dietitian? You can no longer edit it after submission.');">
+                            Submit to Dietitian
+                        </button>
+                    </div>
+                </div>
+            }
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function selectOption(radio) {
+        var group = document.querySelectorAll('input[name="' + radio.name + '"]');
+
+        group.forEach(function (r) {
+            var parent = r.closest('.mp-option');
+            if (parent) {
+                parent.classList.toggle('selected', r.checked);
+            }
+        });
+    }
+</script>

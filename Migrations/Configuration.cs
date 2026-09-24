@@ -422,6 +422,78 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             });
             context.SaveChanges();
         }
+
+        if (!context.Users.Any(u => u.Role == "Dietitian"))
+        {
+            context.Users.Add(new AppUser
+            {
+                Name = "School Dietitian",
+                Email = "dietitian@michaelhouse.co.za",
+                PasswordHash = HashPassword("Dietitian@123"),
+                Role = "Dietitian"
+            });
+            context.SaveChanges();
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // UC13: Seed Student logins + profiles
+        // ──────────────────────────────────────────────────────────────
+
+        var studentSeeds = new[]
+        {
+            new { Id = 1, Email = "amina.khan@michaelhouse.co.za",      Allergies = "Nuts",   Medical = "",         Sport = "Rugby" },
+            new { Id = 2, Email = "thabo.ntuli@michaelhouse.co.za",     Allergies = "",       Medical = "",         Sport = "Cricket" },
+            new { Id = 3, Email = "lindiwe.mthembu@michaelhouse.co.za", Allergies = "Dairy",  Medical = "",         Sport = "Swimming" },
+            new { Id = 4, Email = "sipho.zulu@michaelhouse.co.za",      Allergies = "",       Medical = "Diabetes", Sport = "" },
+            new { Id = 5, Email = "nomsa.dlamini@michaelhouse.co.za",   Allergies = "Gluten", Medical = "",         Sport = "Netball" }
+        };
+
+        foreach (var seed in studentSeeds)
+        {
+            var student = context.Students.FirstOrDefault(s => s.StudentId == seed.Id);
+            if (student == null) continue;
+
+            if (student.UserId == null)
+            {
+                var existing = context.Users.FirstOrDefault(u => u.Email == seed.Email);
+                if (existing == null)
+                {
+                    existing = new AppUser
+                    {
+                        Name = student.FirstName + " " + student.LastName,
+                        Email = seed.Email,
+                        PasswordHash = HashPassword("Student@123"),
+                        Role = "Student"
+                    };
+                    context.Users.Add(existing);
+                    context.SaveChanges();
+                }
+
+                student.UserId = existing.UserId;
+                context.SaveChanges();
+            }
+
+            var profile = context.StudentProfiles.FirstOrDefault(p => p.StudentId == student.StudentId);
+            if (profile == null)
+            {
+                profile = new StudentProfile
+                {
+                    StudentId = student.StudentId,
+                    Allergies = seed.Allergies,
+                    MedicalConditions = seed.Medical,
+                    Sports = seed.Sport,
+                    IsActive = true
+                };
+                context.StudentProfiles.Add(profile);
+            }
+            else
+            {
+                profile.Allergies = seed.Allergies;
+                profile.MedicalConditions = seed.Medical;
+                profile.Sports = seed.Sport;
+            }
+            context.SaveChanges();
+        }
         SeedMenuItems(context);
         SeedRecipesAndIngredients(context);
 
@@ -2629,6 +2701,38 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
 
         context.SaveChanges();
 
+        // =============================================================
+        // ALLERGEN TAGS
+        // =============================================================
+
+        var allergenMap = new Dictionary<string, string>
+        {
+            { "Milk",              "Dairy" },
+            { "Greek Yoghurt",     "Dairy" },
+            { "Cheese",            "Dairy" },
+            { "Egg",               "Egg" },
+            { "Whole Wheat Bread", "Gluten" },
+            { "Breakfast Wrap",    "Gluten" },
+            { "Pasta",             "Gluten" },
+            { "Couscous",          "Gluten" },
+            { "Weet-Bix",          "Gluten" },
+            { "Granola",           "Gluten" },
+            { "Peanut Butter",     "Nuts" },
+            { "Hake Fillet",       "Fish" }
+        };
+
+        foreach (var kvp in allergenMap)
+        {
+            var ing = context.Ingredients
+                .FirstOrDefault(x => x.Name == kvp.Key);
+
+            if (ing != null)
+            {
+                ing.Allergens = kvp.Value;
+            }
+        }
+
+        context.SaveChanges();
 
         // =============================================================
         // RECIPES
@@ -3116,7 +3220,6 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         }
     };
 
-
         // =============================================================
         // CREATE / UPDATE RECIPES AND LINK MENU ITEMS
         // =============================================================
@@ -3194,6 +3297,97 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
                     recipeIngredient.PreparationNotes =
                         ingredientData.Notes;
                 }
+            }
+        }
+
+        // =============================================================
+        // UC15: KITCHEN TIMING + STATION
+        // =============================================================
+
+        var kitchenTiming = new Dictionary<string, int[]>
+        {
+            { "Oats, Fruit & Yoghurt",               new[] { 15, 10 } },
+            { "Scrambled Eggs & Toast",              new[] {  5, 10 } },
+            { "Breakfast Wrap",                      new[] { 10,  5 } },
+            { "Weet-Bix, Banana & Milk",             new[] {  5,  0 } },
+            { "Peanut Butter Toast & Fruit",         new[] {  5,  3 } },
+            { "Vegetable Omelette & Toast",          new[] { 10, 10 } },
+            { "Chicken Breakfast Muffin",            new[] { 15, 10 } },
+            { "Greek Yoghurt, Granola & Berries",    new[] {  5,  0 } },
+            { "French Toast & Fresh Fruit",          new[] { 10, 10 } },
+            { "Egg & Cheese Breakfast Bowl",         new[] { 10, 10 } },
+
+            { "Farm Fresh Chicken & Vegetables",     new[] { 20, 30 } },
+            { "Beef Pasta",                          new[] { 20, 45 } },
+            { "Vegetable Curry",                     new[] { 15, 30 } },
+            { "Grilled Fish & Rice",                 new[] { 15, 25 } },
+            { "Chicken & Brown Rice Bowl",           new[] { 15, 30 } },
+            { "Beef & Vegetable Stir-Fry",           new[] { 20, 20 } },
+            { "Lentil & Vegetable Stew",             new[] { 15, 60 } },
+            { "Chicken Pasta Primavera",             new[] { 20, 30 } },
+            { "Chickpea & Rice Bowl",                new[] { 15, 25 } },
+            { "Turkey & Couscous Bowl",              new[] { 15, 20 } },
+
+            { "Chicken & Sweet Potato",              new[] { 15, 45 } },
+            { "Beef & Vegetable Casserole",          new[] { 20, 90 } },
+            { "Chickpea & Vegetable Curry",          new[] { 15, 30 } },
+            { "Roast Chicken, Potatoes & Vegetables",new[] { 20, 75 } },
+            { "Baked Hake & Potato Wedges",          new[] { 15, 35 } },
+            { "Chicken & Vegetable Noodles",         new[] { 15, 20 } },
+            { "Beef Lasagne & Garden Salad",         new[] { 30, 45 } },
+            { "Vegetable & Bean Chilli",             new[] { 15, 45 } },
+            { "Herb Chicken, Rice & Broccoli",       new[] { 15, 30 } },
+            { "Fish, Rice & Mixed Vegetables",       new[] { 15, 30 } }
+        };
+
+        var stationMap = new Dictionary<string, string>
+        {
+            { "Oats, Fruit & Yoghurt",               "Cold Prep" },
+            { "Scrambled Eggs & Toast",              "Stove" },
+            { "Breakfast Wrap",                      "Stove" },
+            { "Weet-Bix, Banana & Milk",             "Cold Prep" },
+            { "Peanut Butter Toast & Fruit",         "Cold Prep" },
+            { "Vegetable Omelette & Toast",          "Stove" },
+            { "Chicken Breakfast Muffin",            "Stove" },
+            { "Greek Yoghurt, Granola & Berries",    "Cold Prep" },
+            { "French Toast & Fresh Fruit",          "Stove" },
+            { "Egg & Cheese Breakfast Bowl",         "Stove" },
+
+            { "Farm Fresh Chicken & Vegetables",     "Grill" },
+            { "Beef Pasta",                          "Stove" },
+            { "Vegetable Curry",                     "Stove" },
+            { "Grilled Fish & Rice",                 "Grill" },
+            { "Chicken & Brown Rice Bowl",           "Grill" },
+            { "Beef & Vegetable Stir-Fry",           "Stove" },
+            { "Lentil & Vegetable Stew",             "Stove" },
+            { "Chicken Pasta Primavera",             "Stove" },
+            { "Chickpea & Rice Bowl",                "Stove" },
+            { "Turkey & Couscous Bowl",              "Grill" },
+
+            { "Chicken & Sweet Potato",              "Oven" },
+            { "Beef & Vegetable Casserole",          "Oven" },
+            { "Chickpea & Vegetable Curry",          "Stove" },
+            { "Roast Chicken, Potatoes & Vegetables","Oven" },
+            { "Baked Hake & Potato Wedges",          "Oven" },
+            { "Chicken & Vegetable Noodles",         "Stove" },
+            { "Beef Lasagne & Garden Salad",         "Oven" },
+            { "Vegetable & Bean Chilli",             "Stove" },
+            { "Herb Chicken, Rice & Broccoli",       "Grill" },
+            { "Fish, Rice & Mixed Vegetables",       "Oven" }
+        };
+
+        foreach (var kvp in kitchenTiming)
+        {
+            var r = context.Recipes.FirstOrDefault(x => x.Name == kvp.Key);
+            if (r == null) continue;
+
+            r.PrepTimeMinutes = kvp.Value[0];
+            r.CookTimeMinutes = kvp.Value[1];
+
+            string station;
+            if (stationMap.TryGetValue(kvp.Key, out station))
+            {
+                r.Station = station;
             }
         }
 
@@ -3507,6 +3701,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             CreatedBy = "System",
             CreatedAt = DateTime.Now,
             IsArchived = false
+
         }
     };
 

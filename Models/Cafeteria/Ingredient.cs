@@ -20,6 +20,13 @@ namespace Michaelhouse.Models.Cafeteria
         [Required]
         [StringLength(30)]
         public string Unit { get; set; }
+        /// <summary>
+        /// Comma-separated allergen tags. Possible values:
+        /// Nuts, Dairy, Gluten, Egg, Soy, Fish, Shellfish, Sesame.
+        /// Empty if the ingredient contains none of these.
+        /// </summary>
+        [StringLength(200)]
+        public string Allergens { get; set; }
 
         [Range(0, 1000000)]
         public decimal CaloriesPerUnit { get; set; }
