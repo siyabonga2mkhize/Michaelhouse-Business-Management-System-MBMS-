@@ -411,6 +411,17 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             });
             context.SaveChanges();
         }
+        if (!context.Users.Any(u => u.Role == "Coach"))
+        {
+            context.Users.Add(new AppUser
+            {
+                Name = "Sports Coach",
+                Email = "coach@michaelhouse.co.za",
+                PasswordHash = HashPassword("Coach@123"),
+                Role = "Coach"
+            });
+            context.SaveChanges();
+        }
         SeedMenuItems(context);
         SeedRecipesAndIngredients(context);
 

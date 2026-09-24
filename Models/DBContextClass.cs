@@ -139,6 +139,7 @@ namespace Michaelhouse.Models
         public DbSet<TermCalendar> TermCalendars { get; set; }
         public DbSet<VisitorScanLog> VisitorScanLogs { get; set; }
         public DbSet<CampusRule> CampusRules { get; set; }
+        public DbSet<SportEvent> SportEvents { get; set; }
 
         // ─── Maintenance Management ─────────────────────────────────────
         public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }

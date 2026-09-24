@@ -446,6 +446,42 @@ namespace Michaelhouse.Controllers
 
             return RedirectToAction("ChefReview", new { id = id });
         }
+        // ============================================================
+        // POST: Cafeteria/RequestChanges
+        // Chef sends the menu back to the Coordinator with a reason.
+        // This is a soft push-back, not a rejection — the menu stays
+        // PendingReview so the Coordinator can respond.
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult RequestChanges(int id, string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["ErrorMessage"] = "Please explain what needs to change.";
+                return RedirectToAction("ChefReview", new { id = id });
+            }
+
+            MealMenu menu = _db.MealMenus.FirstOrDefault(x => x.Id == id);
+
+            if (menu == null)
+            {
+                return HttpNotFound();
+            }
+
+            menu.ChefChallengeRequested = true;
+            menu.ChefChallengeReason = reason.Trim();
+            menu.ChefChallengeDate = DateTime.UtcNow;
+
+            _db.SaveChanges();
+
+            TempData["SuccessMessage"] =
+                "Change request sent. The Meal Coordinator will review.";
+
+            return RedirectToAction("ChefReview", new { id = id });
+        }
 
 
         // ============================================================
@@ -464,9 +500,12 @@ namespace Michaelhouse.Controllers
                 MenuStatus = menu.MenuStatus,
                 IsKitchenReady = menu.IsKitchenReady,
                 KitchenReadyDate = menu.KitchenReadyDate,
+                ChefChallengeRequested = menu.ChefChallengeRequested,
+                ChefChallengeReason = menu.ChefChallengeReason,
+                ChefChallengeDate = menu.ChefChallengeDate,
                 RejectionReason = menu.RejectionReason
             };
-            
+
 
             model.ScheduleItems = menu.ScheduleItems
                 .OrderBy(x => x.Date)
@@ -531,18 +570,70 @@ namespace Michaelhouse.Controllers
 
         private void PopulateBoardingHouses(ScheduleMenuInputViewModel model)
         {
-            model.BoardingHouses = _db.Residences
-                .OrderBy(x => x.Name)
-                .ToList()
-                .Select(x => new BoardingHouseScheduleOption
-                {
-                    Id = x.ResidenceId,
-                    Name = x.Name,
-                    StudentCount = x.Capacity,
-                    IsInSeason = false,
-                    ActiveSport = ""
-                })
+            // The date range the coordinator is planning for
+            var rangeStart = model.StartDate.Date;
+            var rangeEnd = model.EndDate.Date;
+
+            // Load all fixtures in the range (once, not per house)
+            var fixturesInRange = _db.SportEvents
+                .Where(x => !x.IsCancelled
+                            && x.ScheduledDate >= rangeStart
+                            && x.ScheduledDate <= rangeEnd)
                 .ToList();
+
+            // Load houses
+            var houses = _db.Residences
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            model.BoardingHouses = new List<BoardingHouseScheduleOption>();
+
+            foreach (var house in houses)
+            {
+                // Fixtures for this specific house in the planning week
+                var houseFixtures = fixturesInRange
+                    .Where(x => x.ResidenceId == house.ResidenceId)
+                    .ToList();
+
+                var trainingCount = houseFixtures.Count(x => x.EventType == "Training");
+
+                var matches = houseFixtures
+                    .Where(x => x.EventType == "Match")
+                    .OrderBy(x => x.ScheduledDate)
+                    .ToList();
+
+                // Business rule: in-season = at least 2 trainings OR at least 1 match this week.
+                bool isInSeason = trainingCount >= 2 || matches.Any();
+
+                // Sport name — take it from the first fixture in the week
+                string activeSport = "";
+
+                if (houseFixtures.Any())
+                {
+                    activeSport = houseFixtures
+                        .OrderBy(x => x.ScheduledDate)
+                        .First()
+                        .Sport;
+                }
+
+                // First match date in the week, if any
+                DateTime? matchDate = null;
+
+                if (matches.Any())
+                {
+                    matchDate = matches.First().ScheduledDate;
+                }
+
+                model.BoardingHouses.Add(new BoardingHouseScheduleOption
+                {
+                    Id = house.ResidenceId,
+                    Name = house.Name,
+                    StudentCount = house.Capacity,
+                    IsInSeason = isInSeason,
+                    ActiveSport = activeSport,
+                    MatchDate = matchDate
+                });
+            }
         }
 
         private void PopulateBoardingHousesFromPostedValues(ScheduleMenuInputViewModel input)

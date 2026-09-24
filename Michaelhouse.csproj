@@ -300,6 +300,7 @@
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CafeteriaController.cs" />
+    <Compile Include="Controllers\CoachController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
@@ -373,6 +374,14 @@
     <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.cs" />
     <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.Designer.cs">
       <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609232107354_AddSportEvents.cs" />
+    <Compile Include="Migrations\202609232107354_AddSportEvents.Designer.cs">
+      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.cs" />
+    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.Designer.cs">
+      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -459,6 +468,7 @@
     <Compile Include="Models\Schoolcalendarevent.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
+    <Compile Include="Models\SportEvent.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
@@ -716,6 +726,9 @@
     <Content Include="Views\Cafeteria\ChefIndex.cshtml" />
     <Content Include="Views\Dashboard.cshtml" />
     <Content Include="Views\Cafeteria\Dashboard.cshtml" />
+    <Content Include="Views\Coach\Create.cshtml" />
+    <Content Include="Views\Coach\Index.cshtml" />
+    <Content Include="Views\Coach\Edit.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -929,6 +942,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609231931106_AddKitchenReadyFlag.resx">
       <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609232107354_AddSportEvents.resx">
+      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609232310141_AddChefChallengeFields.resx">
+      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

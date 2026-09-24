@@ -108,6 +108,11 @@ namespace Michaelhouse.Models.ViewModels
         public bool IsKitchenReady { get; set; }
 
         public DateTime? KitchenReadyDate { get; set; }
+        public bool ChefChallengeRequested { get; set; }
+
+        public string ChefChallengeReason { get; set; }
+
+        public DateTime? ChefChallengeDate { get; set; }
 
         public string RejectionReason { get; set; }
 
