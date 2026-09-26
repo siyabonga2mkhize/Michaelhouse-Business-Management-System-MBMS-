@@ -1,0 +1,262 @@
+﻿@{
+    ViewBag.Title = "Serve Meal (Scan QR)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool hasMenu = ViewBag.HasPublishedMenu is bool && (bool)ViewBag.HasPublishedMenu;
+    string currentSlot = ViewBag.CurrentSlotName as string ?? "";
+}
+
+<div class="relative mb-6 border-b border-gray-100 bg-gray-50/30 py-6 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-qr-code-scan absolute -right-8 -bottom-10 text-black/5 text-[10rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Kitchen</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Serve Meal</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                Scan student QR or enter student number
+                @if (!string.IsNullOrEmpty(currentSlot))
+                {
+                    <span> &bull; Current meal: @currentSlot</span>
+                }
+            </p>
+        </div>
+        <a href="@Url.Action("KitchenDashboard", "Cafeteria")"
+           class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @if (!hasMenu)
+    {
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-red-700 mb-1">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>No Published Menu
+            </h6>
+            <p class="text-sm text-red-800 mb-0">
+                No published menu covers today. Ask the Meal Coordinator to publish first.
+            </p>
+        </div>
+    }
+
+    @* ─── SCAN INPUT ─────────────────────────────────────────── *@
+    <div class="bg-white border-2 border-[#C21E2E] shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-red-50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-0">
+                <i class="bi bi-upc-scan me-2"></i>Scanner Input
+            </h6>
+        </div>
+        <div class="p-6">
+            @using (Html.BeginForm("ScanMealQR", "Cafeteria", FormMethod.Post, new { id = "scanForm", autocomplete = "off", onsubmit = "return false;" }))
+            {
+                @Html.AntiForgeryToken()
+                <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">
+                    Scan QR &bull; or type the student number
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="qrInput"
+                           class="flex-1 border-2 border-gray-200 py-4 px-4 text-lg font-mono"
+                           placeholder="Ready for scan..."
+                           autofocus />
+                    <button type="button" id="verifyBtn"
+                            class="bg-[#C21E2E] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-black">
+                        <i class="bi bi-search me-1"></i>Verify
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-2 mb-0">
+                    Scanner guns type + Enter automatically. Manual entry is fine too.
+                </p>
+            }
+        </div>
+    </div>
+
+    @* ─── RESULT AREA ────────────────────────────────────────── *@
+    <div id="resultArea"></div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function esc(s) {
+        if (!s) return '';
+        return String(s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function token() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
+
+    function showError(msg) {
+        var html =
+            '<div class="bg-red-50 border-l-4 border-red-500 p-5">' +
+            '<h6 class="text-[10px] uppercase tracking-widest font-bold text-red-700 mb-1">' +
+            '<i class="bi bi-x-octagon-fill me-1"></i>Not Served</h6>' +
+            '<p class="text-sm text-red-800 mb-0">' + esc(msg) + '</p></div>';
+        $('#resultArea').html(html);
+    }
+
+    function showSuccessCard(r) {
+        var html =
+            '<div class="bg-white border-2 border-green-500 shadow-sm overflow-hidden">' +
+            '<div class="p-4 border-b border-gray-100 bg-green-50 flex justify-between items-center">' +
+            '<h6 class="text-[10px] uppercase tracking-[3px] font-bold text-green-700 mb-0">' +
+            '<i class="bi bi-check-circle-fill me-1"></i>Meal Verified</h6>' +
+            '<span class="text-[9px] uppercase tracking-widest font-bold text-green-600">Ready to serve</span>' +
+            '</div>' +
+            '<div class="p-6 space-y-4">' +
+            '<div class="grid grid-cols-2 gap-4">' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Student</p>' +
+            '<p class="text-lg font-bold text-gray-900 mb-0">' + esc(r.StudentName) + '</p></div>' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Student #</p>' +
+            '<p class="text-lg font-mono text-gray-700 mb-0">' + esc(r.StudentNumber) + '</p></div>' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Grade</p>' +
+            '<p class="text-lg font-bold text-gray-800 mb-0">' + esc(r.GradeLevel) + '</p></div>' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Meal</p>' +
+            '<p class="text-lg font-bold text-[#C21E2E] mb-0">' + esc(r.MealSlotName) + '</p></div>' +
+            '</div>' +
+            '<div class="bg-gray-50 border-l-4 border-[#C21E2E] p-4">' +
+            '<p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Selected meal</p>' +
+            '<p class="text-xl font-serif font-bold text-gray-900 mb-0">' + esc(r.SelectedItemName) + '</p>' +
+            '</div>' +
+            '<div class="flex justify-between items-center pt-2">' +
+            '<div class="text-xs text-gray-500">' +
+            '<i class="bi bi-shield-check me-1 text-green-600"></i>No dietary conflict detected' +
+            '</div>' +
+            '<button id="confirmBtn" data-id="' + r.SelectionId + '" ' +
+            'class="bg-green-600 text-white px-8 py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-green-700">' +
+            '<i class="bi bi-check2-circle me-1"></i>Confirm Serve</button>' +
+            '</div>' +
+            '</div></div>';
+        $('#resultArea').html(html);
+    }
+
+    function showAlreadyServedCard(r) {
+        var when = '—';
+        if (r.ServedAt) {
+            try { when = new Date(parseInt(r.ServedAt.replace(/\D/g, ''))).toLocaleTimeString(); } catch (e) { }
+        }
+        var html =
+            '<div class="bg-white border-2 border-amber-500 shadow-sm overflow-hidden">' +
+            '<div class="p-4 border-b border-gray-100 bg-amber-50">' +
+            '<h6 class="text-[10px] uppercase tracking-[3px] font-bold text-amber-700 mb-0">' +
+            '<i class="bi bi-exclamation-triangle-fill me-1"></i>Already Collected</h6>' +
+            '</div>' +
+            '<div class="p-6">' +
+            '<div class="grid grid-cols-2 gap-4 mb-4">' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Student</p>' +
+            '<p class="text-lg font-bold text-gray-900 mb-0">' + esc(r.StudentName) + '</p></div>' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Meal</p>' +
+            '<p class="text-lg font-bold text-gray-900 mb-0">' + esc(r.MealSlotName) + '</p></div>' +
+            '</div>' +
+            '<p class="text-sm text-gray-600 mb-0">' +
+            'Collected at <strong>' + esc(when) + '</strong>. Duplicate serving blocked.</p>' +
+            '</div></div>';
+        $('#resultArea').html(html);
+    }
+
+    function showSafetyBlockCard(r) {
+        var html =
+            '<div class="bg-white border-2 border-red-500 shadow-sm overflow-hidden">' +
+            '<div class="p-4 border-b border-gray-100 bg-red-50">' +
+            '<h6 class="text-[10px] uppercase tracking-[3px] font-bold text-red-700 mb-0">' +
+            '<i class="bi bi-shield-exclamation me-1"></i>Safety Block — Do Not Serve</h6>' +
+            '</div>' +
+            '<div class="p-6">' +
+            '<div class="grid grid-cols-2 gap-4 mb-4">' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Student</p>' +
+            '<p class="text-lg font-bold text-gray-900 mb-0">' + esc(r.StudentName) + '</p></div>' +
+            '<div><p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Meal</p>' +
+            '<p class="text-lg font-bold text-gray-900 mb-0">' + esc(r.MealSlotName) + '</p></div>' +
+            '</div>' +
+            '<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">' +
+            '<p class="text-[9px] uppercase tracking-widest font-bold text-red-700 mb-1">Conflicting item</p>' +
+            '<p class="text-lg font-bold text-red-800 mb-0">' + esc(r.SelectedItemName) + '</p>' +
+            '</div>' +
+            '<p class="text-sm text-red-800 mb-0"><strong>Reason:</strong> ' + esc(r.SafetyReason) + '</p>' +
+            '<p class="text-xs text-gray-500 mt-3 mb-0">' +
+            '<i class="bi bi-info-circle me-1"></i>Contact the cafeteria supervisor. Do not serve this meal.</p>' +
+            '</div></div>';
+        $('#resultArea').html(html);
+    }
+
+    function verify() {
+        var val = $('#qrInput').val().trim();
+        if (!val) return;
+
+        $('#resultArea').html(
+            '<div class="bg-white border border-gray-100 p-8 text-center">' +
+            '<i class="bi bi-hourglass-split text-4xl text-gray-400 block mb-2"></i>' +
+            '<p class="text-sm text-gray-500 mb-0">Verifying...</p></div>');
+
+        $.ajax({
+            url: '@Url.Action("VerifyMealQR", "Cafeteria")',
+            type: 'POST',
+            data: { qrValue: val, __RequestVerificationToken: token() },
+            success: function (r) {
+                if (r.SafetyBlocked) { showSafetyBlockCard(r); }
+                else if (r.AlreadyServed) { showAlreadyServedCard(r); }
+                else if (r.Success) { showSuccessCard(r); }
+                else { showError(r.Message); }
+            },
+            error: function () { showError('Server error — try again.'); }
+        });
+    }
+
+    $(document).on('click', '#verifyBtn', verify);
+
+    $(document).on('keypress', '#qrInput', function (e) {
+        if (e.which === 13) { e.preventDefault(); verify(); }
+    });
+
+    $(document).on('click', '#confirmBtn', function () {
+        var id = $(this).data('id');
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Serving...');
+
+        $.ajax({
+            url: '@Url.Action("ConfirmServeMeal", "Cafeteria")',
+            type: 'POST',
+            data: { selectionId: id, __RequestVerificationToken: token() },
+            success: function (r) {
+                if (r.success) {
+                    $('#resultArea').html(
+                        '<div class="bg-green-50 border-l-4 border-green-500 p-6 text-center">' +
+                        '<i class="bi bi-check-circle-fill text-5xl text-green-600 block mb-3"></i>' +
+                        '<h5 class="font-serif font-bold text-green-800 mb-2">Meal Served Successfully</h5>' +
+                        '<p class="text-sm text-green-700 mb-4">' + esc(r.message) + '</p>' +
+                        '<button id="nextBtn" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">' +
+                        '<i class="bi bi-upc-scan me-1"></i>Scan Next Student</button></div>');
+                } else {
+                    showError(r.message);
+                }
+            },
+            error: function () {
+                showError('Server error while serving.');
+            }
+        });
+    });
+
+    $(document).on('click', '#nextBtn', function () {
+        $('#qrInput').val('').focus();
+        $('#resultArea').empty();
+    });
+
+    // keep focus on input
+    setInterval(function () {
+        if ($('#confirmBtn').length === 0) {
+            if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+                $('#qrInput').focus();
+            }
+        }
+    }, 2000);
+</script>

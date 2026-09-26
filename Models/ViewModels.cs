@@ -140,6 +140,17 @@ namespace Michaelhouse.Models.ViewModels
         [MaxLength(500)]
         [Display(Name = "Medical Conditions / Allergies")]
         public string MedicalConditions { get; set; }
+        [MaxLength(500)]
+        [Display(Name = "Dietary Preferences")]
+        public string DietaryPreferences { get; set; }
+
+        [MaxLength(500)]
+        [Display(Name = "Special Dietary Needs")]
+        public string SpecialDietaryNeeds { get; set; }
+
+        [MaxLength(500)]
+        [Display(Name = "Sports")]
+        public string Sports { get; set; }
     }
 
     // ─── Submit Application ───────────────────────────────────────────────────────

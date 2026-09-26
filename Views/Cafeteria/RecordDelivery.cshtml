@@ -1,0 +1,101 @@
+﻿@model Michaelhouse.Models.StockOrder
+
+@{
+    ViewBag.Title = "Record Delivery";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var supplier = ViewBag.Supplier as Michaelhouse.Models.Supplier;
+    string supplierName = supplier != null ? supplier.Name : "Unknown";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria Manager</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Record Delivery</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Confirm what arrived from order #@Model.OrderID
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @* ─── ORDER SUMMARY ──────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm p-6 mb-6">
+        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Order Summary</h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Supplier</div>
+                <div class="text-sm font-bold text-gray-900">@supplierName</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Status</div>
+                <div class="text-sm font-bold text-amber-600">@Model.Status</div>
+            </div>
+            <div class="col-md-12">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Ordered Items</div>
+                <div class="text-sm text-gray-700">@Model.Items</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Ordered Quantity</div>
+                <div class="text-sm font-bold text-gray-900">@Model.Quantity</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Total Cost</div>
+                <div class="text-sm font-bold text-gray-900">R @Model.TotalCost.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── DELIVERY CONFIRMATION ──────────────────────────────── *@
+    @using (Html.BeginForm("RecordDelivery", "Cafeteria", new { id = Model.OrderID }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-truck me-2 text-[#C21E2E]"></i>Delivery Confirmation
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">What Was Received? *</label>
+                    <textarea name="receivedItems" required rows="4" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="List every item and quantity that arrived. E.g., Chicken 95kg, Rice 50kg, Vegetables 40kg"></textarea>
+                    <p class="text-[9px] text-gray-400 mt-1">Enter the actual quantities received. If something is missing or short, note it here.</p>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Notes *</label>
+                    <textarea name="notes" required rows="2" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="Any notes about the delivery (damaged items, missing items, quality issues)"></textarea>
+                </div>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                    <p class="text-[10px] text-green-700 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Recording the delivery will mark this order as <strong>Delivered</strong> and update the inventory automatically.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("StockOrders")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#21A036] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700 transition-all">
+                <i class="bi bi-check-circle me-2"></i>Confirm Delivery
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

@@ -1,0 +1,82 @@
+﻿@model IEnumerable<Michaelhouse.Models.Team>
+@{
+    ViewBag.Title = "My Teams";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var coach = ViewBag.Coach as Michaelhouse.Models.Coach;
+    var stats = ViewBag.TeamStats as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-people-fill absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">My Teams</h2>
+        @if (coach != null)
+        {
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                Coach: @coach.Name @coach.Surname
+            </p>
+        }
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @if (!Model.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-person-x text-5xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">You are not assigned to any team yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var team in Model)
+            {
+                var count = stats.ContainsKey(team.TeamID) ? stats[team.TeamID] : 0;
+                <div class="bg-white border border-gray-100 shadow-sm">
+                    <div class="p-6 border-b border-gray-50">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h5 class="font-serif font-bold text-gray-900 mb-1 text-xl">@team.Name</h5>
+                                <span class="text-[9px] uppercase tracking-widest font-bold text-gray-400">@team.SportName</span>
+                            </div>
+                            <i class="bi bi-people-fill text-[#C21E2E] text-2xl"></i>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-3xl font-serif font-bold text-gray-900">@count</span>
+                            <span class="text-[10px] uppercase tracking-widest font-bold text-gray-400">Active Players</span>
+                        </div>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        <a href="@Url.Action("TeamDetails", new { id = team.TeamID })"
+                           class="block w-full text-center bg-[#C21E2E] text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                            <i class="bi bi-eye me-1"></i>View Team
+                        </a>
+                        <a href="@Url.Action("SubmitRequirements", new { id = team.TeamID })"
+                           class="block w-full text-center border border-gray-200 text-gray-700 py-2 text-[10px] font-bold uppercase tracking-widest hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                            <i class="bi bi-clipboard-plus me-1"></i>Submit Requirements
+                        </a>
+                        <a href="@Url.Action("TeamMessages", new { id = team.TeamID })"
+                           class="block w-full text-center border border-gray-200 text-gray-700 py-2 text-[10px] font-bold uppercase tracking-widest hover:border-[#C21E2E] hover:text-[#C21E2E] transition-all">
+                            <i class="bi bi-chat-dots me-1"></i>Team Messages
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

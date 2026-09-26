@@ -1,0 +1,177 @@
+﻿@model IEnumerable<Michaelhouse.Models.Event>
+
+@{
+    ViewBag.Title = "Events & RSVP";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var events = Model as List<Michaelhouse.Models.Event> ?? new List<Michaelhouse.Models.Event>();
+    var myRsvps = ViewBag.MyRSVPs as List<Michaelhouse.Models.RSVP> ?? new List<Michaelhouse.Models.RSVP>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-calendar-event absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Events & RSVP</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Confirm your attendance for upcoming events
+        </p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+
+    @* ─── HIDDEN ANTI-FORGERY TOKEN ──────────────────────────── *@
+    @using (Html.BeginForm("SubmitRSVP", "Cafeteria", FormMethod.Post, new { id = "rsvpTokenForm" }))
+    {
+        @Html.AntiForgeryToken()
+    }
+
+    @if (!events.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-6xl block mb-4 text-gray-300"></i>
+            <p class="text-gray-500 text-lg font-bold mb-2">No upcoming events.</p>
+            <p class="text-gray-400 text-sm mb-0">Check back later for new events.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var ev in events)
+            {
+                var myRsvp = myRsvps.FirstOrDefault(r => r.EventID == ev.EventID);
+                bool hasRsvp = myRsvp != null && myRsvp.Attending;
+
+                <div class="col-lg-6">
+                    <div class="bg-white border @(hasRsvp ? "border-green-200" : "border-gray-100") shadow-sm overflow-hidden h-full">
+                        <div class="@(hasRsvp ? "bg-green-600" : "bg-gray-900") p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h5 class="text-base font-serif font-bold text-white mb-1">@ev.Name</h5>
+                                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-200 mb-0">
+                                        @ev.Date.ToString("dd MMM yyyy") @if (!string.IsNullOrEmpty(ev.Time))
+                                        {<text>&bull; @ev.Time</text>}
+                                    </p>
+                                </div>
+                                @if (hasRsvp)
+                                {
+                                    <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-white text-green-600">✓ Attending</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="p-4">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Location</div>
+                                    <div class="text-sm text-gray-700">@(string.IsNullOrEmpty(ev.Location) ? "TBD" : ev.Location)</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Meal Type</div>
+                                    <div class="text-sm text-gray-700">@(string.IsNullOrEmpty(ev.MealType) ? "TBD" : ev.MealType)</div>
+                                </div>
+                            </div>
+
+                            @if (hasRsvp)
+                            {
+                                <div class="bg-green-50 p-3 mb-3">
+                                    <div class="text-[9px] uppercase tracking-widest font-bold text-green-700 mb-1">Your RSVP</div>
+                                    <div class="text-xs text-green-700">
+                                        <strong>@myRsvp.NumberOfPeople</strong> attending
+                                        @if (!string.IsNullOrEmpty(myRsvp.DietaryNeeds))
+                                        {
+                                            <text> &bull; @myRsvp.DietaryNeeds</text>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <button type="button" class="w-full @(hasRsvp ? "bg-gray-200 text-gray-700 hover:bg-gray-300" : "bg-[#C21E2E] text-white hover:bg-black") px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                    onclick="openRsvpModal(@ev.EventID, '@ev.Name', @(hasRsvp ? "true" : "false"), @(myRsvp != null ? myRsvp.NumberOfPeople : 1), '@(myRsvp != null && myRsvp.DietaryNeeds != null ? myRsvp.DietaryNeeds : "")');">
+                                @if (hasRsvp)
+                                {
+                                    <i class="bi bi-pencil me-2"></i><text>Update RSVP</text>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-check-circle me-2"></i><text>RSVP Now</text>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* ─── RSVP MODAL ─────────────────────────────────────────────── *@
+<div id="rsvpModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: white; max-width: 500px; width: 100%; padding: 30px;">
+        <h6 class="text-lg font-serif font-bold text-gray-900 mb-1">RSVP</h6>
+        <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-4" id="modalEventName"></p>
+
+        <input type="hidden" id="modalEventId" />
+
+        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Number of People (including yourself)</label>
+        <input type="number" id="modalNumberOfPeople" value="1" min="1" max="10" class="w-full border border-gray-200 py-3 px-4 text-sm mb-4" />
+
+        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Dietary Needs (optional)</label>
+        <input type="text" id="modalDietary" class="w-full border border-gray-200 py-3 px-4 text-sm mb-4" placeholder="e.g., Vegetarian, Halal, Gluten-free" />
+
+        <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeRsvpModal()" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-700">Cancel</button>
+            <button type="button" onclick="submitRsvp()" class="bg-[#C21E2E] text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">Confirm RSVP</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openRsvpModal(eventId, eventName, hasRsvp, numPeople, dietary) {
+            document.getElementById('modalEventId').value = eventId;
+            document.getElementById('modalEventName').innerText = eventName;
+            document.getElementById('modalNumberOfPeople').value = numPeople || 1;
+            document.getElementById('modalDietary').value = dietary || '';
+            document.getElementById('rsvpModal').style.display = 'flex';
+        }
+
+        function closeRsvpModal() {
+            document.getElementById('rsvpModal').style.display = 'none';
+        }
+
+        function submitRsvp() {
+            var eventId = document.getElementById('modalEventId').value;
+            var numPeople = document.getElementById('modalNumberOfPeople').value;
+            var dietary = document.getElementById('modalDietary').value;
+            var token = $('input[name="__RequestVerificationToken"]').first().val();
+
+            $.post('@Url.Action("SubmitRSVP", "Cafeteria")', {
+                eventId: eventId,
+                numberOfPeople: numPeople,
+                dietaryNeeds: dietary,
+                __RequestVerificationToken: token
+            }, function (data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error submitting RSVP');
+                }
+            }).fail(function () {
+                alert('Network error. Please try again.');
+            });
+        }
+    </script>
+}
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "My Meal Plan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var publishedMenu = ViewBag.PublishedMenu as Michaelhouse.Models.WeeklyMenu;
+    var days = ViewBag.Days as List<Michaelhouse.Models.ViewModels.StudentMealPlanDay> ?? new List<Michaelhouse.Models.ViewModels.StudentMealPlanDay>();
+    bool hasMenu = ViewBag.HasPublishedMenu is bool && (bool)ViewBag.HasPublishedMenu;
+    string planStatus = ViewBag.PlanStatus as string ?? "Pending";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-journal-text absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">My Meal Plan</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @if (hasMenu && publishedMenu != null)
+            {
+                <span>@publishedMenu.WeekNumber &bull; @publishedMenu.StartDate.ToString("dd MMM") – @publishedMenu.EndDate.ToString("dd MMM yyyy")</span>
+            }
+            else
+            {
+                <span>No menu published yet &bull; Status: @planStatus</span>
+            }
+        </p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+
+    @if (!hasMenu)
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-6xl block mb-4 text-gray-300"></i>
+            <h5 class="font-serif font-bold text-gray-900 mb-2">No Menu Published Yet</h5>
+            <p class="text-gray-500 text-sm mb-0">
+                The Meal Coordinator hasn't published this week's menu. You'll be notified when it's ready.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-blue-700 mb-1">
+                <i class="bi bi-info-circle me-1"></i>Choose your meals for the week
+            </h6>
+            <p class="text-xs text-blue-800 mb-0">
+                Only options that match your dietary records are shown. The <i class="bi bi-star-fill"></i>
+                mark indicates our recommendation based on your sports schedule.
+            </p>
+        </div>
+
+        if (planStatus == "Approved")
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+                <h6 class="text-[10px] uppercase tracking-widest font-bold text-green-700 mb-1">
+                    <i class="bi bi-check-circle me-1"></i>Plan approved
+                </h6>
+                <p class="text-xs text-green-800 mb-0">Your meal plan is confirmed for this week.</p>
+            </div>
+        }
+        else if (planStatus == "Pending")
+        {
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+                <h6 class="text-[10px] uppercase tracking-widest font-bold text-amber-700 mb-1">
+                    <i class="bi bi-clock-history me-1"></i>Awaiting review
+                </h6>
+                <p class="text-xs text-amber-800 mb-0">Your plan has been submitted and awaits Dietitian review.</p>
+            </div>
+        }
+
+        using (Html.BeginForm("SaveMyMealPlan", "Cafeteria", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="space-y-4 mb-6">
+                @foreach (var day in days)
+                {
+                    bool isToday = day.Date.Date == DateTime.Today;
+                    string dayBorder = isToday ? "border-[#C21E2E]" : "border-gray-100";
+                    string dayHeaderBg = isToday ? "bg-red-50" : "bg-gray-50/50";
+                    string dayHeaderText = isToday ? "text-[#C21E2E]" : "text-gray-900";
+
+                    <div class="bg-white border @dayBorder shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 @dayHeaderBg flex justify-between items-center">
+                            <h6 class="text-[10px] uppercase tracking-[3px] font-bold @dayHeaderText mb-0">
+                                @day.DayOfWeek &bull; @day.Date.ToString("dd MMM yyyy")
+                                @if (isToday)
+                                {
+                                    <span class="ml-2 text-[8px] px-2 py-0.5 bg-[#C21E2E] text-white">TODAY</span>
+                                }
+                            </h6>
+                            <span class="text-[9px] text-gray-400 uppercase tracking-widest">@day.Meals.Count meal@(day.Meals.Count == 1 ? "" : "s")</span>
+                        </div>
+
+                        <div class="divide-y divide-gray-50">
+                            @foreach (var meal in day.Meals)
+                            {
+                                <div class="p-4">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-700 text-white">@meal.SlotName</span>
+                                        @if (!string.IsNullOrEmpty(meal.Title))
+                                        {
+                                            <span class="text-sm font-bold text-gray-900">@meal.Title</span>
+                                        }
+                                    </div>
+
+                                    @if (meal.Options == null || meal.Options.Count == 0)
+                                    {
+                                        <div class="bg-red-50 border-l-4 border-red-500 p-3">
+                                            <p class="text-xs text-red-800 mb-0">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                No safe options available for this meal. Contact the cafeteria.
+                                            </p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (!string.IsNullOrEmpty(meal.RecommendationReason))
+                                        {
+                                            <p class="text-[10px] text-gray-500 italic mb-2">
+                                                <i class="bi bi-star-fill text-amber-500 me-1"></i>@meal.RecommendationReason
+                                            </p>
+                                        }
+
+                                        <div class="space-y-2">
+                                            @foreach (var opt in meal.Options)
+                                            {
+                                                string inputId = "meal_" + meal.MenuMealId + "_" + opt.MenuItemId;
+                                                bool isRecommended = meal.RecommendedItemId.HasValue && meal.RecommendedItemId.Value == opt.MenuItemId;
+                                                bool isSelected = meal.SelectedItemId.HasValue && meal.SelectedItemId.Value == opt.MenuItemId;
+                                                bool isChecked = isSelected || (!meal.SelectedItemId.HasValue && isRecommended);
+                                                string optBorder = isRecommended ? "border-amber-300 bg-amber-50/30" : "border-gray-200";
+
+                                                <label for="@inputId" class="flex items-start gap-3 p-3 border @optBorder hover:border-[#C21E2E] cursor-pointer transition-all">
+                                                    <input type="radio"
+                                                           id="@inputId"
+                                                           name="item_@meal.MenuMealId"
+                                                           value="@opt.MenuItemId"
+                                                           @(isChecked ? "checked=\"checked\"" : "")
+                                                           class="mt-0.5 accent-[#C21E2E]" />
+                                                    <span class="flex-1 block">
+                                                        <span class="flex items-center gap-2 flex-wrap">
+                                                            <span class="text-sm font-bold text-gray-900">@opt.Name</span>
+                                                            @if (isRecommended)
+                                                            {
+                                                                <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">
+                                                                    <i class="bi bi-star-fill"></i> Recommended
+                                                                </span>
+                                                            }
+                                                        </span>
+                                                        <span class="flex gap-2 mt-1 flex-wrap">
+                                                            @if (!string.IsNullOrEmpty(opt.Category))
+                                                            {
+                                                                <span class="text-[8px] text-gray-400 uppercase tracking-widest">@opt.Category</span>
+                                                            }
+                                                            @if (opt.IsVegetarian)
+                                                            {
+                                                                <span class="text-[8px] px-1.5 py-0.5 bg-green-100 text-green-700 uppercase tracking-widest">Veg</span>
+                                                            }
+                                                            @if (opt.IsVegan)
+                                                            {
+                                                                <span class="text-[8px] px-1.5 py-0.5 bg-green-100 text-green-700 uppercase tracking-widest">Vegan</span>
+                                                            }
+                                                            @if (opt.IsGlutenFree)
+                                                            {
+                                                                <span class="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 uppercase tracking-widest">GF</span>
+                                                            }
+                                                            @if (opt.IsLactoseFree)
+                                                            {
+                                                                <span class="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 uppercase tracking-widest">LF</span>
+                                                            }
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+                <a href="@Url.Action("Dashboard", "Students")"
+                   class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <button type="submit"
+                        class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                    <i class="bi bi-save me-2"></i>Save & Submit Plan
+                </button>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > div + div {
+        border-top: 1px solid #f3f4f6;
+    }
+</style>

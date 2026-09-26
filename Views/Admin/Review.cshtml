@@ -65,6 +65,36 @@
                 </div>
             </div>
 
+            @* ─── CAFETERIA INFO ───────────────────────────────────────────── *@
+            <div class="bg-white p-6 border border-gray-100 mb-6">
+                <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6">
+                    <i class="bi bi-egg-fried me-2 text-[#C21E2E]"></i>Cafeteria Info
+                </h5>
+
+                <div class="space-y-4">
+                    <div class="border-b border-gray-100 pb-3">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Dietary Preferences</label>
+                        <p class="text-sm text-gray-800 mb-0">
+                            @(string.IsNullOrEmpty(Model.Student.DietaryPreferences) ? "None specified" : Model.Student.DietaryPreferences)
+                        </p>
+                    </div>
+
+                    <div class="border-b border-gray-100 pb-3">
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Special Dietary Needs</label>
+                        <p class="text-sm text-gray-800 mb-0">
+                            @(string.IsNullOrEmpty(Model.Student.SpecialDietaryNeeds) ? "None specified" : Model.Student.SpecialDietaryNeeds)
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] uppercase font-bold text-gray-300 tracking-widest mb-1">Sports</label>
+                        <p class="text-sm text-gray-800 mb-0">
+                            @(string.IsNullOrEmpty(Model.Student.Sports) ? "None specified" : Model.Student.Sports)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4 ps-2">Dossier Attachments</h5>
                 <div class="space-y-2">

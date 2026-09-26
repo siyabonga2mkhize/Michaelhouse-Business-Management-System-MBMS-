@@ -74,6 +74,11 @@ namespace Michaelhouse.Controllers
                     MedicalConditions = vm.MedicalConditions,
                     ParentId = parentId,
 
+                    // ─── NEW FIELDS ──────────────────────────────────
+                    DietaryPreferences = vm.DietaryPreferences,
+                    SpecialDietaryNeeds = vm.SpecialDietaryNeeds,
+                    Sports = vm.Sports,
+
                     // Generate automatically
                     StudentNumber = studentNumberService.GenerateStudentNumber()
                 };

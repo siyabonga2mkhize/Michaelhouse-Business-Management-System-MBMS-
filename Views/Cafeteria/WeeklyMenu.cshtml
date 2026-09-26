@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Michaelhouse.Models.WeeklyMenu>
+@{
+    ViewBag.Title = "Weekly Menus";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var role = ViewBag.Role as string;
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-calendar3 absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Weekly Menus</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @list.Count week(s) scheduled
+            </p>
+        </div>
+        @if (role == "MealCoordinator")
+        {
+            <a href="@Url.Action("CreateWeeklyMenu", "Cafeteria")"
+               class="bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                <i class="bi bi-calendar-plus me-2"></i>Schedule Menu
+            </a>
+        }
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+    @if (!list.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-5xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">No weekly menus yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-gray-50/50">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Week</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Dates</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Created</th>
+                        <th class="text-right px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach (var m in list)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-bold text-gray-900">@m.WeekNumber</td>
+                            <td class="px-4 py-3 text-xs text-gray-600">
+                                @m.StartDate.ToString("dd MMM") – @m.EndDate.ToString("dd MMM yyyy")
+                            </td>
+                            <td class="px-4 py-3">
+                                @if (m.Status == "Published")
+                                {<span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">Published</span> }
+                                else if (m.Status == "ChefApproved")
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-blue-600 text-white">Chef Approved</span> }
+                                else if (m.Status == "Rejected")
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">Rejected</span> }
+                                else
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">@m.Status</span>}
+                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-400">
+                                @m.CreatedDate.ToString("dd MMM HH:mm")
+                                @if (!string.IsNullOrEmpty(m.CreatedBy))
+                                {<span> &bull; @m.CreatedBy</span>}
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end gap-2">
+                                    @if (role == "MealCoordinator")
+                                    {
+                                        <a href="@Url.Action("MenuEditor", new { id = m.WeeklyMenuID })"
+                                           class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                                            Edit
+                                        </a>
+                                        if (m.Status == "ChefApproved")
+                                        {
+                                            using (Html.BeginForm("PublishWeeklyMenu", "Cafeteria", new { id = m.WeeklyMenuID }, FormMethod.Post, new { @class = "inline m-0" }))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="bg-green-600 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700"
+                                                        onclick="return confirm('Publish this menu? Students will be notified and the menu will be locked.');">
+                                                    <i class="bi bi-send-check me-1"></i>Publish
+                                                </button>
+                                            }
+                                        }
+                                    }
+                                    else if (role == "Chef" && (m.Status == "Draft" || m.Status == "ChefReview"))
+                                    {
+                                        <a href="@Url.Action("ChefReviewMenu", "Cafeteria", new { id = m.WeeklyMenuID })"
+                                           class="bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                                            <i class="bi bi-clipboard-check me-1"></i>Review
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("MenuEditor", new { id = m.WeeklyMenuID })"
+                                           class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-black">
+                                            View
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

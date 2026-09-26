@@ -1,0 +1,144 @@
+﻿@model IEnumerable<Michaelhouse.Models.TeamMembership>
+@{
+    ViewBag.Title = "Team Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var team = ViewBag.Team as Michaelhouse.Models.Team;
+    var activities = ViewBag.Activities as List<Michaelhouse.Models.SportsActivity> ?? new List<Michaelhouse.Models.SportsActivity>();
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-shield-shaded absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">@(team != null ? team.Name : "Team")</h2>
+            @if (team != null)
+            {
+                <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                    @team.SportName &bull; @list.Count(m => m.EndDate == null) active player(s)
+                </p>
+            }
+        </div>
+        <div class="flex gap-2">
+            <a href="@Url.Action("CreateActivity", new { id = team.TeamID })"
+               class="bg-[#C21E2E] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-plus-circle me-2"></i>Add Activity
+            </a>
+            <a href="@Url.Action("MyTeam")"
+               class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 transition-all">
+                <i class="bi bi-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        @* ─── ROSTER ──────────────────────────────────────────── *@
+        <div class="lg:col-span-2 bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Team Roster (@list.Count)</h6>
+            </div>
+
+            @if (!list.Any())
+            {
+                <div class="p-12 text-center text-gray-400">
+                    <i class="bi bi-person-x text-4xl block mb-3 opacity-30"></i>
+                    <p class="mb-0">No players assigned yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50/50">
+                            <tr>
+                                <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">#</th>
+                                <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Player</th>
+                                <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Grade</th>
+                                <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                                <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Since</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @{ int idx = 1; }
+                            @foreach (var m in list)
+                            {
+                                <tr>
+                                    <td class="px-4 py-3 text-xs text-gray-400 font-bold">@idx</td>
+                                    <td class="px-4 py-3 text-sm font-bold text-gray-900">
+                                        @(m.Student != null ? m.Student.FirstName + " " + m.Student.LastName : "—")
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-700">
+                                        @(m.Student != null ? "Grade " + m.Student.GradeLevel : "—")
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        @if (m.EndDate == null)
+                                        {<span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">Active</span> }
+                                        else
+                                        { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-300 text-gray-700">Left</span>}
+                                    </td>
+                                    <td class="px-4 py-3 text-xs text-gray-400">@m.StartDate.ToString("dd MMM yyyy")</td>
+                                </tr>
+                                idx++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        @* ─── UPCOMING ACTIVITIES ─────────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Upcoming Activities</h6>
+            </div>
+
+            @if (!activities.Any())
+            {
+                <div class="p-6 text-center text-gray-400 text-sm">
+                    No upcoming activities scheduled.
+                </div>
+            }
+            else
+            {
+                <div class="divide-y divide-gray-50">
+                    @foreach (var a in activities)
+                    {
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-1">
+                                <strong class="text-sm text-gray-900">@a.Title</strong>
+                                <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-[#C21E2E] text-white">@a.ActivityType</span>
+                            </div>
+                            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-1">
+                                @a.StartDateTime.ToString("ddd dd MMM · HH:mm") – @a.EndDateTime.ToString("HH:mm")
+                            </p>
+                            @if (!string.IsNullOrEmpty(a.Location))
+                            {
+                                <p class="text-xs text-gray-500 mb-0"><i class="bi bi-geo-alt"></i> @a.Location</p>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

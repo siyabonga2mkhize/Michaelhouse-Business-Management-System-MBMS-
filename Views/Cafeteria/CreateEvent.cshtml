@@ -1,0 +1,98 @@
+﻿@model Michaelhouse.Models.Event
+
+@{
+    ViewBag.Title = "Schedule Event";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Schedule Event</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Create an event that requires catering
+        </p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @using (Html.BeginForm("CreateEvent", "Cafeteria", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-calendar-plus me-2 text-[#C21E2E]"></i>Event Details
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Event Name *</label>
+                    <input type="text" name="Name" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., School Play - The Wizard of Oz" />
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Date *</label>
+                        <input type="date" name="Date" required class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Time *</label>
+                        <input type="text" name="Time" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., 19:00" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Location *</label>
+                    <input type="text" name="Location" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Theatre Hall, Dining Hall" />
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Expected Guests *</label>
+                        <input type="number" name="ExpectedGuests" required value="100" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Meal Type *</label>
+                        <select name="MealType" required class="w-full border border-gray-200 py-3 px-4 text-sm">
+                            <option value="">-- Select --</option>
+                            <option value="Buffet Dinner">Buffet Dinner</option>
+                            <option value="Sit-down Dinner">Sit-down Dinner</option>
+                            <option value="Cocktail">Cocktail</option>
+                            <option value="Braai">Braai</option>
+                            <option value="High Tea">High Tea</option>
+                            <option value="Lunch">Lunch</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Special Requirements</label>
+                    <textarea name="SpecialRequirements" rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Vegetarian options for 20 guests, Halal options for 15 guests"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("Events")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-save me-2"></i>Create Event
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

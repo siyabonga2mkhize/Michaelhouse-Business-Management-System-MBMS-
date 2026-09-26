@@ -14,6 +14,7 @@ namespace Michaelhouse.Controllers
 {
     public class AccountController : BaseController
     {
+
         // ─── Login ────────────────────────────────────────────────────────────────
 
         public ActionResult Login()
@@ -79,11 +80,7 @@ namespace Michaelhouse.Controllers
                     catch { }
                 }
 
-
-
                 // ── Maintenance Management: ensure MaintenanceStaffId is populated ──
-                // Same pattern as the Teacher check above, so refreshing the login
-                // page while already logged in as a worker doesn't cause redirect loops.
                 if (role == "MaintenanceWorker" && Session["MaintenanceStaffId"] == null)
                 {
                     try
@@ -97,6 +94,28 @@ namespace Michaelhouse.Controllers
                                 if (staff != null)
                                 {
                                     Session["MaintenanceStaffId"] = staff.Id;
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                // ── Coach: ensure CoachId is populated ──
+                if (role == "Coach" && Session["CoachId"] == null)
+                {
+                    try
+                    {
+                        using (var db = new DBContextClass())
+                        {
+                            int userId = (int)(Session["UserId"] ?? 0);
+                            var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+                            if (user != null)
+                            {
+                                var coach = db.Coaches.FirstOrDefault(c => c.Email == user.Email);
+                                if (coach != null)
+                                {
+                                    Session["CoachId"] = coach.CoachID;
                                 }
                             }
                         }
@@ -215,6 +234,12 @@ namespace Michaelhouse.Controllers
                 {
                     var staff = await db.MaintenanceStaff.FirstOrDefaultAsync(s => s.UserId == user.UserId);
                     if (staff != null) Session["MaintenanceStaffId"] = staff.Id;
+                }
+                // ─── Coach role (NEW) ──────────────────────────────────────────
+                else if (user.Role == "Coach")
+                {
+                    var coach = await db.Coaches.FirstOrDefaultAsync(c => c.Email == user.Email);
+                    if (coach != null) Session["CoachId"] = coach.CoachID;
                 }
 
                 // 4. Emergency alert check (only for Students)
@@ -461,6 +486,21 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("ReportFault", "Reporter");
                 case "Transport Manager":     // (if you need this variant)
                     return RedirectToAction("Dashboard", "Transport");
+
+                // ── Cafeteria & Sports Roles (NEW) ──
+                case "Dietitian":
+                    return RedirectToAction("MealPlans", "Cafeteria");
+                case "MealCoordinator":
+                    return RedirectToAction("Index", "Cafeteria");
+                case "Chef":
+                    return RedirectToAction("KitchenDashboard", "Cafeteria");
+                case "CafeteriaManager":
+                    return RedirectToAction("Inventory", "Cafeteria");
+                case "SportsDirector":
+                    return RedirectToAction("Coaches", "Cafeteria");
+                case "Coach":
+                    return RedirectToAction("MyTeam", "Coach");
+
                 default:
                     return RedirectToAction("Index", "Home");
             }
@@ -498,7 +538,8 @@ namespace Michaelhouse.Controllers
                     TeacherId = Session["TeacherId"],
                     ParentId = Session["ParentId"],
                     StudentId = Session["StudentId"],
-                    MaintenanceStaffId = Session["MaintenanceStaffId"]
+                    MaintenanceStaffId = Session["MaintenanceStaffId"],
+                    CoachId = Session["CoachId"]
                 };
 
                 return Json(info, JsonRequestBehavior.AllowGet);
@@ -536,31 +577,12 @@ namespace Michaelhouse.Controllers
                 db.Users.Add(transportManager);
                 db.SaveChanges();
 
-                // Optional: If you have a Drivers table and want to create a linked record
-                // int newUserId = transportManager.UserId;
-                // db.Drivers.Add(new Driver
-                // {
-                //     UserId = newUserId,
-                //     FullName = "Transport Manager",
-                //     Email = "transport@michaelhouse.co.za",
-                //     IsActive = true,
-                //     DateCreated = DateTime.Now,
-                //     HasPDP = true,
-                //     LicenceNumber = "MGR000"
-                // });
-                // db.SaveChanges();
-
                 TempData["Success"] = "Transport Manager created. Email: transport@michaelhouse.co.za | Password: Transport@123";
                 return RedirectToAction("Login");
             }
-
-            // To seed everything in one go, navigate to import_all.sql and execute the SQL script in your database.
         }
 
         // ─── Seed Maintenance Management ───────────────────────────────────────────
-        // Navigate to /Account/SeedMaintenance to create the Maintenance Manager
-        // and a full team of Maintenance Workers, all as AppUser accounts with
-        // linked MaintenanceStaff records — same pattern as SeedTransportManager.
         public ActionResult SeedMaintenance()
         {
             using (var db = new DBContextClass())
@@ -637,6 +659,324 @@ namespace Michaelhouse.Controllers
                 TempData["Success"] = "Maintenance accounts created. "
                     + "Manager: maintenance@michaelhouse.co.za / Manager@123. "
                     + "Workers: [firstname].[lastname]@michaelhouse.co.za / Worker@123";
+
+                return RedirectToAction("Login");
+            }
+        }
+
+        // ─── Seed Cafeteria & Sports Roles (NEW) ────────────────────────────────
+        // Navigate to /Account/SeedCafeteria to create:
+        // - Dietitian, Meal Coordinator, Chef, Cafeteria Manager, Sports Director
+        // - 4 Coach users (Brown, White, Green, Black)
+        // - 4 Coach records linked to their sports
+        // - 4 Teams
+        public ActionResult SeedCafeteria()
+        {
+            using (var db = new DBContextClass())
+            {
+                // ─── 1. Cafeteria Staff Users ───────────────────────────────────
+
+                if (!db.Users.Any(u => u.Email == "dietitian@michaelhouse.co.za"))
+                {
+                    db.Users.Add(new AppUser
+                    {
+                        Name = "Dr. Sarah Naidoo",
+                        Email = "dietitian@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Diet@123"),
+                        Role = "Dietitian"
+                    });
+
+                    db.SaveChanges();
+                }
+
+                if (!db.Users.Any(u => u.Email == "meals@michaelhouse.co.za"))
+                {
+                    db.Users.Add(new AppUser
+                    {
+                        Name = "Mrs. Thandi Mkhize",
+                        Email = "meals@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Meals@123"),
+                        Role = "MealCoordinator"
+                    });
+
+                    db.SaveChanges();
+                }
+
+                if (!db.Users.Any(u => u.Email == "chef@michaelhouse.co.za"))
+                {
+                    db.Users.Add(new AppUser
+                    {
+                        Name = "Chef Sipho Ndlovu",
+                        Email = "chef@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Chef@123"),
+                        Role = "Chef"
+                    });
+
+                    db.SaveChanges();
+                }
+
+                if (!db.Users.Any(u => u.Email == "cafeteria@michaelhouse.co.za"))
+                {
+                    db.Users.Add(new AppUser
+                    {
+                        Name = "Mr. Bongani Zulu",
+                        Email = "cafeteria@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Cafe@123"),
+                        Role = "CafeteriaManager"
+                    });
+
+                    db.SaveChanges();
+                }
+
+                if (!db.Users.Any(u => u.Email == "sports@michaelhouse.co.za"))
+                {
+                    db.Users.Add(new AppUser
+                    {
+                        Name = "Mr. David Pretorius",
+                        Email = "sports@michaelhouse.co.za",
+                        PasswordHash = HashPassword("Sports@123"),
+                        Role = "SportsDirector"
+                    });
+
+                    db.SaveChanges();
+                }
+
+
+                // ─── 2. Coach Users ─────────────────────────────────────────────
+
+                var coachData = new[]
+                {
+            new
+            {
+                FirstName = "John",
+                Surname = "Brown",
+                Email = "brown@michaelhouse.co.za",
+                Sport = "Rugby",
+                Team = "U16 Rugby",
+                Phone = "082 123 4567"
+            },
+
+            new
+            {
+                FirstName = "Sarah",
+                Surname = "White",
+                Email = "white@michaelhouse.co.za",
+                Sport = "Hockey",
+                Team = "1st Hockey",
+                Phone = "082 987 6543"
+            },
+
+            new
+            {
+                FirstName = "David",
+                Surname = "Green",
+                Email = "green@michaelhouse.co.za",
+                Sport = "Cricket",
+                Team = "1st Cricket",
+                Phone = "082 555 1234"
+            },
+
+            new
+            {
+                FirstName = "Jane",
+                Surname = "Black",
+                Email = "black@michaelhouse.co.za",
+                Sport = "Swimming",
+                Team = "Swimming Squad",
+                Phone = "082 444 5678"
+            }
+        };
+
+
+                foreach (var c in coachData)
+                {
+                    // ─── Create AppUser ─────────────────────────────────────────
+
+                    if (!db.Users.Any(u => u.Email == c.Email))
+                    {
+                        db.Users.Add(new AppUser
+                        {
+                            Name = c.FirstName + " " + c.Surname,
+                            Email = c.Email,
+                            PasswordHash = HashPassword("Coach@123"),
+                            Role = "Coach"
+                        });
+
+                        db.SaveChanges();
+                    }
+
+
+                    // ─── Create Coach record ───────────────────────────────────
+
+                    if (!db.Coaches.Any(x => x.Email == c.Email))
+                    {
+                        db.Coaches.Add(new Coach
+                        {
+                            Name = c.FirstName,
+                            Surname = c.Surname,
+
+                            // IMPORTANT:
+                            // Sport is a Sport navigation property.
+                            // SportName is the legacy string field.
+                            SportName = c.Sport,
+
+                            Team = c.Team,
+                            Email = c.Email,
+                            Phone = c.Phone,
+                            IsActive = true
+                        });
+
+                        db.SaveChanges();
+                    }
+                }
+
+
+                // ─── 3. Teams ──────────────────────────────────────────────────
+
+                var brownCoach = db.Coaches
+                    .FirstOrDefault(c => c.Email == "brown@michaelhouse.co.za");
+
+                var whiteCoach = db.Coaches
+                    .FirstOrDefault(c => c.Email == "white@michaelhouse.co.za");
+
+                var greenCoach = db.Coaches
+                    .FirstOrDefault(c => c.Email == "green@michaelhouse.co.za");
+
+                var blackCoach = db.Coaches
+                    .FirstOrDefault(c => c.Email == "black@michaelhouse.co.za");
+
+
+                // ─── U16 Rugby ─────────────────────────────────────────────────
+
+                if (brownCoach != null &&
+                    !db.Teams.Any(t => t.Name == "U16 Rugby"))
+                {
+                    db.Teams.Add(new Team
+                    {
+                        Name = "U16 Rugby",
+                        SportName = "Rugby",
+                        CoachID = brownCoach.CoachID,
+                        Players = "",
+                        IsActive = true
+                    });
+
+                    db.SaveChanges();
+                }
+
+
+                // ─── 1st Hockey ────────────────────────────────────────────────
+
+                if (whiteCoach != null &&
+                    !db.Teams.Any(t => t.Name == "1st Hockey"))
+                {
+                    db.Teams.Add(new Team
+                    {
+                        Name = "1st Hockey",
+                        SportName = "Hockey",
+                        CoachID = whiteCoach.CoachID,
+                        Players = "",
+                        IsActive = true
+                    });
+
+                    db.SaveChanges();
+                }
+
+
+                // ─── 1st Cricket ───────────────────────────────────────────────
+
+                if (greenCoach != null &&
+                    !db.Teams.Any(t => t.Name == "1st Cricket"))
+                {
+                    db.Teams.Add(new Team
+                    {
+                        Name = "1st Cricket",
+                        SportName = "Cricket",
+                        CoachID = greenCoach.CoachID,
+                        Players = "",
+                        IsActive = true
+                    });
+
+                    db.SaveChanges();
+                }
+
+
+                // ─── Swimming Squad ────────────────────────────────────────────
+
+                if (blackCoach != null &&
+                    !db.Teams.Any(t => t.Name == "Swimming Squad"))
+                {
+                    db.Teams.Add(new Team
+                    {
+                        Name = "Swimming Squad",
+                        SportName = "Swimming",
+                        CoachID = blackCoach.CoachID,
+                        Players = "",
+                        IsActive = true
+                    });
+
+                    db.SaveChanges();
+                }
+
+
+                // ─── 4. Link Coaches and Teams to Sport records ────────────────
+
+                var sports = db.Sports.ToList();
+
+
+                // Link coaches
+                var coaches = db.Coaches.ToList();
+
+                foreach (var coach in coaches)
+                {
+                    if (coach.SportId == null &&
+                        !string.IsNullOrEmpty(coach.SportName))
+                    {
+                        var sport = sports.FirstOrDefault(s =>
+                            s.Name.Equals(
+                                coach.SportName,
+                                StringComparison.OrdinalIgnoreCase));
+
+                        if (sport != null)
+                        {
+                            coach.SportId = sport.SportId;
+                        }
+                    }
+                }
+
+
+                // Link teams
+                var teams = db.Teams.ToList();
+
+                foreach (var team in teams)
+                {
+                    if (team.SportId == null &&
+                        !string.IsNullOrEmpty(team.SportName))
+                    {
+                        var sport = sports.FirstOrDefault(s =>
+                            s.Name.Equals(
+                                team.SportName,
+                                StringComparison.OrdinalIgnoreCase));
+
+                        if (sport != null)
+                        {
+                            team.SportId = sport.SportId;
+                        }
+                    }
+                }
+
+                db.SaveChanges();
+
+
+                // ─── Success message ───────────────────────────────────────────
+
+                TempData["Success"] =
+                    "Cafeteria & Sports roles created. " +
+                    "Dietitian: dietitian@michaelhouse.co.za / Diet@123. " +
+                    "Meal Coordinator: meals@michaelhouse.co.za / Meals@123. " +
+                    "Chef: chef@michaelhouse.co.za / Chef@123. " +
+                    "Cafeteria Manager: cafeteria@michaelhouse.co.za / Cafe@123. " +
+                    "Sports Director: sports@michaelhouse.co.za / Sports@123. " +
+                    "Coaches: [brown|white|green|black]@michaelhouse.co.za / Coach@123";
 
                 return RedirectToAction("Login");
             }

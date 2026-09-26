@@ -23,7 +23,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress />
+    <Use64BitIISExpress>true</Use64BitIISExpress>
     <IISExpressSSLPort>44321</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
@@ -119,6 +119,9 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
@@ -159,6 +162,9 @@
       <HintPath>packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Client.6.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -220,6 +226,12 @@
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Core.5.3.0\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.WebHost.5.3.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
@@ -257,9 +269,15 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\DietitianController.cs" />
+    <Compile Include="Controllers\MyProfileController.cs" />
+    <Compile Include="Data\CafeteriaSeeder.cs" />
     <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\CafeteriaController.cs" />
+    <Compile Include="Controllers\CoachController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
@@ -292,6 +310,30 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609112235453_CafeteriaModule.cs" />
+    <Compile Include="Migrations\202609112235453_CafeteriaModule.Designer.cs">
+      <DependentUpon>202609112235453_CafeteriaModule.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609211636345_AddDietaryFields.cs" />
+    <Compile Include="Migrations\202609211636345_AddDietaryFields.Designer.cs">
+      <DependentUpon>202609211636345_AddDietaryFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609211817580_SeedAdminUser.cs" />
+    <Compile Include="Migrations\202609211817580_SeedAdminUser.Designer.cs">
+      <DependentUpon>202609211817580_SeedAdminUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609230131141_UpgradeMealPlanTo3Meals.cs" />
+    <Compile Include="Migrations\202609230131141_UpgradeMealPlanTo3Meals.Designer.cs">
+      <DependentUpon>202609230131141_UpgradeMealPlanTo3Meals.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609231948579_UpgradeWeeklyMenuTo21Fields.cs" />
+    <Compile Include="Migrations\202609231948579_UpgradeWeeklyMenuTo21Fields.Designer.cs">
+      <DependentUpon>202609231948579_UpgradeWeeklyMenuTo21Fields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609250125564_Phase2A_SportsAndTeamMembership.cs" />
+    <Compile Include="Migrations\202609250125564_Phase2A_SportsAndTeamMembership.Designer.cs">
+      <DependentUpon>202609250125564_Phase2A_SportsAndTeamMembership.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -305,16 +347,19 @@
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
+    <Compile Include="Models\Coach.cs" />
+    <Compile Include="Models\CoachRecommendation.cs" />
     <Compile Include="Models\DBContextClass.cs" />
+    <Compile Include="Models\Dining.cs" />
     <Compile Include="Models\Driver.cs" />
     <Compile Include="Models\EmergencyAlert.cs" />
     <Compile Include="Models\EmergencyService.cs" />
     <Compile Include="Models\Enrollment.cs" />
     <Compile Include="Models\EnrollmentViewModel.cs.cs" />
+    <Compile Include="Models\Enums\CafeteriaEnums.cs" />
     <Compile Include="Models\Event.cs" />
     <Compile Include="Models\GeofencingService.cs" />
     <Compile Include="Models\HouseMaster.cs" />
-    <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Inventorymodels.cs" />
     <Compile Include="Models\InventoryService.cs" />
     <Compile Include="Models\Invoice.cs" />
@@ -352,6 +397,7 @@
     <Compile Include="Models\ICartService.cs" />
     <Compile Include="Models\InvoiceService.cs" />
     <Compile Include="Models\Marksservice.cs" />
+    <Compile Include="Models\MealPlanning.cs" />
     <Compile Include="Models\Notification.cs" />
     <Compile Include="Models\NotificationHelper.cs" />
     <Compile Include="Models\Parent.cs" />
@@ -360,14 +406,19 @@
     <Compile Include="Models\Payment.cs" />
     <Compile Include="Models\PaymentService.cs" />
     <Compile Include="Models\QRScanRecord.cs" />
+    <Compile Include="Models\Recipes.cs" />
     <Compile Include="Models\Registration.cs" />
     <Compile Include="Models\RegistrationService.cs" />
     <Compile Include="Models\RegistrationStatus.cs" />
     <Compile Include="Models\ResidenceAllocation.cs" />
     <Compile Include="Models\ResidenceMovement.cs" />
     <Compile Include="Models\RoomCompatibilityResult.cs" />
+    <Compile Include="Models\RSVP.cs" />
     <Compile Include="Models\SchoolClass.cs" />
+    <Compile Include="Models\Selection.cs" />
     <Compile Include="Models\SessionCartService.cs" />
+    <Compile Include="Models\Sport.cs" />
+    <Compile Include="Models\SportsActivity.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
@@ -384,6 +435,8 @@
     <Compile Include="Models\TeacherAttendanceRecordViewModel.cs" />
     <Compile Include="Models\Teacherservice.cs" />
     <Compile Include="Models\Teachersubjectgrade.cs" />
+    <Compile Include="Models\Team.cs" />
+    <Compile Include="Models\TeamMembership.cs" />
     <Compile Include="Models\TermCalender.cs" />
     <Compile Include="Models\Termresult.cs" />
     <Compile Include="Models\Timetablegenerator .cs" />
@@ -396,10 +449,13 @@
     <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
+    <Compile Include="Models\ViewModels\CafeteriaDtos.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
+    <Compile Include="Models\ViewModels\StudentMyProfileViewModel.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
     <Compile Include="Models\VisitorAccessRequest.cs" />
+    <Compile Include="Models\WeeklyMenu.cs" />
     <Compile Include="Models\Yearresult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\TripController.cs" />
@@ -411,9 +467,15 @@
     <Compile Include="Services\AllocationRuleService.cs" />
     <Compile Include="Services\BoardingAccessService.cs" />
     <Compile Include="Services\BoardingProfileService.cs" />
+    <Compile Include="Services\CafeteriaAuditService.cs" />
+    <Compile Include="Services\CafeteriaProvisioningService.cs" />
+    <Compile Include="Services\CafeteriaSettingsService.cs" />
     <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\DemandForecastService.cs" />
+    <Compile Include="Services\DietarySafetyService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MenuValidationService.cs" />
     <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
     <Compile Include="Services\ResidenceAvailabilityService.cs" />
@@ -610,6 +672,59 @@
     <Content Include="Views\Maintenance\ReportFaultFromScan.cshtml" />
     <Content Include="Views\Scan\Index.cshtml" />
     <Content Include="Views\Scan\Scanner.cshtml" />
+    <Content Include="Views\Cafeteria\Index.cshtml" />
+    <Content Include="Views\Cafeteria\MealPlans.cshtml" />
+    <Content Include="Views\Cafeteria\ViewMealPlan.cshtml" />
+    <Content Include="Views\Cafeteria\MyMealPlan.cshtml" />
+    <Content Include="Views\Cafeteria\TodayMeals.cshtml" />
+    <Content Include="Views\Cafeteria\MyMealQR.cshtml" />
+    <Content Include="Views\Cafeteria\WeeklyMenu.cshtml" />
+    <Content Include="Views\Cafeteria\CreateWeeklyMenu.cshtml" />
+    <Content Include="Views\Cafeteria\KitchenDashboard.cshtml" />
+    <Content Include="Views\Cafeteria\PrepareKitchenPlan.cshtml" />
+    <Content Include="Views\Cafeteria\Recipes.cshtml" />
+    <Content Include="Views\Cafeteria\AddRecipe.cshtml" />
+    <Content Include="Views\Cafeteria\EditRecipe.cshtml" />
+    <Content Include="Views\Cafeteria\Inventory.cshtml" />
+    <Content Include="Views\Cafeteria\AddInventoryItem.cshtml" />
+    <Content Include="Views\Cafeteria\StockOrders.cshtml" />
+    <Content Include="Views\Cafeteria\PlaceStockOrder.cshtml" />
+    <Content Include="Views\Cafeteria\AmendStockOrder.cshtml" />
+    <Content Include="Views\Cafeteria\RecordDelivery.cshtml" />
+    <Content Include="Views\Cafeteria\Events.cshtml" />
+    <Content Include="Views\Cafeteria\CreateEvent.cshtml" />
+    <Content Include="Views\Cafeteria\ViewRSVPs.cshtml" />
+    <Content Include="Views\Cafeteria\EventsForRSVP.cshtml" />
+    <Content Include="Views\Cafeteria\Coaches.cshtml" />
+    <Content Include="Views\Cafeteria\AddCoach.cshtml" />
+    <Content Include="Views\Coach\MyTeam.cshtml" />
+    <Content Include="Views\Coach\SubmitRequirements.cshtml" />
+    <Content Include="Views\Coach\MyHistory.cshtml" />
+    <Content Include="Views\Cafeteria\ScanMealQR.cshtml" />
+    <Content Include="Views\Students\MyProfile.cshtml" />
+    <Content Include="Views\Cafeteria\ChefReviewMenu.cshtml" />
+    <Content Include="Views\Coach\TeamDetails.cshtml" />
+    <Content Include="Views\Coach\CreateActivity.cshtml" />
+    <Content Include="Views\Coach\TeamMessages.cshtml" />
+    <Content Include="Views\Coach\Calendar.cshtml" />
+    <Content Include="Views\Dietitian\Index.cshtml" />
+    <Content Include="Views\Dietitian\PendingRequests.cshtml" />
+    <Content Include="Views\Dietitian\ReviewRequest.cshtml" />
+    <Content Include="Views\Dietitian\Students.cshtml" />
+    <Content Include="Views\Dietitian\StudentDietary.cshtml" />
+    <Content Include="Views\Dietitian\Allergens.cshtml" />
+    <Content Include="Views\Dietitian\DietaryCategories.cshtml" />
+    <Content Include="Views\MyProfile\MyProfile.cshtml" />
+    <Content Include="Views\Students\MyDietary.cshtml" />
+    <Content Include="Views\Students\MySports.cshtml" />
+    <Content Include="Views\Students\RequestDietaryChange.cshtml" />
+    <Content Include="Views\Cafeteria\MenuEditor.cshtml" />
+    <Content Include="Views\Cafeteria\MenuIssues.cshtml" />
+    <Content Include="Views\Cafeteria\RecordWaste.cshtml" />
+    <Content Include="Views\Cafeteria\Reports.cshtml" />
+    <Content Include="Views\Cafeteria\MenuHistory.cshtml" />
+    <Content Include="Views\Cafeteria\AuditLog.cshtml" />
+    <Content Include="Views\Cafeteria\Settings.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -781,7 +896,6 @@
     <Content Include="Views\Enrollments\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data\" />
     <Folder Include="Views\Base\" />
     <Folder Include="Views\Leaverequestcontroller\" />
     <Folder Include="Views\NewFolder1\" />
@@ -789,6 +903,26 @@
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\202609112235453_CafeteriaModule.resx">
+      <DependentUpon>202609112235453_CafeteriaModule.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609211636345_AddDietaryFields.resx">
+      <DependentUpon>202609211636345_AddDietaryFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609211817580_SeedAdminUser.resx">
+      <DependentUpon>202609211817580_SeedAdminUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609230131141_UpgradeMealPlanTo3Meals.resx">
+      <DependentUpon>202609230131141_UpgradeMealPlanTo3Meals.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609231948579_UpgradeWeeklyMenuTo21Fields.resx">
+      <DependentUpon>202609231948579_UpgradeWeeklyMenuTo21Fields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609250125564_Phase2A_SportsAndTeamMembership.resx">
+      <DependentUpon>202609250125564_Phase2A_SportsAndTeamMembership.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -808,7 +942,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>65133</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://localhost:44321/</IISUrl>
+          <IISUrl>https://localhost:44333/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

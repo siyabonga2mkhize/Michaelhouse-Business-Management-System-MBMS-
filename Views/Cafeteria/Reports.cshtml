@@ -1,0 +1,192 @@
+﻿@{
+    ViewBag.Title = "Cafeteria Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var dailyRows = ViewBag.DailyRows as List<Michaelhouse.Models.ViewModels.DailyMealReportRow> ?? new List<Michaelhouse.Models.ViewModels.DailyMealReportRow>();
+    var hallRows = ViewBag.HallRows as List<Michaelhouse.Models.ViewModels.DiningHallReportRow> ?? new List<Michaelhouse.Models.ViewModels.DiningHallReportRow>();
+    var dietaryRows = ViewBag.DietaryRows as List<Michaelhouse.Models.ViewModels.DietarySummaryRow> ?? new List<Michaelhouse.Models.ViewModels.DietarySummaryRow>();
+    var wasteRows = ViewBag.WasteRows as List<Michaelhouse.Models.ViewModels.WasteSummaryRow> ?? new List<Michaelhouse.Models.ViewModels.WasteSummaryRow>();
+    var prodRows = ViewBag.ProductionRows as List<Michaelhouse.Models.ViewModels.ProductionSummaryRow> ?? new List<Michaelhouse.Models.ViewModels.ProductionSummaryRow>();
+    var date = (DateTime)ViewBag.Date;
+    var publishedMenu = ViewBag.PublishedMenu as Michaelhouse.Models.WeeklyMenu;
+}
+
+<div class="relative mb-6 border-b border-gray-100 bg-gray-50/30 py-6 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-bar-chart-line absolute -right-8 -bottom-10 text-black/5 text-[10rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Reports</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @date.ToString("dddd, dd MMMM yyyy")
+                @if (publishedMenu != null)
+                {
+                    <span> &bull; @publishedMenu.WeekNumber</span>
+                }
+            </p>
+        </div>
+        <form method="get" action="@Url.Action("Reports", "Cafeteria")" class="m-0">
+            <div class="flex gap-2">
+                <input type="date" name="date" value="@date.ToString("yyyy-MM-dd")"
+                       class="border border-gray-200 py-2 px-3 text-sm" />
+                <button type="submit"
+                        class="bg-[#C21E2E] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                    <i class="bi bi-search me-1"></i>Go
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20 space-y-8">
+
+    @* ─── DAILY MEAL REPORT ─────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                <i class="bi bi-clipboard-data me-2 text-[#C21E2E]"></i>Daily Meal Report
+            </h6>
+        </div>
+
+        @if (!dailyRows.Any())
+        {
+            <div class="p-8 text-center text-gray-400 text-sm">No data — no published menu for this date.</div>
+        }
+        else
+        {
+            <table class="w-full">
+                <thead class="bg-gray-50/30">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Meal</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Expected</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Selected</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Served</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Not Collected</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach (var r in dailyRows)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-bold text-gray-900">@r.SlotName</td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">@r.Expected</td>
+                            <td class="px-4 py-3 text-sm text-right text-blue-600 font-bold">@r.Selected</td>
+                            <td class="px-4 py-3 text-sm text-right text-green-600 font-bold">@r.Served</td>
+                            <td class="px-4 py-3 text-sm text-right @(r.NotCollected > 0 ? "text-amber-600 font-bold" : "text-gray-400")">@r.NotCollected</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    @* ─── PRODUCTION vs SERVED ──────────────────────────────── *@
+    @if (prodRows.Any())
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-fire me-2 text-[#C21E2E]"></i>Production vs Served
+                </h6>
+            </div>
+            <table class="w-full">
+                <thead class="bg-gray-50/30">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Meal</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Target</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Produced</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Served</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Leftover</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach (var r in prodRows)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-bold text-gray-900">@r.SlotName</td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">@r.Target</td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-900 font-bold">@r.Produced</td>
+                            <td class="px-4 py-3 text-sm text-right text-green-600 font-bold">@r.Served</td>
+                            <td class="px-4 py-3 text-sm text-right @(r.Leftover > 0 ? "text-amber-600 font-bold" : "text-gray-400")">@r.Leftover</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @* ─── DIETARY SUMMARY ───────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                <i class="bi bi-shield-check me-2 text-[#C21E2E]"></i>Dietary Summary (aggregated)
+            </h6>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+            @foreach (var d in dietaryRows)
+            {
+                <div class="p-4 text-center">
+                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">@d.Category</p>
+                    <p class="text-3xl font-serif font-bold text-gray-900 mb-0">@d.Count</p>
+                    <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mt-1">student(s)</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* ─── WASTE SUMMARY ─────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                <i class="bi bi-trash me-2 text-[#C21E2E]"></i>Waste Summary (last 30 days)
+            </h6>
+        </div>
+        @if (!wasteRows.Any())
+        {
+            <div class="p-8 text-center text-gray-400 text-sm">No waste recorded in the last 30 days.</div>
+        }
+        else
+        {
+            <table class="w-full">
+                <thead class="bg-gray-50/30">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Reason</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Records</th>
+                        <th class="text-right px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Total Quantity</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach (var w in wasteRows)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-bold text-gray-900">@w.Reason</td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">@w.Records</td>
+                            <td class="px-4 py-3 text-sm text-right text-[#C21E2E] font-bold">@w.TotalQuantity.ToString("0.##")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > div + div {
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .divide-x > div + div {
+        border-left: 1px solid #f3f4f6;
+    }
+</style>

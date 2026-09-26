@@ -1,0 +1,236 @@
+﻿@{
+    ViewBag.Title = "Kitchen Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var stats = ViewBag.Stats as List<Michaelhouse.Models.ViewModels.KitchenMealStats> ?? new List<Michaelhouse.Models.ViewModels.KitchenMealStats>();
+    var publishedMenu = ViewBag.PublishedMenu as Michaelhouse.Models.WeeklyMenu;
+    var today = (DateTime)ViewBag.Today;
+    int totalExpected = ViewBag.TotalExpected != null ? (int)ViewBag.TotalExpected : 0;
+    int totalSelected = ViewBag.TotalSelected != null ? (int)ViewBag.TotalSelected : 0;
+    int totalServed = ViewBag.TotalServed != null ? (int)ViewBag.TotalServed : 0;
+    var role = ViewBag.Role as string;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-fire absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Kitchen Dashboard</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @today.ToString("dddd, dd MMMM yyyy")
+                @if (publishedMenu != null)
+                {
+                    <span> &bull; @publishedMenu.WeekNumber</span>
+                }
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="@Url.Action("PrepareKitchenPlan", "Cafeteria", new { date = today.ToString("yyyy-MM-dd") })"
+               class="bg-white border border-gray-200 px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:border-[#C21E2E] hover:text-[#C21E2E]">
+                <i class="bi bi-clipboard-check me-2"></i>Prep Plan
+            </a>
+            <a href="@Url.Action("RecordWaste", "Cafeteria")"
+               class="bg-white border border-gray-200 px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:border-[#C21E2E] hover:text-[#C21E2E]">
+                <i class="bi bi-trash me-2"></i>Record Waste
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @if (publishedMenu == null)
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-6xl block mb-4 text-gray-300"></i>
+            <h5 class="font-serif font-bold text-gray-900 mb-2">No published menu for today</h5>
+            <p class="text-gray-500 text-sm mb-0">
+                The Meal Coordinator must publish this week's menu before service numbers appear here.
+            </p>
+        </div>
+    }
+    else if (stats.Count == 0)
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-egg-fried text-6xl block mb-4 text-gray-300"></i>
+            <h5 class="font-serif font-bold text-gray-900 mb-2">No meals planned for today</h5>
+            <p class="text-gray-500 text-sm mb-0">Check the Weekly Menu to add meals.</p>
+        </div>
+    }
+    else
+    {
+        @* ─── SUMMARY STRIP ─────────────────────────────────── *@
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="bg-white border border-gray-100 shadow-sm p-5">
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Expected</p>
+                <p class="text-3xl font-serif font-bold text-gray-900">@totalExpected</p>
+                <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mt-1">forecast servings</p>
+            </div>
+            <div class="bg-white border border-gray-100 shadow-sm p-5">
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Selected</p>
+                <p class="text-3xl font-serif font-bold text-blue-600">@totalSelected</p>
+                <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mt-1">students chose</p>
+            </div>
+            <div class="bg-white border border-gray-100 shadow-sm p-5">
+                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Served</p>
+                <p class="text-3xl font-serif font-bold @(totalServed > 0 ? "text-green-600" : "text-gray-300")">@totalServed</p>
+                <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mt-1">meals collected</p>
+            </div>
+        </div>
+
+        @* ─── MEAL CARDS ─────────────────────────────────────── *@
+        <div class="space-y-4">
+            @foreach (var s in stats)
+            {
+                <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <div>
+                            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                                <i class="bi bi-clock me-2 text-[#C21E2E]"></i>@s.SlotName
+                                @if (!string.IsNullOrEmpty(s.Title))
+                                {
+                                    <span class="text-gray-400 font-normal ml-2">— @s.Title</span>
+                                }
+                            </h6>
+                        </div>
+                        @if (s.HasProductionRecord)
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">
+                                <i class="bi bi-check-circle me-1"></i>Production recorded
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">
+                                <i class="bi bi-clock-history me-1"></i>Production pending
+                            </span>
+                        }
+                    </div>
+
+                    @* ─── COUNTS GRID ────────────────────────── *@
+                    <div class="grid grid-cols-5 divide-x divide-gray-100 border-b border-gray-100">
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">Expected</p>
+                            <p class="text-xl font-serif font-bold text-gray-900 mb-0">@s.Expected</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">Selected</p>
+                            <p class="text-xl font-serif font-bold text-blue-600 mb-0">@s.Selected</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">Produced</p>
+                            <p class="text-xl font-serif font-bold @(s.Produced > 0 ? "text-gray-900" : "text-gray-300") mb-0">@s.Produced</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">Served</p>
+                            <p class="text-xl font-serif font-bold @(s.Served > 0 ? "text-green-600" : "text-gray-300") mb-0">@s.Served</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">Remaining</p>
+                            <p class="text-xl font-serif font-bold text-gray-400 mb-0">@s.Remaining</p>
+                        </div>
+                    </div>
+
+                    @* ─── SPECIAL DIET COUNTS ────────────────── *@
+                    <div class="grid grid-cols-4 divide-x divide-gray-100 border-b border-gray-100 bg-gray-50/30">
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">
+                                <i class="bi bi-leaf text-green-600"></i> Vegetarian
+                            </p>
+                            <p class="text-lg font-bold text-gray-900 mb-0">@s.VegetarianCount</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">
+                                <i class="bi bi-flower1 text-green-700"></i> Vegan
+                            </p>
+                            <p class="text-lg font-bold text-gray-900 mb-0">@s.VeganCount</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">
+                                <i class="bi bi-shield-exclamation text-red-600"></i> Allergy-Safe
+                            </p>
+                            <p class="text-lg font-bold text-red-600 mb-0">@s.AllergySafeCount</p>
+                        </div>
+                        <div class="p-3 text-center">
+                            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mb-1">
+                                <i class="bi bi-heart-pulse text-amber-600"></i> Medical
+                            </p>
+                            <p class="text-lg font-bold text-amber-600 mb-0">@s.MedicalCount</p>
+                        </div>
+                    </div>
+
+                    @* ─── PRODUCTION FORM ────────────────────── *@
+                    @if (role == "Chef" || role == "CafeteriaManager" || role == "MealCoordinator")
+                    {
+                        using (Html.BeginForm("SaveProduction", "Cafeteria", FormMethod.Post, new { @class = "p-4 bg-gray-50/30 m-0" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="menuMealId" value="@s.MenuMealId" />
+                            <input type="hidden" name="productionDate" value="@today.ToString("yyyy-MM-dd")" />
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                <div class="md:col-span-3">
+                                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Target</label>
+                                    <input type="number" name="targetQty" value="@(s.Target > 0 ? s.Target : s.Expected)" min="0"
+                                           class="w-full border border-gray-200 py-2 px-3 text-sm" />
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Produced</label>
+                                    <input type="number" name="producedQty" value="@s.Produced" min="0"
+                                           class="w-full border border-gray-200 py-2 px-3 text-sm" />
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Notes</label>
+                                    <input type="text" name="notes"
+                                           class="w-full border border-gray-200 py-2 px-3 text-sm"
+                                           placeholder="e.g. 10 extra portions prepared" />
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button type="submit"
+                                            class="w-full bg-[#C21E2E] text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                                        <i class="bi bi-save me-1"></i>Save
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+
+        @* ─── QUICK ACTION FOOTER ────────────────────────────── *@
+        <div class="mt-8 bg-gray-900 p-6 flex flex-wrap justify-between items-center gap-3 relative overflow-hidden">
+            <i class="bi bi-clipboard-check absolute -right-4 -bottom-4 text-white/5 text-6xl"></i>
+            <div class="relative z-10">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-1">End of Service</h6>
+                <p class="text-sm font-bold text-white mb-0">Record waste and finalize production numbers.</p>
+            </div>
+            <div class="relative z-10 flex gap-2">
+                <a href="@Url.Action("RecordWaste", "Cafeteria")"
+                   class="bg-[#C21E2E] text-white px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                    <i class="bi bi-trash me-1"></i>Record Waste
+                </a>
+                <a href="@Url.Action("PrepareKitchenPlan", "Cafeteria")"
+                   class="bg-white/10 text-white border border-white/20 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">
+                    <i class="bi bi-clipboard-check me-1"></i>Prep Plan
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-x > * + * {
+        border-left-width: 1px;
+    }
+</style>

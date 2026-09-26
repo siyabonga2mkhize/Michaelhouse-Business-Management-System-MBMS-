@@ -1,0 +1,82 @@
+﻿@model IEnumerable<Michaelhouse.Models.Student>
+@{
+    ViewBag.Title = "Students";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var summaries = ViewBag.Summaries as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-people absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Dietitian Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Students with Dietary Records</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">@list.Count student(s)</p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+    @if (!list.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-people text-5xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">No students have dietary records yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Name</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Grade</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Student #</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Records</th>
+                            <th class="text-right px-4 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var s in list)
+                        {
+                            var count = summaries.ContainsKey(s.StudentId) ? summaries[s.StudentId] : 0;
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">@s.FirstName @s.LastName</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">Grade @s.GradeLevel</td>
+                                <td class="px-4 py-3 text-xs text-gray-500">@(s.StudentNumber ?? "—")</td>
+                                <td class="px-4 py-3">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#C21E2E] text-white">
+                                        @count active
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="@Url.Action("StudentDietary", new { id = s.StudentId })"
+                                       class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                                        View Profile →
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

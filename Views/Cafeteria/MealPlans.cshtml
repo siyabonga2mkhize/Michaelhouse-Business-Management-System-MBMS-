@@ -1,0 +1,242 @@
+﻿@model IEnumerable<Michaelhouse.Controllers.MealPlanReviewRow>
+
+@{
+    ViewBag.Title = "Student Meal Plans";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var rows = Model as List<Michaelhouse.Controllers.MealPlanReviewRow> ?? new List<Michaelhouse.Controllers.MealPlanReviewRow>();
+
+    int totalCount = ViewBag.TotalCount != null ? (int)ViewBag.TotalCount : 0;
+    int pendingCount = ViewBag.PendingCount != null ? (int)ViewBag.PendingCount : 0;
+    int flaggedCount = ViewBag.FlaggedCount != null ? (int)ViewBag.FlaggedCount : 0;
+    int safeCount = ViewBag.SafeCount != null ? (int)ViewBag.SafeCount : 0;
+    int approvedCount = ViewBag.ApprovedCount != null ? (int)ViewBag.ApprovedCount : 0;
+    int rejectedCount = ViewBag.RejectedCount != null ? (int)ViewBag.RejectedCount : 0;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-journal-check absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria – Dietitian</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Student Meal Plans</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Smart batched review with auto-flagging
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY STATS ──────────────────────────────────────── *@
+    <div class="row g-4 mb-6">
+        <div class="col-md-2">
+            <div class="bg-white border border-gray-100 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Total</div>
+                <div class="text-2xl font-serif font-bold text-gray-900">@totalCount</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="bg-white border-l-4 border-amber-500 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Pending</div>
+                <div class="text-2xl font-serif font-bold text-amber-600">@pendingCount</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="bg-white border-l-4 border-red-500 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">🚩 Flagged</div>
+                <div class="text-2xl font-serif font-bold text-red-600">@flaggedCount</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="bg-white border-l-4 border-green-500 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">✅ Safe</div>
+                <div class="text-2xl font-serif font-bold text-green-600">@safeCount</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="bg-white border-l-4 border-blue-500 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Approved</div>
+                <div class="text-2xl font-serif font-bold text-blue-600">@approvedCount</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="bg-white border-l-4 border-gray-400 p-4 shadow-sm">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Rejected</div>
+                <div class="text-2xl font-serif font-bold text-gray-600">@rejectedCount</div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── BULK ACTIONS ───────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 p-4 mb-6 flex justify-between items-center flex-wrap gap-3">
+        <div class="text-sm text-gray-600">
+            <i class="bi bi-lightning-charge-fill text-amber-500 me-1"></i>
+            Skip review for clean plans with one click
+        </div>
+        @using (Html.BeginForm("BulkApproveSafe", "Cafeteria", FormMethod.Post, new { @class = "d-inline" }))
+        {
+            @Html.AntiForgeryToken()
+            <button type="submit"
+                    class="bg-green-600 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700 transition-all"
+                    onclick="return confirm('Approve ALL safe (unflagged) pending plans? This skips the ones with flags for your review.');">
+                <i class="bi bi-check2-all me-2"></i>Bulk Approve All Safe Plans (@safeCount)
+            </button>
+        }
+    </div>
+
+    @* ─── FILTER TABS ────────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 p-4 mb-6">
+        <div class="flex flex-wrap gap-2">
+            <button class="filter-btn active text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-[#C21E2E] bg-[#C21E2E] text-white" data-filter="all">
+                All (@totalCount)
+            </button>
+            <button class="filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-amber-300 text-amber-700 hover:bg-amber-50" data-filter="pending">
+                Pending (@pendingCount)
+            </button>
+            <button class="filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-red-300 text-red-700 hover:bg-red-50" data-filter="flagged">
+                🚩 Flagged (@flaggedCount)
+            </button>
+            <button class="filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-green-300 text-green-700 hover:bg-green-50" data-filter="safe">
+                ✅ Safe (@safeCount)
+            </button>
+            <button class="filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-blue-300 text-blue-700 hover:bg-blue-50" data-filter="approved">
+                Approved (@approvedCount)
+            </button>
+            <button class="filter-btn text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50" data-filter="rejected">
+                Rejected (@rejectedCount)
+            </button>
+        </div>
+    </div>
+
+    @* ─── MEAL PLANS TABLE ───────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Meal Plan Submissions</h6>
+        </div>
+
+        @if (!rows.Any())
+        {
+            <div class="p-20 text-center text-gray-400 italic font-serif">
+                <i class="bi bi-journal-x text-4xl block mb-3 opacity-20"></i>
+                No meal plans submitted yet.
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Student</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Grade</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Sport</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Flags / Notes</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var row in rows)
+                        {
+                            string studentName = row.Student != null ? row.Student.FirstName + " " + row.Student.LastName : "Unknown";
+                            string grade = row.Student != null ? "Grade " + row.Student.GradeLevel : "—";
+                            string sport = (row.Profile != null && !string.IsNullOrEmpty(row.Profile.Sports)) ? row.Profile.Sports : "—";
+
+                            bool isFlagged = row.Flags != null && row.Flags.Any();
+                            bool isPending = row.Plan.Status == "Pending";
+
+                            string rowDataStatus = isPending
+                                ? (isFlagged ? "pending flagged" : "pending safe")
+                                : row.Plan.Status.ToLower();
+
+                            <tr class="plan-row" data-status="@rowDataStatus">
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">@studentName</td>
+                                <td class="px-4 py-3 text-xs text-gray-600">@grade</td>
+                                <td class="px-4 py-3 text-xs text-gray-600">@sport</td>
+                                <td class="px-4 py-3">
+                                    @if (row.Plan.Status == "Pending")
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200">Pending</span>
+                                    }
+                                    else if (row.Plan.Status == "Approved")
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-50 text-green-600 border border-green-200">✓ Approved</span>
+                                    }
+                                    else if (row.Plan.Status == "Rejected")
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-50 text-red-600 border border-red-200">✗ Rejected</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-600">
+                                    @if (row.Flags != null && row.Flags.Any())
+                                    {
+                                        foreach (var flag in row.Flags.Take(3))
+                                        {
+                                            <div class="text-[10px] text-red-600 mb-0.5">🚩 @flag</div>
+                                        }
+                                        if (row.Flags.Count > 3)
+                                        {
+                                            <div class="text-[9px] text-gray-400 italic">+ @(row.Flags.Count - 3) more</div>
+                                        }
+                                    }
+                                    else if (row.Plan.Status == "Pending")
+                                    {
+                                        <span class="text-[10px] text-green-600">✅ Clean</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="@Url.Action("ViewMealPlan", new { id = row.Plan.MealPlanID })"
+                                       class="text-[9px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] px-3 py-1 border border-gray-200 hover:border-[#C21E2E] transition-all">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.filter-btn').on('click', function () {
+                $('.filter-btn').removeClass('active bg-[#C21E2E] text-white border-[#C21E2E]');
+                $(this).addClass('active bg-[#C21E2E] text-white border-[#C21E2E]');
+
+                var filter = $(this).data('filter');
+                $('.plan-row').each(function () {
+                    var status = $(this).data('status');
+                    if (filter === 'all') {
+                        $(this).show();
+                    } else if (filter === 'pending') {
+                        $(this).toggle(status.indexOf('pending') === 0);
+                    } else if (filter === 'flagged') {
+                        $(this).toggle(status === 'pending flagged');
+                    } else if (filter === 'safe') {
+                        $(this).toggle(status === 'pending safe');
+                    } else {
+                        $(this).toggle(status === filter);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

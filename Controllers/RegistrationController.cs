@@ -250,32 +250,58 @@ namespace Michaelhouse.Controllers
                     _studentAccounts.CreateStudentAccount(reg.StudentId);
 
                 // =====================================================
-                // 6. Allocate boarding house
+                // 6. Allocate boarding house (NON-FATAL)
                 // =====================================================
-                var aiService = new AIResidenceAllocationService();
+                ResidenceAssignment assignment = null;
+                string allocationWarning = null;
 
-                var assignment =
-                    aiService.AllocateStudent(reg.StudentId);
-
-                if (assignment == null)
+                try
                 {
-                    throw new Exception(
-                        "Registration completed, but no residence allocation was created.");
+                    var aiService = new AIResidenceAllocationService();
+                    assignment = aiService.AllocateStudent(reg.StudentId);
+
+                    if (assignment == null)
+                    {
+                        allocationWarning =
+                            "Residence allocation pending — no eligible rooms at this time. " +
+                            "Student placed on waiting list.";
+                        System.Diagnostics.Debug.WriteLine("⚠ " + allocationWarning);
+                    }
+                }
+                catch (Exception allocEx)
+                {
+                    allocationWarning = "Residence allocation skipped: " + allocEx.Message;
+                    System.Diagnostics.Debug.WriteLine("⚠ " + allocationWarning);
                 }
 
                 // =====================================================
-                // 7. Generate / retrieve permanent QR identity
+                // 7. Generate / retrieve permanent QR identity (NON-FATAL)
                 // =====================================================
-                var qrService = new StudentQRCodeService();
+                StudentQRCode qr = null;
 
-                var qr =
-                    qrService.GetActiveQRCode(reg.StudentId);
-
-                if (qr == null)
+                try
                 {
-                    qr = qrService.GenerateQRCode(reg.StudentId);
-                }
+                    var qrService = new StudentQRCodeService();
+                    qr = qrService.GetActiveQRCode(reg.StudentId);
 
+                    if (qr == null)
+                    {
+                        qr = qrService.GenerateQRCode(reg.StudentId);
+                    }
+                }
+                catch (Exception qrEx)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠ QR generation skipped: " + qrEx.Message);
+                }
+                // 🍽 Safety-net: provision cafeteria records if wizard didn't already
+                try
+                {
+                    new CafeteriaProvisioningService().ProvisionForNewStudent(reg.StudentId);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Cafeteria provisioning at registration failed: " + ex.Message);
+                }
                 // =====================================================
                 // 8. Load all information needed for the email
                 // =====================================================
@@ -293,24 +319,25 @@ namespace Michaelhouse.Controllers
                     // -------------------------------------------------
                     // Load residence + House Master
                     // -------------------------------------------------
-                    var residence = db.Residences
-                        .Include("HouseMaster")
-                        .FirstOrDefault(r =>
-                            r.ResidenceId == assignment.ResidenceId);
+                    // -------------------------------------------------
+                    // Load residence + House Master (nullable — assignment may be null)
+                    // -------------------------------------------------
+                    Residence residence = null;
+                    Room room = null;
+                    Bed bed = null;
 
-                    // -------------------------------------------------
-                    // Load room
-                    // -------------------------------------------------
-                    var room = db.Rooms
-                        .FirstOrDefault(r =>
-                            r.RoomId == assignment.RoomId);
+                    if (assignment != null)
+                    {
+                        residence = db.Residences
+                            .Include("HouseMaster")
+                            .FirstOrDefault(r => r.ResidenceId == assignment.ResidenceId);
 
-                    // -------------------------------------------------
-                    // Load bed
-                    // -------------------------------------------------
-                    var bed = db.Beds
-                        .FirstOrDefault(b =>
-                            b.BedId == assignment.BedId);
+                        room = db.Rooms
+                            .FirstOrDefault(r => r.RoomId == assignment.RoomId);
+
+                        bed = db.Beds
+                            .FirstOrDefault(b => b.BedId == assignment.BedId);
+                    }
 
                     // =================================================
                     // 9. Basic student information
@@ -364,10 +391,11 @@ namespace Michaelhouse.Controllers
                     string houseMasterName =
                         residence?.HouseMaster?.FullName ?? "To be confirmed";
 
-                    string moveInDate =
-                        assignment.MoveInDate != default(DateTime)
-                            ? assignment.MoveInDate.ToString("dd MMMM yyyy")
-                            : "To be confirmed";
+                    string moveInDate = "To be confirmed";
+                    if (assignment != null && assignment.MoveInDate != default(DateTime))
+                    {
+                        moveInDate = assignment.MoveInDate.ToString("dd MMMM yyyy");
+                    }
 
                     // =================================================
                     // 12. QR image
@@ -794,15 +822,43 @@ namespace Michaelhouse.Controllers
                     // =================================================
                     // 15. Send registration email
                     // =================================================
+                    // =================================================
+                    // 15. Send registration email
+                    // =================================================
                     if (parent != null &&
                         !string.IsNullOrWhiteSpace(parent.Contact))
                     {
-                        _email.SendPlain(
-                            parent.Contact,
-                            subject,
-                            body);
+                        try
+                        {
+                            _email.SendPlain(parent.Contact, subject, body);
+                            System.Diagnostics.Debug.WriteLine(
+                                "✓ Registration email sent to " + parent.Contact);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine(
+                                "⚠ Email send failed: " + emailEx.Message);
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            "⚠ Cannot send registration email — parent has no contact email");
                     }
                 }
+                // =====================================================
+                // 15b. Cafeteria provisioning (NON-FATAL)
+                // =====================================================
+                try
+                {
+                    new CafeteriaProvisioningService().ProvisionForNewStudent(reg.StudentId);
+                }
+                catch (Exception cafeEx)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "⚠ Cafeteria provisioning skipped: " + cafeEx.Message);
+                }
+
 
                 // =====================================================
                 // 16. Create annual invoices
@@ -862,4 +918,5 @@ namespace Michaelhouse.Controllers
             return View();
         }
     }
+
 }

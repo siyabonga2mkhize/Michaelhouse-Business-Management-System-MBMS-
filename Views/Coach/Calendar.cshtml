@@ -1,0 +1,83 @@
+﻿@model IEnumerable<Michaelhouse.Models.SportsActivity>
+@{
+    ViewBag.Title = "Calendar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var teams = ViewBag.Teams as List<Michaelhouse.Models.Team> ?? new List<Michaelhouse.Models.Team>();
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-calendar3 absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Calendar</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">Next 30 days</p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+
+    @if (!list.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-6xl block mb-4 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">No scheduled activities in the next 30 days.</p>
+        </div>
+    }
+    else
+    {
+        var grouped = list.GroupBy(a => a.StartDateTime.Date).OrderBy(g => g.Key);
+        foreach (var day in grouped)
+        {
+            <div class="mb-6">
+                <div class="flex items-center gap-3 mb-3">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                        @day.Key.ToString("dddd, dd MMMM yyyy")
+                    </h6>
+                    <div class="flex-1 h-px bg-gray-100"></div>
+                    <span class="text-[9px] text-gray-400">@day.Count() activity(ies)</span>
+                </div>
+
+                <div class="space-y-2">
+                    @foreach (var a in day)
+                    {
+                        <div class="bg-white border border-gray-100 shadow-sm p-4 flex justify-between items-center">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <strong class="text-sm text-gray-900">@a.Title</strong>
+                                    <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-[#C21E2E] text-white">@a.ActivityType</span>
+                                    @if (a.IsCancelled)
+                                    {<span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-300 text-gray-700">Cancelled</span>}
+                                </div>
+                                <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-0">
+                                    @(a.Team != null ? a.Team.Name : "")
+                                    @if (!string.IsNullOrEmpty(a.Location))
+                                    {<text> &bull; @a.Location</text>}
+                                    @if (!string.IsNullOrEmpty(a.Opponent))
+                                    {<text> &bull; vs @a.Opponent</text>}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-gray-900 mb-0">
+                                    @a.StartDateTime.ToString("HH:mm") – @a.EndDateTime.ToString("HH:mm")
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

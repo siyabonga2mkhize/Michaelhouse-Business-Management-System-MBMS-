@@ -1,0 +1,241 @@
+﻿@model Michaelhouse.Models.ViewModels.StudentMyProfileViewModel
+@{
+    ViewBag.Title = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-person-badge absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">My Profile</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Manage your personal, medical, and dietary information
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @* NOTICE *@
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+        <h6 class="text-[9px] uppercase tracking-widest font-bold text-blue-700 mb-1">
+            <i class="bi bi-info-circle me-1"></i>How Changes Work
+        </h6>
+        <p class="text-xs text-blue-800 mb-0">
+            Personal details (name, phone, language) save instantly.
+            To change <strong>dietary, medical, or sports</strong> information, use
+            the <strong>Manage</strong> buttons below — those go through a review workflow
+            for student safety.
+        </p>
+    </div>
+
+    @using (Html.BeginForm("SaveMyProfile", "Students", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        @* SECTION 1 — INSTITUTIONAL IDENTITY *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-shield-lock me-2 text-gray-400"></i>Institutional Identity
+                </h6>
+                <span class="text-[9px] uppercase tracking-widest font-bold text-gray-400">Read-only</span>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Full Name</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.FullName</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Student Number</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.StudentNumber</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Grade</label>
+                        <div class="text-sm font-bold text-gray-900">Grade @Model.GradeLevel</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Boarding Status</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.BoardingStatus</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">House / Residence</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.HouseName</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Room / Bed</label>
+                        <div class="text-sm font-bold text-gray-900">
+                            @Model.RoomNumber
+                            @if (!string.IsNullOrEmpty(Model.BedNumber) && Model.BedNumber != "—")
+                            {<span class="text-gray-400 font-normal">&bull; @Model.BedNumber</span>}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Institutional Email</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.Email</div>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Date of Birth</label>
+                        <div class="text-sm font-bold text-gray-900">@Model.DateOfBirth.ToString("dd MMMM yyyy")</div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-6 mb-0 italic">
+                    <i class="bi bi-info-circle me-1"></i>To change a read-only field, contact the school administration.
+                </p>
+            </div>
+        </div>
+
+        @* SECTION 2 — PERSONAL DETAILS *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-person me-2 text-[#C21E2E]"></i>Personal Details
+                </h6>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Preferred Name</label>
+                        <input type="text" name="PreferredName" value="@Model.PreferredName"
+                               class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] text-sm text-gray-900 bg-transparent"
+                               placeholder="e.g. T-Bone" />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Home Language</label>
+                        <input type="text" name="HomeLanguage" value="@Model.HomeLanguage"
+                               class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] text-sm text-gray-900 bg-transparent"
+                               placeholder="e.g. English" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Cell Phone (optional)</label>
+                    <input type="text" name="PhoneNumber" value="@Model.PhoneNumber"
+                           class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] text-sm text-gray-900 bg-transparent"
+                           placeholder="e.g. 082 123 4567" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center mb-6">
+            <a href="@Url.Action("Dashboard", "Students")"
+               class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+            <button type="submit"
+                    class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                <i class="bi bi-save me-2"></i>Save Personal Details
+            </button>
+        </div>
+    }
+
+    @* SECTION 3 — DIETARY & MEDICAL (READ-ONLY + Manage button) *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-red-50 flex justify-between items-center">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-red-700 mb-0">
+                <i class="bi bi-heart-pulse me-2"></i>Dietary & Medical Information
+            </h6>
+            <a href="@Url.Action("MyDietary", "Students")"
+               class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                Manage →
+            </a>
+        </div>
+
+        @if (Model.PendingRequests != null && Model.PendingRequests.Any())
+        {
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-3 mx-4 mt-4">
+                <p class="text-xs text-amber-800 mb-0">
+                    <i class="bi bi-clock-history me-1"></i>
+                    You have <strong>@Model.PendingRequests.Count</strong> pending change request(s) awaiting Dietitian review.
+                </p>
+            </div>
+        }
+
+        @if (Model.DietaryRecords == null || !Model.DietaryRecords.Any())
+        {
+            <div class="p-8 text-center">
+                <i class="bi bi-shield-check text-5xl block mb-3 text-green-400"></i>
+                <p class="text-gray-500 mb-2">No dietary restrictions on file.</p>
+                <p class="text-xs text-gray-400 mb-0">If you have an allergy, medical restriction, or dietary preference, add it now.</p>
+            </div>
+        }
+        else
+        {
+            <div class="divide-y divide-gray-50">
+                @foreach (var r in Model.DietaryRecords)
+                {
+                    <div class="p-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            @if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.Allergy)
+                            {<span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">Allergy</span> }
+                            else if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.MedicalRestriction)
+                            { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-600 text-white">Medical</span> }
+                            else if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.DietaryPreference)
+                            { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-600 text-white">Preference</span> }
+                            else
+                            { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-600 text-white">@r.RecordType</span>}
+                        </div>
+                        <p class="text-sm font-bold text-gray-900 mb-0">
+                            @(r.Allergen != null ? r.Allergen.Name : (r.DietaryCategory != null ? r.DietaryCategory.Name : r.CustomDescription))
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @* SECTION 4 — SPORTS (READ-ONLY + Manage button) *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                <i class="bi bi-trophy me-2 text-[#C21E2E]"></i>Sports & Teams
+            </h6>
+            <a href="@Url.Action("MySports", "Students")"
+               class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                Manage →
+            </a>
+        </div>
+
+        @if (Model.SportMemberships == null || !Model.SportMemberships.Any())
+        {
+            <div class="p-8 text-center text-gray-400 text-sm">
+                Not currently a member of any team.
+            </div>
+        }
+        else
+        {
+            <div class="divide-y divide-gray-50">
+                @foreach (var m in Model.SportMemberships)
+                {
+                    <div class="p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-bold text-gray-900 mb-0">@(m.Team?.Name ?? "Team")</p>
+                            <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-0">
+                                @(m.Team?.Sport?.Name ?? m.Team?.SportName ?? "")
+                            </p>
+                        </div>
+                        <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">Active</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

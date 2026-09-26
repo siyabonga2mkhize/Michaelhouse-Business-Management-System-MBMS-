@@ -1,0 +1,142 @@
+﻿@model Michaelhouse.Models.Recipe
+
+@{
+    ViewBag.Title = "Add Recipe";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Master Recipe Database</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Add New Recipe</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Add a new meal to the recipe database
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @using (Html.BeginForm("AddRecipe", "Cafeteria", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-book me-2 text-[#C21E2E]"></i>Recipe Information
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Recipe Name *</label>
+                    <input type="text" name="Name" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Chicken & Rice" />
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Category *</label>
+                    <select name="Category" required class="w-full border border-gray-200 py-3 px-4 text-sm">
+                        <option value="">-- Select category --</option>
+                        <option value="Main Meal">Main Meal</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Dessert">Dessert</option>
+                        <option value="Snack">Snack</option>
+                        <option value="Beverage">Beverage</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Ingredients</label>
+                    <textarea name="Ingredients" rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Chicken breast, rice, mixed vegetables, herbs"></textarea>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Cooking Instructions</label>
+                    <textarea name="Instructions" rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="Step-by-step cooking method"></textarea>
+                </div>
+            </div>
+        </div>
+
+        @* ─── NUTRITIONAL INFO ──────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-bar-chart me-2 text-[#C21E2E]"></i>Nutritional Information (per serving)
+                </h6>
+            </div>
+
+            <div class="p-6">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Calories</label>
+                        <input type="number" name="Calories" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Protein (g)</label>
+                        <input type="number" name="Protein" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Carbs (g)</label>
+                        <input type="number" name="Carbs" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Fats (g)</label>
+                        <input type="number" name="Fats" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Iron (mg)</label>
+                        <input type="number" name="Iron" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Calcium (mg)</label>
+                        <input type="number" name="Calcium" value="0" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ─── DIETARY TAGS & ALLERGENS ──────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-tags me-2 text-[#C21E2E]"></i>Dietary Tags & Allergens
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Dietary Tags</label>
+                    <input type="text" name="Tags" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Vegetarian, Halal, Gluten-Free" />
+                    <p class="text-[9px] text-gray-400 mt-1">Separate with commas</p>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Allergens</label>
+                    <input type="text" name="Allergens" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Gluten, Dairy, Nuts" />
+                    <p class="text-[9px] text-gray-400 mt-1">Leave blank if none. This is used to protect students with allergies.</p>
+                </div>
+            </div>
+        </div>
+
+        @* ─── FORM ACTIONS ──────────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("Recipes")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-save me-2"></i>Save Recipe
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

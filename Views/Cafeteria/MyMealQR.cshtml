@@ -1,0 +1,86 @@
+﻿@model IEnumerable<Michaelhouse.Models.Selection>
+
+@{
+    ViewBag.Title = "My Meal QR";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var selections = Model as List<Michaelhouse.Models.Selection> ?? new List<Michaelhouse.Models.Selection>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">My Meal QR</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+    @if (!selections.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-qr-code text-6xl block mb-4 text-gray-300"></i>
+            <p class="text-gray-500 text-lg font-bold mb-2">No meal selected for today.</p>
+            <p class="text-gray-400 text-sm mb-6">Please select your meals first to see your QR code.</p>
+            <a href="@Url.Action("TodayMeals")" class="inline-block bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                Select Meals
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var selection in selections)
+            {
+                <div class="col-md-6">
+                    <div class="bg-white border border-gray-100 shadow-sm p-6 text-center">
+                        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-4">@selection.MealType</h6>
+
+                        <div class="mb-4">
+                            <div class="text-lg font-serif font-bold text-gray-900">@selection.Meal</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">@selection.MealType Service</div>
+                        </div>
+
+                        @* ─── QR CODE DISPLAY ─── *@
+                        <div class="bg-gray-50 border-2 border-dashed border-gray-300 p-4 mb-4">
+                            <div class="flex justify-center mb-2">
+                                <i class="bi bi-qr-code text-8xl text-gray-700"></i>
+                            </div>
+                            <div class="text-[8px] font-mono text-gray-500 break-all">@selection.QRCodeValue</div>
+                        </div>
+
+                        @if (selection.IsCollected)
+                        {
+                            <div class="text-[10px] font-bold uppercase tracking-widest text-green-600">
+                                ✓ Collected at @(selection.CollectedOn.HasValue ? selection.CollectedOn.Value.ToString("HH:mm") : "")
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-[10px] font-bold uppercase tracking-widest text-amber-600">
+                                ⏳ Show this QR code to collect your meal
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest">
+                <i class="bi bi-clock me-1"></i>Show this QR code at the dining hall counter
+            </p>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

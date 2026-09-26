@@ -1,0 +1,217 @@
+﻿@{
+    ViewBag.Title = "Today's Meals";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var cards = ViewBag.MealCards as List<Michaelhouse.Models.ViewModels.TodayMealCard> ?? new List<Michaelhouse.Models.ViewModels.TodayMealCard>(); ;
+    bool hasMenu = ViewBag.HasPublishedMenu is bool && (bool)ViewBag.HasPublishedMenu;
+    var today = DateTime.Today;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-egg-fried absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Today's Meals</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @today.ToString("dddd, dd MMMM yyyy")
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @if (!hasMenu || cards.Count == 0)
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-calendar-x text-6xl block mb-4 text-gray-300"></i>
+            <h5 class="font-serif font-bold text-gray-900 mb-2">No meals scheduled today</h5>
+            <p class="text-gray-500 text-sm mb-0">Either no menu is published for this week, or today has no meals planned.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var card in cards)
+            {
+                bool hasSelection = !string.IsNullOrEmpty(card.CurrentSelectionName);
+                string headerClass = card.WindowOpen ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200";
+
+                <div class="bg-white border @(card.WindowOpen ? "border-[#C21E2E]" : "border-gray-100") shadow-sm overflow-hidden">
+                    <div class="p-4 border-b @headerClass flex justify-between items-center">
+                        <div>
+                            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                                <i class="bi bi-clock me-2"></i>@card.SlotName
+                                @if (!string.IsNullOrEmpty(card.Title))
+                                {
+                                    <span class="text-gray-400 font-normal ml-2">— @card.Title</span>
+                                }
+                            </h6>
+                        </div>
+                        <div>
+                            @if (card.WindowOpen)
+                            {
+                                <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 bg-green-500 text-white">
+                                    <i class="bi bi-unlock me-1"></i>Open until @card.CutoffLabel
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 bg-gray-400 text-white">
+                                    <i class="bi bi-lock me-1"></i>Closed (@card.CutoffLabel)
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+
+                        @if (hasSelection)
+                        {
+                            string collectedBadge = card.IsCollected ? "bg-green-500" : "bg-blue-500";
+                            string collectedText = card.IsCollected ? "Collected" : "Selected";
+                            string borderClass = card.IsCollected ? "border-green-500" : "border-blue-500";
+
+                            <div class="bg-gray-50 border-l-4 @borderClass p-3 mb-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Your selection</p>
+                                        <p class="text-sm font-bold text-gray-900 mb-0">@card.CurrentSelectionName</p>
+                                    </div>
+                                    <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 text-white @collectedBadge">
+                                        @collectedText
+                                    </span>
+                                </div>
+                                @if (card.IsCollected && card.CollectedOn.HasValue)
+                                {
+                                    <p class="text-[10px] text-gray-500 mt-2 mb-0">
+                                        <i class="bi bi-check2-circle me-1"></i>Collected at @card.CollectedOn.Value.ToString("HH:mm")
+                                    </p>
+                                }
+                            </div>
+                        }
+
+                        @if (card.Options != null && card.Options.Count > 0)
+                        {
+                            if (card.WindowOpen && !card.IsCollected)
+                            {
+                                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">
+                                    @if (hasSelection)
+                                    {
+                                        <span>Change to:</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Choose one:</span>
+                                    }
+                                </p>
+
+                                <div class="space-y-2">
+                                    @foreach (var opt in card.Options)
+                                    {
+                                        bool isCurrent = hasSelection && card.CurrentSelectionName == opt.Name;
+                                        string btnClass = isCurrent ? "bg-gray-200 text-gray-500 cursor-default" : "bg-[#C21E2E] text-white hover:bg-black";
+                                        string btnText = isCurrent ? "Selected" : "Select";
+                                        string optBorder = isCurrent ? "border-[#C21E2E] bg-red-50/30" : "border-gray-200";
+
+                                        <div class="flex items-center gap-3 p-3 border @optBorder">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="text-sm font-bold text-gray-900">@opt.Name</span>
+                                                    @if (isCurrent)
+                                                    {
+                                                        <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-[#C21E2E] text-white">Current</span>
+                                                    }
+                                                </div>
+                                                <div class="flex gap-2 mt-1 flex-wrap">
+                                                    @if (!string.IsNullOrEmpty(opt.Category))
+                                                    {
+                                                        <span class="text-[8px] text-gray-400 uppercase tracking-widest">@opt.Category</span>
+                                                    }
+                                                    @if (opt.IsVegetarian)
+                                                    {
+                                                        <span class="text-[8px] px-1.5 py-0.5 bg-green-100 text-green-700 uppercase tracking-widest">Veg</span>
+                                                    }
+                                                    @if (opt.IsVegan)
+                                                    {
+                                                        <span class="text-[8px] px-1.5 py-0.5 bg-green-100 text-green-700 uppercase tracking-widest">Vegan</span>
+                                                    }
+                                                    @if (opt.IsGlutenFree)
+                                                    {
+                                                        <span class="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 uppercase tracking-widest">GF</span>
+                                                    }
+                                                    @if (opt.IsLactoseFree)
+                                                    {
+                                                        <span class="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 uppercase tracking-widest">LF</span>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            using (Html.BeginForm("SaveTodayMeal", "Cafeteria", FormMethod.Post, new { class = "m-0" }))
+                                            {
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="mealSlotId" value="@card.MealSlotId" />
+                                            <input type="hidden" name="menuItemId" value="@opt.MenuItemId" />
+                                            <button type="submit"
+                                                    class="@btnClass px-4 py-2 text-[9px] font-bold uppercase tracking-widest"
+                                                    @(isCurrent ? "disabled=disabled" : "")>
+                                                @btnText
+                                            </button>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (card.IsCollected)
+                            {
+                                <p class="text-xs text-gray-400 italic mb-0">Meal already collected. Enjoy!</p>
+                            }
+                            else
+                            {
+                                <div class="bg-gray-50 p-3 border-l-4 border-gray-300">
+                                    <p class="text-xs text-gray-600 mb-0">
+                                        <i class="bi bi-lock me-1"></i>
+                                        Selection window closed. You can still collect your meal from the dining hall.
+                                    </p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="bg-red-50 border-l-4 border-red-500 p-3">
+                                <p class="text-xs text-red-800 mb-0">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    No safe options available for this meal. Contact the cafeteria.
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-8 bg-gray-900 p-6 flex justify-between items-center relative overflow-hidden">
+            <i class="bi bi-qr-code absolute -right-4 -bottom-4 text-white/5 text-6xl"></i>
+            <div class="relative z-10">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-1">Meal Collection</h6>
+                <p class="text-sm font-bold text-white mb-0">Show your QR code at the dining hall.</p>
+            </div>
+            <a href="@Url.Action("MyMealQR", "Cafeteria")"
+               class="relative z-10 bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-qr-code me-1"></i>My Meal QR
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = "Submit Requirements";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var myTeams = ViewBag.MyTeams as List<Michaelhouse.Models.Team> ?? new List<Michaelhouse.Models.Team>();
+    var selectedTeam = ViewBag.SelectedTeam as Michaelhouse.Models.Team;
+    var mealSlots = ViewBag.MealSlots as List<Michaelhouse.Models.MealSlot> ?? new List<Michaelhouse.Models.MealSlot>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clipboard-plus absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Submit Requirements</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Deadline: Thursday 12:00 &bull; Late submissions are flagged
+        </p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    <div class="bg-gray-50 border border-gray-100 p-4 mb-6">
+        <h6 class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1">ℹ️ How This Works</h6>
+        <p class="text-xs text-gray-600 mb-0">
+            Your requirement is sent to the cafeteria, which uses it when planning the weekly menu.
+            All active players on the selected team will see your recommendation.
+        </p>
+    </div>
+
+    @using (Html.BeginForm("SubmitRequirements", "Coach", new { id = selectedTeam.TeamID }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-clipboard-plus me-2 text-[#C21E2E]"></i>Requirement Details
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Team *</label>
+                        <select name="teamSelector" class="w-full border border-gray-200 py-3 px-4 text-sm"
+                                onchange="window.location.href='@Url.Action("SubmitRequirements")?id='+this.value">
+                            @foreach (var t in myTeams)
+                            {
+                                <option value="@t.TeamID" @(selectedTeam != null && t.TeamID == selectedTeam.TeamID ? "selected" : "")>
+                                    @t.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Players</label>
+                        <input type="number" name="playerCount" value="0" min="0"
+                               class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Service Type</label>
+                        <select name="serviceType" class="w-full border border-gray-200 py-3 px-4 text-sm">
+                            <option value="0">Normal Meal</option>
+                            <option value="1">Packed Meal</option>
+                            <option value="2">Travel Meal</option>
+                            <option value="3">Early Meal</option>
+                            <option value="4">Late Meal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Meal Slot (optional)</label>
+                        <select name="mealSlotId" class="w-full border border-gray-200 py-3 px-4 text-sm">
+                            <option value="">— None —</option>
+                            @foreach (var s in mealSlots)
+                            {
+                                <option value="@s.Id">@s.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Meal Date & Time (optional)</label>
+                        <input type="datetime-local" name="mealDateTime" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Requirement *</label>
+                    <textarea name="requirementText" rows="5" required class="w-full border border-gray-200 py-3 px-4 text-sm"
+                              placeholder="e.g. High-protein recovery meal after Saturday's away match. Extra carbs on Friday."></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-4 border-l-4 border-[#C21E2E]">
+                    <h6 class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-2">Quick Templates</h6>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" class="text-[10px] px-3 py-1 bg-white border border-gray-200 text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E]"
+                                onclick="document.querySelector('textarea[name=&quot;requirementText&quot;]').value='Extra protein this week. Focus on chicken, beef and eggs.';">
+                            High Protein
+                        </button>
+                        <button type="button" class="text-[10px] px-3 py-1 bg-white border border-gray-200 text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E]"
+                                onclick="document.querySelector('textarea[name=&quot;requirementText&quot;]').value='Extra carbohydrates this week. Focus on pasta, rice and bread. Especially before Saturday.';">
+                            High Carbs
+                        </button>
+                        <button type="button" class="text-[10px] px-3 py-1 bg-white border border-gray-200 text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E]"
+                                onclick="document.querySelector('textarea[name=&quot;requirementText&quot;]').value='Increase hydration this week. Drink water before, during and after every session.';">
+                            Hydration
+                        </button>
+                        <button type="button" class="text-[10px] px-3 py-1 bg-white border border-gray-200 text-gray-600 hover:border-[#C21E2E] hover:text-[#C21E2E]"
+                                onclick="document.querySelector('textarea[name=&quot;requirementText&quot;]').value='Recovery focus this week. Increase protein and prioritise sleep before the match.';">
+                            Recovery
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("MyTeam")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                <i class="bi bi-send me-2"></i>Submit Requirement
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

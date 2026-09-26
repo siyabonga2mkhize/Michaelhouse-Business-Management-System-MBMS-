@@ -19,7 +19,6 @@ namespace Michaelhouse.Models
         [Display(Name = "Last Name")]
         public string LastName { get; set; }
 
-        // Full name computed for display
         public string Name => $"{FirstName} {LastName}";
 
         [Required]
@@ -35,13 +34,11 @@ namespace Michaelhouse.Models
         [Display(Name = "ID / Passport Number")]
         public string IdNumber { get; set; }
 
-        //lets add a property for IsBoarding
         [Display(Name = "Is Boarding")]
         public bool IsBoarding { get; set; } = false;
 
         [Display(Name = "Is Active")]
         public bool IsActive { get; set; } = true;
-
 
         // ─── Previous School ──────────────────────────────────────────────────────
         [MaxLength(200)]
@@ -50,41 +47,44 @@ namespace Michaelhouse.Models
 
         [MaxLength(50)]
         [Display(Name = "Current Grade")]
-        public string CurrentGrade { get; set; } // Grade they are currently in
+        public string CurrentGrade { get; set; }
 
         // ─── Medical ──────────────────────────────────────────────────────────────
         [MaxLength(500)]
         [Display(Name = "Medical Conditions / Allergies")]
         public string MedicalConditions { get; set; }
 
+        // ─── NEW: Cafeteria Fields ────────────────────────────────────────────
+        [MaxLength(500)]
+        [Display(Name = "Dietary Preferences")]
+        public string DietaryPreferences { get; set; }
 
+        [MaxLength(500)]
+        [Display(Name = "Special Dietary Needs")]
+        public string SpecialDietaryNeeds { get; set; }
+
+        [MaxLength(500)]
+        [Display(Name = "Sports")]
+        public string Sports { get; set; }
+
+        // ─── Relations ────────────────────────────────────────────────────────────
         [ForeignKey("Parent")]
         public int ParentId { get; set; }
 
-        // Set after parent completes registration
         public int? UserId { get; set; }
-
-
-        // --- MISSING PROPERTIES TO ADD ---
-
 
         [Display(Name = "Student Number")]
         public string StudentNumber { get; set; }
 
-        //[Required]
-        //public string Gender { get; set; }
-
         [Required]
         [Display(Name = "Grade Level")]
-        public int GradeLevel { get; set; } // Matches Subject.GradeLevel
+        public int GradeLevel { get; set; }
 
         [Required]
         [Display(Name = "Enrollment Date")]
         public DateTime EnrollmentDate { get; set; } = DateTime.Now;
 
         public int? ClassId { get; set; }
-
-        //lets add ResidenceId
         public int? ResidenceId { get; set; }
 
         // Navigation
@@ -93,6 +93,5 @@ namespace Michaelhouse.Models
         public ICollection<Application> Applications { get; set; }
         public virtual ICollection<StudentSubject> StudentSubjects { get; set; }
         public virtual StudentProfile StudentProfile { get; set; }
-
     }
 }

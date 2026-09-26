@@ -1,0 +1,172 @@
+﻿@model Michaelhouse.Models.DietaryChangeRequest
+@{
+    ViewBag.Title = "Review Request";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var allergen = ViewBag.Allergen as Michaelhouse.Models.Allergen;
+    var category = ViewBag.Category as Michaelhouse.Models.DietaryCategory;
+    var existing = ViewBag.ExistingRecords as List<Michaelhouse.Models.StudentDietaryRecord> ?? new List<Michaelhouse.Models.StudentDietaryRecord>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-shield-check absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Dietitian Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Review Request</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Student: @(Model.Student != null ? Model.Student.FirstName + " " + Model.Student.LastName : "—")
+        </p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @* ─── SAFETY REVIEW ALERT ──────────────────────────────── *@
+    @if (Model.SafetyReviewRequired)
+    {
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-red-700 mb-1">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>Safety Review Required
+            </h6>
+            <p class="text-sm text-red-800 mb-0">
+                This request involves a potential allergy or medical restriction. Approval will immediately apply to future meal safety checks.
+            </p>
+        </div>
+    }
+
+    @* ─── REQUEST DETAILS ──────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                <i class="bi bi-file-text me-2 text-[#C21E2E]"></i>Request Details
+            </h6>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Record Type</label>
+                    <p class="text-sm text-gray-900 font-bold mb-0">@Model.RecordType</p>
+                </div>
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Change Type</label>
+                    <p class="text-sm text-gray-900 font-bold mb-0">@Model.ChangeType</p>
+                </div>
+            </div>
+
+            @if (allergen != null)
+            {
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Requested Allergen</label>
+                    <p class="text-sm text-[#C21E2E] font-bold mb-0">@allergen.Name</p>
+                </div>
+            }
+
+            @if (category != null)
+            {
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Requested Dietary Category</label>
+                    <p class="text-sm text-[#C21E2E] font-bold mb-0">@category.Name</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.RequestedDescription))
+            {
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Description</label>
+                    <p class="text-sm text-gray-700 mb-0">@Model.RequestedDescription</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Reason))
+            {
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Reason Given by Student</label>
+                    <p class="text-sm text-gray-700 mb-0"><em>@Model.Reason</em></p>
+                </div>
+            }
+
+            <div>
+                <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Submitted</label>
+                <p class="text-sm text-gray-500 mb-0">@Model.SubmittedAt.ToString("dddd, dd MMM yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+
+    @* ─── EXISTING RECORDS FOR CONTEXT ─────────────────────── *@
+    @if (existing.Any())
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-list-check me-2 text-[#C21E2E]"></i>Existing Approved Records
+                </h6>
+            </div>
+            <div class="divide-y divide-gray-50">
+                @foreach (var r in existing)
+                {
+                    <div class="p-4 flex justify-between items-center">
+                        <div>
+                            <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-700 text-white">@r.RecordType</span>
+                            <p class="text-sm text-gray-700 mt-1 mb-0">
+                                @(r.Allergen != null ? r.Allergen.Name : (r.DietaryCategory != null ? r.DietaryCategory.Name : r.CustomDescription))
+                            </p>
+                        </div>
+                        <span class="text-[9px] text-gray-400">
+                            @(r.ApprovedAt.HasValue ? r.ApprovedAt.Value.ToString("dd MMM yyyy") : "")
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ─── DECISION FORM ────────────────────────────────────── *@
+    @using (Html.BeginForm("ApproveRequest", "Dietitian", new { id = Model.Id }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-check2-circle me-2 text-[#C21E2E]"></i>Your Decision
+                </h6>
+            </div>
+            <div class="p-6">
+                <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Review Notes</label>
+                <textarea name="reviewNotes" rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm"
+                          placeholder="Optional notes explaining your decision..."></textarea>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center gap-3">
+            <a href="@Url.Action("PendingRequests")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                <i class="bi bi-arrow-left me-2"></i>Back
+            </a>
+            <div class="flex gap-3">
+                <button type="submit" formaction="@Url.Action("RejectRequest", new { id = Model.Id })"
+                        class="bg-white border-2 border-red-500 text-red-600 px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                    <i class="bi bi-x-circle me-1"></i>Reject
+                </button>
+                <button type="submit"
+                        class="bg-green-600 text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700 transition-all">
+                    <i class="bi bi-check-circle me-1"></i>Approve
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

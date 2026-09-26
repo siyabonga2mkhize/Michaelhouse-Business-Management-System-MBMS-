@@ -1,0 +1,133 @@
+﻿@model IEnumerable<Michaelhouse.Models.ViewModels.PrepPlanRow>
+@{
+    ViewBag.Title = "Kitchen Prep Plan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var rows = Model.ToList();
+    var date = (DateTime)ViewBag.Date;
+    var publishedMenu = ViewBag.PublishedMenu as Michaelhouse.Models.WeeklyMenu;
+}
+
+<div class="relative mb-6 border-b border-gray-100 bg-gray-50/30 py-6 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clipboard-check absolute -right-8 -bottom-10 text-black/5 text-[10rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Kitchen</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Prep Plan</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @date.ToString("dddd, dd MMMM yyyy")
+                @if (publishedMenu != null)
+                {
+                    <span> &bull; @publishedMenu.WeekNumber</span>
+                }
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="@Url.Action("KitchenDashboard", "Cafeteria")"
+               class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300">
+                <i class="bi bi-arrow-left me-2"></i>Kitchen Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+
+    @if (!rows.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-clipboard-x text-5xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">No meals scheduled for this day.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            @foreach (var row in rows)
+            {
+                <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <div>
+                            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                                <i class="bi bi-clock me-2 text-[#C21E2E]"></i>@row.SlotName
+                                @if (!string.IsNullOrEmpty(row.Title))
+                                {
+                                    <span class="text-gray-400 font-normal ml-2">— @row.Title</span>
+                                }
+                            </h6>
+                        </div>
+                        <div class="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold">
+                            <span class="text-gray-500">Expected: <span class="text-gray-900">@row.Expected</span></span>
+                            <span class="text-gray-500">Selected: <span class="text-blue-600">@row.Selected</span></span>
+                        </div>
+                    </div>
+
+                    @if (row.Ingredients == null || row.Ingredients.Count == 0)
+                    {
+                        <div class="p-5 text-center text-sm text-gray-400 italic">
+                            No recipes linked to this meal's components yet.
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50/30">
+                                <tr>
+                                    <th class="text-left px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">Ingredient</th>
+                                    <th class="text-right px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">Required</th>
+                                    <th class="text-right px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">In Stock</th>
+                                    <th class="text-right px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @foreach (var ing in row.Ingredients.OrderBy(i => i.Name))
+                                {
+                                    <tr>
+                                        <td class="px-4 py-2 text-xs text-gray-900 font-bold">@ing.Name</td>
+                                        <td class="px-4 py-2 text-xs text-right text-gray-700">
+                                            @ing.RequiredQty.ToString("0.##") @ing.Unit
+                                        </td>
+                                        <td class="px-4 py-2 text-xs text-right text-gray-700">
+                                            @ing.AvailableQty.ToString("0.##") @ing.Unit
+                                        </td>
+                                        <td class="px-4 py-2 text-right">
+                                            @if (ing.IsShort)
+                                            {
+                                                <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">
+                                                    Short by @ing.Shortfall.ToString("0.##")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">
+                                                    OK
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

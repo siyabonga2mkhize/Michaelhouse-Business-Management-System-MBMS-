@@ -1,0 +1,156 @@
+﻿@model Michaelhouse.Models.MealPlan
+
+@{
+    ViewBag.Title = "View Meal Plan";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var profile = ViewBag.StudentProfile as Michaelhouse.Models.StudentProfile;
+    string studentName = student != null ? student.FirstName + " " + student.LastName : "Unknown";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Plan Review</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">@studentName</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Submitted: @Model.CreatedDate.ToString("dd MMMM yyyy")
+            @if (Model.UsedAIRecommendations)
+            {<text> &bull; Used Recommendations</text>}
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @if (profile != null)
+    {
+        <div class="bg-white border border-gray-100 p-6 shadow-sm mb-6">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Student Profile</h6>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Allergies</div>
+                    <div class="text-xs font-bold text-red-600">@(string.IsNullOrEmpty(profile.Allergies) ? "None" : profile.Allergies)</div>
+                </div>
+                <div>
+                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Sports</div>
+                    <div class="text-xs font-bold text-gray-700">@(string.IsNullOrEmpty(profile.Sports) ? "None" : profile.Sports)</div>
+                </div>
+                <div>
+                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Medical</div>
+                    <div class="text-xs font-bold text-gray-700">@(string.IsNullOrEmpty(profile.MedicalConditions) ? "None" : profile.MedicalConditions)</div>
+                </div>
+                <div>
+                    <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Grade</div>
+                    <div class="text-xs font-bold text-gray-700">@(student != null ? student.GradeLevel.ToString() : "-")</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Weekly Meal Plan (Breakfast / Lunch / Dinner)</h6>
+        </div>
+
+        <div class="divide-y divide-gray-50">
+            @{
+                var days = new[]
+                {
+                    new { Name = "Monday",    BF = Model.MondayBreakfast,    L = Model.MondayLunch,    D = Model.MondayDinner },
+                    new { Name = "Tuesday",   BF = Model.TuesdayBreakfast,   L = Model.TuesdayLunch,   D = Model.TuesdayDinner },
+                    new { Name = "Wednesday", BF = Model.WednesdayBreakfast, L = Model.WednesdayLunch, D = Model.WednesdayDinner },
+                    new { Name = "Thursday",  BF = Model.ThursdayBreakfast,  L = Model.ThursdayLunch,  D = Model.ThursdayDinner },
+                    new { Name = "Friday",    BF = Model.FridayBreakfast,    L = Model.FridayLunch,    D = Model.FridayDinner },
+                    new { Name = "Saturday",  BF = Model.SaturdayBreakfast,  L = Model.SaturdayLunch,  D = Model.SaturdayDinner },
+                    new { Name = "Sunday",    BF = Model.SundayBreakfast,    L = Model.SundayLunch,    D = Model.SundayDinner }
+                };
+            }
+
+            @foreach (var day in days)
+            {
+                <div class="p-5">
+                    <div class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-3">@day.Name</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1">Breakfast</div>
+                            <div class="text-sm text-gray-700">@(string.IsNullOrEmpty(day.BF) ? "—" : day.BF)</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1">Lunch</div>
+                            <div class="text-sm text-gray-700">@(string.IsNullOrEmpty(day.L) ? "—" : day.L)</div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1">Dinner</div>
+                            <div class="text-sm text-gray-700">@(string.IsNullOrEmpty(day.D) ? "—" : day.D)</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Model.Status == "Pending")
+    {
+        <div class="bg-white border border-gray-100 p-6 shadow-sm">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Actions</h6>
+
+            <div class="flex flex-wrap gap-3">
+                @using (Html.BeginForm("ApproveMealPlan", "Cafeteria", new { id = Model.MealPlanID }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="bg-green-600 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700 transition-all">
+                        <i class="bi bi-check-circle me-2"></i>Approve Plan
+                    </button>
+                }
+
+                <button type="button" class="bg-red-600 text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-all"
+                        onclick="document.getElementById('rejectForm').style.display = (document.getElementById('rejectForm').style.display === 'block') ? 'none' : 'block';">
+                    <i class="bi bi-x-circle me-2"></i>Reject Plan
+                </button>
+
+                <a href="@Url.Action("MealPlans")" class="bg-gray-200 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 transition-all">
+                    <i class="bi bi-arrow-left me-2"></i>Back
+                </a>
+            </div>
+
+            <div id="rejectForm" style="display:none; margin-top: 20px;">
+                @using (Html.BeginForm("RejectMealPlan", "Cafeteria", new { id = Model.MealPlanID }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Reason for rejection</label>
+                    <textarea name="reason" rows="3" class="w-full border border-gray-200 p-3 text-sm" placeholder="E.g., Not enough protein for rugby player"></textarea>
+                    <button type="submit" class="mt-3 bg-red-600 text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-red-700">
+                        Confirm Rejection
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else if (Model.Status == "Approved")
+    {
+        <div class="bg-green-50 border-l-4 border-green-500 p-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-green-600 mb-1">✓ Approved</h6>
+            <p class="text-sm text-green-700 mb-0">Approved on @(Model.ApprovedDate.HasValue ? Model.ApprovedDate.Value.ToString("dd MMM yyyy HH:mm") : "Unknown")</p>
+        </div>
+    }
+    else if (Model.Status == "Rejected")
+    {
+        <div class="bg-red-50 border-l-4 border-red-500 p-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-red-600 mb-1">✗ Rejected</h6>
+            <p class="text-sm text-red-700 mb-0">@Model.DietitianComments</p>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

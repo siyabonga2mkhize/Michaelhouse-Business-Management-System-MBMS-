@@ -1,0 +1,154 @@
+﻿@model Michaelhouse.Services.MenuValidationResult
+@{
+    ViewBag.Title = "Menu Validation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var menu = ViewBag.Menu as Michaelhouse.Models.WeeklyMenu;
+    var role = ViewBag.Role as string;
+    var result = Model;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clipboard-check absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-4xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Menu Validation</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">
+                @(menu != null ? menu.WeekNumber : "")
+            </h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                Pre-publication checklist
+            </p>
+        </div>
+        <a href="@Url.Action("MenuEditor", "Cafeteria", new { id = (menu != null ? menu.WeeklyMenuID : 0) })"
+           class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300">
+            <i class="bi bi-arrow-left me-2"></i>Back to Editor
+        </a>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY CARDS ───────────────────────────────────────── *@
+    <div class="grid grid-cols-3 gap-4 mb-8">
+        <div class="bg-white border border-gray-100 shadow-sm p-5 text-center">
+            <div class="text-3xl font-serif font-bold @(result.CriticalCount > 0 ? "text-red-600" : "text-gray-300")">
+                @result.CriticalCount
+            </div>
+            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mt-1">Critical</div>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-5 text-center">
+            <div class="text-3xl font-serif font-bold @(result.WarningCount > 0 ? "text-amber-600" : "text-gray-300")">
+                @result.WarningCount
+            </div>
+            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mt-1">Warnings</div>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-5 text-center">
+            <div class="text-3xl font-serif font-bold text-gray-500">@result.InfoCount</div>
+            <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mt-1">Info</div>
+        </div>
+    </div>
+
+    @* ─── READY / NOT READY BANNER ────────────────────────────── *@
+    @if (result.IsReadyToPublish)
+    {
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-green-700 mb-1">
+                <i class="bi bi-check-circle-fill me-1"></i>Ready to publish
+            </h6>
+            <p class="text-sm text-green-800 mb-0">
+                All critical checks passed. The Chef must approve before publishing.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-red-700 mb-1">
+                <i class="bi bi-x-octagon-fill me-1"></i>Cannot publish yet
+            </h6>
+            <p class="text-sm text-red-800 mb-0">
+                @result.CriticalCount critical issue(s) must be resolved. See details below.
+            </p>
+        </div>
+    }
+
+    @* ─── CRITICAL ERRORS ─────────────────────────────────────── *@
+    @if (result.CriticalErrors.Any())
+    {
+        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-red-700 mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>Critical Issues
+        </h6>
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="divide-y divide-gray-50">
+                @foreach (var issue in result.CriticalErrors)
+                {
+                    <div class="p-4 border-l-4 border-red-500">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">@issue.Category</span>
+                            @if (!string.IsNullOrEmpty(issue.RelatedEntityType))
+                            {
+                                <span class="text-[8px] text-gray-400">@issue.RelatedEntityType #@issue.RelatedEntityId</span>
+                            }
+                        </div>
+                        <p class="text-sm text-gray-900 mb-0">@issue.Message</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ─── WARNINGS ────────────────────────────────────────────── *@
+    @if (result.Warnings.Any())
+    {
+        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-amber-700 mb-3">
+            <i class="bi bi-exclamation-circle-fill me-1"></i>Warnings
+        </h6>
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="divide-y divide-gray-50">
+                @foreach (var issue in result.Warnings)
+                {
+                    <div class="p-4 border-l-4 border-amber-400">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">@issue.Category</span>
+                        </div>
+                        <p class="text-sm text-gray-900 mb-0">@issue.Message</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ─── INFO ────────────────────────────────────────────────── *@
+    @if (result.Information.Any())
+    {
+        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-500 mb-3">
+            <i class="bi bi-info-circle-fill me-1"></i>Information
+        </h6>
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="divide-y divide-gray-50">
+                @foreach (var issue in result.Information)
+                {
+                    <div class="p-4 border-l-4 border-gray-300">
+                        <p class="text-sm text-gray-700 mb-0">@issue.Message</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

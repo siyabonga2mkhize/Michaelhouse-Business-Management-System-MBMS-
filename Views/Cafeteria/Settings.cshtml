@@ -1,0 +1,75 @@
+﻿@model IEnumerable<Michaelhouse.Models.CafeteriaSetting>
+@{
+    ViewBag.Title = "Cafeteria Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-sliders absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Settings</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Cutoffs, buffer percentages and system defaults
+        </p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+    @if (!list.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-sliders text-5xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">No settings defined.</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="divide-y divide-gray-50">
+                @foreach (var s in list)
+                {
+                    <div class="p-4">
+                        <form method="post" action="@Url.Action("SaveSetting", "Cafeteria")" class="m-0">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="key" value="@s.Key" />
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                                <div>
+                                    <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">@s.Key</p>
+                                    <p class="text-xs text-gray-500 mb-0">@s.Description</p>
+                                </div>
+                                <div>
+                                    <input type="text" name="value" value="@s.Value"
+                                           class="w-full border border-gray-200 py-2 px-3 text-sm" />
+                                </div>
+                                <div>
+                                    <button type="submit"
+                                            class="w-full bg-[#C21E2E] text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                                        <i class="bi bi-save me-1"></i>Save
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

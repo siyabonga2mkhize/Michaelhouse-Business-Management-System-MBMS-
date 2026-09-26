@@ -112,6 +112,32 @@
                                     rows = "3",
                                     placeholder = "Please list any significant medical history or special educational needs..."
                                 })
+                                <div class="mt-6">
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Dietary Preferences</label>
+                                    @Html.TextBoxFor(m => m.DietaryPreferences, new
+                                    {
+                                        @class = "w-full p-4 bg-white/5 border border-gray-700 text-white focus:border-amber-500 focus:bg-white/10 outline-none text-sm italic font-serif transition-all placeholder:text-gray-600",
+                                        placeholder = "e.g., Vegetarian, Halal, Vegan, Kosher..."
+                                    })
+                                </div>
+
+                                <div class="mt-6">
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Special Dietary Needs</label>
+                                    @Html.TextBoxFor(m => m.SpecialDietaryNeeds, new
+                                    {
+                                        @class = "w-full p-4 bg-white/5 border border-gray-700 text-white focus:border-amber-500 focus:bg-white/10 outline-none text-sm italic font-serif transition-all placeholder:text-gray-600",
+                                        placeholder = "e.g., Gluten-Free, Dairy-Free (medical requirements)..."
+                                    })
+                                </div>
+
+                                <div class="mt-6">
+                                    <label class="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Sports</label>
+                                    @Html.TextBoxFor(m => m.Sports, new
+                                    {
+                                        @class = "w-full p-4 bg-white/5 border border-gray-700 text-white focus:border-amber-500 focus:bg-white/10 outline-none text-sm italic font-serif transition-all placeholder:text-gray-600",
+                                        placeholder = "e.g., Rugby, Swimming, Cricket..."
+                                    })
+                                </div>
                                 <p class="text-[9px] text-gray-500 mt-4 tracking-wide">
                                     <i class="bi bi-lock-fill me-1"></i> Data is encrypted and shared only with the campus medical facility.
                                 </p>

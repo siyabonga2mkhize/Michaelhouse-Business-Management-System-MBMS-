@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,6 +39,15 @@ namespace Michaelhouse.Models
         [MaxLength(200)]
         [Display(Name = "Website")]
         public string Website { get; set; }
+
+        // ─── NEW FIELD FOR CAFETERIA ─────────────────────────────────────────
+        // This field tells the system which department this supplier serves.
+        // STORE suppliers: "Uniforms, Stationery, Books"
+        // CAFETERIA suppliers: "Chicken, Beef, Vegetables, Rice"
+        // The system uses this to filter suppliers when placing orders.
+        [MaxLength(200)]
+        [Display(Name = "Products Supplied")]
+        public string Products { get; set; }
 
         // Payment terms in days (e.g. 30 = net 30)
         [Display(Name = "Payment Terms (days)")]

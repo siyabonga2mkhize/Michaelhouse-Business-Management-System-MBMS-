@@ -1,0 +1,166 @@
+﻿@{
+    ViewBag.Title = "Record Waste";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var menuMeals = ViewBag.MenuMeals as List<Michaelhouse.Models.MenuMeal> ?? new List<Michaelhouse.Models.MenuMeal>();
+    var items = ViewBag.AllInventoryItems as List<Michaelhouse.Models.InventoryItem> ?? new List<Michaelhouse.Models.InventoryItem>();
+    var recent = ViewBag.RecentWaste as List<Michaelhouse.Models.WasteRecord> ?? new List<Michaelhouse.Models.WasteRecord>();
+    var role = ViewBag.Role as string;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-trash absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Kitchen</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Record Waste</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                Log food that was discarded, spoiled or returned
+            </p>
+        </div>
+        <a href="@Url.Action("KitchenDashboard", "Cafeteria")"
+           class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @using (Html.BeginForm("RecordWaste", "Cafeteria", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-trash me-2 text-[#C21E2E]"></i>Waste Details
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Meal (optional)</label>
+                        <select name="menuMealId" class="w-full border border-gray-200 py-3 px-4 text-sm">
+                            <option value="">— Not tied to a meal —</option>
+                            @foreach (var m in menuMeals)
+                            {
+                                var label = (m.MealSlot != null ? m.MealSlot.Name : "Meal") +
+                                            (!string.IsNullOrEmpty(m.Title) ? " — " + m.Title : "");
+                                <option value="@m.Id">@label</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Inventory Item (optional)</label>
+                        <select name="inventoryItemId" class="w-full border border-gray-200 py-3 px-4 text-sm">
+                            <option value="">— No stock deduction —</option>
+                            @foreach (var i in items)
+                            {
+                                <option value="@i.Id">@i.Name (@i.Unit)</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Quantity *</label>
+                        <input type="number" name="quantity" step="0.01" min="0.01" required
+                               class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g. 5" />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Unit</label>
+                        <input type="text" name="unit"
+                               class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="kg / L / portions" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Reason *</label>
+                    <select name="reason" required class="w-full border border-gray-200 py-3 px-4 text-sm">
+                        <option value="0">Overproduction</option>
+                        <option value="1">Spoilage</option>
+                        <option value="2">Expired</option>
+                        <option value="3">Burnt</option>
+                        <option value="4">Damaged</option>
+                        <option value="5">Returned</option>
+                        <option value="6">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Notes</label>
+                    <textarea name="notes" rows="3"
+                              class="w-full border border-gray-200 py-3 px-4 text-sm"
+                              placeholder="Additional context..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center mb-6">
+            <a href="@Url.Action("KitchenDashboard", "Cafeteria")"
+               class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit"
+                    class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                <i class="bi bi-save me-2"></i>Record Waste
+            </button>
+        </div>
+    }
+
+    @* ─── RECENT WASTE ───────────────────────────────────────── *@
+    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-3">
+        Recent Waste (last 7 days)
+    </h6>
+
+    @if (!recent.Any())
+    {
+        <div class="bg-white border border-gray-100 p-8 text-center text-gray-400 text-sm">
+            No waste recorded in the past week.
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50/50">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Date</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Qty</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Reason</th>
+                        <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Notes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach (var w in recent)
+                    {
+                        <tr>
+                            <td class="px-4 py-3 text-xs text-gray-500">@w.RecordedDate.ToString("dd MMM HH:mm")</td>
+                            <td class="px-4 py-3 text-xs font-bold text-gray-900">@w.Quantity.ToString("0.##") @w.Unit</td>
+                            <td class="px-4 py-3">
+                                <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-100 text-amber-700">@w.Reason</span>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-500">@(w.Notes ?? "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

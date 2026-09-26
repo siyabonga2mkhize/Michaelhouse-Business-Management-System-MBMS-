@@ -99,6 +99,11 @@ namespace Michaelhouse.Models
 
         [Display(Name = "Medical Conditions")]
         public string MedicalConditions { get; set; }
+        [Display(Name = "Dietary Preferences")]
+        public string DietaryPreferences { get; set; }
+
+        [Display(Name = "Special Dietary Needs")]
+        public string SpecialDietaryNeeds { get; set; }
 
         [Display(Name = "Emergency Medication")]
         public string EmergencyMedication { get; set; }

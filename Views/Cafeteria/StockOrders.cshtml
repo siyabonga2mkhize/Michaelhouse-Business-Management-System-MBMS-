@@ -1,0 +1,112 @@
+﻿@model IEnumerable<Michaelhouse.Models.StockOrder>
+
+@{
+    ViewBag.Title = "Stock Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var orders = Model as List<Michaelhouse.Models.StockOrder> ?? new List<Michaelhouse.Models.StockOrder>();
+    var suppliers = ViewBag.Suppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria Manager</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Stock Orders</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Track all purchase orders with suppliers
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY & ACTIONS ──────────────────────────────────── *@
+    <div class="flex flex-wrap gap-3 items-center mb-6">
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 bg-gray-900 text-white">Total: @orders.Count</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-amber-200 text-amber-600 bg-amber-50">Pending: @orders.Count(o => o.Status == "Pending")</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-blue-200 text-blue-600 bg-blue-50">Partially Confirmed: @orders.Count(o => o.Status == "Partially Confirmed")</span>
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-green-200 text-green-600 bg-green-50">Delivered: @orders.Count(o => o.Status == "Delivered")</span>
+        <a href="@Url.Action("PlaceStockOrder")" class="ml-auto bg-[#C21E2E] text-white px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+            <i class="bi bi-cart-plus me-2"></i>Place New Order
+        </a>
+    </div>
+
+    @* ─── ORDERS LIST ─────────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Order History</h6>
+        </div>
+
+        @if (!orders.Any())
+        {
+            <div class="p-12 text-center text-gray-400">
+                <i class="bi bi-inbox text-4xl block mb-3 opacity-30"></i>
+                <p class="mb-0">No stock orders placed yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Order #</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Supplier</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Items</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Qty</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Cost</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Date</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var order in orders)
+                        {
+                            var supplier = suppliers.FirstOrDefault(s => s.SupplierId == order.SupplierId);
+                            string supplierName = supplier != null ? supplier.Name : "Unknown";
+                            string statusColor = order.Status == "Delivered" ? "green" : (order.Status == "Pending" ? "amber" : "blue");
+
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">#@order.OrderID</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">@supplierName</td>
+                                <td class="px-4 py-3 text-xs text-gray-500">@order.Items</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">@order.Quantity</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">R @order.TotalCost.ToString("N2")</td>
+                                <td class="px-4 py-3 text-xs text-gray-500">@order.OrderDate.ToString("dd MMM yyyy")</td>
+                                <td class="px-4 py-3">
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-@statusColor-600">@order.Status</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex gap-1">
+                                        @if (order.Status != "Delivered" && order.Status != "Cancelled")
+                                        {
+                                            <a href="@Url.Action("AmendStockOrder", new { id = order.OrderID })" class="text-[9px] font-bold uppercase tracking-widest text-blue-600 hover:bg-blue-50 px-2 py-1 border border-blue-200 transition-all">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="@Url.Action("RecordDelivery", new { id = order.OrderID })" class="text-[9px] font-bold uppercase tracking-widest text-green-600 hover:bg-green-50 px-2 py-1 border border-green-200 transition-all">
+                                                <i class="bi bi-truck"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

@@ -1,0 +1,338 @@
+﻿@model Michaelhouse.Models.WeeklyMenu
+@{
+    ViewBag.Title = "Chef Review";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var validation = ViewBag.Validation as Michaelhouse.Services.MenuValidationResult;
+    var stockWarnings = ViewBag.StockWarnings as List<string> ?? new List<string>();
+    var mealSummaries = ViewBag.MealSummaries as List<Michaelhouse.Models.ViewModels.ChefReviewDay> ?? new List<Michaelhouse.Models.ViewModels.ChefReviewDay>();
+    var totalForecast = ViewBag.TotalForecast != null ? (int)ViewBag.TotalForecast : 0;
+
+    string status = Model.Status ?? "Draft";
+    bool canApprove = status == "Draft" || status == "ChefReview";
+    bool alreadyApproved = status == "ChefApproved" || status == "Published";
+
+    string reviewedWhen = Model.ChefReviewedAt.HasValue
+        ? Model.ChefReviewedAt.Value.ToString("dd MMM yyyy HH:mm")
+        : "—";
+    string reviewedBy = Model.ChefReviewedBy ?? "—";
+}
+
+<div class="relative mb-6 border-b border-gray-100 bg-gray-50/30 py-6 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clipboard-data absolute -right-8 -bottom-10 text-black/5 text-[10rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10 flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-1 w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Chef Review</h5>
+            </div>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">@Model.WeekNumber</h2>
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @Model.StartDate.ToString("dd MMM") – @Model.EndDate.ToString("dd MMM yyyy")
+                &bull; Status:
+                @if (alreadyApproved)
+                {
+                    <span class="text-green-600 font-bold">@status</span>
+                }
+                else if (status == "Rejected")
+                {
+                    <span class="text-red-600 font-bold">Rejected</span>
+                }
+                else
+                {
+                    <span class="text-amber-600 font-bold">@status</span>
+                }
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="@Url.Action("MenuIssues", "Cafeteria", new { id = Model.WeeklyMenuID })"
+               class="bg-white border border-gray-200 px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:border-[#C21E2E] hover:text-[#C21E2E]">
+                <i class="bi bi-clipboard-check me-2"></i>Full Validation
+            </a>
+            <a href="@Url.Action("WeeklyMenu", "Cafeteria")"
+               class="bg-gray-200 text-gray-700 px-5 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300">
+                <i class="bi bi-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY CARDS ─────────────────────────────────────── *@
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white border border-gray-100 shadow-sm p-4">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Critical</p>
+            <p class="text-3xl font-serif font-bold @((validation != null && validation.CriticalCount > 0) ? "text-red-600" : "text-gray-300")">
+                @(validation != null ? validation.CriticalCount : 0)
+            </p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-4">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Warnings</p>
+            <p class="text-3xl font-serif font-bold @((validation != null && validation.WarningCount > 0) ? "text-amber-600" : "text-gray-300")">
+                @(validation != null ? validation.WarningCount : 0)
+            </p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-4">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Est. Demand</p>
+            <p class="text-3xl font-serif font-bold text-gray-900">@totalForecast</p>
+            <p class="text-[8px] uppercase tracking-widest font-bold text-gray-400 mt-0">total servings</p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-4">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Stock Alerts</p>
+            <p class="text-3xl font-serif font-bold @(stockWarnings.Any() ? "text-amber-600" : "text-gray-300")">
+                @stockWarnings.Count
+            </p>
+        </div>
+    </div>
+
+    @* ─── APPROVAL STATE ─────────────────────────────────────── *@
+    @if (alreadyApproved)
+    {
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-green-700 mb-1">
+                <i class="bi bi-check-circle-fill me-1"></i>Already approved
+            </h6>
+            <p class="text-sm text-green-800 mb-0">
+                @if (status == "Published")
+                {
+                    <span>This menu is published and locked.</span>
+                }
+                else
+                {
+                    <span>Approved on @reviewedWhen by @reviewedBy. Waiting for Meal Coordinator to publish.</span>
+                }
+            </p>
+        </div>
+    }
+    else if (validation != null && validation.CriticalCount > 0)
+    {
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-red-700 mb-1">
+                <i class="bi bi-x-octagon-fill me-1"></i>Cannot approve yet
+            </h6>
+            <p class="text-sm text-red-800 mb-2">
+                @validation.CriticalCount critical issue(s) must be resolved by the Meal Coordinator.
+            </p>
+            <a href="@Url.Action("MenuIssues", "Cafeteria", new { id = Model.WeeklyMenuID })"
+               class="text-xs text-red-800 underline">View critical issues →</a>
+        </div>
+    }
+    else
+    {
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <h6 class="text-[10px] uppercase tracking-widest font-bold text-blue-700 mb-1">
+                <i class="bi bi-info-circle-fill me-1"></i>Ready for your review
+            </h6>
+            <p class="text-sm text-blue-800 mb-0">
+                No critical issues remain. Review the menu below, then Approve, Request Changes, or Reject.
+            </p>
+        </div>
+    }
+
+    @* ─── STOCK WARNINGS ─────────────────────────────────────── *@
+    @if (stockWarnings.Any())
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-amber-50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-amber-800 mb-0">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Inventory Warnings (@stockWarnings.Count)
+                </h6>
+            </div>
+            <div class="divide-y divide-gray-50">
+                @foreach (var w in stockWarnings)
+                {
+                    <div class="p-3 text-xs text-gray-700 border-l-4 border-amber-400">
+                        @w
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @* ─── MENU PREVIEW ─────────────────────────────────────── *@
+    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-3">Menu Preview</h6>
+
+    @if (mealSummaries == null || !mealSummaries.Any())
+    {
+        <div class="bg-white border border-gray-100 p-8 text-center mb-6">
+            <i class="bi bi-calendar-x text-4xl block mb-3 text-gray-300"></i>
+            <p class="text-gray-500 mb-0">This menu has no days yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-3 mb-6">
+            @foreach (var day in mealSummaries)
+            {
+                <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                    <div class="p-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                            @day.DayOfWeek &bull; @day.Date.ToString("dd MMM yyyy")
+                        </h6>
+                    </div>
+                    <div class="divide-y divide-gray-50">
+                        @if (day.Meals == null || day.Meals.Count == 0)
+                        {
+                            <div class="p-3 text-xs text-gray-400 italic">No meals scheduled.</div>
+                        }
+                        else
+                        {
+                            foreach (var meal in day.Meals)
+                            {
+                                string componentsLine = (meal.Components != null && meal.Components.Count > 0)
+                                    ? string.Join(" • ", meal.Components)
+                                    : "";
+                                string alternativesLine = (meal.Alternatives != null && meal.Alternatives.Count > 0)
+                                    ? string.Join(" • ", meal.Alternatives)
+                                    : "";
+
+                                <div class="p-3">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-700 text-white">@meal.SlotName</span>
+                                            <span class="text-sm font-bold text-gray-900">@meal.Title</span>
+                                        </div>
+                                        @if (meal.ComponentCount == 0)
+                                        {
+                                            <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">No components</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-[9px] text-gray-400">@meal.ComponentCount item@(meal.ComponentCount == 1 ? "" : "s")</span>
+                                        }
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(componentsLine))
+                                    {
+                                        <p class="text-xs text-gray-700 mb-1">
+                                            <span class="text-gray-400 font-bold">Components:</span>
+                                            @componentsLine
+                                        </p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(alternativesLine))
+                                    {
+                                        <p class="text-xs text-gray-500 mb-0">
+                                            <span class="text-gray-400 font-bold">Alternatives:</span>
+                                            @alternativesLine
+                                        </p>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* ─── DECISION ACTIONS ─────────────────────────────────── *@
+    @if (canApprove && validation != null && validation.CriticalCount == 0)
+    {
+        <div class="bg-white border-2 border-[#C21E2E] shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-red-50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-0">
+                    <i class="bi bi-check2-square me-2"></i>Your Decision
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                @* Approve *@
+                using (Html.BeginForm("ApproveMenu", "Cafeteria", new { id = Model.WeeklyMenuID }, FormMethod.Post, new { class = "m-0" }))
+                {
+                @Html.AntiForgeryToken()
+                <div class="flex items-start gap-4 border-b border-gray-100 pb-6">
+                    <div class="flex-shrink-0 bg-green-100 text-green-700 w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h6 class="text-sm font-bold text-gray-900 mb-1">Approve Menu</h6>
+                        <p class="text-xs text-gray-500 mb-3">
+                            The Meal Coordinator will be notified and can publish the menu to students.
+                        </p>
+                        <button type="submit"
+                                class="bg-green-600 text-white px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-green-700 transition-all"
+                                onclick="return confirm('Approve this menu? The Meal Coordinator will be able to publish it.');">
+                            <i class="bi bi-check-circle me-1"></i>Approve
+                        </button>
+                    </div>
+                </div>
+                }
+
+                @* Request Changes *@
+                using (Html.BeginForm("RequestMenuChanges", "Cafeteria", new { id = Model.WeeklyMenuID }, FormMethod.Post, new { class = "m-0" }))
+                {
+                @Html.AntiForgeryToken()
+                <div class="flex items-start gap-4 border-b border-gray-100 pb-6">
+                    <div class="flex-shrink-0 bg-amber-100 text-amber-700 w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="bi bi-pencil"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h6 class="text-sm font-bold text-gray-900 mb-1">Request Changes</h6>
+                        <p class="text-xs text-gray-500 mb-2">
+                            Return the menu to the Meal Coordinator for adjustments.
+                        </p>
+                        <textarea name="comments" rows="3" required
+                                  class="w-full border border-gray-200 py-2 px-3 text-sm mb-2"
+                                  placeholder="Describe what needs to change..."></textarea>
+                        <button type="submit"
+                                class="bg-amber-500 text-white px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all"
+                                onclick="return confirm('Send this back for changes?');">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Request Changes
+                        </button>
+                    </div>
+                </div>
+                }
+
+                @* Reject *@
+                using (Html.BeginForm("RejectMenu", "Cafeteria", new { id = Model.WeeklyMenuID }, FormMethod.Post, new { class = "m-0" }))
+                {
+                @Html.AntiForgeryToken()
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 bg-red-100 text-red-700 w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="bi bi-x-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h6 class="text-sm font-bold text-gray-900 mb-1">Reject Menu</h6>
+                        <p class="text-xs text-gray-500 mb-2">
+                            Use only if the menu cannot be salvaged. The Meal Coordinator will start over.
+                        </p>
+                        <textarea name="reason" rows="3" required
+                                  class="w-full border border-gray-200 py-2 px-3 text-sm mb-2"
+                                  placeholder="Explain the rejection..."></textarea>
+                        <button type="submit"
+                                class="bg-white border-2 border-red-500 text-red-600 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                                onclick="return confirm('Reject this menu? This should only be used when the menu cannot be salvaged.');">
+                            <i class="bi bi-x-circle me-1"></i>Reject
+                        </button>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    }
+    else if (canApprove && validation != null && validation.CriticalCount > 0)
+    {
+        <div class="bg-gray-100 border border-gray-200 p-4 text-center">
+            <p class="text-sm text-gray-600 mb-0">
+                <i class="bi bi-lock-fill me-2"></i>
+                Approval is blocked until the Meal Coordinator resolves the critical issues.
+            </p>
+        </div>
+    }
+
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

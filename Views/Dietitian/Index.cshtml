@@ -1,0 +1,150 @@
+﻿@{
+    ViewBag.Title = "Dietitian Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var recentApproved = ViewBag.RecentApproved as List<Michaelhouse.Models.StudentDietaryRecord> ?? new List<Michaelhouse.Models.StudentDietaryRecord>();
+    var pendingList = ViewBag.PendingList as List<Michaelhouse.Models.DietaryChangeRequest> ?? new List<Michaelhouse.Models.DietaryChangeRequest>();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clipboard2-pulse absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Dietitian Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Dietary Safety Dashboard</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Your decisions directly affect what students can safely eat
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── KPI CARDS ─────────────────────────────────────────── *@
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white border border-gray-100 shadow-sm p-5">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Pending Requests</p>
+            <p class="text-3xl font-serif font-bold @(ViewBag.PendingRequests > 0 ? "text-[#C21E2E]" : "text-gray-900")">
+                @ViewBag.PendingRequests
+            </p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-5">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Approved This Week</p>
+            <p class="text-3xl font-serif font-bold text-gray-900">@ViewBag.ApprovedThisWeek</p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-5">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Active Allergies</p>
+            <p class="text-3xl font-serif font-bold text-[#C21E2E]">@ViewBag.Allergies</p>
+        </div>
+        <div class="bg-white border border-gray-100 shadow-sm p-5">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Medical Restrictions</p>
+            <p class="text-3xl font-serif font-bold text-gray-900">@ViewBag.MedicalRestrict</p>
+        </div>
+    </div>
+
+    @* ─── QUICK ACTIONS ─────────────────────────────────────── *@
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <a href="@Url.Action("PendingRequests")" class="bg-[#C21E2E] text-white p-4 hover:bg-black transition-all">
+            <i class="bi bi-inbox text-2xl block mb-2"></i>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Review Requests</span>
+        </a>
+        <a href="@Url.Action("Students")" class="bg-white border border-gray-200 p-4 hover:border-[#C21E2E] transition-all">
+            <i class="bi bi-people text-2xl block mb-2 text-[#C21E2E]"></i>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Students</span>
+        </a>
+        <a href="@Url.Action("Allergens")" class="bg-white border border-gray-200 p-4 hover:border-[#C21E2E] transition-all">
+            <i class="bi bi-exclamation-triangle text-2xl block mb-2 text-[#C21E2E]"></i>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Allergens</span>
+        </a>
+        <a href="@Url.Action("DietaryCategories")" class="bg-white border border-gray-200 p-4 hover:border-[#C21E2E] transition-all">
+            <i class="bi bi-tags text-2xl block mb-2 text-[#C21E2E]"></i>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Categories</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        @* ─── PENDING REQUESTS LIST ───────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Recent Pending Requests</h6>
+                <a href="@Url.Action("PendingRequests")" class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">View All →</a>
+            </div>
+
+            @if (!pendingList.Any())
+            {
+                <div class="p-8 text-center text-gray-400 text-sm">No pending requests.</div>
+            }
+            else
+            {
+                <div class="divide-y divide-gray-50">
+                    @foreach (var r in pendingList)
+                    {
+                        <a href="@Url.Action("ReviewRequest", new { id = r.Id })" class="block p-4 hover:bg-gray-50 transition-all">
+                            <div class="flex justify-between items-start mb-1">
+                                <strong class="text-sm text-gray-900">
+                                    @(r.Student != null ? r.Student.FirstName + " " + r.Student.LastName : "Student")
+                                </strong>
+                                <span class="text-[9px] text-gray-400">@r.SubmittedAt.ToString("dd MMM HH:mm")</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">@r.RecordType</span>
+                                @if (r.SafetyReviewRequired)
+                                {<span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">Safety Review</span>}
+                            </div>
+                            <p class="text-xs text-gray-600 mt-1 mb-0">@(r.RequestedDescription ?? r.Reason ?? "—")</p>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+
+        @* ─── RECENTLY APPROVED ───────────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Recently Approved</h6>
+            </div>
+
+            @if (!recentApproved.Any())
+            {
+                <div class="p-8 text-center text-gray-400 text-sm">No recent approvals.</div>
+            }
+            else
+            {
+                <div class="divide-y divide-gray-50">
+                    @foreach (var r in recentApproved)
+                    {
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-1">
+                                <strong class="text-sm text-gray-900">
+                                    @(r.Student != null ? r.Student.FirstName + " " + r.Student.LastName : "Student")
+                                </strong>
+                                <span class="text-[9px] text-gray-400">
+                                    @(r.ApprovedAt.HasValue ? r.ApprovedAt.Value.ToString("dd MMM HH:mm") : "")
+                                </span>
+                            </div>
+                            <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">@r.RecordType</span>
+                            <p class="text-xs text-gray-600 mt-1 mb-0">
+                                @(r.Allergen != null ? r.Allergen.Name : (r.DietaryCategory != null ? r.DietaryCategory.Name : r.CustomDescription))
+                            </p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

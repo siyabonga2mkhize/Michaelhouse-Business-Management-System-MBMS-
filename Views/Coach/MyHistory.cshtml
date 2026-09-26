@@ -1,0 +1,96 @@
+﻿@model IEnumerable<Michaelhouse.Models.CoachRequirement>
+@{
+    ViewBag.Title = "My History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var list = Model.ToList();
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-clock-history absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">My History</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            All requirements you have submitted
+        </p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 pb-20">
+
+    @if (!list.Any())
+    {
+        <div class="bg-white border border-gray-100 p-12 text-center">
+            <i class="bi bi-clock-history text-6xl block mb-4 text-gray-300"></i>
+            <p class="text-gray-500 text-lg font-bold mb-2">No requirements submitted yet.</p>
+            <p class="text-gray-400 text-sm mb-6">Once you submit requirements, they will appear here.</p>
+            <a href="@Url.Action("MyTeam")"
+               class="inline-block bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                Go to My Teams
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">@list.Count Entries</h6>
+                <a href="@Url.Action("MyTeam")" class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                    + New Requirement
+                </a>
+            </div>
+
+            <div class="divide-y divide-gray-50">
+                @foreach (var r in list)
+                {
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                @if (r.Status == Michaelhouse.Models.Enums.CoachRequirementStatus.Submitted)
+                                {<span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white">Pending</span> }
+                                else if (r.Status == Michaelhouse.Models.Enums.CoachRequirementStatus.Accepted)
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-500 text-white">✓ Accepted</span> }
+                                else if (r.Status == Michaelhouse.Models.Enums.CoachRequirementStatus.Rejected)
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">Rejected</span> }
+                                else
+                                { <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-300 text-gray-700">@r.Status</span>}
+
+                                @if (r.IsLate)
+                                {<span class="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-200 text-amber-800">Late</span>}
+
+                                <span class="text-[9px] uppercase tracking-widest font-bold text-gray-500">
+                                    @(r.Team != null ? r.Team.Name : "—")
+                                </span>
+                            </div>
+                            <span class="text-[9px] text-gray-400">@r.SubmittedAt.ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-1">@r.RequirementText</p>
+                        @if (!string.IsNullOrEmpty(r.CafeteriaResponse))
+                        {
+                            <div class="mt-2 p-3 bg-gray-50 border-l-4 border-[#C21E2E]">
+                                <p class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-1">Cafeteria Response</p>
+                                <p class="text-xs text-gray-700 mb-0">@r.CafeteriaResponse</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

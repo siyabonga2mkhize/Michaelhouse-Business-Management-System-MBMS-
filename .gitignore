@@ -23,3 +23,16 @@ Migrations/
 *.log
 /Models/VisitorAccessRequest.cs.txt
 /Views/ScanGate.cshtml
+
+# Uploaded files
+App_Data/Uploads/
+
+# Job photos / generated uploads
+Content/JobPhotos/
+
+# Local configuration - contains private credentials
+Web.config
+
+# Uploaded files
+App_Data/Uploads/
+Content/JobPhotos/

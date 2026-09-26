@@ -1,0 +1,131 @@
+﻿@model IEnumerable<Michaelhouse.Models.RSVP>
+
+@{
+    ViewBag.Title = "Event RSVPs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var rsvps = Model as List<Michaelhouse.Models.RSVP> ?? new List<Michaelhouse.Models.RSVP>();
+    var ev = ViewBag.Event as Michaelhouse.Models.Event;
+    var students = ViewBag.Students as List<Michaelhouse.Models.Student> ?? new List<Michaelhouse.Models.Student>();
+
+    int attendingCount = rsvps.Count(r => r.Attending);
+    int totalPeople = rsvps.Where(r => r.Attending).Sum(r => r.NumberOfPeople);
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Event RSVPs</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">@(ev != null ? ev.Name : "Event")</h2>
+        @if (ev != null)
+        {
+            <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+                @ev.Date.ToString("dd MMM yyyy") @if (!string.IsNullOrEmpty(ev.Time))
+                {<text> &bull; @ev.Time</text>}
+            </p>
+        }
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY ─────────────────────────────────────────────── *@
+    <div class="row g-4 mb-8">
+        <div class="col-md-4">
+            <div class="bg-white border-l-4 border-[#C21E2E] shadow-sm p-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Total RSVPs</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@attendingCount</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-white border-l-4 border-blue-500 shadow-sm p-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Total People Attending</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@totalPeople</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-white border-l-4 border-green-500 shadow-sm p-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Dietary Preferences</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@rsvps.Count(r => !string.IsNullOrEmpty(r.DietaryNeeds))</div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── RSVP LIST ───────────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">RSVP Responses</h6>
+        </div>
+
+        @if (!rsvps.Any())
+        {
+            <div class="p-12 text-center text-gray-400">
+                <i class="bi bi-person-x text-4xl block mb-3 opacity-30"></i>
+                <p class="mb-0">No RSVPs received yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Student</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Attending</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">People</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Dietary Needs</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">RSVP Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var rsvp in rsvps)
+                        {
+                            var student = students.FirstOrDefault(s => s.StudentId == rsvp.StudentID);
+                            string studentName = student != null ? student.FirstName + " " + student.LastName : "Unknown";
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">@studentName</td>
+                                <td class="px-4 py-3">
+                                    @if (rsvp.Attending)
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-green-600">✓ Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-red-600">✗ No</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-700">@rsvp.NumberOfPeople</td>
+                                <td class="px-4 py-3 text-xs text-gray-600">@(string.IsNullOrEmpty(rsvp.DietaryNeeds) ? "None" : rsvp.DietaryNeeds)</td>
+                                <td class="px-4 py-3 text-xs text-gray-500">@rsvp.RSVPDate.ToString("dd MMM yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    @* ─── ACTION BUTTONS ──────────────────────────────────────── *@
+    <div class="flex gap-3">
+        <a href="@Url.Action("Events")" class="bg-gray-200 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-gray-300 transition-all">
+            <i class="bi bi-arrow-left me-2"></i>Back to Events
+        </a>
+        @if (ev != null)
+        {
+            <a href="@Url.Action("FeastPlan", new { id = ev.EventID })" class="bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-clipboard-check me-2"></i>Generate Feast Plan
+            </a>
+        }
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

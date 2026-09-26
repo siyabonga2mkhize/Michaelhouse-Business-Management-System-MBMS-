@@ -1,0 +1,166 @@
+﻿@model IEnumerable<Michaelhouse.Models.InventoryItem>
+
+@{
+    ViewBag.Title = "Food Inventory";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var items = Model as List<Michaelhouse.Models.InventoryItem> ?? new List<Michaelhouse.Models.InventoryItem>();
+    int lowStockCount = items.Count(i => i.QuantityInStock <= i.ReorderLevel);
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-boxes absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria Manager</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Food Inventory</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Track all cafeteria stock in real time
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── SUMMARY BADGES ──────────────────────────────────────── *@
+    <div class="flex flex-wrap gap-3 mb-6">
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 bg-gray-900 text-white">
+            Total: @items.Count
+        </span>
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-green-200 text-green-600 bg-green-50">
+            In Stock: @(items.Count - lowStockCount)
+        </span>
+        <span class="text-[9px] font-bold uppercase tracking-widest px-3 py-1 border border-amber-200 text-amber-600 bg-amber-50">
+            Low Stock: @lowStockCount
+        </span>
+        <a href="@Url.Action("PlaceStockOrder")" class="ml-auto bg-[#C21E2E] text-white px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+            <i class="bi bi-cart-plus me-2"></i>Place Stock Order
+        </a>
+        <a href="@Url.Action("AddInventoryItem")" class="bg-gray-900 text-white px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+            <i class="bi bi-plus-circle me-2"></i>Add Item
+        </a>
+    </div>
+
+    @* ─── INVENTORY TABLE ─────────────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">All Food Items</h6>
+        </div>
+
+        @if (!items.Any())
+        {
+            <div class="p-12 text-center text-gray-400">
+                <i class="bi bi-inbox text-4xl block mb-3 opacity-30"></i>
+                <p class="mb-0">No food inventory items yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Item Name</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Category</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">In Stock</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Reorder Level</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Supplier</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Status</th>
+                            <th class="text-left px-4 py-3 text-[9px] font-bold uppercase tracking-widest text-gray-400">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach (var item in items)
+                        {
+                            bool isLow = item.QuantityInStock <= item.ReorderLevel;
+                            <tr class="@(isLow ? "bg-amber-50/30" : "")">
+                                <td class="px-4 py-3 text-sm font-bold text-gray-900">@item.ItemName</td>
+                                <td class="px-4 py-3 text-xs text-gray-500 uppercase tracking-widest font-bold">@item.Category</td>
+                                <td class="px-4 py-3 text-sm text-gray-700">
+                                    <strong>@item.QuantityInStock</strong>
+                                    @if (!string.IsNullOrEmpty(item.Unit))
+                                    {
+                                        <span class="text-[10px] text-gray-400 ml-1">@item.Unit</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-500">@item.ReorderLevel</td>
+                                <td class="px-4 py-3 text-xs text-gray-500">@item.Supplier</td>
+                                <td class="px-4 py-3">
+                                    @if (isLow)
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-amber-600">⚠️ Low</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-green-600">✓ OK</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3">
+                                    <button type="button" class="text-[9px] font-bold uppercase tracking-widest text-[#C21E2E] hover:bg-red-50 px-3 py-1 border border-[#C21E2E] transition-all"
+                                            onclick="updateQuantity(@item.InventoryItemId, '@item.ItemName', @item.QuantityInStock);">
+                                        <i class="bi bi-pencil"></i> Update
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* ─── UPDATE MODAL ──────────────────────────────────────────── *@
+<div id="updateModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; max-width: 400px; width: 90%; padding: 30px;">
+        <h6 class="text-sm font-serif font-bold text-gray-900 mb-4">Update Stock: <span id="modalItemName"></span></h6>
+        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">New Quantity</label>
+        <input type="number" id="modalQuantity" class="w-full border border-gray-200 py-3 px-4 text-sm mb-4" />
+        <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-700">Cancel</button>
+            <button type="button" onclick="saveQuantity()" class="bg-[#C21E2E] text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black">Save</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentItemId = 0;
+
+        function updateQuantity(id, name, currentQty) {
+            currentItemId = id;
+            document.getElementById('modalItemName').innerText = name;
+            document.getElementById('modalQuantity').value = currentQty;
+            document.getElementById('updateModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('updateModal').style.display = 'none';
+        }
+
+        function saveQuantity() {
+            var qty = document.getElementById('modalQuantity').value;
+            $.post('@Url.Action("UpdateInventory", "Cafeteria")', { id: currentItemId, quantity: parseInt(qty) }, function (data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error updating inventory');
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

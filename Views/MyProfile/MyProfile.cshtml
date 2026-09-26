@@ -1,0 +1,173 @@
+﻿@{
+    ViewBag.Title = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var student = ViewBag.Student as Michaelhouse.Models.Student;
+    var memberships = ViewBag.Memberships as List<Michaelhouse.Models.TeamMembership> ?? new List<Michaelhouse.Models.TeamMembership>();
+    var dietary = ViewBag.DietaryRecords as List<Michaelhouse.Models.StudentDietaryRecord> ?? new List<Michaelhouse.Models.StudentDietaryRecord>();
+    var pending = ViewBag.PendingRequests as List<Michaelhouse.Models.DietaryChangeRequest> ?? new List<Michaelhouse.Models.DietaryChangeRequest>();
+    var assignment = ViewBag.Assignment as Michaelhouse.Models.ResidenceAssignment;
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-person-badge absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">
+            @(student != null ? student.FirstName + " " + student.LastName : "My Profile")
+        </h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @(student != null ? "Grade " + student.GradeLevel : "")
+            @if (student != null && !string.IsNullOrEmpty(student.StudentNumber))
+            {<text> &bull; </text>@student.StudentNumber}
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white border-l-4 border-gray-900 shadow-sm p-6 relative overflow-hidden">
+                <i class="bi bi-person-vcard absolute -right-4 -top-4 text-black/5 text-8xl"></i>
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-6 relative z-10">Personal</h6>
+                <div class="space-y-4 relative z-10">
+                    <div>
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Full Name</label>
+                        <p class="text-sm font-bold text-gray-900 mb-0">@(student != null ? student.FirstName + " " + student.LastName : "—")</p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Student Number</label>
+                        <p class="text-sm font-mono text-gray-600 mb-0">@(student != null && student.StudentNumber != null ? student.StudentNumber : "—")</p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Grade</label>
+                        <p class="text-sm font-bold text-gray-800 mb-0">@(student != null ? "Grade " + student.GradeLevel : "—")</p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Residence</label>
+                        <p class="text-sm text-gray-800 mb-0">
+                            @if (assignment != null && assignment.Residence != null)
+                            {
+                                @assignment.Residence.Name
+                                if (assignment.Room != null)
+                                { <text> &bull; Room @assignment.Room.RoomNumber</text> }
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">Not allocated</span>
+                        }
+                        </p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-1">Boarding</label>
+                        <p class="text-sm text-gray-800 mb-0">@(student != null && student.IsBoarding ? "Boarding Student" : "Day Student")</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-100 shadow-sm p-6">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Sport Participation</h6>
+                @if (!memberships.Any())
+                {
+                    <p class="text-sm text-gray-400 mb-0">No active team membership.</p>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var m in memberships)
+                        {
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-[#C21E2E]/10 text-[#C21E2E] rounded-full flex items-center justify-center">
+                                    <i class="bi bi-trophy text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-900 mb-0">@(m.Team != null ? m.Team.Name : "Team")</p>
+                                    <p class="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-0">
+                                        @(m.Team != null && m.Team.Sport != null ? m.Team.Sport.Name : (m.Team != null ? m.Team.SportName : ""))
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+
+            @if (pending.Any())
+            {
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4">
+                    <h6 class="text-[10px] uppercase tracking-widest font-bold text-amber-700 mb-1">
+                        <i class="bi bi-clock-history me-1"></i>Pending Review
+                    </h6>
+                    <p class="text-sm text-amber-800 mb-0">
+                        You have @pending.Count pending dietary request(s). Until reviewed, your existing approved restrictions remain active.
+                    </p>
+                </div>
+            }
+
+            <div class="bg-white border border-gray-100 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Dietary Information</h6>
+                    <a href="@Url.Action("Dietary", "MyProfile")" class="text-[10px] font-bold uppercase tracking-widest text-[#C21E2E] hover:text-black">
+                        Manage →
+                    </a>
+                </div>
+
+                @if (!dietary.Any())
+                {
+                    <div class="p-8 text-center">
+                        <i class="bi bi-shield-check text-5xl block mb-3 text-green-400"></i>
+                        <p class="text-gray-500 mb-2">No dietary restrictions on file.</p>
+                        <p class="text-xs text-gray-400 mb-4">If you have an allergy, medical restriction, or dietary preference, add it now.</p>
+                        <a href="@Url.Action("RequestChange", "MyProfile")"
+                           class="inline-block bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                            <i class="bi bi-plus-circle me-2"></i>Add Dietary Information
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="divide-y divide-gray-50">
+                        @foreach (var r in dietary)
+                        {
+                            <div class="p-4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    @if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.Allergy)
+                                    {<span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-600 text-white">Allergy</span> }
+                                    else if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.MedicalRestriction)
+                                    { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-amber-600 text-white">Medical</span> }
+                                    else if (r.RecordType == Michaelhouse.Models.Enums.DietaryRecordType.DietaryPreference)
+                                    { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-green-600 text-white">Preference</span> }
+                                    else
+                                    { <span class="text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-600 text-white">@r.RecordType</span>}
+                                </div>
+                                <p class="text-sm font-bold text-gray-900 mb-0">
+                                    @(r.Allergen != null ? r.Allergen.Name : (r.DietaryCategory != null ? r.DietaryCategory.Name : r.CustomDescription))
+                                </p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .divide-y > * + * {
+        border-top-width: 1px;
+    }
+</style>

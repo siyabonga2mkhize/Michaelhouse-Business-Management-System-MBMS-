@@ -1,0 +1,115 @@
+﻿@{
+    ViewBag.Title = "Create Activity";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var team = ViewBag.Team as Michaelhouse.Models.Team;
+    var types = Enum.GetValues(typeof(Michaelhouse.Models.Enums.SportsActivityType));
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-calendar-plus absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Coach Portal</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">New Activity</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">@(team != null ? team.Name : "")</p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+    @using (Html.BeginForm("CreateActivity", "Coach", new { id = team.TeamID }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-calendar-event me-2 text-[#C21E2E]"></i>Activity Details
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Activity Type *</label>
+                        <select name="ActivityType" class="w-full border border-gray-200 py-3 px-4 text-sm" required>
+                            @foreach (var t in types)
+                            {
+                                <option value="@((int)t)">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Title *</label>
+                        <input type="text" name="Title" class="w-full border border-gray-200 py-3 px-4 text-sm" required />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Start *</label>
+                        <input type="datetime-local" name="startTime" class="w-full border border-gray-200 py-3 px-4 text-sm" required />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">End *</label>
+                        <input type="datetime-local" name="endTime" class="w-full border border-gray-200 py-3 px-4 text-sm" required />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Location</label>
+                        <input type="text" name="Location" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Opponent</label>
+                        <input type="text" name="Opponent" class="w-full border border-gray-200 py-3 px-4 text-sm" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Notes</label>
+                    <textarea name="Notes" rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm"></textarea>
+                </div>
+
+                <div class="bg-gray-50 p-4 border-l-4 border-[#C21E2E]">
+                    <h6 class="text-[9px] uppercase tracking-widest font-bold text-gray-500 mb-3">Meal Requirements</h6>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-2 text-xs text-gray-700">
+                            <input type="checkbox" name="MealRequirement" value="true" class="form-checkbox" /> Meal required
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-gray-700">
+                            <input type="checkbox" name="SnackRequirement" value="true" class="form-checkbox" /> Snack required
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-gray-700">
+                            <input type="checkbox" name="HydrationRequirement" value="true" class="form-checkbox" /> Hydration required
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-gray-700">
+                            <input type="checkbox" name="IsAway" value="true" class="form-checkbox" /> Away match
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Special timing note</label>
+                    <input type="text" name="SpecialTimingNote" class="w-full border border-gray-200 py-3 px-4 text-sm"
+                           placeholder="e.g. Early meal at 08:00" />
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("TeamDetails", new { id = team.TeamID })"
+               class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E]">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black">
+                <i class="bi bi-check2-circle me-2"></i>Create Activity
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

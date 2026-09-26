@@ -1,0 +1,140 @@
+﻿@model Michaelhouse.Models.Recipe
+
+@{
+    ViewBag.Title = "Edit Recipe";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Master Recipe Database</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Edit Recipe</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @Model.Name
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @using (Html.BeginForm("EditRecipe", "Cafeteria", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.RecipeID)
+        @Html.HiddenFor(m => m.CreatedDate)
+        @Html.HiddenFor(m => m.CreatedBy)
+        @Html.HiddenFor(m => m.IsActive)
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-book me-2 text-[#C21E2E]"></i>Recipe Information
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Recipe Name *</label>
+                    @Html.TextBoxFor(m => m.Name, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", required = "required" })
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Category *</label>
+                    @Html.DropDownListFor(m => m.Category, new SelectList(new[]
+                    {
+                        "Main Meal", "Breakfast", "Dessert", "Snack", "Beverage"
+                    }, Model.Category), new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", required = "required" })
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Ingredients</label>
+                    @Html.TextAreaFor(m => m.Ingredients, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", rows = "3" })
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Cooking Instructions</label>
+                    @Html.TextAreaFor(m => m.Instructions, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", rows = "3" })
+                </div>
+            </div>
+        </div>
+
+        @* ─── NUTRITIONAL INFO ──────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-bar-chart me-2 text-[#C21E2E]"></i>Nutritional Information (per serving)
+                </h6>
+            </div>
+
+            <div class="p-6">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Calories</label>
+                        @Html.TextBoxFor(m => m.Calories, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Protein (g)</label>
+                        @Html.TextBoxFor(m => m.Protein, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Carbs (g)</label>
+                        @Html.TextBoxFor(m => m.Carbs, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Fats (g)</label>
+                        @Html.TextBoxFor(m => m.Fats, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Iron (mg)</label>
+                        @Html.TextBoxFor(m => m.Iron, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Calcium (mg)</label>
+                        @Html.TextBoxFor(m => m.Calcium, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm", type = "number" })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ─── TAGS & ALLERGENS ──────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-tags me-2 text-[#C21E2E]"></i>Dietary Tags & Allergens
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Dietary Tags</label>
+                    @Html.TextBoxFor(m => m.Tags, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm" })
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Allergens</label>
+                    @Html.TextBoxFor(m => m.Allergens, new { @class = "w-full border border-gray-200 py-3 px-4 text-sm" })
+                </div>
+            </div>
+        </div>
+
+        @* ─── FORM ACTIONS ──────────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("Recipes")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-save me-2"></i>Save Changes
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

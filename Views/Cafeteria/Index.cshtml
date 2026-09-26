@@ -1,0 +1,101 @@
+﻿@{
+    ViewBag.Title = "Cafeteria Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string role = ViewBag.Role as string ?? "";
+    string userName = ViewBag.UserName as string ?? "";
+}
+
+<div class="relative mb-12 border-b border-gray-100 bg-gray-50/30 py-12 px-4 overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
+         style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <i class="bi bi-egg-fried absolute -right-8 -bottom-10 text-black/5 text-[12rem] rotate-12"></i>
+
+    <div class="max-w-6xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria</h5>
+        </div>
+        <h2 class="text-4xl font-serif font-bold text-gray-900 tracking-tight">Welcome, @userName</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            @role Dashboard &bull; @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+        </p>
+    </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 pb-20">
+
+    @* ─── STATS CARDS ───────────────────────────────────────────── *@
+    <div class="row g-4 mb-12">
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-calendar2-week absolute -right-2 -bottom-2 text-black/5 text-5xl"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">This Week</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@ViewBag.WeekNumber</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-people absolute -right-2 -bottom-2 text-black/5 text-5xl"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Students</div>
+                <div class="text-3xl font-serif font-bold text-gray-900">@ViewBag.TotalStudents</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-check2-circle absolute -right-2 -bottom-2 text-black/5 text-5xl"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Approved Plans</div>
+                <div class="text-3xl font-serif font-bold text-green-600">@ViewBag.ApprovedPlans</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="bg-white border border-gray-100 p-6 shadow-sm text-center relative overflow-hidden group">
+                <i class="bi bi-hourglass-split absolute -right-2 -bottom-2 text-black/5 text-5xl"></i>
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Pending</div>
+                <div class="text-3xl font-serif font-bold text-amber-600">@ViewBag.PendingPlans</div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── QUICK ACTIONS ─────────────────────────────────────────── *@
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <a href="@Url.Action("MealPlans")" class="bg-white border border-gray-200 p-8 shadow-sm hover:shadow-md transition-all block no-underline group">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 bg-red-50 text-[#C21E2E] rounded-full flex items-center justify-center">
+                        <i class="bi bi-journal text-2xl"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-sm font-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">Meal Plans</h5>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Review student meal plans</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4">
+            <a href="@Url.Action("WeeklyMenu")" class="bg-white border border-gray-200 p-8 shadow-sm hover:shadow-md transition-all block no-underline group">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center">
+                        <i class="bi bi-calendar3 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-sm font-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">Weekly Menu</h5>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">View and manage menus</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4">
+            <a href="@Url.Action("KitchenDashboard")" class="bg-white border border-gray-200 p-8 shadow-sm hover:shadow-md transition-all block no-underline group">
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
+                        <i class="bi bi-speedometer2 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-sm font-bold text-gray-900 group-hover:text-[#C21E2E] transition-colors">Kitchen Dashboard</h5>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Today's selections</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

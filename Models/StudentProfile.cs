@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -48,6 +48,16 @@ namespace Michaelhouse.Models
         public bool MedicalAccommodationRequired { get; set; }
         public string MedicalAccommodationNotes { get; set; }
 
+        // ─── NEW: Cafeteria Dietary Fields ───────────────────────────
+        [StringLength(500)]
+        [Display(Name = "Dietary Preferences")]
+        public string DietaryPreferences { get; set; }
+
+        [StringLength(500)]
+        [Display(Name = "Special Dietary Needs")]
+        public string SpecialDietaryNeeds { get; set; }
+        // ─────────────────────────────────────────────────────────────
+
         public int? PreviousResidenceId { get; set; }
         public int? PreviousRoomId { get; set; }
         public string PreviousRoommateIds { get; set; }
@@ -94,6 +104,7 @@ namespace Michaelhouse.Models
             if (Student.DOB.Date > today.AddYears(-age)) age--;
             return age;
         }
+
         [StringLength(200)]
         [EmailAddress]
         public string Email { get; set; }

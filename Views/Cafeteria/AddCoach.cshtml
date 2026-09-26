@@ -1,0 +1,112 @@
+﻿@model Michaelhouse.Models.Coach
+
+@{
+    ViewBag.Title = "Add Coach";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-3xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Sports Director</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Add New Coach</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Register a coach for one of the sports teams
+        </p>
+    </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 pb-20">
+
+    @using (Html.BeginForm("AddCoach", "Cafeteria", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-person-plus me-2 text-[#C21E2E]"></i>Coach Information
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">First Name *</label>
+                        <input type="text" name="Name" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., John" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Surname *</label>
+                        <input type="text" name="Surname" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., Brown" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Sport *</label>
+                    <select name="Sport" required class="w-full border border-gray-200 py-3 px-4 text-sm">
+                        <option value="">-- Select sport --</option>
+                        <option value="Rugby">Rugby</option>
+                        <option value="Hockey">Hockey</option>
+                        <option value="Cricket">Cricket</option>
+                        <option value="Swimming">Swimming</option>
+                        <option value="Athletics">Athletics</option>
+                        <option value="Tennis">Tennis</option>
+                        <option value="Squash">Squash</option>
+                        <option value="Water Polo">Water Polo</option>
+                        <option value="Basketball">Basketball</option>
+                        <option value="Canoeing">Canoeing</option>
+                        <option value="Cross Country">Cross Country</option>
+                        <option value="Golf">Golf</option>
+                        <option value="Padel">Padel</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Team *</label>
+                    <input type="text" name="Team" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., U16 Rugby, 1st Hockey, Swimming Squad" />
+                    <p class="text-[9px] text-gray-400 mt-1">The team this coach will manage</p>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Email *</label>
+                        <input type="email" name="Email" required class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., brown@michaelhouse.co.za" />
+                        <p class="text-[9px] text-gray-400 mt-1">Used for coach login and notifications</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Phone</label>
+                        <input type="text" name="Phone" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="e.g., 082 123 4567" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ─── INFO BOX ──────────────────────────────────────────── *@
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <h6 class="text-[9px] uppercase tracking-widest font-bold text-blue-600 mb-1">ℹ️ Note</h6>
+            <p class="text-sm text-blue-700 mb-0">
+                The coach will receive a login account. Their default password is <strong>Coach@123</strong>.
+                They can log in and submit nutrition requirements for their team.
+            </p>
+        </div>
+
+        @* ─── FORM ACTIONS ──────────────────────────────────────── *@
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("Coaches")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-save me-2"></i>Save Coach
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>

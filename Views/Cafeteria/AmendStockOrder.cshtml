@@ -1,0 +1,131 @@
+﻿@model Michaelhouse.Models.StockOrder
+
+@{
+    ViewBag.Title = "Amend Stock Order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var supplier = ViewBag.Supplier as Michaelhouse.Models.Supplier;
+    var alternateSuppliers = ViewBag.AlternateSuppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+    string supplierName = supplier != null ? supplier.Name : "Unknown";
+}
+
+<div class="relative mb-8 border-b border-gray-100 bg-gray-50/30 py-8 px-4 overflow-hidden">
+    <div class="max-w-4xl mx-auto relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="h-1 w-8 bg-[#C21E2E]"></div>
+            <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Cafeteria Manager</h5>
+        </div>
+        <h2 class="text-3xl font-serif font-bold text-gray-900 tracking-tight">Amend Order #@Model.OrderID</h2>
+        <p class="text-gray-400 text-[10px] uppercase tracking-widest font-bold mt-2">
+            Adjust the order when the supplier cannot fulfill it
+        </p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 pb-20">
+
+    @* ─── CURRENT ORDER DETAILS ──────────────────────────────── *@
+    <div class="bg-white border border-gray-100 shadow-sm p-6 mb-6">
+        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">Current Order</h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Supplier</div>
+                <div class="text-sm font-bold text-gray-900">@supplierName</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Order Date</div>
+                <div class="text-sm font-bold text-gray-900">@Model.OrderDate.ToString("dd MMM yyyy")</div>
+            </div>
+            <div class="col-md-12">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Items</div>
+                <div class="text-sm text-gray-700">@Model.Items</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Quantity</div>
+                <div class="text-sm font-bold text-gray-900">@Model.Quantity</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Total Cost</div>
+                <div class="text-sm font-bold text-gray-900">R @Model.TotalCost.ToString("N2")</div>
+            </div>
+            <div class="col-md-12">
+                <div class="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-1">Status</div>
+                <div class="text-sm font-bold text-amber-600">@Model.Status</div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── AMENDMENT FORM ──────────────────────────────────────── *@
+    @using (Html.BeginForm("AmendStockOrder", "Cafeteria", new { id = Model.OrderID }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bg-white border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">
+                    <i class="bi bi-pencil-square me-2 text-[#C21E2E]"></i>Amendment Options
+                </h6>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Amendment Type *</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="amendmentType" value="manual" checked required />
+                            <div>
+                                <div class="text-sm font-bold text-gray-900">Manual Amendment</div>
+                                <div class="text-[10px] text-gray-500">Adjust quantity or select an alternative supplier</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="amendmentType" value="auto" />
+                            <div>
+                                <div class="text-sm font-bold text-gray-900">Auto-Reorder Shortfall</div>
+                                <div class="text-[10px] text-gray-500">System will select an alternative supplier and create a new order</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Alternative Supplier (for auto-reorder)</label>
+                    <select name="newSupplierId" class="w-full border border-gray-200 py-3 px-4 text-sm">
+                        <option value="">-- Select alternative supplier --</option>
+                        @foreach (var s in alternateSuppliers)
+                        {
+                            <option value="@s.SupplierId">@s.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-[9px] uppercase tracking-widest font-bold text-gray-400 block mb-2">Notes *</label>
+                    <textarea name="notes" required rows="3" class="w-full border border-gray-200 py-3 px-4 text-sm" placeholder="Explain what the supplier cannot fulfill and what action is being taken"></textarea>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                    <p class="text-[10px] text-blue-700 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        The original order will be updated. An email notification will be generated.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-100 p-4 flex justify-between items-center">
+            <a href="@Url.Action("StockOrders")" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#C21E2E] transition-colors">
+                <i class="bi bi-arrow-left me-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
+                <i class="bi bi-save me-2"></i>Save Amendment
+            </button>
+        </div>
+    }
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+</style>
