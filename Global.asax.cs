@@ -13,13 +13,18 @@ namespace Michaelhouse
 {
     public class MvcApplication : System.Web.HttpApplication
     {
+    
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-
+            // UC18: RSVP is a public form. Anti-forgery tokens must not
+            // be bound to the current user identity, otherwise a token
+            // generated while logged out becomes invalid the moment the
+            // same browser is logged in (and vice versa).
+            System.Web.Helpers.AntiForgeryConfig.SuppressIdentityHeuristicChecks = true;
             try
             {
                 var stripeKey = System.Configuration.ConfigurationManager.AppSettings["StripeApiKey"];

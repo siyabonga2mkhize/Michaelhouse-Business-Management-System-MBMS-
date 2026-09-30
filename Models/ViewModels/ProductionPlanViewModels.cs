@@ -25,10 +25,7 @@ namespace Michaelhouse.Models.ViewModels
 
         public List<ProductionDayViewModel> Days { get; set; }
 
-        // Week-level ingredient total — used for ordering
         public List<IngredientLineViewModel> WeekTotalIngredients { get; set; }
-
-        
     }
 
     public class ProductionDayViewModel
@@ -43,7 +40,6 @@ namespace Michaelhouse.Models.ViewModels
 
         public List<ProductionSlotViewModel> Slots { get; set; }
 
-        // Sum of all ingredients across all 3 meal slots for this day
         public List<IngredientLineViewModel> DayTotalIngredients { get; set; }
     }
 
@@ -52,6 +48,8 @@ namespace Michaelhouse.Models.ViewModels
         public ProductionSlotViewModel()
         {
             Tasks = new List<ProductionTaskViewModel>();
+            HouseBreakdown = new List<HouseBreakdownLine>();
+            EventsThisMeal = new List<string>();
         }
 
         public string MealSlot { get; set; }
@@ -61,6 +59,12 @@ namespace Michaelhouse.Models.ViewModels
         public int Portions { get; set; }
 
         public List<ProductionTaskViewModel> Tasks { get; set; }
+
+        // UC12: per-house portions for this slot.
+        public List<HouseBreakdownLine> HouseBreakdown { get; set; }
+
+        // UC12: match labels for this slot, e.g. "Rugby vs Hilton".
+        public List<string> EventsThisMeal { get; set; }
     }
 
     public class ProductionTaskViewModel
@@ -84,7 +88,6 @@ namespace Michaelhouse.Models.ViewModels
 
         public TimeSpan ReadyTime { get; set; }
 
-        // The BOM for this dish at this portion count
         public List<IngredientLineViewModel> Ingredients { get; set; }
     }
 
@@ -107,6 +110,20 @@ namespace Michaelhouse.Models.ViewModels
         public bool IsCovered
         {
             get { return Shortfall <= 0m; }
+        }
+    }
+
+    // UC12: one row per house, per slot.
+    public class HouseBreakdownLine
+    {
+        public string ResidenceName { get; set; }
+        public int ActiveStudents { get; set; }
+        public int Unavailable { get; set; }
+        public int MatchPlayers { get; set; }
+
+        public int TotalPortions
+        {
+            get { return ActiveStudents + MatchPlayers; }
         }
     }
 }

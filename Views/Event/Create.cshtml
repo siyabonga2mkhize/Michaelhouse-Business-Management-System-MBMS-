@@ -1,0 +1,296 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@model CafeteriaEvent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Schedule Event";
+
+    var venues = ViewBag.Venues as List<EventVenue> ?? new List<EventVenue>();
+    var templates = ViewBag.Templates as List<EventMenuTemplate> ?? new List<EventMenuTemplate>();
+    var eventTypes = ViewBag.EventTypes as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<style>
+    .sce-shell {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .sce-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .sce-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .sce-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .sce-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .sce-section {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin: 0 0 1rem 0;
+        padding-bottom: .5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .sce-row {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .sce-2col {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sce-3col {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .sce-label {
+        display: block;
+        font-size: .75rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: .35rem;
+    }
+
+        .sce-label .req {
+            color: #C21E2E;
+        }
+
+    .sce-input {
+        width: 100%;
+        padding: .5rem .7rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: .88rem;
+    }
+
+        .sce-input:focus {
+            border-color: #C21E2E;
+            outline: none;
+        }
+
+    .sce-help {
+        font-size: .72rem;
+        color: #9ca3af;
+        margin-top: .25rem;
+    }
+
+    .sce-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f3f4f6;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="sce-shell">
+
+        <div class="sce-header">
+            <h1>Schedule Event</h1>
+            <div class="sce-meta">
+                Capture the event details. RSVPs and the feast plan come later.
+            </div>
+        </div>
+
+        @using (Html.BeginForm("Create", "Event", FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            @Html.AntiForgeryToken()
+
+            if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+            {
+                <div class="alert alert-danger">
+                    @Html.ValidationSummary(false, "Please fix the errors below:")
+                </div>
+            }
+
+            <div class="sce-card">
+                <div class="sce-section">Event Details</div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Event Name <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EventName, new { @class = "sce-input", placeholder = "e.g. Founders' Day Lunch" })
+                    </div>
+                </div>
+
+                <div class="sce-row sce-2col">
+                    <div>
+                        <label class="sce-label">Event Type <span class="req">*</span></label>
+                        <select name="EventType" class="sce-input" required>
+                            @foreach (var t in eventTypes)
+                            {
+                                var selected = Model != null && ((int)Model.EventType).ToString() == t.Value;
+                                <option value="@t.Value" @(selected ? "selected" : "")>@t.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="sce-label">Menu Template</label>
+                        <select name="MenuTemplateId" class="sce-input">
+                            <option value="">— None —</option>
+                            @foreach (var t in templates)
+                            {
+                                var selected = Model != null && Model.MenuTemplateId == t.Id;
+                                <option value="@t.Id" @(selected ? "selected" : "")>
+                                    @t.Name (@t.DefaultHeadcount guests)
+                                </option>
+                            }
+                        </select>
+                        <div class="sce-help">Optional — pre-loads dishes for the feast plan at UC19.</div>
+                    </div>
+                </div>
+
+                <div class="sce-row sce-3col">
+                    <div>
+                        <label class="sce-label">Date <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}",
+                            new { @class = "sce-input", type = "date", required = "required" })
+                    </div>
+                    <div>
+                        <label class="sce-label">Start Time <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.StartTime, "{0:hh\\:mm}",
+                            new { @class = "sce-input", type = "time", required = "required" })
+                    </div>
+                    <div>
+                        <label class="sce-label">End Time <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EndTime, "{0:hh\\:mm}",
+                            new { @class = "sce-input", type = "time", required = "required" })
+                    </div>
+                </div>
+
+                <div class="sce-row sce-2col">
+                    <div>
+                        <label class="sce-label">Venue <span class="req">*</span></label>
+                        <select name="VenueId" class="sce-input" required>
+                            <option value="">— Pick a venue —</option>
+                            @foreach (var v in venues)
+                            {
+                                var selected = Model != null && Model.VenueId == v.Id;
+                                <option value="@v.Id" @(selected ? "selected" : "")>
+                                    @v.Name (seats @v.Capacity)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="sce-label">Expected Headcount <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.ExpectedHeadcount,
+                            new { @class = "sce-input", type = "number", min = "1", required = "required" })
+                        <div class="sce-help">Rough estimate — RSVPs refine this later.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sce-card">
+                <div class="sce-section">Notes</div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Special Instructions</label>
+                        @Html.TextAreaFor(m => m.SpecialInstructions,
+                            new
+                                 {
+                                     @class = "sce-input",
+                                     rows = "3",
+                                     maxlength = "1000",
+                                  placeholder = "e.g. Vegetarian option required for 15 guests"
+                                 })
+                        <div class="sce-help">Visible to chef and kitchen staff.</div>
+                    </div>
+                </div>
+                <div class="sce-card">
+                    <div class="sce-section">Who's invited?</div>
+
+                    <div class="sce-row">
+                        <div>
+                            <label style="display:block; font-size:.85rem; margin-bottom:.5rem; cursor:pointer;">
+                                <input type="checkbox" name="InviteParents" value="true" checked
+                                       style="margin-right:.4rem;" />
+                                All Parents
+                            </label>
+                            <label style="display:block; font-size:.85rem; margin-bottom:.5rem; cursor:pointer;">
+                                <input type="checkbox" name="InviteStaff" value="true"
+                                       style="margin-right:.4rem;" />
+                                All Staff
+                            </label>
+                            <label style="display:block; font-size:.85rem; margin-bottom:.5rem; cursor:pointer;">
+                                <input type="checkbox" name="InviteStudents" value="true"
+                                       style="margin-right:.4rem;" />
+                                All Students
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sce-row">
+                        <div>
+                            <label class="sce-label">Limit parents to specific houses (optional)</label>
+                            <div class="sce-help" style="margin-top:0; margin-bottom:.5rem;">
+                                Leave all unchecked to invite every parent. Tick houses only for house-level events.
+                            </div>
+
+                            @if (ViewBag.Houses != null)
+                            {
+                                foreach (var h in (List<Michaelhouse.Models.Residence>)ViewBag.Houses)
+                                {
+                                    <label style="display:inline-block; font-size:.85rem; margin-right:1rem; margin-bottom:.35rem; cursor:pointer;">
+                                        <input type="checkbox" name="InviteHouses" value="@h.ResidenceId"
+                                               style="margin-right:.35rem;" />
+                                        @h.Name
+                                    </label>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Internal Notes</label>
+                        @Html.TextAreaFor(m => m.InternalNotes,
+                            new
+                                 {
+                                     @class = "sce-input",
+                                     rows = "2",
+                                     maxlength = "1000",
+                                  placeholder = "Coordinator-only notes"
+                                 })
+                    </div>
+                </div>
+            </div>
+
+            <div class="sce-actions">
+                <a href="@Url.Action("Index", "Event")" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Schedule Event
+                </button>
+            </div>
+        }
+
+    </div>
+</div>
+

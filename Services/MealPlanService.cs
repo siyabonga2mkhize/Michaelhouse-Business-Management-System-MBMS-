@@ -12,14 +12,20 @@ namespace Michaelhouse.Services
     // UC13 — Personalized Meal Plan Service
     //
     // Rule-based recommender. No external AI:
-    //   1. Loads the currently Accepted UC12 menu
+    //   1. Loads the currently Accepted UC12 menu (latest published)
     //   2. For each (day, slot) finds the scheduled item (the chef's choice)
     //   3. Loads the wider MenuItem library as alternatives
     //   4. HARD FILTERS by student allergies (walks recipe → ingredients)
-    //   5. RANKS remaining options using the student's sport + match-day context
+    //   5. RANKS remaining options using the student's active sport,
+    //      sport archetype (UC12), and match-day context
     //   6. Returns top 3 options per slot
     //
-    // Every decision here is deterministic and auditable.
+    // UC12 integration:
+    //   - Sports come from StudentSportStatus (structured, injury-aware)
+    //     instead of the free-text StudentProfile.Sports field.
+    //   - Archetype drives preference: Power→protein, Endurance→carb.
+    //   - If the student is marked unavailable for a date, we do NOT
+    //     push athletic nutrition on that date (they're recovering).
     // ============================================================
 
     public class MealPlanService
@@ -50,10 +56,20 @@ namespace Michaelhouse.Services
                 throw new InvalidOperationException("Student not found.");
             }
 
-            // 2. Find the currently published menu
+            // 2. Find the most recently PUBLISHED menu.
+            //
+            //    BUG FIX: previously this ordered by StartDate. When two
+            //    accepted menus overlap (e.g. 22–28 Sept and 23–29 Sept),
+            //    StartDate ordering picks the one starting LAST, which is
+            //    not necessarily the one the coordinator just published.
+            //
+            //    LastModifiedDate is set when the menu is Accepted — that's
+            //    the correct "publication" timestamp.
             var acceptedMenu = _db.MealMenus
                 .Where(m => m.MenuStatus == MenuStatus.Accepted)
-                .OrderByDescending(m => m.StartDate)
+                .OrderByDescending(m => m.LastModifiedDate)
+                .ThenByDescending(m => m.CreatedDate)
+                .ThenByDescending(m => m.Id)
                 .FirstOrDefault();
 
             if (acceptedMenu == null)
@@ -144,7 +160,6 @@ namespace Michaelhouse.Services
             plan.UpdatedAt = DateTime.UtcNow;
             if (plan.Status == MealPlanStatus.SentBack)
             {
-                // After the dietitian sends back, editing puts it into Draft again
                 plan.Status = MealPlanStatus.Draft;
             }
 
@@ -267,6 +282,24 @@ namespace Michaelhouse.Services
         {
             var profile = student.StudentProfile;
 
+            // ── UC12: load structured sport records ───────────────────
+            var sportStatuses = _db.StudentSportStatuses
+                .Where(s => s.StudentId == student.StudentId)
+                .ToList();
+
+            // Prefer the structured table for display. Fall back to
+            // the old free-text field if the student has no rows yet.
+            string sportsDisplay;
+            if (sportStatuses.Count > 0)
+            {
+                sportsDisplay = string.Join(", ",
+                    sportStatuses.Select(s => s.Sport).Distinct());
+            }
+            else
+            {
+                sportsDisplay = profile != null ? profile.Sports : "";
+            }
+
             var vm = new MealPlanBuildViewModel
             {
                 MealPlanId = plan.Id,
@@ -281,7 +314,7 @@ namespace Michaelhouse.Services
                 SourceMenuId = acceptedMenu.Id,
                 Allergies = profile != null ? profile.Allergies : "",
                 MedicalConditions = profile != null ? profile.MedicalConditions : "",
-                Sports = profile != null ? profile.Sports : ""
+                Sports = sportsDisplay
             };
 
             // Parse the student's allergens into a set (case-insensitive)
@@ -305,6 +338,9 @@ namespace Michaelhouse.Services
             {
                 var dayVm = new MealPlanDayViewModel { Date = date };
 
+                // ── UC12: build sport context for this specific day ──
+                var sportCtx = BuildSportContextForDate(sportStatuses, date);
+
                 foreach (var slot in new[] { MealSlot.Breakfast, MealSlot.Lunch, MealSlot.Dinner })
                 {
                     var slotVm = BuildSlot(
@@ -314,7 +350,7 @@ namespace Michaelhouse.Services
                         candidates,
                         plan,
                         studentAllergens,
-                        vm.Sports);
+                        sportCtx);
 
                     dayVm.Slots.Add(slotVm);
                 }
@@ -323,6 +359,80 @@ namespace Michaelhouse.Services
             }
 
             return vm;
+        }
+
+        // ============================================================
+        // UC12: SPORT CONTEXT
+        // ------------------------------------------------------------
+        // Evaluates a student's sport statuses FOR A GIVEN DATE and
+        // converts them into ranked nutrition preferences.
+        //
+        //   Power     → prefer HighProtein
+        //   Endurance → prefer HighCarb
+        //   Skill / Speed → no strong preference
+        //
+        // If every sport is marked unavailable on that date, the
+        // student is treated as "recovering" — no athletic push.
+        // ============================================================
+
+        private class StudentSportContext
+        {
+            public bool HasActiveSport { get; set; }
+            public bool PrefersProtein { get; set; }
+            public bool PrefersCarb { get; set; }
+            public bool IsRecovering { get; set; }
+        }
+
+        private StudentSportContext BuildSportContextForDate(
+            List<StudentSportStatus> statuses,
+            DateTime date)
+        {
+            var ctx = new StudentSportContext();
+
+            if (statuses == null || statuses.Count == 0)
+            {
+                return ctx;
+            }
+
+            var active = statuses.Where(s => IsStatusActiveOn(s, date)).ToList();
+
+            if (active.Count == 0)
+            {
+                ctx.IsRecovering = true;
+                return ctx;
+            }
+
+            ctx.HasActiveSport = true;
+
+            foreach (var s in active)
+            {
+                switch (s.Archetype)
+                {
+                    case SportArchetype.Power:
+                        ctx.PrefersProtein = true;
+                        break;
+
+                    case SportArchetype.Endurance:
+                        ctx.PrefersCarb = true;
+                        break;
+
+                        // Skill / Speed: no strong category preference.
+                }
+            }
+
+            return ctx;
+        }
+
+        private bool IsStatusActiveOn(StudentSportStatus status, DateTime date)
+        {
+            // Auto-recover: return date has passed → treat as active.
+            if (status.UnavailableUntil.HasValue &&
+                status.UnavailableUntil.Value.Date <= date.Date)
+            {
+                return true;
+            }
+
+            return status.IsActive;
         }
 
         // ============================================================
@@ -336,7 +446,7 @@ namespace Michaelhouse.Services
             List<MenuItem> candidates,
             MealPlan plan,
             HashSet<string> studentAllergens,
-            string studentSports)
+            StudentSportContext sportCtx)
         {
             var vm = new MealPlanSlotViewModel
             {
@@ -347,13 +457,22 @@ namespace Michaelhouse.Services
             var scheduled = scheduleItems
                 .FirstOrDefault(s => s.Date.Date == date.Date && s.MealSlot == slot);
 
-            // 2. Match-day context (from UC12's tagged reason)
+            // 2. Match-day context (from UC12's tagged reason).
+            //    We only surface this if the student is not recovering —
+            //    an injured athlete shouldn't see "match-day recovery".
             var reason = scheduled != null ? (scheduled.TagReason ?? "") : "";
-            vm.IsMatchDay = reason.Contains("Match-day");
-            vm.IsDayBeforeMatch = reason.Contains("Pre-match");
+            bool rawMatchDay = reason.Contains("Match-day");
+            bool rawDayBefore = reason.Contains("Pre-match");
+
+            bool studentActive = sportCtx != null
+                                 && sportCtx.HasActiveSport
+                                 && !sportCtx.IsRecovering;
+
+            vm.IsMatchDay = rawMatchDay && studentActive;
+            vm.IsDayBeforeMatch = rawDayBefore && studentActive;
+
             if (vm.IsMatchDay || vm.IsDayBeforeMatch)
             {
-                // Pull out the descriptive part — e.g. "Match-day recovery (Rugby)"
                 var dotIdx = reason.IndexOf(". ");
                 vm.MatchDescription = dotIdx > 0 ? reason.Substring(0, dotIdx) : reason;
             }
@@ -362,7 +481,7 @@ namespace Michaelhouse.Services
             {
                 vm.DefaultItemName = scheduled.MenuItem.Name;
             }
-            
+
             // 3. What did the student already pick?
             var pick = plan.Items
                 .FirstOrDefault(i => i.Date.Date == date.Date && i.MealSlot == slot);
@@ -379,20 +498,16 @@ namespace Michaelhouse.Services
                 .Where(c => IsSafeForStudent(c, studentAllergens))
                 .ToList();
 
-            // Score each candidate
             var scored = eligible
                 .Select(c => new
                 {
                     Item = c,
-                    Score = ScoreCandidate(c, vm.IsMatchDay, vm.IsDayBeforeMatch, studentSports)
+                    Score = ScoreCandidate(c, vm.IsMatchDay, vm.IsDayBeforeMatch, sportCtx)
                 })
                 .OrderByDescending(x => x.Score)
                 .ThenBy(x => x.Item.Name)
                 .ToList();
 
-            // Default is included only if it's safe for this student.
-            // If the UC12 chef's choice contains an allergen the student
-            // can't have, we skip it and rely on the ranked safe list below.
             var options = new List<MenuItem>();
 
             if (scheduled != null
@@ -402,7 +517,6 @@ namespace Michaelhouse.Services
                 options.Add(scheduled.MenuItem);
             }
 
-            // Include the current pick only if it's also safe
             if (pick != null)
             {
                 var pickItem = candidates
@@ -416,17 +530,12 @@ namespace Michaelhouse.Services
                 }
             }
 
-            // Fill up to OptionsPerSlot with the top-ranked safe alternatives
             foreach (var entry in scored)
             {
                 if (options.Count >= OptionsPerSlot) break;
                 if (options.Any(o => o.Id == entry.Item.Id)) continue;
                 options.Add(entry.Item);
             }
-
-            // If we still don't have 3 (very restrictive allergies), allow items
-            // that fail the filter as a last resort — but flag them.
-            // For now, just accept fewer options.
 
             // 5. Map to option view models
             vm.Options = options.Select(o => new MealPlanOptionViewModel
@@ -438,7 +547,7 @@ namespace Michaelhouse.Services
                 ProteinGramsPerPortion = o.ProteinGramsPerPortion,
                 NutritionCategory = o.NutritionCategory,
                 IsDefault = scheduled != null && scheduled.MenuItemId == o.Id,
-                Tags = BuildOptionTags(o, vm.IsMatchDay, vm.IsDayBeforeMatch, studentSports)
+                Tags = BuildOptionTags(o, vm.IsMatchDay, vm.IsDayBeforeMatch, sportCtx)
             }).ToList();
 
             return vm;
@@ -461,8 +570,6 @@ namespace Michaelhouse.Services
 
         // ============================================================
         // HARD FILTER — ALLERGENS
-        // Walks the recipe BOM and unions all ingredient allergens.
-        // If the student's allergen list intersects, the item is excluded.
         // ============================================================
 
         private bool IsSafeForStudent(MenuItem item, HashSet<string> studentAllergens)
@@ -520,42 +627,46 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
-        // SOFT RANK — match-day context + sport
+        // SOFT RANK — match-day + sport archetype
         // ============================================================
 
         private int ScoreCandidate(
             MenuItem item,
             bool isMatchDay,
             bool isDayBeforeMatch,
-            string studentSports)
+            StudentSportContext sportCtx)
         {
             int score = 0;
 
-            bool isAthlete = !string.IsNullOrWhiteSpace(studentSports);
-            bool isRugbyLike = isAthlete && (
-                studentSports.IndexOf("Rugby", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                studentSports.IndexOf("Water Polo", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                studentSports.IndexOf("Hockey", StringComparison.OrdinalIgnoreCase) >= 0);
-
-            // Match-day: prefer high protein for recovery
+            // Match-day recovery: heavy protein tilt
             if (isMatchDay && item.NutritionCategory == NutritionCategory.HighProtein)
             {
                 score += 10;
             }
 
-            // Day before: prefer high carb for loading
+            // Day before: carb loading tilt
             if (isDayBeforeMatch && item.NutritionCategory == NutritionCategory.HighCarb)
             {
                 score += 10;
             }
 
-            // Athlete general preference: protein slightly beats carb
-            if (isRugbyLike && item.NutritionCategory == NutritionCategory.HighProtein)
+            // UC12: archetype-driven baseline preference.
+            // Applied for every active day, not just match days.
+            if (sportCtx != null && sportCtx.HasActiveSport)
             {
-                score += 3;
+                if (sportCtx.PrefersProtein &&
+                    item.NutritionCategory == NutritionCategory.HighProtein)
+                {
+                    score += 3;
+                }
+
+                if (sportCtx.PrefersCarb &&
+                    item.NutritionCategory == NutritionCategory.HighCarb)
+                {
+                    score += 3;
+                }
             }
 
-            // Farm-grown is nice
             if (item.IsFarmGrownProduce) score += 1;
 
             return score;
@@ -569,7 +680,7 @@ namespace Michaelhouse.Services
             MenuItem item,
             bool isMatchDay,
             bool isDayBeforeMatch,
-            string studentSports)
+            StudentSportContext sportCtx)
         {
             var tags = new List<string>();
 

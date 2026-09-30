@@ -240,6 +240,65 @@
         font-weight: 700;
     }
 
+    /* ── UC12: per-house breakdown ───────────────────────────── */
+    .pp-houses {
+        margin-top: .65rem;
+        padding-top: .65rem;
+        border-top: 1px dashed #e5e7eb;
+    }
+
+    .pp-houses-title {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .5rem;
+    }
+
+    .pp-events {
+        color: #C21E2E;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 600;
+        margin-left: .4rem;
+    }
+
+    .pp-house-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: .5rem;
+    }
+
+    .pp-house {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: .5rem .65rem;
+    }
+
+    .pp-house-name {
+        font-size: .75rem;
+        font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pp-house-count {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #C21E2E;
+        line-height: 1.1;
+        margin: .15rem 0;
+    }
+
+    .pp-house-detail {
+        font-size: .65rem;
+        color: #9ca3af;
+    }
+
     .pp-day-total {
         margin-top: .75rem;
         padding: .75rem 1rem;
@@ -497,36 +556,75 @@
                             </div>
                         }
 
-                        @if (day.DayTotalIngredients != null && day.DayTotalIngredients.Count > 0)
+                        @* ───────────────────────────────────────────
+                               UC12: per-house breakdown for this slot.
+                            ─────────────────────────────────────────── *@
+                        @if (slot.HouseBreakdown != null && slot.HouseBreakdown.Count > 0)
                         {
-                            <div class="pp-day-total">
-                                <div class="pp-day-total-title">Day Total — @day.Date.ToString("dddd")</div>
-                                <table>
-                                    <tbody>
-                                        @foreach (var line in day.DayTotalIngredients)
-                                        {
-                                            <tr>
-                                                <td>@line.IngredientName</td>
-                                                <td class="num">
-                                                    @line.TotalRequired.ToString("N2")
-                                                    <span class="unit">@line.Unit</span>
-                                                </td>
-                                                <td style="text-align:right;">
-                                                    @if (line.IsCovered)
-                                                    {
-                                                        <span class="stock-ok">✓</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="stock-low">short @line.Shortfall.ToString("N2")</span>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                            <div class="pp-houses">
+                                <div class="pp-houses-title">
+                                    Portions by house
+                                    @if (slot.EventsThisMeal != null && slot.EventsThisMeal.Count > 0)
+                                    {
+                                        <span class="pp-events">· @string.Join(" · ", slot.EventsThisMeal)</span>
+                                    }
+                                </div>
+                                <div class="pp-house-grid">
+                                    @foreach (var h in slot.HouseBreakdown)
+                                    {
+                                        <div class="pp-house">
+                                            <div class="pp-house-name">@h.ResidenceName</div>
+                                            <div class="pp-house-count">@h.TotalPortions</div>
+                                            <div class="pp-house-detail">
+                                                @h.ActiveStudents<text> active</text>
+                                                @if (h.MatchPlayers > 0)
+                                                {
+                                                    <text> · </text>@h.MatchPlayers<text> match</text>
+                                                }
+                                                @if (h.Unavailable > 0)
+                                                {
+                                                    <text> · </text>@h.Unavailable<text> out</text>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         }
+                    </div>
+                }
+
+                @* Day total — once per day, outside the slot loop *@
+                @if (day.DayTotalIngredients != null && day.DayTotalIngredients.Count > 0)
+                {
+                    <div class="pp-slot" style="background:#fcfcfc;">
+                        <div class="pp-day-total">
+                            <div class="pp-day-total-title">Day Total — @day.Date.ToString("dddd")</div>
+                            <table>
+                                <tbody>
+                                    @foreach (var line in day.DayTotalIngredients)
+                                    {
+                                        <tr>
+                                            <td>@line.IngredientName</td>
+                                            <td class="num">
+                                                @line.TotalRequired.ToString("N2")
+                                                <span class="unit">@line.Unit</span>
+                                            </td>
+                                            <td style="text-align:right;">
+                                                @if (line.IsCovered)
+                                                {
+                                                    <span class="stock-ok">✓</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="stock-low">short @line.Shortfall.ToString("N2")</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 }
             </div>

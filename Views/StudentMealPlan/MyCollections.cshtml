@@ -1,0 +1,184 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "My Collections";
+
+    var collections = ViewBag.Collections as System.Collections.Generic.List<MealCollection>
+                      ?? new System.Collections.Generic.List<MealCollection>();
+    DateTime weekStart = ViewBag.WeekStart ?? DateTime.Today;
+    DateTime weekEnd = ViewBag.WeekEnd ?? DateTime.Today;
+    string message = ViewBag.Message as string;
+}
+
+<style>
+    .smc-shell {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .smc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .smc-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .smc-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .smc-meta strong {
+            color: #333;
+        }
+
+    .smc-day {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .smc-day-header {
+        padding: .75rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+    .smc-meal {
+        display: grid;
+        grid-template-columns: 110px 1fr 150px 130px;
+        gap: 1rem;
+        padding: .85rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+        align-items: center;
+        font-size: .85rem;
+    }
+
+        .smc-meal:last-child {
+            border-bottom: none;
+        }
+
+    .smc-slot {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .smc-dish {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .smc-time {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .smc-badge {
+        font-size: .7rem;
+        padding: .2rem .5rem;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+        .smc-badge.face {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .smc-badge.manual {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .smc-empty {
+        padding: 2.5rem 1.25rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="smc-shell">
+
+        <div class="smc-header">
+            <div>
+                <h1>My Collections</h1>
+                <div class="smc-meta">
+                    @weekStart.ToString("dd MMM") – @weekEnd.ToString("dd MMM yyyy")
+                    &nbsp;·&nbsp;
+                    <strong>@collections.Count</strong> collected
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "StudentMealPlan")" class="btn btn-outline-primary">
+                My Meal Plan
+            </a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-info">@message</div>
+        }
+
+        @if (collections.Count == 0)
+        {
+            <div class="smc-day smc-empty">
+                You haven't collected any meals yet this week.
+            </div>
+        }
+        else
+        {
+            var grouped = collections.GroupBy(c => c.Date.Date).OrderByDescending(g => g.Key);
+
+            foreach (var day in grouped)
+            {
+                <div class="smc-day">
+                    <div class="smc-day-header">
+                        @day.Key.ToString("dddd, dd MMMM yyyy")
+                    </div>
+
+                    @foreach (var item in day.OrderBy(c => c.MealSlot))
+                    {
+                        <div class="smc-meal">
+                            <div class="smc-slot">@item.MealSlot</div>
+                            <div class="smc-dish">
+                                @(item.MealPlanItem != null && item.MealPlanItem.MenuItem != null
+                                ? item.MealPlanItem.MenuItem.Name
+                                : "-")
+                            </div>
+                            <div class="smc-time">
+                                @item.CollectedAt.ToLocalTime().ToString("HH:mm:ss")
+                            </div>
+                            <div>
+                                @if (item.VerifiedByMethod == CollectionMethod.FaceMatch)
+                                {
+                                    <span class="smc-badge face">Face match</span>
+                                }
+                                else
+                                {
+                                    <span class="smc-badge manual">Manual</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+    </div>
+</div>

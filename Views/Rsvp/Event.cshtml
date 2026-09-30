@@ -1,0 +1,486 @@
+﻿
+@using Michaelhouse.Models.Cafeteria
+@model CafeteriaEvent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "RSVP — " + Model.EventName;
+
+    bool isOpen = ViewBag.IsOpen != null && (bool)ViewBag.IsOpen;
+    string closedReason = ViewBag.ClosedReason as string;
+}
+
+<style>
+    .rv-shell {
+        max-width: 640px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .rv-hero {
+        background: linear-gradient(135deg, #C21E2E 0%, #8f1622 100%);
+        color: #fff;
+        border-radius: 12px 12px 0 0;
+        padding: 2rem 2rem 1.75rem;
+    }
+
+    .rv-hero-label {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        opacity: .85;
+        margin-bottom: .5rem;
+    }
+
+    .rv-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.9rem;
+        margin: 0 0 .85rem 0;
+        line-height: 1.15;
+    }
+
+    .rv-hero-meta {
+        font-size: .88rem;
+        opacity: .95;
+        line-height: 1.7;
+    }
+
+        .rv-hero-meta strong {
+            font-weight: 600;
+        }
+
+    .rv-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        padding: 2rem;
+    }
+
+    .rv-section-label {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin: 0 0 .85rem 0;
+    }
+
+        .rv-section-label + .rv-section-label {
+            margin-top: 0;
+        }
+
+    .rv-section {
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .rv-section:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+    .rv-radio-group {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .75rem;
+    }
+
+    .rv-radio-tile {
+        position: relative;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all .12s;
+        user-select: none;
+    }
+
+        .rv-radio-tile:hover {
+            border-color: #9ca3af;
+        }
+
+        .rv-radio-tile input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .rv-radio-tile .rv-tile-icon {
+            font-size: 1.6rem;
+            display: block;
+            margin-bottom: .35rem;
+            line-height: 1;
+        }
+
+        .rv-radio-tile .rv-tile-label {
+            font-weight: 700;
+            font-size: .9rem;
+            color: #374151;
+        }
+
+        .rv-radio-tile.selected {
+            border-color: #C21E2E;
+            background: #fef2f2;
+        }
+
+            .rv-radio-tile.selected .rv-tile-label {
+                color: #C21E2E;
+            }
+
+    .rv-field {
+        margin-bottom: 1rem;
+    }
+
+    .rv-field-label {
+        display: block;
+        font-size: .78rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: .35rem;
+    }
+
+        .rv-field-label .req {
+            color: #C21E2E;
+        }
+
+    .rv-field-help {
+        font-size: .72rem;
+        color: #9ca3af;
+        margin-top: .25rem;
+    }
+
+    .rv-input {
+        width: 100%;
+        padding: .65rem .85rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: .92rem;
+        font-family: inherit;
+    }
+
+        .rv-input:focus {
+            border-color: #C21E2E;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(194, 30, 46, 0.1);
+        }
+
+    .rv-row {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .rv-2col {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .rv-3col {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .rv-count-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .75rem;
+        margin-top: .5rem;
+    }
+
+    .rv-attending-block {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: .5rem;
+    }
+
+    .rv-summary {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        padding: .75rem 1rem;
+        font-size: .82rem;
+        color: #1e40af;
+        margin-top: .75rem;
+    }
+
+        .rv-summary strong {
+            font-weight: 700;
+        }
+
+    .rv-submit {
+        width: 100%;
+        padding: .95rem;
+        border: none;
+        border-radius: 8px;
+        background: #C21E2E;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        cursor: pointer;
+        transition: background .12s;
+    }
+
+        .rv-submit:hover {
+            background: #8f1622;
+        }
+
+    .rv-closed {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: #6b7280;
+    }
+
+        .rv-closed .rv-closed-icon {
+            font-size: 3rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .rv-closed h2 {
+            font-size: 1.4rem;
+            color: #374151;
+            margin: 0 0 .5rem 0;
+        }
+</style>
+
+<div class="rv-shell">
+
+    <div class="rv-hero">
+        <div class="rv-hero-label">You're invited</div>
+        <h1>@Model.EventName</h1>
+        <div class="rv-hero-meta">
+            <strong>@Model.EventDate.ToString("dddd, dd MMMM yyyy")</strong><br />
+            @Model.StartTime.ToString(@"hh\:mm") – @Model.EndTime.ToString(@"hh\:mm")
+            &nbsp;·&nbsp;
+            @(Model.Venue != null ? Model.Venue.Name : "")
+        </div>
+    </div>
+
+    <div class="rv-card">
+
+        @if (!isOpen)
+        {
+            <div class="rv-closed">
+                <div class="rv-closed-icon">🔒</div>
+                <h2>RSVPs Closed</h2>
+                <p>@(closedReason ?? "This event is not currently accepting RSVPs.")</p>
+                <p style="font-size:.85rem; margin-top:1.5rem;">
+                    Contact the Michaelhouse cafeteria if you need to make changes.
+                </p>
+            </div>
+        }
+        else
+        {
+            if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger" style="margin-bottom:1.5rem;">@TempData["Error"]</div>
+            }
+
+            <form action="@Url.Action("Event", "Rsvp", new { id = Model.Id })" method="post" id="rsvpForm">
+                @Html.AntiForgeryToken()
+
+                <!-- ── Are you attending? ── -->
+                <div class="rv-section">
+                    <div class="rv-section-label">Will you be attending?</div>
+
+                    <div class="rv-radio-group">
+                        <label class="rv-radio-tile" data-value="Attending">
+                            <input type="radio" name="ResponseStatus" value="Attending" required />
+                            <span class="rv-tile-icon">🎉</span>
+                            <span class="rv-tile-label">Yes</span>
+                        </label>
+                        <label class="rv-radio-tile" data-value="Maybe">
+                            <input type="radio" name="ResponseStatus" value="Maybe" />
+                            <span class="rv-tile-icon">🤔</span>
+                            <span class="rv-tile-label">Maybe</span>
+                        </label>
+                        <label class="rv-radio-tile" data-value="Declined">
+                            <input type="radio" name="ResponseStatus" value="Declined" />
+                            <span class="rv-tile-icon">😔</span>
+                            <span class="rv-tile-label">No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── Who are you? ── -->
+                <div class="rv-section">
+                    <div class="rv-section-label">Your details</div>
+
+                    <div class="rv-field">
+                        <label class="rv-field-label">Full name <span class="req">*</span></label>
+                        <input type="text" name="ResponderName" class="rv-input" required maxlength="150"
+                               placeholder="e.g. Jane van der Merwe" />
+                    </div>
+
+                    <div class="rv-row rv-2col">
+                        <div class="rv-field">
+                            <label class="rv-field-label">Email</label>
+                            <input type="email" name="ResponderEmail" class="rv-input" maxlength="200"
+                                   placeholder="jane@example.com" />
+                        </div>
+                        <div class="rv-field">
+                            <label class="rv-field-label">Phone</label>
+                            <input type="tel" name="ResponderPhone" class="rv-input" maxlength="30"
+                                   placeholder="082 123 4567" />
+                        </div>
+                    </div>
+
+                    <div class="rv-field">
+                        <label class="rv-field-label">I am a…</label>
+                        <select name="ResponderGroup" class="rv-input">
+                            <option value="Parent">Parent</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Board">Board Member</option>
+                            <option value="OldBoy">Old Boy / Old Girl</option>
+                            <option value="Student">Student</option>
+                            <option value="Guest" selected>Guest</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ── Only if attending ── -->
+                <div class="rv-section" id="attendingSection" style="display:none;">
+                    <div class="rv-section-label">Attendance &amp; meals</div>
+
+                    <div class="rv-field">
+                        <label class="rv-field-label">How many in your group? <span class="req">*</span></label>
+                        <input type="number" name="TotalAttendees" id="totalAttendees"
+                               class="rv-input" min="1" max="20" value="1" />
+                        <div class="rv-field-help">Include yourself. Maximum 20 per response.</div>
+                    </div>
+
+                    <div class="rv-field" style="margin-top:1.25rem;">
+                        <label class="rv-field-label">Meal preferences</label>
+                        <div class="rv-field-help" style="margin-top:0; margin-bottom:.5rem;">
+                            How many of your group want each option? Leave blank if everyone wants standard.
+                        </div>
+
+                        <div class="rv-count-grid">
+                            <div class="rv-field" style="margin-bottom:0;">
+                                <label class="rv-field-label" style="font-size:.72rem;">Standard</label>
+                                <input type="number" name="StandardCount" id="stdCount"
+                                       class="rv-input" min="0" max="20" value="0" />
+                            </div>
+                            <div class="rv-field" style="margin-bottom:0;">
+                                <label class="rv-field-label" style="font-size:.72rem;">Vegetarian</label>
+                                <input type="number" name="VegetarianCount" id="vegCount"
+                                       class="rv-input" min="0" max="20" value="0" />
+                            </div>
+                            <div class="rv-field" style="margin-bottom:0;">
+                                <label class="rv-field-label" style="font-size:.72rem;">Other diet</label>
+                                <input type="number" name="OtherDietCount" id="othCount"
+                                       class="rv-input" min="0" max="20" value="0" />
+                            </div>
+                        </div>
+
+                        <div class="rv-summary" id="mealSummary">
+                            <strong>Meals accounted for:</strong> <span id="mealSum">0</span> of <span id="mealTotal">1</span>
+                        </div>
+                    </div>
+
+                    <div class="rv-field" style="margin-top:1.25rem;">
+                        <label class="rv-field-label">Any dietary requirements we should know about?</label>
+                        <textarea name="DietaryNotes" class="rv-input" rows="3" maxlength="500"
+                                  placeholder="e.g. One guest is gluten-free, two are nut-allergic"></textarea>
+                    </div>
+                </div>
+
+                <!-- ── Comments ── -->
+                <div class="rv-section">
+                    <div class="rv-field" style="margin-bottom:0;">
+                        <label class="rv-field-label">Anything else?</label>
+                        <textarea name="Comments" class="rv-input" rows="2" maxlength="500"
+                                  placeholder="Optional — any message you'd like to share"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="rv-submit">
+                    Submit RSVP
+                </button>
+            </form>
+        }
+
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        var tiles = document.querySelectorAll('.rv-radio-tile');
+        var attendingSection = document.getElementById('attendingSection');
+        var totalInput = document.getElementById('totalAttendees');
+        var stdInput = document.getElementById('stdCount');
+        var vegInput = document.getElementById('vegCount');
+        var othInput = document.getElementById('othCount');
+        var mealSum = document.getElementById('mealSum');
+        var mealTotal = document.getElementById('mealTotal');
+
+        // ── Tile selection UI ──
+        tiles.forEach(function (tile) {
+            tile.addEventListener('click', function () {
+                tiles.forEach(function (t) { t.classList.remove('selected'); });
+                tile.classList.add('selected');
+
+                var radio = tile.querySelector('input[type=radio]');
+                if (radio) radio.checked = true;
+
+                var value = tile.getAttribute('data-value');
+
+                if (value === 'Attending') {
+                    attendingSection.style.display = 'block';
+                } else {
+                    attendingSection.style.display = 'none';
+                    // Zero out the counts so the controller doesn't accidentally record them
+                    if (stdInput) stdInput.value = 0;
+                    if (vegInput) vegInput.value = 0;
+                    if (othInput) othInput.value = 0;
+                }
+
+                updateSummary();
+            });
+        });
+
+        // ── Auto-sum meal counts ──
+        function updateSummary() {
+            if (!mealSum) return;
+            var total = parseInt(totalInput.value, 10) || 0;
+            var std = parseInt(stdInput.value, 10) || 0;
+            var veg = parseInt(vegInput.value, 10) || 0;
+            var oth = parseInt(othInput.value, 10) || 0;
+            var sum = std + veg + oth;
+
+            mealSum.textContent = sum;
+            mealTotal.textContent = total;
+
+            // If the sum is less than total, that's fine — remainder = standard.
+            // If it exceeds, colour it red.
+            var box = document.getElementById('mealSummary');
+            if (sum > total) {
+                box.style.background = '#fee2e2';
+                box.style.borderColor = '#fecaca';
+                box.style.color = '#991b1b';
+                box.innerHTML = '<strong>Warning:</strong> you have counted more meals (' + sum +
+                                ') than attendees (' + total + ').';
+            } else {
+                box.style.background = '#eff6ff';
+                box.style.borderColor = '#bfdbfe';
+                box.style.color = '#1e40af';
+                var remaining = total - sum;
+                var html = '<strong>Meals:</strong> ' + sum + ' of ' + total;
+                if (remaining > 0) {
+                    html += ' — the remaining ' + remaining + ' will be counted as standard.';
+                }
+                box.innerHTML = html;
+            }
+        }
+
+        if (totalInput) totalInput.addEventListener('input', updateSummary);
+        if (stdInput)   stdInput.addEventListener('input', updateSummary);
+        if (vegInput)   vegInput.addEventListener('input', updateSummary);
+        if (othInput)   othInput.addEventListener('input', updateSummary);
+    })();
+</script>
+

@@ -1,0 +1,43 @@
+﻿
+@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Collection Log";
+    var rows = Model as System.Collections.Generic.List<MealCollection> ?? new System.Collections.Generic.List<MealCollection>();
+}
+
+<div class="container-fluid py-4">
+    <h1 class="h3 mb-4">Collection Log — @DateTime.Today.ToString("dd MMM yyyy")</h1>
+
+    @if (rows.Count == 0)
+    {
+        <div class="alert alert-info">No collections recorded today.</div>
+    }
+    else
+    {
+        <table class="table table-hover bg-white">
+            <thead class="table-light">
+                <tr>
+                    <th>Time</th>
+                    <th>Student</th>
+                    <th>Meal</th>
+                    <th>Method</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in rows)
+                {
+                    <tr>
+                        <td>@r.CollectedAt.ToLocalTime().ToString("HH:mm:ss")</td>
+                        <td>@(r.Student != null ? r.Student.FirstName + " " + r.Student.LastName : "-")</td>
+                        <td>@r.MealSlot</td>
+                        <td>@r.VerifiedByMethod</td>
+                        <td>@(r.MatchConfidence.HasValue ? (r.MatchConfidence.Value * 100).ToString("0") + "%" : "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+

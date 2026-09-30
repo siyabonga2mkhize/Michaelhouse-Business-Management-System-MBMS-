@@ -1,0 +1,555 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Collection Terminal";
+
+    int todayCount = ViewBag.TodayCount != null ? (int)ViewBag.TodayCount : 0;
+}
+
+<style>
+    .mc-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .mc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .mc-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .mc-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .mc-meta strong {
+            color: #333;
+        }
+
+    .mc-slot-picker {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .mc-slot-btn {
+        flex: 1;
+        padding: .85rem 1rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        background: #fff;
+        font-size: .85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+        .mc-slot-btn:hover {
+            border-color: #C21E2E;
+            color: #C21E2E;
+        }
+
+        .mc-slot-btn.active {
+            border-color: #C21E2E;
+            background: #fef2f2;
+            color: #C21E2E;
+        }
+
+    .mc-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @@media (max-width: 800px) {
+        .mc-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .mc-camera-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem;
+    }
+
+    .mc-camera-wrap {
+        position: relative;
+        background: #111;
+        aspect-ratio: 4/3;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+        .mc-camera-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mc-camera-wrap .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: .9rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+    .mc-controls {
+        display: flex;
+        gap: .65rem;
+    }
+
+    .mc-status {
+        margin-top: 1rem;
+        font-size: .85rem;
+        padding: .65rem 1rem;
+        border-radius: 6px;
+        display: block;
+    }
+
+        .mc-status.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .mc-status.err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .mc-status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+    .mc-result-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        display: none;
+    }
+
+        .mc-result-card.visible {
+            display: block;
+        }
+
+        .mc-result-card.ok {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+
+        .mc-result-card.warn {
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+
+        .mc-result-card.err {
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+
+    .mc-result-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .35rem;
+    }
+
+    .mc-result-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: .25rem;
+    }
+
+    .mc-result-meta {
+        font-size: .82rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .mc-result-meal {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mc-result-meal-name {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .mc-result-meal-slot {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #9ca3af;
+        margin-bottom: .35rem;
+    }
+
+    .mc-warning {
+        padding: .75rem 1rem;
+        border-radius: 6px;
+        font-size: .85rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+        .mc-warning.allergen {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .mc-warning.already {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .mc-confidence-bar {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: .35rem 0 .5rem 0;
+    }
+
+    .mc-confidence-fill {
+        height: 100%;
+        background: #10b981;
+        transition: width .3s;
+    }
+
+    .mc-confidence-label {
+        font-size: .78rem;
+        color: #6b7280;
+    }
+
+        .mc-confidence-label strong {
+            color: #111827;
+        }
+
+    .mc-actions {
+        display: flex;
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mc-shell" id="mc-root">
+        @Html.AntiForgeryToken()
+
+        <div class="mc-header">
+            <div>
+                <h1>Collection Terminal</h1>
+                <div class="mc-meta">
+                    Kitchen staff only · <strong>@todayCount</strong> meals collected today
+                </div>
+            </div>
+        </div>
+
+        <!-- MEAL SLOT SELECTOR -->
+        <div class="mc-slot-picker">
+            <button type="button" class="mc-slot-btn active" data-slot="Breakfast">Breakfast</button>
+            <button type="button" class="mc-slot-btn" data-slot="Lunch">Lunch</button>
+            <button type="button" class="mc-slot-btn" data-slot="Dinner">Dinner</button>
+        </div>
+
+        <div class="mc-grid">
+
+            <!-- CAMERA -->
+            <div class="mc-camera-card">
+                <div class="mc-camera-wrap">
+                    <video id="video" autoplay playsinline></video>
+                    <div id="placeholder" class="placeholder">
+                        Click "Start Camera" to begin
+                    </div>
+                </div>
+
+                <div class="mc-controls">
+                    <button type="button" id="startBtn" class="btn btn-primary flex-fill">
+                        Start Camera
+                    </button>
+                    <button type="button" id="captureBtn" class="btn btn-success flex-fill" style="display:none;">
+                        Capture &amp; Verify
+                    </button>
+                </div>
+
+                <div id="status" class="mc-status info" style="display:none;"></div>
+            </div>
+
+            <!-- RESULT -->
+            <div id="resultCard" class="mc-result-card">
+                <div class="mc-result-label">Verified Student</div>
+                <div id="resultName" class="mc-result-name"></div>
+                <div id="resultMeta" class="mc-result-meta"></div>
+
+                <div class="mc-confidence-bar">
+                    <div id="confidenceFill" class="mc-confidence-fill" style="width:0%;"></div>
+                </div>
+                <div id="confidenceLabel" class="mc-confidence-label"></div>
+
+                <div id="warningBox" class="mc-warning" style="display:none;"></div>
+
+                <div class="mc-result-meal">
+                    <div class="mc-result-meal-slot" id="mealSlotLabel"></div>
+                    <div class="mc-result-meal-name" id="mealName"></div>
+                    <div id="allergenInfo" style="font-size:.75rem; color:#6b7280; margin-top:.5rem;"></div>
+                </div>
+
+                <div class="mc-actions">
+                    <button type="button" id="confirmBtn" class="btn btn-success flex-fill">
+                        Confirm Collection
+                    </button>
+                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary flex-fill">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        // ── State ──────────────────────────────────────────────────
+        var stream = null;
+        var currentSlot = "Breakfast";
+        var lastVerify = null;   // holds the full Verify JSON response
+        var video = document.getElementById("video");
+        var placeholder = document.getElementById("placeholder");
+        var startBtn = document.getElementById("startBtn");
+        var captureBtn = document.getElementById("captureBtn");
+        var statusBox = document.getElementById("status");
+        var resultCard = document.getElementById("resultCard");
+        var resultName = document.getElementById("resultName");
+        var resultMeta = document.getElementById("resultMeta");
+        var confidenceFill = document.getElementById("confidenceFill");
+        var confidenceLabel = document.getElementById("confidenceLabel");
+        var warningBox = document.getElementById("warningBox");
+        var mealSlotLabel = document.getElementById("mealSlotLabel");
+        var mealName = document.getElementById("mealName");
+        var allergenInfo = document.getElementById("allergenInfo");
+        var confirmBtn = document.getElementById("confirmBtn");
+        var cancelBtn = document.getElementById("cancelBtn");
+
+        // Grab the anti-forgery token that the view renders
+        var tokenInput = document.querySelector('#mc-root input[name="__RequestVerificationToken"]');
+        var token = tokenInput ? tokenInput.value : "";
+
+        // ── Slot picker ────────────────────────────────────────────
+        document.querySelectorAll(".mc-slot-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                document.querySelectorAll(".mc-slot-btn").forEach(function (b) {
+                    b.classList.remove("active");
+                });
+                btn.classList.add("active");
+                currentSlot = btn.getAttribute("data-slot");
+
+                // Reset result if slot changes
+                hideResult();
+            });
+        });
+
+        // ── Camera ─────────────────────────────────────────────────
+        startBtn.addEventListener("click", function () {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showStatus("This browser does not support camera access.", "err");
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(function (s) {
+                    stream = s;
+                    video.srcObject = s;
+                    video.play();
+                    placeholder.style.display = "none";
+                    startBtn.style.display = "none";
+                    captureBtn.style.display = "inline-block";
+                    showStatus("Camera ready. Position the student's face in the frame.", "info");
+                })
+                .catch(function (err) {
+                    showStatus("Could not start camera: " + err.message, "err");
+                });
+        });
+
+        // ── Capture & Verify ───────────────────────────────────────
+        captureBtn.addEventListener("click", function () {
+            if (!stream) {
+                showStatus("Camera not started.", "err");
+                return;
+            }
+
+            var canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+            showStatus("Verifying…", "info");
+            captureBtn.disabled = true;
+
+            var form = new FormData();
+            form.append("__RequestVerificationToken", token);
+            form.append("imageBase64", dataUrl);
+            form.append("mealSlot", currentSlot);
+
+            fetch('@Url.Action("Verify", "MealCollection")', {
+                method: "POST",
+                body: form,
+                credentials: "same-origin"
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                captureBtn.disabled = false;
+                lastVerify = data;
+
+                if (!data.success) {
+                    if (data.alreadyCollected) {
+                        showStatus(data.message + " (" + (data.studentName || "") + " at " + (data.collectedAt || "") + ")", "err");
+                    } else {
+                        showStatus(data.message || "Verification failed.", "err");
+                    }
+                    hideResult();
+                    return;
+                }
+
+                showStatus("Match found. Confirm to record the collection.", "ok");
+                showResult(data);
+            })
+            .catch(function (err) {
+                captureBtn.disabled = false;
+                showStatus("Error: " + err.message, "err");
+            });
+        });
+
+        // ── Show result ────────────────────────────────────────────
+        function showResult(data) {
+            resultCard.classList.remove("ok", "warn", "err");
+            resultCard.classList.add("visible");
+
+            resultName.textContent = data.studentName;
+            resultMeta.textContent = "Student #" + data.studentId;
+
+            var conf = Math.round((data.confidence || 0) * 100);
+            confidenceFill.style.width = conf + "%";
+            confidenceLabel.innerHTML = "Match confidence <strong>" + conf + "%</strong>";
+
+            mealSlotLabel.textContent = data.mealSlot || currentSlot;
+            mealName.textContent = data.mealName || "(no dish linked)";
+
+            if (data.allergens) {
+                allergenInfo.textContent = "Contains: " + data.allergens;
+            } else {
+                allergenInfo.textContent = "";
+            }
+
+            // Warnings
+            warningBox.style.display = "none";
+            if (data.hasAllergenConflict) {
+                warningBox.textContent = "⚠ Student allergy conflict — please review before confirming.";
+                warningBox.className = "mc-warning allergen";
+                warningBox.style.display = "block";
+                resultCard.classList.add("warn");
+            }
+        }
+
+        function hideResult() {
+            resultCard.classList.remove("visible");
+            lastVerify = null;
+        }
+
+        function showStatus(msg, kind) {
+            statusBox.textContent = msg;
+            statusBox.className = "mc-status " + (kind || "info");
+            statusBox.style.display = "block";
+        }
+
+        // ── Confirm collection ─────────────────────────────────────
+        confirmBtn.addEventListener("click", function () {
+            if (!lastVerify || !lastVerify.success) return;
+
+            confirmBtn.disabled = true;
+
+            var form = new FormData();
+            form.append("__RequestVerificationToken", token);
+            form.append("studentId", lastVerify.studentId);
+            form.append("mealSlot", lastVerify.mealSlot || currentSlot);
+            form.append("method", "FaceMatch");
+            form.append("confidence", lastVerify.confidence || 0);
+
+            // UC12 fix: pass the plan item id so the collection links
+            // to the student's actual UC13 pick.
+            if (lastVerify.mealPlanItemId !== null && lastVerify.mealPlanItemId !== undefined) {
+                form.append("mealPlanItemId", lastVerify.mealPlanItemId);
+            }
+
+            fetch('@Url.Action("Record", "MealCollection")', {
+                method: "POST",
+                body: form,
+                credentials: "same-origin"
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                confirmBtn.disabled = false;
+
+                if (!data.success) {
+                    showStatus("Failed to record: " + (data.message || "unknown error"), "err");
+                    return;
+                }
+
+                showStatus("✓ " + lastVerify.studentName + " collected " + (lastVerify.mealSlot || currentSlot)
+                    + " at " + data.collectedAt + ".", "ok");
+                hideResult();
+
+                // Bump today's counter in the header
+                var meta = document.querySelector(".mc-meta strong");
+                if (meta) {
+                    var n = parseInt(meta.textContent, 10) || 0;
+                    meta.textContent = (n + 1).toString();
+                }
+            })
+            .catch(function (err) {
+                confirmBtn.disabled = false;
+                showStatus("Error: " + err.message, "err");
+            });
+        });
+
+        // ── Cancel ─────────────────────────────────────────────────
+        cancelBtn.addEventListener("click", function () {
+            hideResult();
+            showStatus("Ready. Position the next student.", "info");
+        });
+
+    })();
+    </script>
+}

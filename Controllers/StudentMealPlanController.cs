@@ -113,6 +113,61 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
+        // GET: StudentMealPlan/MyCollections
+        // What the student has collected this week.
+        //
+        // BUG FIX (UC12 follow-up):
+        //   Previously ordered the plan by WeekStartDate descending.
+        //   When two approved plans overlap (e.g. 23–29 Sept and
+        //   22–28 Sept), the later-starting one won — even if it was
+        //   the one the dietitian approved days ago. Now we order by
+        //   ReviewedAt (the approval timestamp). Same pattern as the
+        //   fix in MealPlanService.GetOrCreateDraft.
+        // ============================================================
+
+        [HttpGet]
+        public ActionResult MyCollections()
+        {
+            int studentId = ResolveStudentId();
+            if (studentId <= 0) return new HttpStatusCodeResult(403);
+
+            // Find the most recently APPROVED meal plan.
+            var plan = _db.MealPlans
+                .Where(p => p.StudentId == studentId
+                            && p.Status == MealPlanStatus.Approved)
+                .OrderByDescending(p => p.ReviewedAt)
+                .ThenByDescending(p => p.Id)
+                .FirstOrDefault();
+
+            if (plan == null)
+            {
+                ViewBag.Message = "You don't have an approved meal plan yet.";
+                ViewBag.Collections = new List<MealCollection>();
+                ViewBag.WeekStart = DateTime.Today;
+                ViewBag.WeekEnd = DateTime.Today;
+                return View();
+            }
+
+            // Pull collections for that plan's week.
+            // We eager-load both the MealPlanItem and its MenuItem.
+            var collections = _db.MealCollections
+                .Include("MealPlanItem")
+                .Include("MealPlanItem.MenuItem")
+                .Where(c => c.StudentId == studentId
+                            && c.Date >= plan.WeekStartDate
+                            && c.Date <= plan.WeekEndDate)
+                .OrderByDescending(c => c.Date)
+                .ThenBy(c => c.MealSlot)
+                .ToList();
+
+            ViewBag.Collections = collections;
+            ViewBag.WeekStart = plan.WeekStartDate;
+            ViewBag.WeekEnd = plan.WeekEndDate;
+
+            return View();
+        }
+
+        // ============================================================
         // HELPERS
         // ============================================================
 

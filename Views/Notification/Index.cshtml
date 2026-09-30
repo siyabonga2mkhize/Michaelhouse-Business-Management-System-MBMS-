@@ -61,13 +61,39 @@
                             <tbody class="divide-y divide-gray-100 font-sans text-xs">
                                 @foreach (var n in Model)
                                 {
+                                    // UC18: build the deep-link for cafeteria event invites
+                                    string href = null;
+                                    if (n.RelatedEntityType == "CafeteriaEvent" && n.RelatedEntityId > 0)
+                                    {
+                                        href = Url.Action("Event", "Rsvp", new { id = n.RelatedEntityId });
+                                    }
+
                                     <tr class="hover:bg-gray-50/60 transition-colors @(!n.IsRead ? "bg-red-50/20" : "")">
                                         <td class="py-4 px-6 font-mono text-gray-500 whitespace-nowrap align-middle text-[11px]">
                                             <i class="bi bi-clock me-1.5 text-gray-400"></i>
                                             @n.CreatedAt.ToString("dd MMM yyyy HH:mm")
                                         </td>
                                         <td class="py-4 px-6 align-middle text-gray-800 font-medium leading-relaxed">
-                                            @n.Message
+                                            @if (href != null)
+                                            {
+                                                <a href="@href"
+                                                   class="notification-link inline-flex items-start gap-2 text-gray-800 hover:text-[#C21E2E] transition-colors"
+                                                   data-id="@n.Id"
+                                                   data-href="@href"
+                                                   style="text-decoration:none;">
+                                                    <i class="bi bi-calendar-event text-[#C21E2E] mt-0.5"></i>
+                                                    <span>
+                                                        @n.Message
+                                                        <span class="block text-[10px] font-mono uppercase tracking-widest text-[#C21E2E] mt-1">
+                                                            Open <i class="bi bi-arrow-right"></i>
+                                                        </span>
+                                                    </span>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                @n.Message
+                                            }
                                         </td>
                                         <td id="status-@n.Id" class="py-4 px-6 align-middle text-end whitespace-nowrap">
                                             @if (n.IsRead)
@@ -119,21 +145,18 @@
 
 @section Scripts {
     <script>
-        $(function() {
-            $('.mark-read-link').click(function(e) {
+        $(function () {
+            // ── Mark as Read (existing behavior) ──
+            $('.mark-read-link').click(function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 var link = $(this);
 
-                $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function(response) {
+                $.post('@Url.Action("MarkAsRead", "Notification")', { id: id }, function (response) {
                     if (response.success) {
-                        // Replace link with institutionally-styled "Read" badge
                         link.closest('td').html('<span class="inline-flex items-center gap-1 px-2.5 py-1 text-[9px] uppercase tracking-wider font-mono font-bold bg-gray-100 text-gray-500 border border-gray-200"><i class="bi bi-check2-all text-gray-400"></i> Read</span>');
-
-                        // Remove red row highlight background
                         link.closest('tr').removeClass('bg-red-50/20');
 
-                        // Update notification badge counter in navbar
                         var badgeSpan = $('#notificationBadge');
                         var currentCount = parseInt(badgeSpan.text()) || 0;
                         if (currentCount > 0) {
@@ -147,9 +170,24 @@
                     } else {
                         alert('Error marking notification as read.');
                     }
-                }).fail(function() {
+                }).fail(function () {
                     alert('Error communicating with system server.');
                 });
+            });
+
+            // ── UC18: clicking a linked notification opens the RSVP form ──
+            $('.notification-link').click(function (e) {
+                e.preventDefault();
+
+                var $link = $(this);
+                var id = $link.data('id');
+                var targetUrl = $link.data('href');
+
+                // Mark as read first (don't block navigation on failure)
+                $.post('@Url.Action("MarkAsRead", "Notification")', { id: id })
+                    .always(function () {
+                        window.location.href = targetUrl;
+                    });
             });
         });
     </script>

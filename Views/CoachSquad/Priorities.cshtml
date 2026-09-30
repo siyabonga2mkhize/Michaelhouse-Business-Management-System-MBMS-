@@ -1,0 +1,110 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Weekly Priorities";
+
+    DateTime weekStart = ViewBag.WeekStart ?? DateTime.Today;
+    DateTime weekEnd = ViewBag.WeekEnd ?? DateTime.Today;
+    var existing = ViewBag.Existing as System.Collections.Generic.List<SportPriority>;
+    var sports = ViewBag.Sports as System.Collections.Generic.List<string>;
+
+    if (existing == null) { existing = new System.Collections.Generic.List<SportPriority>(); }
+    if (sports == null) { sports = new System.Collections.Generic.List<string>(); }
+}
+
+<div class="container py-4" style="max-width: 900px;">
+
+    <div class="mb-4 pb-3" style="border-bottom: 1px solid #eaeaea;">
+        <h1 class="h3 mb-1">Weekly Priorities</h1>
+        <div class="text-muted small">
+            Week of @weekStart.ToString("dd MMM") – @weekEnd.ToString("dd MMM yyyy")
+            &nbsp;·&nbsp;
+            Set a sport to <strong>High priority</strong> to tilt the menu toward that sport's nutrition all week.
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (sports.Count == 0)
+    {
+        <div class="card">
+            <div class="card-body text-center text-muted py-5">
+                No sports are currently registered to any student.
+            </div>
+        </div>
+    }
+    else
+    {
+        foreach (var sport in sports)
+        {
+            SportPriority priority = null;
+            foreach (var p in existing) { if (p.Sport == sport) { priority = p; break; } }
+
+            bool isHigh = priority != null && priority.PriorityLevel == 2;
+            string existingReason = priority != null ? priority.Reason : "";
+
+            <div class="card mb-2">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong style="font-size:1.05rem;">@sport</strong>
+                            @if (isHigh)
+                            {
+                                <span class="badge bg-warning text-dark ms-2">★ High priority</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary ms-2">Normal</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(existingReason))
+                    {
+                        <div class="text-muted small mb-2"><em>@existingReason</em></div>
+                    }
+
+                    <div class="row g-2">
+
+                        <div class="col-md-7">
+                            <form action="@Url.Action("SetPriority", "CoachSquad")" method="post" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sport" value="@sport" />
+                                <input type="hidden" name="isHigh" value="true" />
+                                <input type="text"
+                                       name="reason"
+                                       value="@existingReason"
+                                       placeholder="Reason (e.g. Finals week)"
+                                       maxlength="300"
+                                       class="form-control form-control-sm" />
+                                <button type="submit" class="btn btn-sm btn-warning" style="white-space:nowrap;">
+                                    Set High
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-md-5">
+                            <form action="@Url.Action("SetPriority", "CoachSquad")" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sport" value="@sport" />
+                                <input type="hidden" name="isHigh" value="false" />
+                                <input type="hidden" name="reason" value="" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+                                    Set Normal
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        }
+    }
+
+</div>

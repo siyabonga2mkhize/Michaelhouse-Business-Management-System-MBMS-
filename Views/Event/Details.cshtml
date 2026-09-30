@@ -1,0 +1,564 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model CafeteriaEvent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.EventName;
+
+    string rsvpLink = Url.Action("Event", "Rsvp", new { id = Model.Id }, Request.Url.Scheme);
+
+    string inviteText = string.Format(
+        "You're invited to {0}\r\n\r\n{1}\r\n{2} – {3}\r\n{4}\r\n\r\nRSVP by {5}:\r\n{6}",
+        Model.EventName,
+        Model.EventDate.ToString("dddd, dd MMMM yyyy"),
+        Model.StartTime.ToString(@"hh\:mm"),
+        Model.EndTime.ToString(@"hh\:mm"),
+        Model.Venue != null ? Model.Venue.Name : "",
+        Model.RsvpDeadline.HasValue ? Model.RsvpDeadline.Value.ToString("dddd, dd MMMM") : "the deadline",
+        rsvpLink);
+
+    var rsvps = Model.Rsvps != null ? Model.Rsvps.ToList() : new List<EventRsvp>();
+    var attending = rsvps.Where(r => r.ResponseStatus == "Attending").ToList();
+    var declined = rsvps.Where(r => r.ResponseStatus == "Declined").ToList();
+    var maybe = rsvps.Where(r => r.ResponseStatus == "Maybe").ToList();
+
+    int totalAttendees = attending.Sum(r => r.TotalAttendees);
+    int standard = attending.Sum(r => r.StandardCount);
+    int vegetarian = attending.Sum(r => r.VegetarianCount);
+    int other = attending.Sum(r => r.OtherDietCount);
+
+    var dietaryNotes = attending
+        .Where(r => !string.IsNullOrWhiteSpace(r.DietaryNotes))
+        .Select(r => new { r.ResponderName, r.DietaryNotes })
+        .ToList();
+
+    string statusClass = "draft";
+    switch (Model.Status)
+    {
+        case EventStatus.Confirmed: statusClass = "confirmed"; break;
+        case EventStatus.RsvpOpen: statusClass = "rsvp-open"; break;
+        case EventStatus.RsvpClosed: statusClass = "rsvp-closed"; break;
+        case EventStatus.FeastPlanGenerated: statusClass = "plan-done"; break;
+        case EventStatus.Completed: statusClass = "completed"; break;
+        case EventStatus.Cancelled: statusClass = "cancelled"; break;
+    }
+
+    bool isConfirmed = Model.Status == EventStatus.Confirmed;
+    bool isRsvpOpen = Model.Status == EventStatus.RsvpOpen;
+    bool isRsvpClosed = Model.Status == EventStatus.RsvpClosed;
+    bool isFeastPlanReady = Model.Status == EventStatus.FeastPlanGenerated;
+}
+
+<style>
+    .ed-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .ed-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+        .ed-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .ed-meta {
+        color: #888;
+        font-size: .85rem;
+    }
+
+    .ed-status {
+        display: inline-block;
+        padding: .3rem .7rem;
+        border-radius: 6px;
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+        .ed-status.draft {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .ed-status.confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .ed-status.rsvp-open {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ed-status.rsvp-closed {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .ed-status.plan-done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .ed-status.completed {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .ed-status.cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .ed-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .ed-card-title {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin: 0 0 .85rem 0;
+    }
+
+    .ed-info-row {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 1rem;
+        padding: .35rem 0;
+        font-size: .88rem;
+    }
+
+    .ed-info-label {
+        color: #6b7280;
+    }
+
+    .ed-info-value {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .ed-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .75rem;
+    }
+
+    .ed-stat {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .85rem .95rem;
+    }
+
+    .ed-stat-label {
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .ed-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1.1;
+        margin-top: .2rem;
+    }
+
+        .ed-stat-value.green {
+            color: #065f46;
+        }
+
+        .ed-stat-value.amber {
+            color: #92400e;
+        }
+
+    .ed-diet-list {
+        font-size: .82rem;
+        color: #4b5563;
+        line-height: 1.6;
+    }
+
+        .ed-diet-list .who {
+            color: #9ca3af;
+        }
+
+    .ed-btn-row {
+        display: flex;
+        gap: .5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .ed-link-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: .85rem 1rem;
+        margin-top: .75rem;
+        font-family: 'Courier New', monospace;
+        font-size: .78rem;
+        color: #78350f;
+        word-break: break-all;
+    }
+
+    .ed-rsvp-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .85rem;
+    }
+
+        .ed-rsvp-table th {
+            text-align: left;
+            padding: .5rem .65rem;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #6b7280;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .ed-rsvp-table td {
+            padding: .6rem .65rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .ed-rsvp-table tr:last-child td {
+            border-bottom: none;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="ed-shell">
+
+        <div class="ed-header">
+            <div>
+                <h1>@Model.EventName</h1>
+                <div class="ed-meta">
+                    @Model.EventDate.ToString("dddd, dd MMMM yyyy")
+                    &nbsp;·&nbsp;
+                    @Model.StartTime.ToString(@"hh\:mm")–@Model.EndTime.ToString(@"hh\:mm")
+                    &nbsp;·&nbsp;
+                    @(Model.Venue != null ? Model.Venue.Name : "—")
+                </div>
+            </div>
+            <div>
+                <span class="ed-status @statusClass">@Model.Status</span>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <!-- EVENT INFO -->
+        <div class="ed-card">
+            <div class="ed-card-title">Event Details</div>
+
+            <div class="ed-info-row">
+                <div class="ed-info-label">Type</div>
+                <div class="ed-info-value">@Model.EventType</div>
+            </div>
+            <div class="ed-info-row">
+                <div class="ed-info-label">Expected</div>
+                <div class="ed-info-value">
+                    ~@Model.ExpectedHeadcount guests
+                    @if (Model.GuaranteedHeadcount.HasValue)
+                    {
+                        <span style="color:#065f46;"> · confirmed @Model.GuaranteedHeadcount</span>
+                    }
+                </div>
+            </div>
+            @if (Model.MenuTemplate != null)
+            {
+                <div class="ed-info-row">
+                    <div class="ed-info-label">Menu</div>
+                    <div class="ed-info-value">@Model.MenuTemplate.Name</div>
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.SpecialInstructions))
+            {
+                <div class="ed-info-row">
+                    <div class="ed-info-label">Special</div>
+                    <div class="ed-info-value">@Model.SpecialInstructions</div>
+                </div>
+            }
+        </div>
+
+        <!-- CONFIRMED → Open RSVP -->
+        @if (isConfirmed)
+        {
+            <div class="ed-card" style="border-color:#bfdbfe; background:#eff6ff;">
+                <div class="ed-card-title">Next Step — Open RSVPs</div>
+                <p style="font-size:.88rem; color:#1e40af; margin-bottom:.85rem;">
+                    Set a deadline by which invitees must respond. After that date,
+                    close RSVPs to freeze the headcount.
+                </p>
+
+                <form action="@Url.Action("OpenRsvp", "Event", new { id = Model.Id })" method="post"
+                      class="d-flex gap-2 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <div>
+                        <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:.35rem;">
+                            RSVP Deadline
+                        </label>
+                        <input type="date" name="rsvpDeadline"
+                               value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")"
+                               min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
+                               class="form-control form-control-sm" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Open RSVPs
+                    </button>
+                </form>
+            </div>
+        }
+
+        <!-- RsvpOpen → Public link card -->
+        @if (isRsvpOpen)
+        {
+            <div class="ed-card" style="border-color:#fde68a; background:#fffbeb;">
+                <div class="ed-card-title">Public RSVP Link</div>
+                <p style="font-size:.85rem; color:#78350f; margin-bottom:.5rem;">
+                    Share this link with parents, staff, or the invited group.
+                    They don't need to log in.
+                </p>
+                <div class="ed-link-box">@rsvpLink</div>
+
+                <button type="button" class="btn btn-sm btn-outline-warning mt-2" onclick="copyInvite(this)">
+                    📋 Copy invitation text
+                </button>
+
+                @if (Model.RsvpDeadline.HasValue)
+                {
+                    <div style="font-size:.8rem; color:#78350f; margin-top:.5rem;">
+                        Deadline: <strong>@Model.RsvpDeadline.Value.ToString("dddd, dd MMM yyyy")</strong>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- RsvpOpen → Live dashboard card -->
+        @if (isRsvpOpen)
+        {
+            <div class="ed-card">
+                <div class="ed-card-title">Live RSVP Dashboard</div>
+
+                <div class="ed-stats" style="margin-bottom:1rem;">
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Responses</div>
+                        <div class="ed-stat-value">@attending.Count</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Total Attendees</div>
+                        <div class="ed-stat-value green">@totalAttendees</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Declined</div>
+                        <div class="ed-stat-value">@declined.Count</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Maybe</div>
+                        <div class="ed-stat-value amber">@maybe.Count</div>
+                    </div>
+                </div>
+
+                <div class="ed-stats" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Standard Meals</div>
+                        <div class="ed-stat-value">@standard</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Vegetarian</div>
+                        <div class="ed-stat-value">@vegetarian</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Other Diets</div>
+                        <div class="ed-stat-value">@other</div>
+                    </div>
+                </div>
+
+                @if (dietaryNotes.Count > 0)
+                {
+                    <div style="margin-top:1rem;">
+                        <div class="ed-card-title" style="margin-bottom:.5rem;">Dietary Notes</div>
+                        <div class="ed-diet-list">
+                            @foreach (var note in dietaryNotes)
+                            {
+                                <div>
+                                    <span class="who">@note.ResponderName:</span>
+                                    @note.DietaryNotes
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="ed-btn-row">
+                    <form action="@Url.Action("CloseRsvp", "Event", new { id = Model.Id })" method="post"
+                          onsubmit="return confirm('Close RSVPs and freeze the headcount at @totalAttendees?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning">
+                            Close RSVPs (@totalAttendees guests)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <!-- RsvpOpen → Guest list card -->
+        @if (isRsvpOpen && attending.Count > 0)
+        {
+            <div class="ed-card">
+                <div class="ed-card-title">Guest List (@attending.Count responses)</div>
+                <table class="ed-rsvp-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Group</th>
+                            <th style="text-align:right;">Total</th>
+                            <th style="text-align:right;">Std</th>
+                            <th style="text-align:right;">Veg</th>
+                            <th style="text-align:right;">Other</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in attending.OrderBy(x => x.ResponderName))
+                        {
+                            <tr>
+                                <td><strong>@r.ResponderName</strong></td>
+                                <td style="color:#6b7280;">@r.ResponderGroup</td>
+                                <td style="text-align:right;">@r.TotalAttendees</td>
+                                <td style="text-align:right;">@r.StandardCount</td>
+                                <td style="text-align:right;">@r.VegetarianCount</td>
+                                <td style="text-align:right;">@r.OtherDietCount</td>
+                                <td style="color:#6b7280; font-size:.8rem;">@r.DietaryNotes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- RsvpClosed → frozen state -->
+        @if (isRsvpClosed)
+        {
+            <div class="ed-card" style="border-color:#c7d2fe; background:#eef2ff;">
+                <div class="ed-card-title">RSVPs Closed</div>
+                <div class="ed-stats">
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Confirmed Attendees</div>
+                        <div class="ed-stat-value green">@Model.GuaranteedHeadcount</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Standard</div>
+                        <div class="ed-stat-value">@standard</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Vegetarian</div>
+                        <div class="ed-stat-value">@vegetarian</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Other</div>
+                        <div class="ed-stat-value">@other</div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <a href="@Url.Action("FeastPlan", "Event", new { id = Model.Id })"
+                       class="btn btn-primary">
+                        🍽 Generate Feast Plan
+                    </a>
+                </div>
+            </div>
+        }
+
+        <!-- FeastPlanGenerated → link back to plan -->
+        @if (isFeastPlanReady)
+        {
+            <div class="ed-card" style="border-color:#bbf7d0; background:#f0fdf4;">
+                <div class="ed-card-title">Feast Plan Generated</div>
+                <div class="ed-stats">
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Confirmed Attendees</div>
+                        <div class="ed-stat-value green">@Model.GuaranteedHeadcount</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Standard</div>
+                        <div class="ed-stat-value">@standard</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Vegetarian</div>
+                        <div class="ed-stat-value">@vegetarian</div>
+                    </div>
+                    <div class="ed-stat">
+                        <div class="ed-stat-label">Other</div>
+                        <div class="ed-stat-value">@other</div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <a href="@Url.Action("FeastPlan", "Event", new { id = Model.Id })"
+                       class="btn btn-success">
+                        🍽 View Feast Plan
+                    </a>
+                </div>
+            </div>
+        }
+
+        <div style="margin-top:1.5rem;">
+            <a href="@Url.Action("Index", "Event")" class="btn btn-outline-secondary">
+                ← Back to Events
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function copyInvite(btn) {
+        var text = @Html.Raw(System.Web.Helpers.Json.Encode(inviteText));
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                var orig = btn.innerHTML;
+                btn.innerHTML = "✓ Copied to clipboard";
+                setTimeout(function () { btn.innerHTML = orig; }, 2000);
+            });
+        } else {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.position = "fixed";
+            ta.style.opacity = "0";
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand("copy"); } catch (e) { }
+            document.body.removeChild(ta);
+            var orig = btn.innerHTML;
+            btn.innerHTML = "✓ Copied to clipboard";
+            setTimeout(function () { btn.innerHTML = orig; }, 2000);
+        }
+    }
+</script>

@@ -246,6 +246,7 @@
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -292,6 +293,13 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\FeastPlanApiController.cs" />
+    <Compile Include="ApiControllers\MealCollectionController.cs" />
+    <Compile Include="ApiControllers\MealPlanApiController.cs" />
+    <Compile Include="ApiControllers\PingApiController.cs" />
+    <Compile Include="ApiControllers\ProductionApiController.cs" />
+    <Compile Include="ApiControllers\RsvpApiController.cs" />
+    <Compile Include="ApiControllers\SquadApiController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
@@ -301,18 +309,23 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CafeteriaController.cs" />
     <Compile Include="Controllers\CoachController.cs" />
+    <Compile Include="Controllers\CoachSquadController.cs" />
     <Compile Include="Controllers\DietitianController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
+    <Compile Include="Controllers\EventController.cs" />
+    <Compile Include="Controllers\FaceEnrollmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\Leaverequestcontroller.cs" />
     <Compile Include="Controllers\MaintenanceController.cs" />
+    <Compile Include="Controllers\MealCollectionController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
     <Compile Include="Controllers\ReporterController.cs" />
+    <Compile Include="Controllers\RsvpController.cs" />
     <Compile Include="Controllers\ScanController.cs" />
     <Compile Include="Controllers\ResidenceAllocationController.cs" />
     <Compile Include="Controllers\ResidenceController.cs" />
@@ -401,6 +414,26 @@
     <Compile Include="Migrations\202609240340578_AddProductionConfirmation.Designer.cs">
       <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.cs" />
+    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.Designer.cs">
+      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.cs" />
+    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.Designer.cs">
+      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.cs" />
+    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.Designer.cs">
+      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.cs" />
+    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.Designer.cs">
+      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609250713262_AddEventAudience.cs" />
+    <Compile Include="Migrations\202609250713262_AddEventAudience.Designer.cs">
+      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -412,7 +445,18 @@
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
     <Compile Include="Models\AttendanceSummaryViewModel.cs" />
     <Compile Include="Models\BoardingHouse.cs" />
+    <Compile Include="Models\Cafeteria\CafeteriaEvent.cs" />
+    <Compile Include="Models\Cafeteria\EventRsvp.cs" />
+    <Compile Include="Models\Cafeteria\EventMenuTemplate.cs" />
+    <Compile Include="Models\Cafeteria\EventMenuTemplateItem.cs" />
+    <Compile Include="Models\Cafeteria\EventStaffAssignment.cs" />
+    <Compile Include="Models\Cafeteria\EventStaffRole.cs" />
+    <Compile Include="Models\Cafeteria\EventStatus.cs" />
+    <Compile Include="Models\Cafeteria\EventType.cs" />
+    <Compile Include="Models\Cafeteria\EventVenue.cs" />
     <Compile Include="Models\Cafeteria\Ingredient.cs" />
+    <Compile Include="Models\Cafeteria\MealCollection.cs" />
+    <Compile Include="Models\Cafeteria\MealDemand.cs" />
     <Compile Include="Models\Cafeteria\MealMenu.cs" />
     <Compile Include="Models\Cafeteria\MealPlan.cs" />
     <Compile Include="Models\Cafeteria\MenuItem.cs" />
@@ -420,6 +464,10 @@
     <Compile Include="Models\Cafeteria\NutritionCategory.cs" />
     <Compile Include="Models\Cafeteria\Recipe.cs" />
     <Compile Include="Models\Cafeteria\RecipeIngredient.cs" />
+    <Compile Include="Models\Cafeteria\SportArchetype.cs" />
+    <Compile Include="Models\Cafeteria\SportPriority.cs" />
+    <Compile Include="Models\Cafeteria\StudentFaceSignature.cs" />
+    <Compile Include="Models\Cafeteria\StudentSportStatus.cs" />
     <Compile Include="Models\CampusRule.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
@@ -519,6 +567,7 @@
     <Compile Include="Models\ViewModels\CafeteriaViewModels.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
+    <Compile Include="Models\ViewModels\FeastPlanViewModel.cs" />
     <Compile Include="Models\ViewModels\MealPlanViewModels.cs" />
     <Compile Include="Models\ViewModels\ProductionPlanViewModels.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
@@ -536,7 +585,9 @@
     <Compile Include="Services\BoardingProfileService.cs" />
     <Compile Include="Services\Calendarconflictservice.cs" />
     <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\DemandService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
+    <Compile Include="Services\FaceRecognitionService.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
     <Compile Include="Services\MealPlanService.cs" />
     <Compile Include="Services\MenuSchedulingService.cs" />
@@ -624,6 +675,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\SQLQuery.sql" />
+    <Content Include="Scripts\meal-collection.js" />
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
@@ -756,6 +808,20 @@
     <Content Include="Views\Dietitian\Review.cshtml" />
     <Content Include="Views\Cafeteria\View.cshtml" />
     <Content Include="Views\Cafeteria\ProductionPlan.cshtml" />
+    <Content Include="Views\FaceEnrollment\Index.cshtml" />
+    <Content Include="Views\MealCollection\Index.cshtml" />
+    <Content Include="Views\MealCollection\ServedToday.cshtml" />
+    <Content Include="Views\MealCollection\Log.cshtml" />
+    <Content Include="Views\StudentMealPlan\MyCollections.cshtml" />
+    <Content Include="Views\CoachSquad\Index.cshtml" />
+    <Content Include="Views\CoachSquad\Priorities.cshtml" />
+    <Content Include="Views\Event\Index.cshtml" />
+    <Content Include="Views\Event\Create.cshtml" />
+    <Content Include="Views\Event\Details.cshtml" />
+    <Content Include="Views\Rsvp\Event.cshtml" />
+    <Content Include="Views\Rsvp\ThankYou.cshtml" />
+    <Content Include="Views\Event\FeastPlan.cshtml" />
+    <Content Include="Views\Event\Queue.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -929,9 +995,15 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\FeastPlanApi\" />
     <Folder Include="Views\Leaverequestcontroller\" />
+    <Folder Include="Views\MealPlanApi\" />
     <Folder Include="Views\NewFolder1\" />
+    <Folder Include="Views\PingApi\" />
+    <Folder Include="Views\ProductionApi\" />
+    <Folder Include="Views\RsvpApi\" />
     <Folder Include="Views\Schoolcalendarcontroller\" />
+    <Folder Include="Views\SquadApi\" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
@@ -987,6 +1059,21 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609240340578_AddProductionConfirmation.resx">
       <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.resx">
+      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.resx">
+      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609242027162_AddEventSchedulingSchema.resx">
+      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609242224425_AddRsvpLifecycleFields.resx">
+      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609250713262_AddEventAudience.resx">
+      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

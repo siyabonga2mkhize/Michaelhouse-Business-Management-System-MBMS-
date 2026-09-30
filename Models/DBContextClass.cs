@@ -86,6 +86,9 @@ namespace Michaelhouse.Models
         public DbSet<MealPlan> MealPlans { get; set; }
 
         public DbSet<MealPlanItem> MealPlanItems { get; set; }
+        public DbSet<StudentFaceSignature> StudentFaceSignatures { get; set; }
+
+        public DbSet<MealCollection> MealCollections { get; set; }
 
         // ─── Driver ───────────────────────────────────────────────────────
         public DbSet<DriverApplication> DriverApplications { get; set; }
@@ -144,6 +147,17 @@ namespace Michaelhouse.Models
         public DbSet<VisitorScanLog> VisitorScanLogs { get; set; }
         public DbSet<CampusRule> CampusRules { get; set; }
         public DbSet<SportEvent> SportEvents { get; set; }
+        public DbSet<EventVenue> EventVenues { get; set; }
+        public DbSet<CafeteriaEvent> CafeteriaEvents { get; set; }
+        public DbSet<EventMenuTemplate> EventMenuTemplates { get; set; }
+        public DbSet<EventMenuTemplateItem> EventMenuTemplateItems { get; set; }
+        public DbSet<EventStaffAssignment> EventStaffAssignments { get; set; }
+
+        public DbSet<EventRsvp> EventRsvps { get; set; }
+
+        public DbSet<StudentSportStatus> StudentSportStatuses { get; set; }
+
+        public DbSet<SportPriority> SportPriorities { get; set; }
 
         // ─── Maintenance Management ─────────────────────────────────────
         public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }

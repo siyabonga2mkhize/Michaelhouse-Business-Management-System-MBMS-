@@ -1,0 +1,233 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model List<CafeteriaEvent>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Event Queue";
+}
+
+<style>
+    .eq-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .eq-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .eq-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .eq-header .eq-meta {
+            color: #888;
+            font-size: .85rem;
+        }
+
+    .eq-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all .15s;
+    }
+
+        .eq-card:hover {
+            border-color: #C21E2E;
+            box-shadow: 0 4px 16px rgba(194, 30, 46, 0.06);
+        }
+
+    .eq-card-left {
+        display: flex;
+        gap: 1.25rem;
+        align-items: flex-start;
+    }
+
+    .eq-date-badge {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .6rem .85rem;
+        text-align: center;
+        min-width: 70px;
+    }
+
+    .eq-date-day {
+        font-family: 'Courier New', monospace;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1;
+    }
+
+    .eq-date-month {
+        font-size: .65rem;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: #6b7280;
+        margin-top: .2rem;
+    }
+
+    .eq-info h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 .35rem 0;
+    }
+
+    .eq-info-meta {
+        font-size: .82rem;
+        color: #6b7280;
+        line-height: 1.7;
+    }
+
+        .eq-info-meta strong {
+            color: #374151;
+            font-weight: 600;
+        }
+
+    .eq-info-tags {
+        margin-top: .5rem;
+        display: flex;
+        gap: .4rem;
+        flex-wrap: wrap;
+    }
+
+    .eq-tag {
+        display: inline-block;
+        padding: .15rem .55rem;
+        border-radius: 4px;
+        font-size: .68rem;
+        font-weight: 600;
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+        .eq-tag.green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .eq-tag.amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .eq-card-right {
+        flex-shrink: 0;
+    }
+
+    .eq-empty {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #9ca3af;
+    }
+
+        .eq-empty i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: .75rem;
+            color: #d1d5db;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="eq-shell">
+
+        <div class="eq-header">
+            <h1>Event Queue</h1>
+            <div class="eq-meta">
+                Upcoming catering events with feast plans ready.
+                <strong>@Model.Count</strong> event@(Model.Count == 1 ? "" : "s") in the queue.
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @if (Model.Count == 0)
+        {
+            <div class="eq-empty">
+                <i class="bi bi-calendar-check"></i>
+                <div style="font-size:1rem; font-weight:600; color:#6b7280; margin-bottom:.35rem;">
+                    No events in the queue
+                </div>
+                <div style="font-size:.85rem;">
+                    When the Cafeteria Manager generates a feast plan, it will appear here.
+                </div>
+            </div>
+        }
+        else
+        {
+            foreach (var evt in Model)
+            {
+                <div class="eq-card">
+
+                    <div class="eq-card-left">
+
+                        <div class="eq-date-badge">
+                            <div class="eq-date-day">@evt.EventDate.ToString("dd")</div>
+                            <div class="eq-date-month">@evt.EventDate.ToString("MMM")</div>
+                        </div>
+
+                        <div class="eq-info">
+                            <h3>@evt.EventName</h3>
+
+                            <div class="eq-info-meta">
+                                @evt.StartTime.ToString(@"hh\:mm") – @evt.EndTime.ToString(@"hh\:mm")
+                                @if (evt.Venue != null)
+                                {
+                                    <text> &nbsp;·&nbsp; </text>@evt.Venue.Name
+                                }
+                                @if (evt.MenuTemplate != null)
+                                {
+                                    <text><br />Menu: <strong>@evt.MenuTemplate.Name</strong></text>
+                                }
+                            </div>
+
+                            <div class="eq-info-tags">
+                                @if (evt.GuaranteedHeadcount.HasValue)
+                                {
+                                    <span class="eq-tag green">
+                                        @evt.GuaranteedHeadcount guests confirmed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="eq-tag amber">
+                                        ~@evt.ExpectedHeadcount expected
+                                    </span>
+                                }
+                                <span class="eq-tag">@evt.EventType</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="eq-card-right">
+                        <a href="@Url.Action("FeastPlan", "Event", new { id = evt.Id })"
+                           class="btn btn-danger">
+                            🍽 Open Feast Plan
+                        </a>
+                    </div>
+
+                </div>
+            }
+        }
+
+    </div>
+</div>

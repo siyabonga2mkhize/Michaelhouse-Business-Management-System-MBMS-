@@ -44,11 +44,8 @@ namespace Michaelhouse.Services
         {
             ValidateInput(input);
 
-            int totalPortions = CalculateRequiredPortions(input);
-
             return GenerateMenuInternal(
                 input,
-                totalPortions,
                 rejectionReason,
                 regeneratedFromMenuId,
                 null);
@@ -56,7 +53,6 @@ namespace Michaelhouse.Services
 
         private MealMenu GenerateMenuInternal(
             ScheduleMenuInputViewModel input,
-            int totalPortions,
             string rejectionReason,
             int? regeneratedFromMenuId,
             List<RejectedSelection> rejectedSelections)
@@ -81,6 +77,57 @@ namespace Michaelhouse.Services
                         string.Format(
                             "No active menu items are configured for the {0} meal slot.",
                             mealSlot));
+                }
+            }
+
+            // ─────────────────────────────────────────────────────────
+            // UC12: load SportPriority records for this menu's week.
+            // A high-priority sport pushes its archetype's preferred
+            // nutrition category across the whole week.
+            // ─────────────────────────────────────────────────────────
+            var priorityCategories = new HashSet<NutritionCategory>();
+
+            var priorityRecords = _db.SportPriorities
+                .Where(p => p.PriorityLevel == 2)
+                .Where(p => p.WeekStartDate <= input.EndDate.Date
+                         && p.WeekEndDate >= input.StartDate.Date)
+                .ToList();
+
+            foreach (var priority in priorityRecords)
+            {
+                var archetype = _db.StudentSportStatuses
+                    .Where(s => s.Sport == priority.Sport)
+                    .Select(s => (SportArchetype?)s.Archetype)
+                    .FirstOrDefault();
+
+                if (!archetype.HasValue) continue;
+
+                switch (archetype.Value)
+                {
+                    case SportArchetype.Power:
+                        priorityCategories.Add(NutritionCategory.HighProtein);
+                        break;
+                    case SportArchetype.Endurance:
+                        priorityCategories.Add(NutritionCategory.HighCarb);
+                        break;
+                        // Skill and Speed sports don't push a category.
+                }
+            }
+
+            // ─────────────────────────────────────────────────────────
+            // UC12: compute per-day, per-meal portion demand once.
+            // ─────────────────────────────────────────────────────────
+            var demandService = new DemandService(_db);
+            var allDemand = demandService.ComputeRange(
+                input.StartDate, input.EndDate, input.StaffMeals);
+
+            var demandLookup = new Dictionary<string, MealDemand>();
+            foreach (var d in allDemand)
+            {
+                var key = d.Date.ToString("yyyy-MM-dd") + "|" + d.MealSlot;
+                if (!demandLookup.ContainsKey(key))
+                {
+                    demandLookup.Add(key, d);
                 }
             }
 
@@ -142,22 +189,22 @@ namespace Michaelhouse.Services
                  date <= input.EndDate.Date;
                  date = date.AddDays(1))
             {
-                // ────────────────────────────────────────────────
-                // MATCH-DAY CONTEXT: computed once per day.
-                // Steering only affects item CHOICE, not portions.
-                // ────────────────────────────────────────────────
                 var matchContext = GetMatchDayContext(date, input);
+                matchContext.PriorityCategories = priorityCategories;
                 var preferredCategory = PreferredCategoryFor(matchContext);
 
                 foreach (MealSlot mealSlot in GeneratedMealSlots)
                 {
+                    int portionsForThisSlot = GetPortionsForSlot(
+                        demandLookup, date, mealSlot, input.StaffMeals);
+
                     MenuItem selectedItem =
                         SelectNextMenuItem(
                             activeMenuItems,
                             generationIndex,
                             mealSlot,
                             date,
-                            totalPortions,
+                            portionsForThisSlot,
                             menuItemInventory,
                             ingredientStock,
                             itemUsage,
@@ -167,25 +214,20 @@ namespace Michaelhouse.Services
                     generationIndex++;
 
                     InventoryState stock = menuItemInventory[selectedItem.Id];
-                    StockAllocation allocation = AllocateStock(stock, totalPortions);
+                    StockAllocation allocation = AllocateStock(stock, portionsForThisSlot);
 
                     var ingredientShortages = GetIngredientShortages(
-                        selectedItem, totalPortions, ingredientStock);
+                        selectedItem, portionsForThisSlot, ingredientStock);
 
                     ItemTagStatus status;
                     string reason;
 
-                    if (allocation.TotalAvailable >= totalPortions
+                    if (allocation.TotalAvailable >= portionsForThisSlot
                         && ingredientShortages.Count == 0)
                     {
                         status = ItemTagStatus.Confirmed;
                         reason = BuildConfirmedReason(selectedItem, allocation);
 
-                        // ────────────────────────────────────────
-                        // MATCH-DAY DECORATION: only when the item
-                        // we picked actually matches the preferred
-                        // category for the day.
-                        // ────────────────────────────────────────
                         if (matchContext.IsMatchDay
                             && selectedItem.NutritionCategory == preferredCategory)
                         {
@@ -200,8 +242,16 @@ namespace Michaelhouse.Services
                                 "Pre-match carb-loading ({0}). {1}",
                                 matchContext.MatchDescription, reason);
                         }
+                        else if (matchContext.PriorityCategories != null
+                                 && matchContext.PriorityCategories.Count > 0
+                                 && selectedItem.NutritionCategory == preferredCategory)
+                        {
+                            reason = string.Format(
+                                "Priority sport nutrition ({0}). {1}",
+                                preferredCategory, reason);
+                        }
 
-                        DrawIngredientStock(selectedItem, totalPortions, ingredientStock);
+                        DrawIngredientStock(selectedItem, portionsForThisSlot, ingredientStock);
                     }
                     else if (allocation.TotalAvailable > 0
                              || ingredientShortages.Count > 0)
@@ -211,7 +261,7 @@ namespace Michaelhouse.Services
                         if (ingredientShortages.Count > 0)
                         {
                             reason = BuildIngredientShortageReason(
-                                selectedItem, totalPortions, ingredientShortages);
+                                selectedItem, portionsForThisSlot, ingredientShortages);
                         }
                         else
                         {
@@ -219,11 +269,11 @@ namespace Michaelhouse.Services
                                 "{0} requires {1:N0} portions but only {2:N0} are available. " +
                                 "Farm stock is prioritised before external supplier stock.",
                                 selectedItem.Name,
-                                totalPortions,
+                                portionsForThisSlot,
                                 allocation.TotalAvailable);
                         }
 
-                        DrawIngredientStock(selectedItem, totalPortions, ingredientStock);
+                        DrawIngredientStock(selectedItem, portionsForThisSlot, ingredientStock);
                     }
                     else
                     {
@@ -231,7 +281,7 @@ namespace Michaelhouse.Services
                         reason = string.Format(
                             "{0} has no available inventory for {1:N0} portions.",
                             selectedItem.Name,
-                            totalPortions);
+                            portionsForThisSlot);
                     }
 
                     var scheduleItem = new MenuScheduleItem
@@ -240,7 +290,7 @@ namespace Michaelhouse.Services
                         MenuItemId = selectedItem.Id,
                         Date = date,
                         MealSlot = mealSlot,
-                        CalculatedPortions = totalPortions,
+                        CalculatedPortions = portionsForThisSlot,
                         ItemTagStatus = status,
                         TagReason = reason,
                         SubstitutionMenuItemId = null
@@ -254,6 +304,23 @@ namespace Michaelhouse.Services
             _db.SaveChanges();
 
             return GetMenu(menu.Id);
+        }
+
+        private int GetPortionsForSlot(
+            Dictionary<string, MealDemand> demandLookup,
+            DateTime date,
+            MealSlot slot,
+            int staffMeals)
+        {
+            var key = date.ToString("yyyy-MM-dd") + "|" + slot.ToString();
+
+            MealDemand demand;
+            if (demandLookup.TryGetValue(key, out demand))
+            {
+                return demand.TotalPortions;
+            }
+
+            return Math.Max(1, staffMeals);
         }
 
         // ============================================================
@@ -334,17 +401,6 @@ namespace Michaelhouse.Services
                     "Only rejected menus can be regenerated.");
             }
 
-            int requiredPortions = rejectedMenu.ScheduleItems
-                .Select(x => x.CalculatedPortions)
-                .DefaultIfEmpty(0)
-                .Max();
-
-            if (requiredPortions <= 0)
-            {
-                throw new InvalidOperationException(
-                    "The rejected menu does not contain a valid calculated portion requirement.");
-            }
-
             var input = new ScheduleMenuInputViewModel
             {
                 StartDate = rejectedMenu.StartDate,
@@ -365,7 +421,6 @@ namespace Michaelhouse.Services
 
             return GenerateMenuInternal(
                 input,
-                requiredPortions,
                 reason,
                 rejectedMenu.Id,
                 rejectedSelections);
@@ -570,16 +625,13 @@ namespace Michaelhouse.Services
 
             return scheduleItem;
         }
+
         // ============================================================
         // CHEF SUBSTITUTION LOOKUP
-        // Returns a pre-validated list of alternatives for a flagged
-        // schedule item. Only options that fit the meal slot are
-        // returned; each is tagged valid or invalid with a reason.
         // ============================================================
 
         public List<SubstituteOption> GetValidSubstitutes(int scheduleItemId)
         {
-            // Load the flagged item
             var item = _db.MenuScheduleItems
                 .Include(x => x.MealMenu)
                 .Include(x => x.MenuItem)
@@ -590,13 +642,11 @@ namespace Michaelhouse.Services
                 throw new InvalidOperationException("Schedule item was not found.");
             }
 
-            // Load candidates with their recipes + ingredients
             var candidates = _db.MenuItems
                 .Where(x => x.IsActive)
                 .Include(x => x.Recipe.RecipeIngredients.Select(ri => ri.Ingredient))
                 .ToList();
 
-            // Ingredient stock (in-memory, not persisted)
             var ingredientStock = _db.Ingredients
                 .Where(i => i.IsActive)
                 .ToDictionary(
@@ -608,7 +658,6 @@ namespace Michaelhouse.Services
                         ExternalAvailable = i.ExternalAvailableQuantity
                     });
 
-            // Subtract ingredients already used by the rest of this menu
             var otherItems = _db.MenuScheduleItems
                 .Include(x => x.MenuItem.Recipe.RecipeIngredients)
                 .Where(x => x.MealMenuId == item.MealMenuId && x.Id != item.Id)
@@ -622,7 +671,6 @@ namespace Michaelhouse.Services
                     ingredientStock);
             }
 
-            // Historical cooldown data — only from ACCEPTED menus
             var cooldownStart = item.Date.Date.AddDays(-MealCooldownDays);
 
             var historicalUsages = _db.MenuScheduleItems
@@ -644,19 +692,16 @@ namespace Michaelhouse.Services
 
             foreach (var candidate in candidates)
             {
-                // Must fit the same meal slot
                 if (!IsCompatibleWithMealSlot(candidate, item.MealSlot))
                 {
                     continue;
                 }
 
-                // Skip the item we're replacing
                 if (candidate.Id == item.MenuItemId)
                 {
                     continue;
                 }
 
-                // Skip anything already scheduled the same day in this menu
                 bool sameDayUsed = otherItems.Any(x =>
                     x.Date.Date == item.Date.Date &&
                     x.MenuItemId == candidate.Id);
@@ -672,7 +717,6 @@ namespace Michaelhouse.Services
                     Name = candidate.Name
                 };
 
-                // Cooldown check
                 bool cooldownOk = true;
 
                 if (IsCooldownMealSlot(item.MealSlot))
@@ -684,7 +728,6 @@ namespace Michaelhouse.Services
 
                 option.IsCooldownOk = cooldownOk;
 
-                // Ingredient-stock check
                 var shortages = GetIngredientShortages(
                     candidate,
                     item.CalculatedPortions,
@@ -692,7 +735,6 @@ namespace Michaelhouse.Services
 
                 option.IsInStock = shortages.Count == 0;
 
-                // Build the reason string shown to the Chef
                 if (!cooldownOk && !option.IsInStock)
                 {
                     option.IsValid = false;
@@ -731,7 +773,7 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
-        // PORTION CALCULATION
+        // PORTION CALCULATION (legacy)
         // ============================================================
 
         public int CalculateRequiredPortions(ScheduleMenuInputViewModel input)
@@ -864,11 +906,10 @@ namespace Michaelhouse.Services
                 .OrderBy(x => x.IngredientName)
                 .ToList();
         }
+
         // ============================================================
         // UC15: BUILD KITCHEN PRODUCTION PLAN
-        // Given an accepted menu, produce a day-by-day schedule
-        // showing what to cook, when to start, and at what time
-        // it will be ready.
+        // UC12: includes per-house breakdown + events per slot.
         // ============================================================
 
         public ProductionPlanViewModel BuildProductionPlan(int mealMenuId)
@@ -887,6 +928,23 @@ namespace Michaelhouse.Services
                 .ToDictionary(
                     i => i.Id,
                     i => i.FarmAvailableQuantity + i.ExternalAvailableQuantity);
+
+            // ─────────────────────────────────────────────────────────
+            // UC12: load per-house demand for the whole week once.
+            // ─────────────────────────────────────────────────────────
+            var demandService = new DemandService(_db);
+            var allDemand = demandService.ComputeRange(
+                menu.StartDate, menu.EndDate, menu.StaffMeals);
+
+            var demandLookup = new Dictionary<string, MealDemand>();
+            foreach (var d in allDemand)
+            {
+                var k = d.Date.ToString("yyyy-MM-dd") + "|" + d.MealSlot;
+                if (!demandLookup.ContainsKey(k))
+                {
+                    demandLookup.Add(k, d);
+                }
+            }
 
             var vm = new ProductionPlanViewModel
             {
@@ -984,6 +1042,30 @@ namespace Michaelhouse.Services
                         Tasks = new List<ProductionTaskViewModel> { task }
                     };
 
+                    // ─────────────────────────────────────────────────
+                    // UC12: attach per-house breakdown + events.
+                    // ─────────────────────────────────────────────────
+                    var demandKey = date.ToString("yyyy-MM-dd") + "|" + slot.ToString();
+                    MealDemand demand;
+                    if (demandLookup.TryGetValue(demandKey, out demand))
+                    {
+                        foreach (var h in demand.Houses)
+                        {
+                            slotVm.HouseBreakdown.Add(new HouseBreakdownLine
+                            {
+                                ResidenceName = h.ResidenceName,
+                                ActiveStudents = h.ActiveStudents,
+                                Unavailable = h.Unavailable,
+                                MatchPlayers = h.MatchPlayers
+                            });
+                        }
+
+                        foreach (var evt in demand.EventsThisMeal)
+                        {
+                            slotVm.EventsThisMeal.Add(evt);
+                        }
+                    }
+
                     dayVm.Slots.Add(slotVm);
                 }
 
@@ -1027,8 +1109,7 @@ namespace Michaelhouse.Services
                 };
             }
         }
-        
-   
+
         // ============================================================
         // MEAL SLOT COMPATIBILITY
         // ============================================================
@@ -1060,6 +1141,13 @@ namespace Michaelhouse.Services
             public bool IsMatchDay { get; set; }
             public bool IsDayBeforeMatch { get; set; }
             public string MatchDescription { get; set; }
+
+            public HashSet<NutritionCategory> PriorityCategories { get; set; }
+
+            public MatchDayContext()
+            {
+                PriorityCategories = new HashSet<NutritionCategory>();
+            }
         }
 
         private MatchDayContext GetMatchDayContext(
@@ -1097,8 +1185,19 @@ namespace Michaelhouse.Services
         private NutritionCategory PreferredCategoryFor(MatchDayContext ctx)
         {
             if (ctx == null) return NutritionCategory.Standard;
+
             if (ctx.IsMatchDay) return NutritionCategory.HighProtein;
             if (ctx.IsDayBeforeMatch) return NutritionCategory.HighCarb;
+
+            if (ctx.PriorityCategories != null)
+            {
+                if (ctx.PriorityCategories.Contains(NutritionCategory.HighProtein))
+                    return NutritionCategory.HighProtein;
+
+                if (ctx.PriorityCategories.Contains(NutritionCategory.HighCarb))
+                    return NutritionCategory.HighCarb;
+            }
+
             return NutritionCategory.Standard;
         }
 
@@ -1137,10 +1236,6 @@ namespace Michaelhouse.Services
 
             int startIndex = index % compatibleItems.Count;
 
-            // ─────────────────────────────────────────────────
-            // PASS 0 (match-day steering): strongly prefer items
-            // whose nutrition category fits the day.
-            // ─────────────────────────────────────────────────
             if (preferredCategory != NutritionCategory.Standard)
             {
                 for (int offset = 0; offset < compatibleItems.Count; offset++)
@@ -1163,7 +1258,6 @@ namespace Michaelhouse.Services
                 }
             }
 
-            // PASS 1: slot OK, cooldown OK, MenuItem stock OK, ingredient stock OK.
             for (int offset = 0; offset < compatibleItems.Count; offset++)
             {
                 int candidateIndex = (startIndex + offset) % compatibleItems.Count;
@@ -1184,7 +1278,6 @@ namespace Michaelhouse.Services
                 return candidate;
             }
 
-            // PASS 2: MenuItem stock OK, but ingredients short → NeedsSubstitution.
             for (int offset = 0; offset < compatibleItems.Count; offset++)
             {
                 int candidateIndex = (startIndex + offset) % compatibleItems.Count;
@@ -1200,7 +1293,6 @@ namespace Michaelhouse.Services
                 return candidate;
             }
 
-            // PASS 3: some MenuItem stock remains.
             for (int offset = 0; offset < compatibleItems.Count; offset++)
             {
                 int candidateIndex = (startIndex + offset) % compatibleItems.Count;
@@ -1214,7 +1306,6 @@ namespace Michaelhouse.Services
                 if (GetTotalAvailableStock(stock) > 0) return candidate;
             }
 
-            // PASS 4: nothing has stock → NeedsReview.
             for (int offset = 0; offset < compatibleItems.Count; offset++)
             {
                 int candidateIndex = (startIndex + offset) % compatibleItems.Count;
@@ -1227,7 +1318,6 @@ namespace Michaelhouse.Services
                 return candidate;
             }
 
-            // PASS 5: cooldown relaxed.
             for (int offset = 0; offset < compatibleItems.Count; offset++)
             {
                 int candidateIndex = (startIndex + offset) % compatibleItems.Count;
@@ -1239,7 +1329,6 @@ namespace Michaelhouse.Services
                 return candidate;
             }
 
-            // PASS 6: absolute last resort.
             return compatibleItems[startIndex];
         }
 

@@ -50,6 +50,12 @@ namespace Michaelhouse.Models
 
         public bool IsCancelled { get; set; }
 
+        /// <summary>
+        /// One of: "Scheduled", "Postponed", "Cancelled".
+        /// </summary>
+        [StringLength(20)]
+        public string Status { get; set; }
+
         public virtual Residence Residence { get; set; }
 
         public SportEvent()
@@ -61,6 +67,7 @@ namespace Michaelhouse.Models
             IsHome = true;
             CreatedAt = DateTime.UtcNow;
             IsCancelled = false;
+            Status = "Scheduled";
         }
     }
 }
