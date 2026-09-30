@@ -1,0 +1,640 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.ViewModels
+@model FeastPlanViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — " + Model.EventName;
+}
+
+<style>
+    .fp-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .fp-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .fp-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .fp-header .fp-meta {
+            color: #888;
+            font-size: .85rem;
+        }
+
+            .fp-header .fp-meta strong {
+                color: #333;
+            }
+
+    .fp-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: .75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .fp-stat {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .85rem .95rem;
+    }
+
+    .fp-stat-label {
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .fp-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1.1;
+        margin-top: .2rem;
+    }
+
+        .fp-stat-value.green {
+            color: #065f46;
+        }
+
+        .fp-stat-value.red {
+            color: #991b1b;
+        }
+
+    .fp-diet-notes {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: .85rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: .82rem;
+        color: #78350f;
+        line-height: 1.7;
+    }
+
+        .fp-diet-notes strong {
+            color: #92400e;
+        }
+
+    .fp-timeline {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .fp-timeline-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .95rem;
+    }
+
+    .fp-timeline-day {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .fp-timeline-day:last-child {
+            border-bottom: none;
+        }
+
+    .fp-timeline-day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: .6rem;
+    }
+
+    .fp-timeline-day-label {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .fp-timeline-date {
+        font-family: 'Courier New', monospace;
+        font-size: .8rem;
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .fp-timeline-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .fp-timeline-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: .4rem .65rem;
+        font-size: .78rem;
+        color: #374151;
+    }
+
+    .fp-dish {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .fp-dish-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .fp-dish-section {
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .fp-dish-name {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #111827;
+        margin-top: .15rem;
+    }
+
+    .fp-dish-class {
+        display: inline-block;
+        padding: .15rem .5rem;
+        border-radius: 4px;
+        font-size: .68rem;
+        font-weight: 600;
+        background: #f3f4f6;
+        color: #4b5563;
+        margin-left: .5rem;
+    }
+
+    .fp-dish-portions {
+        text-align: right;
+    }
+
+        .fp-dish-portions strong {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #C21E2E;
+            display: block;
+            line-height: 1;
+        }
+
+        .fp-dish-portions span {
+            font-size: .65rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #9ca3af;
+        }
+
+    .fp-station {
+        display: inline-block;
+        padding: .15rem .55rem;
+        border-radius: 4px;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+        .fp-station.gr {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .fp-station.st {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .fp-station.ov {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .fp-station.cp {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .fp-station.ln {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+    .fp-times {
+        display: flex;
+        gap: .75rem;
+        margin-top: .35rem;
+        font-size: .72rem;
+        color: #6b7280;
+        flex-wrap: wrap;
+    }
+
+        .fp-times strong {
+            font-family: 'Courier New', monospace;
+            color: #111827;
+            font-weight: 700;
+        }
+
+    .fp-bom {
+        padding: 1rem 1.25rem;
+    }
+
+        .fp-bom table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem;
+        }
+
+        .fp-bom th {
+            text-align: left;
+            padding: .35rem .5rem;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+            .fp-bom th.num {
+                text-align: right;
+            }
+
+        .fp-bom td {
+            padding: .45rem .5rem;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+
+            .fp-bom td.num {
+                text-align: right;
+                font-weight: 600;
+                color: #111827;
+            }
+
+            .fp-bom td.unit {
+                color: #9ca3af;
+                font-weight: 400;
+                padding-left: .35rem;
+            }
+
+        .fp-bom tr:last-child td {
+            border-bottom: none;
+        }
+
+        .fp-bom .ok {
+            color: #065f46;
+            font-weight: 700;
+        }
+
+        .fp-bom .low {
+            color: #991b1b;
+            font-weight: 700;
+        }
+
+    .fp-totals {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1.5rem;
+    }
+
+    .fp-totals-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .95rem;
+    }
+
+    .fp-totals table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .85rem;
+    }
+
+    .fp-totals th {
+        text-align: left;
+        padding: .55rem 1.25rem;
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .fp-totals th.num {
+            text-align: right;
+        }
+
+    .fp-totals td {
+        padding: .55rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+        color: #4b5563;
+    }
+
+        .fp-totals td.num {
+            text-align: right;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .fp-totals td.unit {
+            color: #9ca3af;
+            font-weight: 400;
+            padding-left: .35rem;
+        }
+
+    .fp-totals tr:last-child td {
+        border-bottom: none;
+    }
+
+    .fp-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    @@media print {
+        .fp-actions, .navbar, #sidebar {
+            display: none !important;
+        }
+
+        .fp-shell {
+            max-width: none;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="fp-shell">
+
+        <div class="fp-header">
+            <h1>Feast Plan</h1>
+            <div class="fp-meta">
+                @Model.EventName
+                &nbsp;·&nbsp;
+                @Model.EventDate.ToString("dddd, dd MMMM yyyy")
+                &nbsp;·&nbsp;
+                @Model.StartTime.ToString(@"hh\:mm")–@Model.EndTime.ToString(@"hh\:mm")
+                &nbsp;·&nbsp;
+                @Model.VenueName
+            </div>
+            @if (!string.IsNullOrEmpty(Model.MenuTemplateName))
+            {
+                <div class="fp-meta" style="margin-top:.35rem;">
+                    Menu: <strong>@Model.MenuTemplateName</strong>
+                </div>
+            }
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <!-- STATS -->
+        <div class="fp-stats">
+            <div class="fp-stat">
+                <div class="fp-stat-label">Confirmed Guests</div>
+                <div class="fp-stat-value green">@Model.TotalGuests</div>
+            </div>
+            <div class="fp-stat">
+                <div class="fp-stat-label">Standard Meals</div>
+                <div class="fp-stat-value">@Model.StandardGuests</div>
+            </div>
+            <div class="fp-stat">
+                <div class="fp-stat-label">Vegetarian</div>
+                <div class="fp-stat-value">@Model.VegetarianGuests</div>
+            </div>
+            <div class="fp-stat">
+                <div class="fp-stat-label">Other Diets</div>
+                <div class="fp-stat-value">@Model.OtherGuests</div>
+            </div>
+            <div class="fp-stat">
+                <div class="fp-stat-label">Shortages</div>
+                <div class="fp-stat-value @(Model.ShortageCount > 0 ? "red" : "")">
+                    @Model.ShortageCount
+                </div>
+            </div>
+        </div>
+
+        <!-- DIETARY NOTES -->
+        @if (Model.DietaryNotes.Count > 0)
+        {
+            <div class="fp-diet-notes">
+                <strong>⚠ Dietary notes from RSVPs</strong>
+                <div style="margin-top:.4rem;">
+                    @foreach (var note in Model.DietaryNotes)
+                    {
+                        <div>· @note</div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- PRODUCTION TIMELINE -->
+        @if (Model.Timeline.Count > 0)
+        {
+            <div class="fp-timeline">
+                <div class="fp-timeline-header">
+                    Production Timeline
+                    <span class="text-muted small ms-2" style="font-weight:400;">
+                        When each dish must be started.
+                    </span>
+                </div>
+
+                @foreach (var day in Model.Timeline)
+                {
+                    <div class="fp-timeline-day">
+                        <div class="fp-timeline-day-header">
+                            <span class="fp-timeline-day-label">@day.DayLabel</span>
+                            <span class="fp-timeline-date">@day.CalendarDate.ToString("dddd, dd MMM")</span>
+                        </div>
+                        <div class="fp-timeline-items">
+                            @foreach (var d in day.Dishes)
+                            {
+                                <div class="fp-timeline-item">
+                                    <strong>@d.DishName</strong>
+                                    @if (d.PrepMinutes + d.CookMinutes > 0)
+                                    {
+                                        <span class="text-muted ms-1">
+                                            (@(d.PrepMinutes + d.CookMinutes) min)
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- DISHES -->
+        @foreach (var dish in Model.Dishes)
+        {
+            string stationClass = "ln";
+            if (dish.Station == "Grill") { stationClass = "gr"; }
+            else if (dish.Station == "Stove") { stationClass = "st"; }
+            else if (dish.Station == "Oven") { stationClass = "ov"; }
+            else if (dish.Station == "Cold Prep") { stationClass = "cp"; }
+
+            <div class="fp-dish">
+                <div class="fp-dish-header">
+                    <div>
+                        <div class="fp-dish-section">@dish.Section</div>
+                        <div class="fp-dish-name">
+                            @dish.DishName
+                            @if (!string.IsNullOrEmpty(dish.Classification)
+                                 && dish.Classification != "Standard")
+                            {
+                                <span class="fp-dish-class">@dish.Classification</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="fp-dish-portions">
+                        <strong>@dish.Portions</strong>
+                        <span>portions</span>
+                    </div>
+                </div>
+
+                <div style="padding:.75rem 1.25rem; border-bottom:1px solid #f3f4f6; background:#fafafa;">
+                    <span class="fp-station @stationClass">@dish.Station</span>
+
+                    <div class="fp-times">
+                        <span>Start cooking <strong>@dish.StartTime.ToString(@"hh\:mm")</strong></span>
+                        <span>·</span>
+                        <span>Ready by <strong>@dish.ReadyTime.ToString(@"hh\:mm")</strong></span>
+                        @if (dish.PrepMinutes + dish.CookMinutes > 0)
+                        {
+                            <span>·</span>
+                            <span>@dish.PrepMinutes min prep + @dish.CookMinutes min cook</span>
+                        }
+                    </div>
+                </div>
+
+                @if (dish.Ingredients.Count > 0)
+                {
+                    <div class="fp-bom">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th class="num">Per portion</th>
+                                    <th class="num">Required</th>
+                                    <th class="num">In stock</th>
+                                    <th class="num">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ing in dish.Ingredients)
+                                {
+                                    <tr>
+                                        <td>@ing.Name</td>
+                                        <td class="num">@ing.QuantityPerPortion.ToString("N2")<span class="unit">@ing.Unit</span></td>
+                                        <td class="num">@ing.TotalRequired.ToString("N2")<span class="unit">@ing.Unit</span></td>
+                                        <td class="num">@ing.StockAvailable.ToString("N2")<span class="unit">@ing.Unit</span></td>
+                                        <td class="num">
+                                            @if (ing.IsCovered)
+                                            {
+                                                <span class="ok">✓</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="low">short @ing.Shortfall.ToString("N2") @ing.Unit</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- TOTALS -->
+        @if (Model.TotalIngredients.Count > 0)
+        {
+            <div class="fp-totals">
+                <div class="fp-totals-header">
+                    Total Ingredients for this Event
+                    <span class="text-muted small ms-2" style="font-weight:400;">
+                        What the kitchen must draw or order.
+                    </span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th class="num">Required</th>
+                            <th class="num">In stock</th>
+                            <th class="num">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in Model.TotalIngredients)
+                        {
+                            <tr>
+                                <td>@line.Name</td>
+                                <td class="num">@line.TotalRequired.ToString("N2")<span class="unit">@line.Unit</span></td>
+                                <td class="num">@line.StockAvailable.ToString("N2")<span class="unit">@line.Unit</span></td>
+                                <td class="num">
+                                    @if (line.IsCovered)
+                                    {
+                                        <span class="ok">✓ Covered</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="low">Short by @line.Shortfall.ToString("N2") @line.Unit</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="fp-actions">
+            <a href="@Url.Action("Details", "Event", new { id = Model.EventId })"
+               class="btn btn-outline-secondary">
+                ← Back to Event
+            </a>
+            <button type="button" onclick="window.print();" class="btn btn-primary">
+                🖨 Print Feast Plan
+            </button>
+        </div>
+
+    </div>
+</div>
+

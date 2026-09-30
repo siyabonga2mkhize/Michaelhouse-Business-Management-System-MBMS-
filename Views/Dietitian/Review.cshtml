@@ -1,0 +1,267 @@
+﻿
+@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model MealPlan
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Review Meal Plan";
+
+    var sortedItems = Model.Items
+        .OrderBy(i => i.Date)
+        .ThenBy(i => i.MealSlot)
+        .ToList();
+
+    var grouped = sortedItems.GroupBy(i => i.Date.Date).OrderBy(g => g.Key);
+}
+
+<style>
+    .dr-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .dr-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .dr-header h1 {
+            font-size: 1.8rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .dr-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .dr-meta strong {
+            color: #333;
+        }
+
+    .dr-day {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .dr-day-header {
+        padding: .75rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+    .dr-meal {
+        display: grid;
+        grid-template-columns: 110px 1fr 100px;
+        gap: 1rem;
+        padding: .85rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+        align-items: center;
+    }
+
+        .dr-meal:last-child {
+            border-bottom: none;
+        }
+
+    .dr-slot {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .dr-name {
+        font-weight: 600;
+        font-size: .9rem;
+        color: #111827;
+    }
+
+    .dr-diet {
+        font-size: .72rem;
+        color: #9ca3af;
+        margin-top: 2px;
+    }
+
+    .dr-cals {
+        font-size: .78rem;
+        color: #6b7280;
+        text-align: right;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="dr-shell">
+
+        <div class="dr-header">
+            <div>
+                <h1>Review Meal Plan</h1>
+                <div class="dr-meta">
+                    @(Model.Student != null ? Model.Student.FirstName + " " + Model.Student.LastName : "Unknown student")
+                    &nbsp;·&nbsp;
+                    @Model.WeekStartDate.ToString("dd MMM") – @Model.WeekEndDate.ToString("dd MMM yyyy")
+                    &nbsp;·&nbsp;
+                    <strong>@sortedItems.Count</strong> meals
+                </div>
+            </div>
+            <div>
+                @if (Model.Status == MealPlanStatus.SubmittedToDietitian)
+                {
+                    <span class="badge bg-warning text-dark fs-6">Awaiting Review</span>
+                }
+                else if (Model.Status == MealPlanStatus.Approved)
+                {
+                    <span class="badge bg-success fs-6">Approved</span>
+                }
+                else if (Model.Status == MealPlanStatus.SentBack)
+                {
+                    <span class="badge bg-danger fs-6">Sent Back</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary fs-6">Draft</span>
+                }
+            </div>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <!-- STUDENT CONTEXT -->
+        @if (Model.Student != null && Model.Student.StudentProfile != null)
+        {
+            var p = Model.Student.StudentProfile;
+            if (!string.IsNullOrWhiteSpace(p.Allergies) ||
+                !string.IsNullOrWhiteSpace(p.MedicalConditions) ||
+                !string.IsNullOrWhiteSpace(p.Sports))
+            {
+                <div class="alert alert-info">
+                    <strong>Student profile:</strong>
+                    @if (!string.IsNullOrWhiteSpace(p.Allergies))
+                    {
+                        <span>Allergies: <strong>@p.Allergies</strong> · </span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(p.MedicalConditions))
+                    {
+                        <span>Medical: <strong>@p.MedicalConditions</strong> · </span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(p.Sports))
+                    {
+                        <span>Sports: <strong>@p.Sports</strong></span>
+                    }
+                </div>
+            }
+        }
+
+        <!-- PLAN BODY -->
+        @foreach (var day in grouped)
+        {
+            <div class="dr-day">
+                <div class="dr-day-header">@day.Key.ToString("dddd, dd MMMM yyyy")</div>
+
+                @foreach (var item in day.OrderBy(i => i.MealSlot))
+                {
+                    <div class="dr-meal">
+                        <div class="dr-slot">@item.MealSlot</div>
+                        <div>
+                            <div class="dr-name">@(item.MenuItem != null ? item.MenuItem.Name : "-")</div>
+                            <div class="dr-diet">@(item.MenuItem != null ? item.MenuItem.DietaryClassification : "")</div>
+                        </div>
+                        <div class="dr-cals">
+                            @if (item.MenuItem != null)
+                            {
+                                <text>@item.MenuItem.CaloriesPerPortion.ToString("0") kcal</text>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ACTIONS -->
+        @if (Model.Status == MealPlanStatus.SubmittedToDietitian)
+        {
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+
+                    <form action="@Url.Action("Approve", "Dietitian")" method="post" class="mb-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="mb-2">
+                            <label class="form-label small">Comment (optional for approval)</label>
+                            <textarea name="comment"
+                                      class="form-control"
+                                      rows="2"
+                                      maxlength="2000"
+                                      placeholder="e.g. Balanced, protein targets met."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            Approve Plan
+                        </button>
+                    </form>
+
+                    <hr />
+
+                    <form action="@Url.Action("SendBack", "Dietitian")" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="mb-2">
+                            <label class="form-label small">
+                                Reason for sending back (required)
+                            </label>
+                            <textarea name="comment"
+                                      class="form-control"
+                                      rows="3"
+                                      required
+                                      maxlength="2000"
+                                      placeholder="e.g. Wednesday dinner repeats Tuesday lunch — please change."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger">
+                            Send Back to Student
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        }
+
+        @if (Model.Status == MealPlanStatus.Approved || Model.Status == MealPlanStatus.SentBack)
+        {
+            <div class="alert alert-secondary mt-4">
+                <strong>
+                    Reviewed
+                    @if (Model.ReviewedAt.HasValue)
+                    {
+                        <text>@Model.ReviewedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                    }
+                    :
+                </strong>
+                <div class="mt-1">@Model.DietitianComment</div>
+            </div>
+        }
+
+        <div class="mt-4">
+            <a href="@Url.Action("Index", "Dietitian")" class="btn btn-outline-secondary">
+                ← Back to Queue
+            </a>
+        </div>
+
+    </div>
+</div>
+

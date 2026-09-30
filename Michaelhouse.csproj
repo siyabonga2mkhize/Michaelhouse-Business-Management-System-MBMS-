@@ -56,9 +56,11 @@
   <ItemGroup>
     <Reference Include="Antlr3.Runtime, Version=3.5.0.2, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
       <HintPath>packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Azure.AI.FormRecognizer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>packages\Azure.AI.FormRecognizer.4.1.0\lib\netstandard2.0\Azure.AI.FormRecognizer.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Azure.Core, Version=1.52.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>packages\Azure.Core.1.52.0\lib\net472\Azure.Core.dll</HintPath>
@@ -66,49 +68,64 @@
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Identity.Core.2.2.4\lib\net45\Microsoft.AspNet.Identity.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.AspNet.Identity.EntityFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Identity.EntityFramework.2.2.4\lib\net45\Microsoft.AspNet.Identity.EntityFramework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.10.0.11\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\lib\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Configuration.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.DependencyInjection.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Diagnostics.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Diagnostics.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.Diagnostics.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.FileProviders.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.FileProviders.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Hosting.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Hosting.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Logging.Abstractions.10.0.11\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Options, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Options.10.0.11\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Extensions.Primitives, Version=10.0.0.11, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Primitives.10.0.11\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MSTest.TestFramework, Version=4.3.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\MSTest.TestFramework.4.3.3\lib\net462\MSTest.TestFramework.dll</HintPath>
@@ -118,18 +135,22 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
       <HintPath>packages\QRCoder.1.8.0\lib\net40\QRCoder.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Stripe.net, Version=52.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Stripe.net.52.3.0\lib\net462\Stripe.net.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.ClientModel, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>packages\System.ClientModel.1.10.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
@@ -139,6 +160,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Diagnostics.DiagnosticSource.10.0.11\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -148,12 +170,15 @@
     </Reference>
     <Reference Include="System.IO.Pipelines, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.Pipelines.10.0.11\lib\net462\System.IO.Pipelines.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Memory.Data, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.Data.10.0.11\lib\net462\System.Memory.Data.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
@@ -163,6 +188,7 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
@@ -171,6 +197,7 @@
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
@@ -201,12 +228,15 @@
     </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.11\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Text.Json, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Json.10.0.11\lib\net462\System.Text.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
@@ -216,27 +246,35 @@
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Razor.3.2.9\lib\net45\System.Web.Razor.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
@@ -250,27 +288,44 @@
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\FeastPlanApiController.cs" />
+    <Compile Include="ApiControllers\MealCollectionController.cs" />
+    <Compile Include="ApiControllers\MealPlanApiController.cs" />
+    <Compile Include="ApiControllers\PingApiController.cs" />
+    <Compile Include="ApiControllers\ProductionApiController.cs" />
+    <Compile Include="ApiControllers\RsvpApiController.cs" />
+    <Compile Include="ApiControllers\SquadApiController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="BoardingInterfaces\Services.cs" />
     <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\CafeteriaController.cs" />
+    <Compile Include="Controllers\CoachController.cs" />
+    <Compile Include="Controllers\CoachSquadController.cs" />
+    <Compile Include="Controllers\DietitianController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
     <Compile Include="Controllers\EmergencyController.cs" />
+    <Compile Include="Controllers\EventController.cs" />
+    <Compile Include="Controllers\FaceEnrollmentController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\Leaverequestcontroller.cs" />
     <Compile Include="Controllers\MaintenanceController.cs" />
+    <Compile Include="Controllers\MealCollectionController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
     <Compile Include="Controllers\ReporterController.cs" />
+    <Compile Include="Controllers\RsvpController.cs" />
     <Compile Include="Controllers\ScanController.cs" />
     <Compile Include="Controllers\ResidenceAllocationController.cs" />
     <Compile Include="Controllers\ResidenceController.cs" />
@@ -280,6 +335,8 @@
     <Compile Include="Controllers\ResidenceMovementController.cs" />
     <Compile Include="Controllers\RoomController.cs" />
     <Compile Include="Controllers\SchoolcalendarController.cs" />
+    <Compile Include="Controllers\SchoolClassesController.cs" />
+    <Compile Include="Controllers\StudentMealPlanController.cs" />
     <Compile Include="Controllers\StudentQRCodeController.cs" />
     <Compile Include="Controllers\StudentProfileController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
@@ -293,9 +350,89 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608201914285_AddCalendar.cs" />
-    <Compile Include="Migrations\202608201914285_AddCalendar.Designer.cs">
-      <DependentUpon>202608201914285_AddCalendar.cs</DependentUpon>
+    <Compile Include="Migrations\202608101337415_initialcreate.cs" />
+    <Compile Include="Migrations\202608101337415_initialcreate.Designer.cs">
+      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.cs" />
+    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.Designer.cs">
+      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.cs" />
+    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.Designer.cs">
+      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.cs" />
+    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.Designer.cs">
+      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.cs" />
+    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.Designer.cs">
+      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.cs" />
+    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.Designer.cs">
+      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.cs" />
+    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.Designer.cs">
+      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.cs" />
+    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.Designer.cs">
+      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609231900592_SyncMissingTables.cs" />
+    <Compile Include="Migrations\202609231900592_SyncMissingTables.Designer.cs">
+      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.cs" />
+    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.Designer.cs">
+      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609232107354_AddSportEvents.cs" />
+    <Compile Include="Migrations\202609232107354_AddSportEvents.Designer.cs">
+      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.cs" />
+    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.Designer.cs">
+      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.cs" />
+    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.Designer.cs">
+      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240101119_AddMealPlans.cs" />
+    <Compile Include="Migrations\202609240101119_AddMealPlans.Designer.cs">
+      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.cs" />
+    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.Designer.cs">
+      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.cs" />
+    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.Designer.cs">
+      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.cs" />
+    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.Designer.cs">
+      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.cs" />
+    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.Designer.cs">
+      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.cs" />
+    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.Designer.cs">
+      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.cs" />
+    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.Designer.cs">
+      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609250713262_AddEventAudience.cs" />
+    <Compile Include="Migrations\202609250713262_AddEventAudience.Designer.cs">
+      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -308,6 +445,30 @@
     <Compile Include="Models\AttendanceRecordViewModel.cs" />
     <Compile Include="Models\AttendanceSummaryViewModel.cs" />
     <Compile Include="Models\BoardingHouse.cs" />
+    <Compile Include="Models\Cafeteria\CafeteriaEvent.cs" />
+    <Compile Include="Models\Cafeteria\EventRsvp.cs" />
+    <Compile Include="Models\Cafeteria\EventMenuTemplate.cs" />
+    <Compile Include="Models\Cafeteria\EventMenuTemplateItem.cs" />
+    <Compile Include="Models\Cafeteria\EventStaffAssignment.cs" />
+    <Compile Include="Models\Cafeteria\EventStaffRole.cs" />
+    <Compile Include="Models\Cafeteria\EventStatus.cs" />
+    <Compile Include="Models\Cafeteria\EventType.cs" />
+    <Compile Include="Models\Cafeteria\EventVenue.cs" />
+    <Compile Include="Models\Cafeteria\Ingredient.cs" />
+    <Compile Include="Models\Cafeteria\MealCollection.cs" />
+    <Compile Include="Models\Cafeteria\MealDemand.cs" />
+    <Compile Include="Models\Cafeteria\MealMenu.cs" />
+    <Compile Include="Models\Cafeteria\MealPlan.cs" />
+    <Compile Include="Models\Cafeteria\MenuItem.cs" />
+    <Compile Include="Models\Cafeteria\MenuScheduleItem.cs" />
+    <Compile Include="Models\Cafeteria\NutritionCategory.cs" />
+    <Compile Include="Models\Cafeteria\Recipe.cs" />
+    <Compile Include="Models\Cafeteria\RecipeIngredient.cs" />
+    <Compile Include="Models\Cafeteria\SportArchetype.cs" />
+    <Compile Include="Models\Cafeteria\SportPriority.cs" />
+    <Compile Include="Models\Cafeteria\StudentFaceSignature.cs" />
+    <Compile Include="Models\Cafeteria\StudentSportStatus.cs" />
+    <Compile Include="Models\CampusRule.cs" />
     <Compile Include="Models\Class.cs" />
     <Compile Include="Models\ClassSubject.cs" />
     <Compile Include="Models\DBContextClass.cs" />
@@ -374,6 +535,7 @@
     <Compile Include="Models\Schoolcalendarevent.cs" />
     <Compile Include="Models\SchoolClass.cs" />
     <Compile Include="Models\SessionCartService.cs" />
+    <Compile Include="Models\SportEvent.cs" />
     <Compile Include="Models\StreamEnrolment.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Models\StudentAccountService.cs" />
@@ -402,8 +564,12 @@
     <Compile Include="Models\VehicleIssue.cs" />
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
+    <Compile Include="Models\ViewModels\CafeteriaViewModels.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
+    <Compile Include="Models\ViewModels\FeastPlanViewModel.cs" />
+    <Compile Include="Models\ViewModels\MealPlanViewModels.cs" />
+    <Compile Include="Models\ViewModels\ProductionPlanViewModels.cs" />
     <Compile Include="Models\ViewModels\TripIndexVM.cs" />
     <Compile Include="Models\VisitorAccessRequest.cs" />
     <Compile Include="Models\Yearresult.cs" />
@@ -419,8 +585,12 @@
     <Compile Include="Services\BoardingProfileService.cs" />
     <Compile Include="Services\Calendarconflictservice.cs" />
     <Compile Include="Services\CompatibilityScoringService.cs" />
+    <Compile Include="Services\DemandService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
+    <Compile Include="Services\FaceRecognitionService.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MealPlanService.cs" />
+    <Compile Include="Services\MenuSchedulingService.cs" />
     <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
     <Compile Include="Services\ResidenceAvailabilityService.cs" />
@@ -452,6 +622,7 @@
     <Content Include="Content\siren.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Controllers\AttendanceController.txt" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -492,6 +663,7 @@
     <Content Include="Misc\SQLQuery.sql" />
     <Content Include="Scripts\app.config" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
+    <None Include="Scripts\jquery-3.7.0-vsdoc.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
     <Content Include="Scripts\jquery-3.7.0.slim.js" />
@@ -503,6 +675,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\SQLQuery.sql" />
+    <Content Include="Scripts\meal-collection.js" />
     <Content Include="Views\Transport\Drivers.cshtml" />
     <Content Include="Views\Transport\CreateDriver.cshtml" />
     <Content Include="Views\Transport\DeleteDriver.cshtml" />
@@ -620,6 +793,35 @@
     <Content Include="Views\Schoolcalendar\Index.cshtml" />
     <Content Include="Views\Schoolcalendar\Create.cshtml" />
     <Content Include="Views\Schoolcalendar\Edit.cshtml" />
+    <Content Include="Views\Cafeteria\KitchenRequirements.cshtml" />
+    <Content Include="Views\Cafeteria\Review.cshtml" />
+    <Content Include="Views\Cafeteria\Schedule.cshtml" />
+    <Content Include="Views\Cafeteria\ChefReview.cshtml" />
+    <Content Include="Views\Cafeteria\ChefIndex.cshtml" />
+    <Content Include="Views\Dashboard.cshtml" />
+    <Content Include="Views\Cafeteria\Dashboard.cshtml" />
+    <Content Include="Views\Coach\Create.cshtml" />
+    <Content Include="Views\Coach\Index.cshtml" />
+    <Content Include="Views\Coach\Edit.cshtml" />
+    <Content Include="Views\StudentMealPlan\Index.cshtml" />
+    <Content Include="Views\Dietitian\Index.cshtml" />
+    <Content Include="Views\Dietitian\Review.cshtml" />
+    <Content Include="Views\Cafeteria\View.cshtml" />
+    <Content Include="Views\Cafeteria\ProductionPlan.cshtml" />
+    <Content Include="Views\FaceEnrollment\Index.cshtml" />
+    <Content Include="Views\MealCollection\Index.cshtml" />
+    <Content Include="Views\MealCollection\ServedToday.cshtml" />
+    <Content Include="Views\MealCollection\Log.cshtml" />
+    <Content Include="Views\StudentMealPlan\MyCollections.cshtml" />
+    <Content Include="Views\CoachSquad\Index.cshtml" />
+    <Content Include="Views\CoachSquad\Priorities.cshtml" />
+    <Content Include="Views\Event\Index.cshtml" />
+    <Content Include="Views\Event\Create.cshtml" />
+    <Content Include="Views\Event\Details.cshtml" />
+    <Content Include="Views\Rsvp\Event.cshtml" />
+    <Content Include="Views\Rsvp\ThankYou.cshtml" />
+    <Content Include="Views\Event\FeastPlan.cshtml" />
+    <Content Include="Views\Event\Queue.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -793,17 +995,85 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\FeastPlanApi\" />
     <Folder Include="Views\Leaverequestcontroller\" />
+    <Folder Include="Views\MealPlanApi\" />
     <Folder Include="Views\NewFolder1\" />
+    <Folder Include="Views\PingApi\" />
+    <Folder Include="Views\ProductionApi\" />
+    <Folder Include="Views\RsvpApi\" />
     <Folder Include="Views\Schoolcalendarcontroller\" />
+    <Folder Include="Views\SquadApi\" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608201914285_AddCalendar.resx">
-      <DependentUpon>202608201914285_AddCalendar.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202608101337415_initialcreate.resx">
+      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608101735353_AddVisitorScanLog.resx">
+      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609212014436_AddCafeteriaModels.resx">
+      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.resx">
+      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.resx">
+      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609221006413_AddRecipeIngredientFoundation.resx">
+      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609221749265_AddIngredientStockQuantities.resx">
+      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609222004308_AddMenuItemNutritionCategory.resx">
+      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609231900592_SyncMissingTables.resx">
+      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609231931106_AddKitchenReadyFlag.resx">
+      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609232107354_AddSportEvents.resx">
+      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609232310141_AddChefChallengeFields.resx">
+      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240044568_AddIngredientAllergens.resx">
+      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240101119_AddMealPlans.resx">
+      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240318188_AddRecipeKitchenTiming.resx">
+      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240340578_AddProductionConfirmation.resx">
+      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.resx">
+      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.resx">
+      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609242027162_AddEventSchedulingSchema.resx">
+      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609242224425_AddRsvpLifecycleFields.resx">
+      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609250713262_AddEventAudience.resx">
+      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
@@ -843,14 +1113,14 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
     <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
-    <Error Condition="!Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets'))" />
     <Error Condition="!Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets'))" />
   </Target>
+  <Import Project="packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets" Condition="Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" />
   <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
   <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
-  <Import Project="packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets" Condition="Exists('packages\MSTest.TestFramework.4.3.3\build\net462\MSTest.TestFramework.targets')" />
   <Import Project="packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets" Condition="Exists('packages\System.ValueTuple.4.6.2\build\net471\System.ValueTuple.targets')" />
 </Project>

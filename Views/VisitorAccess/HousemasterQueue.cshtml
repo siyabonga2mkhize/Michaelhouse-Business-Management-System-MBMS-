@@ -1,58 +1,36 @@
 ﻿@model IEnumerable<Michaelhouse.Models.VisitorAccessRequest>
-@using Michaelhouse.Models
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Housemaster Approval Queue";
 }
 
-@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
 <div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    @* --- INSTITUTIONAL HEADER --- *@
     <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
             <div class="flex items-center gap-2 mb-3">
                 <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
                 <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Visitor Management</h5>
             </div>
-            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Housemaster Approval Queue</h2>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Housemaster Review Queue</h2>
         </div>
         <div class="flex gap-3">
             <span class="inline-flex items-center bg-yellow-50 border border-yellow-200 px-4 py-2 shadow-sm text-[10px] font-bold uppercase tracking-[2px] text-yellow-800">
-                @Model.Count() Pending
+                @Model.Count() Pending Decision
             </span>
         </div>
     </div>
 
-    @* --- SCROLLABLE DATA SECTION --- *@
     <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center">
-
         <div class="w-full max-w-6xl flex flex-col gap-6">
 
-            @* --- ALERTS --- *@
-            @if (TempData["Success"] != null)
-            {
-                <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
-                    <i class="bi bi-check-circle-fill me-3 text-xl"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
-                </div>
-            }
-
-            @* --- QUEUE LEDGER --- *@
             @if (!Model.Any())
             {
                 <div class="bg-green-50/50 border border-green-200 p-20 text-center shadow-sm w-full mt-3">
                     <i class="bi bi-shield-check text-green-300 text-6xl d-block mb-4"></i>
-                    <h4 class="font-serif font-bold text-green-800 text-2xl tracking-[1px] mb-2">All clear!</h4>
-                    <p class="text-sm font-mono text-green-700 mt-2 mb-0">There are currently no visitor requests pending your review.</p>
+                    <h4 class="font-serif font-bold text-green-800 text-2xl tracking-[1px] mb-2">Queue Clear</h4>
+                    <p class="text-sm font-mono text-green-700 mt-2 mb-0">No visitor access requests are pending review.</p>
                 </div>
             }
             else
@@ -60,24 +38,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @foreach (var item in Model)
                     {
-                        <div class="bg-white border border-gray-200 shadow-sm relative flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.05)] hover:border-gray-300 group overflow-hidden h-full">
+                        <div class="bg-white border border-gray-200 shadow-sm relative flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-lg group overflow-hidden h-full">
 
-                            @* Ghost Watermark *@
-                            <i class="bi bi-person-badge absolute -right-6 -bottom-8 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-6 group-hover:scale-[1.1] pointer-events-none z-0"></i>
-
-                            @* Card Header *@
                             <div class="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10">
                                 <strong class="font-serif text-xl text-gray-900">@item.VisitorFullName</strong>
                                 <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-2 py-1">
-                                    Pending
+                                    Requires Authorization
                                 </span>
                             </div>
 
-                            @* Card Body *@
                             <div class="p-6 relative z-10 flex-grow flex flex-col gap-4">
                                 <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
-                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Student:</div>
-                                    <div class="col-span-2 font-mono text-sm text-gray-800"><strong>ID #@item.StudentId</strong> (Founders)</div>
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Host Student ID:</div>
+                                    <div class="col-span-2 font-mono text-sm text-gray-800"><strong>#@item.StudentId</strong> (@item.BoardingHouseName)</div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
@@ -86,18 +59,18 @@
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
-                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Date:</div>
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Visit Date:</div>
                                     <div class="col-span-2 font-mono text-sm font-bold text-blue-700">@item.VisitDate.ToString("dd MMM yyyy")</div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
-                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Time:</div>
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Time Window:</div>
                                     <div class="col-span-2 font-mono text-sm text-gray-800">@item.StartTime - @item.EndTime</div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 items-center border-b border-gray-50 pb-3">
-                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Zone:</div>
-                                    <div class="col-span-2 font-serif text-sm font-bold text-[#C21E2E]">@item.RequestedZone</div>
+                                    <div class="col-span-1 text-[9px] uppercase tracking-[2px] font-bold text-gray-400">Assigned Zone:</div>
+                                    <div class="col-span-2 font-serif text-sm font-bold text-[#C21E2E]">@item.FinalAssignedZone</div>
                                 </div>
 
                                 <div class="grid grid-cols-3 gap-2 items-start mt-1">
@@ -108,26 +81,23 @@
                                 </div>
                             </div>
 
-                            @* Action Footer *@
-                            <div class="bg-[#1a1a1a] p-5 flex flex-col sm:flex-row justify-between items-center relative z-10 mt-auto">
-                                <div class="text-[9px] uppercase tracking-[2px] font-mono text-gray-500 mb-4 sm:mb-0">
-                                    Requested: @item.CreatedAt.ToString("dd MMM HH:mm")
-                                </div>
+                            <div class="bg-[#1a1a1a] p-5 flex flex-col gap-3 relative z-10 mt-auto">
+                                @using (Html.BeginForm("ReviewRequest", "VisitorAccess", FormMethod.Post, new { @class = "flex flex-col gap-3 w-full" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("id", item.RequestId)
 
-                                <div class="flex gap-2 w-full sm:w-auto">
-                                    @using (Html.BeginForm("ReviewRequest", "VisitorAccess", FormMethod.Post, new { @class = "flex gap-2 w-full" }))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        @Html.Hidden("id", item.RequestId)
+                                    <input type="text" name="remarks" placeholder="Optional Housemaster remarks..." class="w-full bg-gray-800 border border-gray-700 text-white text-xs px-3 py-2 outline-none focus:border-[#C21E2E]" />
 
-                                        <button type="submit" name="action" value="Approve" class="flex-1 sm:flex-none bg-[#10b981] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-[1px] hover:bg-green-600 hover:shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all">
-                                            ✅ Approve
+                                    <div class="flex gap-2 w-full">
+                                        <button type="submit" name="action" value="Approve" class="flex-1 bg-[#10b981] text-white py-2 text-[10px] font-bold uppercase tracking-[1px] hover:bg-green-600 transition-all">
+                                            ✅ Approve Pass
                                         </button>
-                                        <button type="submit" name="action" value="Reject" class="flex-1 sm:flex-none bg-transparent border border-[#C21E2E] text-[#C21E2E] px-4 py-2 text-[10px] font-bold uppercase tracking-[1px] hover:bg-[#C21E2E] hover:text-white hover:shadow-[0_0_10px_rgba(194,30,46,0.3)] transition-all">
+                                        <button type="submit" name="action" value="Reject" class="flex-1 bg-transparent border border-[#C21E2E] text-[#C21E2E] py-2 text-[10px] font-bold uppercase tracking-[1px] hover:bg-[#C21E2E] hover:text-white transition-all">
                                             ❌ Reject
                                         </button>
-                                    }
-                                </div>
+                                    </div>
+                                }
                             </div>
 
                         </div>
@@ -137,26 +107,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .font-serif {
-        font-family: 'Playfair Display', serif !important;
-    }
-
-    .font-mono {
-        font-family: 'Source Code Pro', monospace !important;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #eee;
-        border-radius: 10px;
-    }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #C21E2E;
-        }
-</style>

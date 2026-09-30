@@ -1,5 +1,5 @@
-﻿
-using Michaelhouse.Controllers;
+﻿using Michaelhouse.Controllers;
+using Michaelhouse.Models.Cafeteria;
 using System.Configuration;
 using System.Data.Common;
 using System.Data.Entity;
@@ -22,8 +22,12 @@ namespace Michaelhouse.Models
         private static string GetDefaultConnectionString()
         {
             var configured = ConfigurationManager.ConnectionStrings["MichaelHouse"];
-            if (configured != null && !string.IsNullOrWhiteSpace(configured.ConnectionString))
+
+            if (configured != null &&
+                !string.IsNullOrWhiteSpace(configured.ConnectionString))
+            {
                 return configured.ConnectionString;
+            }
 
             return @"Data Source=AZASMACBOOK\SQLEXPRESS;Initial Catalog=MichaelHouse;Integrated Security=True;Connection Timeout=120;MultipleActiveResultSets=True;";
         }
@@ -49,6 +53,8 @@ namespace Michaelhouse.Models
         public DbSet<StudentMark> StudentMarks { get; set; }
         public DbSet<TermResult> TermResults { get; set; }
         public DbSet<YearResult> YearResults { get; set; }
+        public DbSet<SchoolClass> SchoolClasses { get; set; }
+
 
         // ─── Attendance & Timetable ───────────────────────────────────────
         public DbSet<Attendance> Attendances { get; set; }
@@ -60,40 +66,59 @@ namespace Michaelhouse.Models
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
-        // Store
+        // ─── Store ────────────────────────────────────────────────────────
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
-        // ─── Driver ─────────────────────────────────────────────────────
+        // ─── Cafeteria ────────────────────────────────────────────────────
+        public DbSet<MealMenu> MealMenus { get; set; }
+        public DbSet<MenuItem> MenuItems { get; set; }
+        public DbSet<MenuScheduleItem> MenuScheduleItems { get; set; }
+
+        public DbSet<Ingredient> Ingredients { get; set; }
+
+        public DbSet<Recipe> Recipes { get; set; }
+
+        public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+
+        public DbSet<MealPlan> MealPlans { get; set; }
+
+        public DbSet<MealPlanItem> MealPlanItems { get; set; }
+        public DbSet<StudentFaceSignature> StudentFaceSignatures { get; set; }
+
+        public DbSet<MealCollection> MealCollections { get; set; }
+
+        // ─── Driver ───────────────────────────────────────────────────────
         public DbSet<DriverApplication> DriverApplications { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverAvailability> DriverAvailabilities { get; set; }
         public DbSet<DriverDocument> DriverDocuments { get; set; }
 
-        // ─── Vehicle ───────────────────────────────────────────────────
+        // ─── Vehicle ──────────────────────────────────────────────────────
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleIssue> VehicleIssues { get; set; }
 
-        // ── Inventory & Suppliers ─────────────────────────────────────────────────
+        // ─── Inventory & Suppliers ────────────────────────────────────────
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<SupplierProduct> SupplierProducts { get; set; }
         public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
         public DbSet<PurchaseOrderLine> PurchaseOrderLines { get; set; }
         public DbSet<StockMovement> StockMovements { get; set; }
 
-        // ─── Trips Management ───────────────────────────────────────────────
+        // ─── Trips Management ─────────────────────────────────────────────
         public DbSet<TripRequest> TripRequests { get; set; }
         public DbSet<TripSchedule> TripSchedules { get; set; }
         public DbSet<TripStudent> TripStudents { get; set; }
         public DbSet<TripVehicleAssignment> TripVehicleAssignments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
 
+        // ─── Attendance & Verification ───────────────────────────────────
         public DbSet<StudentAttendanceToken> StudentAttendanceTokens { get; set; }
         public DbSet<StudentQRCode> StudentQRCodes { get; set; }
 
-        // Boarding/residence allocation entities
+        // ─── Boarding / Residence Entities ────────────────────────────────
         public DbSet<Residence> Residences { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Bed> Beds { get; set; }
@@ -116,12 +141,25 @@ namespace Michaelhouse.Models
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<Schoolcalendarevent.SchoolCalendarEvent> SchoolCalendarEvents { get; set; }
 
-        // ─── Visitor Access Management (Use Case 26) ─────────────────────
+        // ─── Visitor Access Management ───────────────────────────────────
         public DbSet<VisitorAccessRequest> VisitorAccessRequests { get; set; }
         public DbSet<TermCalendar> TermCalendars { get; set; }
         public DbSet<VisitorScanLog> VisitorScanLogs { get; set; }
+        public DbSet<CampusRule> CampusRules { get; set; }
+        public DbSet<SportEvent> SportEvents { get; set; }
+        public DbSet<EventVenue> EventVenues { get; set; }
+        public DbSet<CafeteriaEvent> CafeteriaEvents { get; set; }
+        public DbSet<EventMenuTemplate> EventMenuTemplates { get; set; }
+        public DbSet<EventMenuTemplateItem> EventMenuTemplateItems { get; set; }
+        public DbSet<EventStaffAssignment> EventStaffAssignments { get; set; }
 
-        // ─── Maintenance Management ───────────────────────────────────────
+        public DbSet<EventRsvp> EventRsvps { get; set; }
+
+        public DbSet<StudentSportStatus> StudentSportStatuses { get; set; }
+
+        public DbSet<SportPriority> SportPriorities { get; set; }
+
+        // ─── Maintenance Management ─────────────────────────────────────
         public DbSet<MaintenanceStaff> MaintenanceStaff { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<JobCard> JobCards { get; set; }
@@ -129,7 +167,6 @@ namespace Michaelhouse.Models
         public DbSet<MaintenanceInventory> MaintenanceInventory { get; set; }
         public DbSet<JobCardPart> JobCardParts { get; set; }
         public DbSet<PreventiveSchedule> PreventiveSchedules { get; set; }
-        // ─── Maintenance Management – Advanced ──────────────────────────
         public DbSet<ShiftPattern> ShiftPatterns { get; set; }
         public DbSet<StaffShift> StaffShifts { get; set; }
 
@@ -137,74 +174,89 @@ namespace Michaelhouse.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            // ── Existing relationships (unchanged) ───────────────────────────
-            modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Student).WithMany(s => s.Applications)
-                .HasForeignKey(a => a.StudentId).WillCascadeOnDelete(false);
+            // ── Applications & Documents ─────────────────────────────────
 
             modelBuilder.Entity<Application>()
-                .HasRequired(a => a.Parent).WithMany()
-                .HasForeignKey(a => a.ParentId).WillCascadeOnDelete(false);
+                .HasRequired(a => a.Student)
+                .WithMany(s => s.Applications)
+                .HasForeignKey(a => a.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Application>()
+                .HasRequired(a => a.Parent)
+                .WithMany()
+                .HasForeignKey(a => a.ParentId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Application).WithMany(a => a.Documents)
-                .HasForeignKey(d => d.AppId).WillCascadeOnDelete(true);
+                .HasRequired(d => d.Application)
+                .WithMany(a => a.Documents)
+                .HasForeignKey(d => d.AppId)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<Document>()
-                .HasRequired(d => d.Student).WithMany()
-                .HasForeignKey(d => d.StudentId).WillCascadeOnDelete(false);
+                .HasRequired(d => d.Student)
+                .WithMany()
+                .HasForeignKey(d => d.StudentId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Parent>()
-                .HasOptional(p => p.User).WithMany()
+                .HasOptional(p => p.User)
+                .WithMany()
                 .HasForeignKey(p => p.UserId);
 
             modelBuilder.Entity<Student>()
-                .HasOptional(s => s.User).WithMany()
+                .HasOptional(s => s.User)
+                .WithMany()
                 .HasForeignKey(s => s.UserId);
 
             modelBuilder.Entity<Registration>()
-                .HasRequired(r => r.Application).WithMany()
-                .HasForeignKey(r => r.AppId).WillCascadeOnDelete(false);
+                .HasRequired(r => r.Application)
+                .WithMany()
+                .HasForeignKey(r => r.AppId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Registration>()
-                .HasRequired(r => r.Student).WithMany()
-                .HasForeignKey(r => r.StudentId).WillCascadeOnDelete(false);
+                .HasRequired(r => r.Student)
+                .WithMany()
+                .HasForeignKey(r => r.StudentId)
+                .WillCascadeOnDelete(false);
+
+            // ── Academic Relationships ───────────────────────────────────
 
             modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Student).WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.StudentId).WillCascadeOnDelete(false);
+                .HasRequired(ss => ss.Student)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.StudentId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<StudentSubject>()
-                .HasRequired(ss => ss.Subject).WithMany(s => s.StudentSubjects)
-                .HasForeignKey(ss => ss.SubjectId).WillCascadeOnDelete(false);
+                .HasRequired(ss => ss.Subject)
+                .WithMany(s => s.StudentSubjects)
+                .HasForeignKey(ss => ss.SubjectId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<StreamEnrolment>()
-                .HasRequired(se => se.Student).WithMany()
-                .HasForeignKey(se => se.StudentId).WillCascadeOnDelete(false);
+                .HasRequired(se => se.Student)
+                .WithMany()
+                .HasForeignKey(se => se.StudentId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<StreamEnrolment>()
-                .HasRequired(se => se.Registration).WithMany()
-                .HasForeignKey(se => se.RegistrationId).WillCascadeOnDelete(false);
+                .HasRequired(se => se.Registration)
+                .WithMany()
+                .HasForeignKey(se => se.RegistrationId)
+                .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Registration).WithMany()
-                .HasForeignKey(i => i.RegistrationId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<StreamEnrolment>()
+                .HasOptional(se => se.Teacher)
+                .WithMany(t => t.StreamEnrolments)
+                .HasForeignKey(se => se.TeacherId)
+                .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Student).WithMany()
-                .HasForeignKey(i => i.StudentId).WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Invoice>()
-                .HasRequired(i => i.Parent).WithMany()
-                .HasForeignKey(i => i.ParentId).WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Payment>()
-                .HasRequired(p => p.Invoice).WithMany(i => i.Payments)
-                .HasForeignKey(p => p.InvoiceId).WillCascadeOnDelete(false);
-
-            // ── Teacher relationships ─────────────────────────────────────────
             modelBuilder.Entity<Teacher>()
-                .HasOptional(t => t.User).WithMany()
+                .HasOptional(t => t.User)
+                .WithMany()
                 .HasForeignKey(t => t.UserId);
 
             modelBuilder.Entity<TeacherSubjectGrade>()
@@ -214,76 +266,13 @@ namespace Michaelhouse.Models
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<TeacherSubjectGrade>()
-                .HasRequired(tsg => tsg.Subject).WithMany()
+                .HasRequired(tsg => tsg.Subject)
+                .WithMany()
                 .HasForeignKey(tsg => tsg.SubjectId)
                 .WillCascadeOnDelete(false);
 
-            // ── Timetable relationships ───────────────────────────────────────
-            modelBuilder.Entity<TimetableSlot>()
-                .HasRequired(ts => ts.Subject).WithMany()
-                .HasForeignKey(ts => ts.SubjectId)
-                .WillCascadeOnDelete(false);
+            // ── Assessment & Marks ───────────────────────────────────────
 
-            modelBuilder.Entity<TimetableSlot>()
-                .HasRequired(ts => ts.Period).WithMany()
-                .HasForeignKey(ts => ts.PeriodId)
-                .WillCascadeOnDelete(false);
-
-            // ========== SCHOOL STORE CONFIGURATIONS ==========
-            modelBuilder.Entity<Category>()
-                .HasKey(c => c.Id);
-            modelBuilder.Entity<Category>()
-                .Property(c => c.Name).IsRequired().HasMaxLength(100);
-            modelBuilder.Entity<Category>()
-                .Property(c => c.Description).HasMaxLength(500);
-
-            modelBuilder.Entity<Product>()
-                .HasKey(p => p.Id);
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Name).IsRequired().HasMaxLength(200);
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Description).HasMaxLength(1000);
-            modelBuilder.Entity<Product>()
-                .Property(p => p.ImageUrl).HasMaxLength(500);
-            modelBuilder.Entity<Product>()
-                .HasRequired(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Order>()
-                .HasKey(o => o.Id);
-            modelBuilder.Entity<Order>()
-                .Property(o => o.OrderNumber).IsRequired().HasMaxLength(50);
-            modelBuilder.Entity<Order>()
-                .Property(o => o.CustomerEmail).IsRequired().HasMaxLength(200);
-            modelBuilder.Entity<Order>()
-                .Property(o => o.CustomerName).IsRequired().HasMaxLength(100);
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Status).HasMaxLength(50);
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Notes).HasMaxLength(500);
-
-            modelBuilder.Entity<OrderItem>()
-                .HasKey(oi => oi.Id);
-            modelBuilder.Entity<OrderItem>()
-                .HasRequired(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(oi => oi.OrderId)
-                .WillCascadeOnDelete(true);
-            modelBuilder.Entity<OrderItem>()
-                .HasRequired(oi => oi.Product)
-                .WithMany(p => p.OrderItems)
-                .HasForeignKey(oi => oi.ProductId);
-
-            // ── StreamEnrolment (corrected relationships) ─────────────────────
-            modelBuilder.Entity<StreamEnrolment>()
-                .HasOptional(se => se.Teacher)
-                .WithMany(t => t.StreamEnrolments)
-                .HasForeignKey(se => se.TeacherId)
-                .WillCascadeOnDelete(false);
-
-            // ── Assessment & Marks ───────────────────────────────────────────
             modelBuilder.Entity<Assessment>()
                 .HasRequired(a => a.Subject)
                 .WithMany()
@@ -319,71 +308,348 @@ namespace Michaelhouse.Models
                 .WithMany()
                 .HasForeignKey(yr => yr.StudentId);
 
+            // ── Finance ──────────────────────────────────────────────────
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Registration)
+                .WithMany()
+                .HasForeignKey(i => i.RegistrationId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Student)
+                .WithMany()
+                .HasForeignKey(i => i.StudentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Invoice>()
+                .HasRequired(i => i.Parent)
+                .WithMany()
+                .HasForeignKey(i => i.ParentId)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<Payment>()
                 .HasRequired(p => p.Invoice)
                 .WithMany(i => i.Payments)
                 .HasForeignKey(p => p.InvoiceId)
                 .WillCascadeOnDelete(false);
 
-            // ========== TRIP MANAGEMENT RELATIONSHIPS ==========
+            // ── Cafeteria ────────────────────────────────────────────────
+            // Explicitly map every MenuScheduleItem relationship so EF6
+            // does not create convention-based foreign keys such as
+            // MenuItem_Id, MenuItem_Id1, or MealMenu_Id.
 
-            // TripRequest -> Teacher (required)
+            modelBuilder.Entity<MealMenu>()
+                .HasKey(mm => mm.Id);
+
+            modelBuilder.Entity<MealMenu>()
+                .Property(mm => mm.SpecialEventNotes)
+                .HasMaxLength(2000);
+
+            modelBuilder.Entity<MealMenu>()
+                .Property(mm => mm.RejectionReason)
+                .HasMaxLength(2000);
+
+            modelBuilder.Entity<MealMenu>()
+                .HasMany(mm => mm.ScheduleItems)
+                .WithRequired(ms => ms.MealMenu)
+                .HasForeignKey(ms => ms.MealMenuId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<MealMenu>()
+                .HasOptional(mm => mm.RegeneratedFromMenu)
+                .WithMany()
+                .HasForeignKey(mm => mm.RegeneratedFromMenuId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<MenuItem>()
+                .HasKey(mi => mi.Id);
+
+            modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.DietaryClassification)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.CaloriesPerPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.ProteinGramsPerPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MenuItem>()
+                .HasMany(mi => mi.ScheduleItems)
+                .WithRequired(ms => ms.MenuItem)
+                .HasForeignKey(ms => ms.MenuItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<MenuItem>()
+                .HasMany(mi => mi.SubstitutionScheduleItems)
+                .WithOptional(ms => ms.SubstitutionMenuItem)
+                .HasForeignKey(ms => ms.SubstitutionMenuItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<MenuScheduleItem>()
+                .HasKey(ms => ms.Id);
+
+            modelBuilder.Entity<MenuScheduleItem>()
+                .HasRequired(ms => ms.MealMenu)
+                .WithMany(mm => mm.ScheduleItems)
+                .HasForeignKey(ms => ms.MealMenuId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<MenuScheduleItem>()
+                .HasRequired(ms => ms.MenuItem)
+                .WithMany(mi => mi.ScheduleItems)
+                .HasForeignKey(ms => ms.MenuItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<MenuScheduleItem>()
+                .HasOptional(ms => ms.SubstitutionMenuItem)
+                .WithMany(mi => mi.SubstitutionScheduleItems)
+                .HasForeignKey(ms => ms.SubstitutionMenuItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Ingredient>()
+    .HasKey(i => i.Id);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.Unit)
+                .IsRequired()
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.CaloriesPerUnit)
+                .HasPrecision(18, 4);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.ProteinGramsPerUnit)
+                .HasPrecision(18, 4);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.CarbohydrateGramsPerUnit)
+                .HasPrecision(18, 4);
+
+            modelBuilder.Entity<Ingredient>()
+                .Property(i => i.FatGramsPerUnit)
+                .HasPrecision(18, 4);
+
+
+            modelBuilder.Entity<Recipe>()
+                .HasKey(r => r.Id);
+
+            modelBuilder.Entity<Recipe>()
+                .Property(r => r.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Recipe>()
+                .Property(r => r.PreparationNotes)
+                .HasMaxLength(1000);
+
+
+            modelBuilder.Entity<RecipeIngredient>()
+                .HasKey(ri => ri.Id);
+
+            modelBuilder.Entity<RecipeIngredient>()
+                .Property(ri => ri.QuantityPerStandardPortion)
+                .HasPrecision(18, 4);
+
+            modelBuilder.Entity<RecipeIngredient>()
+                .Property(ri => ri.PreparationNotes)
+                .HasMaxLength(500);
+
+
+            modelBuilder.Entity<Recipe>()
+                .HasMany(r => r.RecipeIngredients)
+                .WithRequired(ri => ri.Recipe)
+                .HasForeignKey(ri => ri.RecipeId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<Ingredient>()
+                .HasMany(i => i.RecipeIngredients)
+                .WithRequired(ri => ri.Ingredient)
+                .HasForeignKey(ri => ri.IngredientId)
+                .WillCascadeOnDelete(false);
+
+
+            modelBuilder.Entity<MenuItem>()
+                .HasOptional(mi => mi.Recipe)
+                .WithMany(r => r.MenuItems)
+                .HasForeignKey(mi => mi.RecipeId)
+                .WillCascadeOnDelete(false);
+
+            // ── Timetable Relationships ──────────────────────────────────
+
+            modelBuilder.Entity<TimetableSlot>()
+                .HasRequired(ts => ts.Subject)
+                .WithMany()
+                .HasForeignKey(ts => ts.SubjectId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TimetableSlot>()
+                .HasRequired(ts => ts.Period)
+                .WithMany()
+                .HasForeignKey(ts => ts.PeriodId)
+                .WillCascadeOnDelete(false);
+
+            // ── School Store ─────────────────────────────────────────────
+
+            modelBuilder.Entity<Category>()
+                .HasKey(c => c.Id);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.Description)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Product>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Description)
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ImageUrl)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Product>()
+                .HasRequired(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Order>()
+                .HasKey(o => o.Id);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.OrderNumber)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CustomerEmail)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.CustomerName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Notes)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasKey(oi => oi.Id);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasRequired(oi => oi.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.ProductId);
+
+            // ── Trip Management ──────────────────────────────────────────
+
             modelBuilder.Entity<TripRequest>()
                 .HasRequired(tr => tr.Teacher)
                 .WithMany()
                 .HasForeignKey(tr => tr.TeacherId)
                 .WillCascadeOnDelete(false);
 
-            // TripRequest -> AppUser (optional, for approval)
             modelBuilder.Entity<TripRequest>()
                 .HasOptional(tr => tr.ApprovedBy)
                 .WithMany()
                 .HasForeignKey(tr => tr.ApprovedByAdminId)
                 .WillCascadeOnDelete(false);
 
-            // TripSchedule -> TripRequest (required)
+            modelBuilder.Entity<TripRequest>()
+                .Property(t => t.Status)
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<TripRequest>()
+                .Property(t => t.RejectionReason)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<TripRequest>()
+                .Property(t => t.Title)
+                .HasMaxLength(200);
+
             modelBuilder.Entity<TripSchedule>()
                 .HasRequired(ts => ts.TripRequest)
                 .WithMany()
                 .HasForeignKey(ts => ts.TripRequestId)
                 .WillCascadeOnDelete(false);
 
-            // TripSchedule -> Teacher (required)
             modelBuilder.Entity<TripSchedule>()
                 .HasRequired(ts => ts.Teacher)
                 .WithMany()
                 .HasForeignKey(ts => ts.TeacherId)
                 .WillCascadeOnDelete(false);
 
-            // TripSchedule -> Driver (optional)
             modelBuilder.Entity<TripSchedule>()
                 .HasOptional(ts => ts.Driver)
                 .WithMany()
                 .HasForeignKey(ts => ts.DriverId)
                 .WillCascadeOnDelete(false);
 
-            // TripSchedule -> Vehicle (optional)
             modelBuilder.Entity<TripSchedule>()
                 .HasOptional(ts => ts.Vehicle)
                 .WithMany()
                 .HasForeignKey(ts => ts.VehicleId)
                 .WillCascadeOnDelete(false);
 
-            // TripStudent -> TripSchedule (required)
+            modelBuilder.Entity<TripSchedule>()
+                .Property(t => t.Status)
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<TripSchedule>()
+                .Property(t => t.Notes)
+                .HasMaxLength(500);
+
             modelBuilder.Entity<TripStudent>()
                 .HasRequired(ts => ts.TripSchedule)
-                .WithMany(t => t.TripStudents)   // explicitly reference the inverse collection
+                .WithMany(t => t.TripStudents)
                 .HasForeignKey(ts => ts.TripScheduleId)
                 .WillCascadeOnDelete(false);
 
-            // TripStudent -> Student (required)
             modelBuilder.Entity<TripStudent>()
                 .HasRequired(ts => ts.Student)
                 .WithMany()
                 .HasForeignKey(ts => ts.StudentId)
                 .WillCascadeOnDelete(false);
 
-            // Notification -> AppUser (required)
             modelBuilder.Entity<Notification>()
                 .HasRequired(n => n.User)
                 .WithMany()
@@ -408,83 +674,71 @@ namespace Michaelhouse.Models
                 .HasForeignKey(tva => tva.VehicleId)
                 .WillCascadeOnDelete(false);
 
-            // Optionally set string lengths for status fields
-            modelBuilder.Entity<TripRequest>()
-                .Property(t => t.Status).HasMaxLength(20);
-            modelBuilder.Entity<TripRequest>()
-                .Property(t => t.RejectionReason).HasMaxLength(500);
-            modelBuilder.Entity<TripRequest>()
-                .Property(t => t.Title).HasMaxLength(200);
+            // ── Suppliers & Inventory ─────────────────────────────────────
 
-            modelBuilder.Entity<TripSchedule>()
-                .Property(t => t.Status).HasMaxLength(20);
-            modelBuilder.Entity<TripSchedule>()
-                .Property(t => t.Notes).HasMaxLength(500);
+            modelBuilder.Entity<SupplierProduct>()
+                .HasRequired(sp => sp.Supplier)
+                .WithMany(s => s.SupplierProducts)
+                .HasForeignKey(sp => sp.SupplierId)
+                .WillCascadeOnDelete(false);
 
-            // ── Suppliers & PurchaseOrders ────────────────────────────────────────
             modelBuilder.Entity<SupplierProduct>()
-                .HasRequired(sp => sp.Supplier).WithMany(s => s.SupplierProducts)
-                .HasForeignKey(sp => sp.SupplierId).WillCascadeOnDelete(false);
-            modelBuilder.Entity<SupplierProduct>()
-                .HasRequired(sp => sp.Product).WithMany()
-                .HasForeignKey(sp => sp.ProductId).WillCascadeOnDelete(false);
+                .HasRequired(sp => sp.Product)
+                .WithMany()
+                .HasForeignKey(sp => sp.ProductId)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PurchaseOrder>()
-                .HasRequired(po => po.Supplier).WithMany(s => s.PurchaseOrders)
-                .HasForeignKey(po => po.SupplierId).WillCascadeOnDelete(false);
-            modelBuilder.Entity<PurchaseOrderLine>()
-                .HasRequired(pol => pol.PurchaseOrder).WithMany(po => po.LineItems)
-                .HasForeignKey(pol => pol.PurchaseOrderId).WillCascadeOnDelete(true);
-            modelBuilder.Entity<PurchaseOrderLine>()
-                .HasRequired(pol => pol.Product).WithMany()
-                .HasForeignKey(pol => pol.ProductId).WillCascadeOnDelete(false);
+                .HasRequired(po => po.Supplier)
+                .WithMany(s => s.PurchaseOrders)
+                .HasForeignKey(po => po.SupplierId)
+                .WillCascadeOnDelete(false);
 
-            // ── Stock Movements ───────────────────────────────────────────────────
+            modelBuilder.Entity<PurchaseOrderLine>()
+                .HasRequired(pol => pol.PurchaseOrder)
+                .WithMany(po => po.LineItems)
+                .HasForeignKey(pol => pol.PurchaseOrderId)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<PurchaseOrderLine>()
+                .HasRequired(pol => pol.Product)
+                .WithMany()
+                .HasForeignKey(pol => pol.ProductId)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<StockMovement>()
-                .HasRequired(sm => sm.Product).WithMany()
-                .HasForeignKey(sm => sm.ProductId).WillCascadeOnDelete(false);
+                .HasRequired(sm => sm.Product)
+                .WithMany()
+                .HasForeignKey(sm => sm.ProductId)
+                .WillCascadeOnDelete(false);
 
-            // ======================================================================
-            // BOARDING HOUSE MANAGEMENT RELATIONSHIPS
-            // ======================================================================
+            // ── Boarding House / Residence Management ────────────────────
 
-            // -------------------------
-            // Residence -> HouseMaster
-            // -------------------------
             modelBuilder.Entity<Residence>()
+                .ToTable("Residences")
                 .HasOptional(r => r.HouseMaster)
                 .WithMany()
                 .HasForeignKey(r => r.HouseMasterId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // Room -> Residence
-            // -------------------------
             modelBuilder.Entity<Room>()
                 .HasRequired(r => r.Residence)
                 .WithMany(r => r.Rooms)
                 .HasForeignKey(r => r.ResidenceId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // Bed -> Room
-            // -------------------------
             modelBuilder.Entity<Bed>()
                 .HasRequired(b => b.Room)
                 .WithMany(r => r.Beds)
                 .HasForeignKey(b => b.RoomId)
                 .WillCascadeOnDelete(false);
 
-            // Bed -> Student (optional)
             modelBuilder.Entity<Bed>()
                 .HasOptional(b => b.OccupiedByStudent)
                 .WithMany()
                 .HasForeignKey(b => b.OccupiedByStudentId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // ResidenceAssignment
-            // -------------------------
             modelBuilder.Entity<ResidenceAssignment>()
                 .HasRequired(r => r.Student)
                 .WithMany()
@@ -509,9 +763,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(r => r.BedId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // ResidenceAllocation
-            // -------------------------
             modelBuilder.Entity<ResidenceAllocation>()
                 .HasRequired(r => r.Student)
                 .WithMany()
@@ -536,25 +787,22 @@ namespace Michaelhouse.Models
                 .HasForeignKey(r => r.BedId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // StudentProfile
-            // -------------------------
+            modelBuilder.Entity<RoomScoreAudit>()
+                .HasKey(rsa => rsa.RoomScoreAuditId);
+
+            modelBuilder.Entity<DisciplinaryConflict>()
+                .HasKey(dc => dc.DisciplinaryConflictId);
+
             modelBuilder.Entity<Student>()
                 .HasOptional(s => s.StudentProfile)
                 .WithRequired(sp => sp.Student);
 
-            // -------------------------
-            // StudentQRCode
-            // -------------------------
             modelBuilder.Entity<StudentQRCode>()
                 .HasRequired(q => q.Student)
                 .WithMany()
                 .HasForeignKey(q => q.StudentId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // QRScanRecord
-            // -------------------------
             modelBuilder.Entity<QRScanRecord>()
                 .HasRequired(q => q.Student)
                 .WithMany()
@@ -573,9 +821,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(q => q.HouseMasterId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // AI Residence Recommendation
-            // -------------------------
             modelBuilder.Entity<AIResidenceRecommendation>()
                 .HasRequired(a => a.Student)
                 .WithMany()
@@ -594,9 +839,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(a => a.RoomId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // AI Allocation History
-            // -------------------------
             modelBuilder.Entity<AIAllocationHistory>()
                 .HasRequired(a => a.Student)
                 .WithMany()
@@ -615,36 +857,24 @@ namespace Michaelhouse.Models
                 .HasForeignKey(a => a.RoomId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // AI Waiting List
-            // -------------------------
             modelBuilder.Entity<AIWaitingList>()
                 .HasRequired(w => w.Student)
                 .WithMany()
                 .HasForeignKey(w => w.StudentId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // AI Recommendation Override
-            // -------------------------
             modelBuilder.Entity<AIRecommendationOverride>()
                 .HasRequired(o => o.Recommendation)
                 .WithMany()
                 .HasForeignKey(o => o.RecommendationId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // AI Alert
-            // -------------------------
             modelBuilder.Entity<AIAlert>()
                 .HasRequired(a => a.Residence)
                 .WithMany()
                 .HasForeignKey(a => a.ResidenceId)
                 .WillCascadeOnDelete(false);
 
-            // -------------------------
-            // Residence Movement
-            // -------------------------
             modelBuilder.Entity<ResidenceMovement>()
                 .HasRequired(r => r.Student)
                 .WithMany()
@@ -674,7 +904,7 @@ namespace Michaelhouse.Models
                 .WithMany()
                 .HasForeignKey(r => r.ToRoomId)
                 .WillCascadeOnDelete(false);
-            // Configure EmergencyAlert
+
             modelBuilder.Entity<EmergencyAlert>()
                 .HasKey(e => e.AlertId);
 
@@ -684,7 +914,6 @@ namespace Michaelhouse.Models
                 .HasForeignKey(c => c.AlertId)
                 .WillCascadeOnDelete(true);
 
-            // Configure StudentSafetyConfirmation
             modelBuilder.Entity<StudentSafetyConfirmation>()
                 .HasKey(c => c.ConfirmationId);
 
@@ -698,8 +927,6 @@ namespace Michaelhouse.Models
                 .WithMany(a => a.StudentConfirmations)
                 .HasForeignKey(c => c.AlertId);
 
-            // LeaveRequest  (Use Case 27 - Request Permission to Leave Residence)
-            // -------------------------
             modelBuilder.Entity<LeaveRequest>()
                 .HasRequired(l => l.Student)
                 .WithMany()
@@ -723,7 +950,16 @@ namespace Michaelhouse.Models
                 .WithMany()
                 .HasForeignKey(l => l.HouseMasterId)
                 .WillCascadeOnDelete(false);
-        }
 
+            // ── Campus Rules ─────────────────────────────────────────────
+
+            modelBuilder.Entity<CampusRule>()
+                .HasKey(cr => cr.CampusRuleId);
+
+            modelBuilder.Entity<CampusRule>()
+                .Property(cr => cr.RuleName)
+                .IsRequired()
+                .HasMaxLength(200);
+        }
     }
 }

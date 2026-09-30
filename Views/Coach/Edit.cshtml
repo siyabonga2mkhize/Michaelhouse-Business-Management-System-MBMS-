@@ -1,0 +1,152 @@
+﻿
+@using System.Linq
+@using Michaelhouse.Models
+@model SportEvent
+
+@{
+    ViewBag.Title = "Edit Fixture";
+
+    var residences = ViewBag.Residences as List<Residence> ?? new List<Residence>();
+    var sports = ViewBag.Sports as string[] ?? new string[0];
+    var intensities = ViewBag.Intensities as string[] ?? new string[0];
+    var eventTypes = ViewBag.EventTypes as string[] ?? new string[0];
+}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Edit Fixture</h1>
+        <p class="text-muted mb-0">
+            Update the details for this training or match.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <form action="@Url.Action("Edit", "Coach")" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
+
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Event Type</label>
+                        <select name="EventType" class="form-select" required>
+                            @foreach (var t in eventTypes)
+                            {
+                                <option value="@t" @(Model.EventType == t ? "selected" : "")>@t</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Sport</label>
+                        <select name="Sport" class="form-select" required>
+                            @foreach (var s in sports)
+                            {
+                                <option value="@s" @(Model.Sport == s ? "selected" : "")>@s</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Residence</label>
+                        <select name="ResidenceId" class="form-select" required>
+                            @foreach (var r in residences)
+                            {
+                                <option value="@r.ResidenceId" @(Model.ResidenceId == r.ResidenceId ? "selected" : "")>
+                                    @r.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Intensity</label>
+                        <select name="Intensity" class="form-select" required>
+                            @foreach (var i in intensities)
+                            {
+                                <option value="@i" @(Model.Intensity == i ? "selected" : "")>@i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Date</label>
+                        <input type="date"
+                               name="ScheduledDate"
+                               value="@Model.ScheduledDate.ToString("yyyy-MM-dd")"
+                               class="form-control"
+                               required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Start Time</label>
+                        <input type="time"
+                               name="StartTime"
+                               value="@Model.StartTime.ToString(@"hh\:mm")"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number"
+                               name="DurationMinutes"
+                               value="@Model.DurationMinutes"
+                               min="0"
+                               max="600"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Opponent (for matches only)</label>
+                        <input type="text"
+                               name="Opponent"
+                               value="@Model.Opponent"
+                               maxlength="200"
+                               class="form-control" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Venue</label>
+                        <div class="form-check mt-2">
+                            <input type="checkbox"
+                                   name="IsHome"
+                                   value="true"
+                                   class="form-check-input"
+                                   id="isHome"
+                                   @(Model.IsHome ? "checked" : "") />
+                            <label class="form-check-label" for="isHome">Home fixture</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <textarea name="Notes"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500">@Model.Notes</textarea>
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="@Url.Action("Index", "Coach")" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>

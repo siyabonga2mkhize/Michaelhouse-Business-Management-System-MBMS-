@@ -1,0 +1,99 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@model CafeteriaEvent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "RSVP Received";
+}
+
+<style>
+    .ty-shell {
+        max-width: 560px;
+        margin: 4rem auto;
+        padding: 0 1rem;
+        text-align: center;
+    }
+
+    .ty-icon {
+        font-size: 3.5rem;
+        color: #10b981;
+        margin-bottom: 1rem;
+    }
+
+    .ty-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 2.5rem 2rem;
+    }
+
+        .ty-card h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem;
+            margin: 0 0 .75rem 0;
+            color: #111827;
+        }
+
+        .ty-card p {
+            color: #6b7280;
+            font-size: .95rem;
+            margin: 0 0 .5rem 0;
+            line-height: 1.6;
+        }
+
+    .ty-event {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+
+    .ty-event-name {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: .35rem;
+    }
+
+    .ty-event-meta {
+        font-size: .85rem;
+        color: #6b7280;
+        line-height: 1.7;
+    }
+
+    .ty-close {
+        font-size: .85rem;
+        color: #9ca3af;
+        margin-top: 1.5rem;
+    }
+</style>
+
+<div class="ty-shell">
+    <div class="ty-card">
+        <div class="ty-icon">✓</div>
+
+        <h1>Thank you</h1>
+        <p>Your RSVP has been received.</p>
+
+        <div class="ty-event">
+            <div class="ty-event-name">@Model.EventName</div>
+            <div class="ty-event-meta">
+                @Model.EventDate.ToString("dddd, dd MMMM yyyy")<br />
+                @Model.StartTime.ToString(@"hh\:mm") – @Model.EndTime.ToString(@"hh\:mm")
+                @if (Model.Venue != null)
+                {
+                    <text><br />@Model.Venue.Name</text>
+                }
+            </div>
+        </div>
+
+        <p style="font-size:.88rem;">
+            The cafeteria will use your response to plan the meal.
+            If you need to change your RSVP, contact the cafeteria directly.
+        </p>
+
+        <div class="ty-close">
+            Michaelhouse · Cafeteria
+        </div>
+    </div>
+</div>

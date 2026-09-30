@@ -9,6 +9,9 @@ namespace Michaelhouse
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            // Enable attribute routing for [Route] attributes on API controllers
+            routes.MapMvcAttributeRoutes();
+
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

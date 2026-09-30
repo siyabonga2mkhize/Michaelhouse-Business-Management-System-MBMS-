@@ -446,6 +446,14 @@ namespace Michaelhouse.Controllers
                     return RedirectToAction("Index", "TeacherDashboard");
                 case "TransportManager":
                     return RedirectToAction("Dashboard", "Transport");
+                case "CafeteriaManager":
+                    return RedirectToAction("Dashboard", "Cafeteria");
+                case "Chef":
+                    return RedirectToAction("ChefIndex", "Cafeteria");
+                case "Coach":
+                    return RedirectToAction("Index", "Coach");
+                case "Dietitian":
+                    return RedirectToAction("Index", "Dietitian");
                 case "Driver":
                     return RedirectToAction("Index", "Driver");
                 case "HouseMaster":

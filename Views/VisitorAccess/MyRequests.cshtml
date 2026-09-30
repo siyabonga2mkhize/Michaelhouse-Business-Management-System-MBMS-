@@ -3,87 +3,47 @@
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "My Visitor Requests";
+    ViewBag.Title = "My Incoming Visitors";
 }
 
-@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
 <div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    @* --- INSTITUTIONAL HEADER --- *@
     <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
             <div class="flex items-center gap-2 mb-3">
                 <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
                 <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Visitor Management</h5>
             </div>
-            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">My Visitor Requests</h2>
-        </div>
-        <div class="flex gap-3">
-            <a href="@Url.Action("Create")" class="inline-flex items-center justify-center bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
-                <i class="bi bi-plus-square me-2 text-sm"></i> New Request
-            </a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">My Incoming Visitors</h2>
         </div>
     </div>
 
-    @* --- SCROLLABLE DATA SECTION --- *@
     <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
-        @* --- ACTION & NOTIFICATION BAR --- *@
-        <div class="mb-4">
-            @* --- ALERTS & NOTIFICATIONS --- *@
-            @if (TempData["StudentNotification"] != null)
-            {
-                <div class="bg-blue-50/80 border-l-4 border-[#C21E2E] p-5 shadow-sm flex flex-col mb-4 relative">
-                    <div class="flex items-center mb-2">
-                        <i class="bi bi-bell-fill me-3 text-lg text-[#C21E2E]"></i>
-                        <span class="text-xs font-bold uppercase tracking-widest text-[#C21E2E]">System Notification</span>
-                    </div>
-                    <p class="mb-1 font-serif text-sm ms-8 text-blue-900">@TempData["StudentNotification"]</p>
-                    <p class="mb-0 text-[10px] font-mono text-gray-500 ms-8">(This would be sent via email/SMS in production).</p>
-                    <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors" data-bs-dismiss="alert" aria-label="Close">
-                        <i class="bi bi-x-lg text-lg"></i>
-                    </button>
+        @if (TempData["StudentNotification"] != null)
+        {
+            <div class="bg-blue-50/80 border-l-4 border-[#C21E2E] p-5 shadow-sm flex flex-col mb-4 relative">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-bell-fill me-3 text-lg text-[#C21E2E]"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest text-[#C21E2E]">House Notification</span>
                 </div>
-            }
+                <p class="mb-1 font-serif text-sm ms-8 text-blue-900">@TempData["StudentNotification"]</p>
+            </div>
+        }
 
-            @if (TempData["Success"] != null)
-            {
-                <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center mb-4">
-                    <i class="bi bi-check-circle-fill me-3 text-xl"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center mb-4">
-                    <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
-                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
-                </div>
-            }
-        </div>
-
-        @* --- ARCHIVAL LEDGER TABLE --- *@
         <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow min-h-0 relative overflow-hidden group">
-
-            @* Ghost Watermark *@
-            <i class="bi bi-person-lines-fill absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
-
-            @* Archival Dot Grid Header *@
             <div class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center relative z-10 flex-shrink-0">
-                <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-                <div class="relative z-10">
-                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-card-list me-2 text-gray-400"></i> Request Ledger</h5>
-                </div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-1"><i class="bi bi-card-list me-2 text-gray-400"></i> Approved & Pending Guest Registry</h5>
             </div>
 
-            @* Table Container (Scrolls Internally) *@
             <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
                 <table class="table table-hover mb-0 align-middle w-full">
                     <thead class="sticky top-0 z-20 bg-white shadow-sm">
                         <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
-                            <th class="ps-8 py-5">Visitor</th>
-                            <th class="border-l border-gray-100 ps-6">Date</th>
-                            <th class="border-l border-gray-100 ps-6">Time</th>
+                            <th class="ps-8 py-5">Visitor Name</th>
+                            <th class="border-l border-gray-100 ps-6">Relationship</th>
+                            <th class="border-l border-gray-100 ps-6">Scheduled Date</th>
+                            <th class="border-l border-gray-100 ps-6">Approved Zone</th>
                             <th class="pe-8 border-l border-gray-100 ps-6">Status</th>
                         </tr>
                     </thead>
@@ -91,10 +51,10 @@
                         @if (Model == null || !Model.Any())
                         {
                             <tr>
-                                <td colspan="4" class="py-20 text-center">
+                                <td colspan="5" class="py-20 text-center">
                                     <i class="bi bi-inbox text-gray-200 text-6xl d-block mb-4"></i>
-                                    <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">No Requests Found</h4>
-                                    <p class="text-[11px] font-mono text-gray-400 mt-2">You have not submitted any visitor access requests.</p>
+                                    <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px]">No Scheduled Visits</h4>
+                                    <p class="text-[11px] font-mono text-gray-400 mt-2">There are currently no registered visits linked to your profile.</p>
                                 </td>
                             </tr>
                         }
@@ -106,17 +66,16 @@
                                     <td class="ps-8 py-5">
                                         <div class="font-serif font-bold text-gray-900 text-lg group-hover/row:text-[#C21E2E] transition-colors">@item.VisitorFullName</div>
                                     </td>
-
+                                    <td class="border-l border-gray-50 ps-6 font-serif text-sm">
+                                        @item.RelationshipToBoy
+                                    </td>
                                     <td class="border-l border-gray-50 ps-6">
                                         <span class="font-mono text-sm font-bold text-blue-700">@item.VisitDate.ToString("dd MMM yyyy")</span>
+                                        <span class="block text-xs text-gray-500 font-mono">@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</span>
                                     </td>
-
-                                    <td class="border-l border-gray-50 ps-6">
-                                        <span class="font-mono text-sm text-gray-800">
-                                            @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
-                                        </span>
+                                    <td class="border-l border-gray-50 ps-6 font-serif text-sm font-bold text-[#C21E2E]">
+                                        @item.FinalAssignedZone
                                     </td>
-
                                     <td class="pe-8 border-l border-gray-50 ps-6">
                                         @if (item.Status == VisitorRequestStatus.AutoApprovedWeekend || item.Status == VisitorRequestStatus.Approved)
                                         {
@@ -127,13 +86,13 @@
                                         else if (item.Status == VisitorRequestStatus.PendingHousemaster)
                                         {
                                             <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-3 py-1 border border-yellow-200 shadow-sm">
-                                                Pending
+                                                Pending Review
                                             </span>
                                         }
                                         else
                                         {
                                             <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest bg-red-100 text-[#C21E2E] px-3 py-1 border border-red-200 shadow-sm">
-                                                Rejected
+                                                Declined
                                             </span>
                                         }
                                     </td>
@@ -143,45 +102,7 @@
                     </tbody>
                 </table>
             </div>
-
-            @* Institutional Footer *@
-            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0 relative z-10">
-                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
-                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Personal Access Records
-                </div>
-            </div>
         </div>
 
     </div>
 </div>
-
-<style>
-    .font-serif {
-        font-family: 'Playfair Display', serif !important;
-    }
-
-    .font-mono {
-        font-family: 'Source Code Pro', monospace !important;
-    }
-
-    .table thead th {
-        border-bottom: 2px solid #f8f9fa !important;
-    }
-
-    .table tbody tr {
-        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    }
-
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #eee;
-        border-radius: 10px;
-    }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #C21E2E;
-        }
-</style>

@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Request Submitted";
+}
+
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Visitor Management</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight">Request Confirmation</h2>
+        </div>
+    </div>
+
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex justify-center items-center">
+        <div class="w-full max-w-2xl bg-white border border-gray-100 shadow-sm p-10 text-center relative overflow-hidden">
+
+            <div class="w-16 h-16 bg-red-50 text-[#C21E2E] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl border border-red-100">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+
+            <h3 class="text-2xl font-serif font-bold text-gray-900 mb-2">Access Request Processed</h3>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="bg-gray-50 border-l-4 border-[#C21E2E] p-4 my-6 text-left">
+                    <p class="text-sm font-semibold text-gray-800 m-0">@TempData["Success"]</p>
+                </div>
+            }
+
+            <p class="text-sm text-gray-600 mb-8 font-serif leading-relaxed">
+                Thank you for submitting your visitor access request. Your request details have been registered in the Michaelhouse Security system.
+            </p>
+
+            <div class="flex justify-center gap-4">
+                <a href="@Url.Action("Create", "VisitorAccess")" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 transition-all duration-300 no-underline">
+                    Submit Another Request
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,729 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.ViewModels
+@model ProductionPlanViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Kitchen Production Plan";
+}
+
+<style>
+    .pp-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .pp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .pp-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .pp-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .pp-meta strong {
+            color: #333;
+        }
+
+    .pp-day {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+    }
+
+    .pp-day-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .95rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .pp-day-header .count {
+            font-size: .78rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+    .pp-slot {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .pp-slot:last-child {
+            border-bottom: none;
+        }
+
+    .pp-slot-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .85rem;
+    }
+
+    .pp-slot-name {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .pp-serve {
+        font-size: .8rem;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+        .pp-serve strong {
+            color: #C21E2E;
+        }
+
+    .pp-task {
+        background: #fafafa;
+        border: 1px solid #f3f4f6;
+        border-radius: 8px;
+        padding: .85rem .95rem;
+        margin-bottom: .5rem;
+    }
+
+    .pp-task-top {
+        display: grid;
+        grid-template-columns: 100px 80px 1fr 100px 80px 80px;
+        gap: .75rem;
+        align-items: center;
+        margin-bottom: .55rem;
+    }
+
+    .pp-time-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #111827;
+        font-size: .85rem;
+    }
+
+        .pp-time-cell small {
+            display: block;
+            font-size: .62rem;
+            color: #9ca3af;
+            font-weight: 500;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+    .pp-dish {
+        font-weight: 600;
+        font-size: .92rem;
+        color: #111827;
+    }
+
+    .pp-dish-meta {
+        font-size: .72rem;
+        color: #9ca3af;
+        margin-top: 2px;
+    }
+
+    .pp-station {
+        display: inline-block;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+        .pp-station.gr {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pp-station.st {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .pp-station.ov {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .pp-station.cp {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .pp-station.ln {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+    .pp-bom-toggle {
+        font-size: .72rem;
+        color: #C21E2E;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        display: inline-block;
+    }
+
+        .pp-bom-toggle:hover {
+            text-decoration: underline;
+        }
+
+    .pp-bom {
+        margin-top: .6rem;
+        padding-top: .6rem;
+        border-top: 1px dashed #e5e7eb;
+    }
+
+        .pp-bom table {
+            width: 100%;
+            font-size: .78rem;
+            border-collapse: collapse;
+        }
+
+        .pp-bom th {
+            text-align: left;
+            font-size: .65rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: .35rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .pp-bom td {
+            padding: .4rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+
+            .pp-bom td.num {
+                text-align: right;
+                font-weight: 600;
+                color: #111827;
+            }
+
+            .pp-bom td.unit {
+                color: #9ca3af;
+                padding-left: .35rem;
+            }
+
+        .pp-bom tr:last-child td {
+            border-bottom: none;
+        }
+
+    .stock-ok {
+        color: #065f46;
+        font-weight: 700;
+    }
+
+    .stock-low {
+        color: #991b1b;
+        font-weight: 700;
+    }
+
+    /* ── UC12: per-house breakdown ───────────────────────────── */
+    .pp-houses {
+        margin-top: .65rem;
+        padding-top: .65rem;
+        border-top: 1px dashed #e5e7eb;
+    }
+
+    .pp-houses-title {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .5rem;
+    }
+
+    .pp-events {
+        color: #C21E2E;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 600;
+        margin-left: .4rem;
+    }
+
+    .pp-house-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: .5rem;
+    }
+
+    .pp-house {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: .5rem .65rem;
+    }
+
+    .pp-house-name {
+        font-size: .75rem;
+        font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pp-house-count {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #C21E2E;
+        line-height: 1.1;
+        margin: .15rem 0;
+    }
+
+    .pp-house-detail {
+        font-size: .65rem;
+        color: #9ca3af;
+    }
+
+    .pp-day-total {
+        margin-top: .75rem;
+        padding: .75rem 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .pp-day-total-title {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .35rem;
+    }
+
+    .pp-day-total table {
+        width: 100%;
+        font-size: .78rem;
+    }
+
+    .pp-day-total td {
+        padding: .3rem 0;
+        color: #4b5563;
+    }
+
+        .pp-day-total td.num {
+            text-align: right;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .pp-day-total td.unit {
+            color: #9ca3af;
+            padding-left: .35rem;
+        }
+
+    .pp-week-total {
+        margin-top: 2rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .pp-week-total-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+    }
+
+    .pp-week-total-table {
+        width: 100%;
+        font-size: .85rem;
+        border-collapse: collapse;
+    }
+
+        .pp-week-total-table th {
+            text-align: left;
+            padding: .65rem 1.25rem;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #6b7280;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pp-week-total-table td {
+            padding: .55rem 1.25rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+            .pp-week-total-table td.num {
+                text-align: right;
+                font-weight: 600;
+            }
+
+        .pp-week-total-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .pp-actions {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+        margin: 2rem -1.5rem -1.5rem -1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .pp-actions .info {
+            font-size: .82rem;
+            color: #6b7280;
+        }
+
+            .pp-actions .info strong {
+                color: #111827;
+            }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="pp-shell">
+
+        <div class="pp-header">
+            <div>
+                <h1>Kitchen Production Plan</h1>
+                <div class="pp-meta">
+                    @Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")
+                    &nbsp;·&nbsp;
+                    <strong>@Model.TotalMeals</strong> meals to produce
+                    &nbsp;·&nbsp;
+                    <strong>@Model.WeekTotalIngredients.Count</strong> distinct ingredients
+                </div>
+            </div>
+            <div>
+                @if (Model.IsProductionConfirmed)
+                {
+                    <span class="badge bg-success fs-6">Production Confirmed</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark fs-6">Awaiting Chef Sign-Off</span>
+                }
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        @foreach (var day in Model.Days)
+        {
+            <div class="pp-day">
+                <div class="pp-day-header">
+                    <span>@day.Date.ToString("dddd, dd MMMM yyyy")</span>
+                    <span class="count">@day.Slots.Count service@(day.Slots.Count == 1 ? "" : "s")</span>
+                </div>
+
+                @foreach (var slot in day.Slots)
+                {
+                    <div class="pp-slot">
+                        <div class="pp-slot-header">
+                            <span class="pp-slot-name">@slot.MealSlot</span>
+                            <span class="pp-serve">
+                                Serve at <strong>@slot.ServeTime.ToString(@"hh\:mm")</strong>
+                                · @slot.Portions portions
+                            </span>
+                        </div>
+
+                        @foreach (var task in slot.Tasks)
+                        {
+                            var stClass = "ln";
+                            if (task.Station == "Grill") { stClass = "gr"; }
+                            else if (task.Station == "Stove") { stClass = "st"; }
+                            else if (task.Station == "Oven") { stClass = "ov"; }
+                            else if (task.Station == "Cold Prep") { stClass = "cp"; }
+
+                            var shortCount = task.Ingredients.Count(i => !i.IsCovered);
+
+                            <div class="pp-task">
+                                <div class="pp-task-top">
+                                    <div class="pp-time-cell">
+                                        @task.StartTime.ToString(@"hh\:mm")
+                                        <small>Start</small>
+                                    </div>
+                                    <div class="pp-time-cell">
+                                        @task.ReadyTime.ToString(@"hh\:mm")
+                                        <small>Ready</small>
+                                    </div>
+                                    <div>
+                                        <div class="pp-dish">@task.DishName</div>
+                                        <div class="pp-dish-meta">
+                                            @task.PrepMinutes min prep + @task.CookMinutes min cook
+                                        </div>
+                                    </div>
+                                    <div><span class="pp-station @stClass">@task.Station</span></div>
+                                    <div style="text-align:right; font-size:.75rem; color:#6b7280;">
+                                        @task.Portions
+                                        <small style="display:block; font-size:.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.04em;">portions</small>
+                                    </div>
+                                    <div style="text-align:right; font-size:.75rem;">
+                                        @if (shortCount > 0)
+                                        {
+                                            <span class="stock-low">@shortCount short</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="stock-ok">✓ @task.Ingredients.Count ok</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span class="pp-bom-toggle" onclick="toggleBom(this)">▸ Show ingredients (@task.Ingredients.Count)</span>
+
+                                    <div class="pp-bom" style="display:none;">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Ingredient</th>
+                                                    <th style="text-align:right;">Per portion</th>
+                                                    <th style="text-align:right;">Required</th>
+                                                    <th style="text-align:right;">In stock</th>
+                                                    <th style="text-align:right;">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var ing in task.Ingredients)
+                                                {
+                                                    <tr>
+                                                        <td>@ing.IngredientName</td>
+                                                        <td class="num">
+                                                            @ing.QuantityPerPortion.ToString("N2")
+                                                            <span class="unit">@ing.Unit</span>
+                                                        </td>
+                                                        <td class="num">
+                                                            @ing.TotalRequired.ToString("N2")
+                                                            <span class="unit">@ing.Unit</span>
+                                                        </td>
+                                                        <td class="num">
+                                                            @ing.StockAvailable.ToString("N2")
+                                                            <span class="unit">@ing.Unit</span>
+                                                        </td>
+                                                        <td class="num">
+                                                            @if (ing.IsCovered)
+                                                            {
+                                                                <span class="stock-ok">✓</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="stock-low">
+                                                                    short @ing.Shortfall.ToString("N2") @ing.Unit
+                                                                </span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @* ───────────────────────────────────────────
+                               UC12: per-house breakdown for this slot.
+                            ─────────────────────────────────────────── *@
+                        @if (slot.HouseBreakdown != null && slot.HouseBreakdown.Count > 0)
+                        {
+                            <div class="pp-houses">
+                                <div class="pp-houses-title">
+                                    Portions by house
+                                    @if (slot.EventsThisMeal != null && slot.EventsThisMeal.Count > 0)
+                                    {
+                                        <span class="pp-events">· @string.Join(" · ", slot.EventsThisMeal)</span>
+                                    }
+                                </div>
+                                <div class="pp-house-grid">
+                                    @foreach (var h in slot.HouseBreakdown)
+                                    {
+                                        <div class="pp-house">
+                                            <div class="pp-house-name">@h.ResidenceName</div>
+                                            <div class="pp-house-count">@h.TotalPortions</div>
+                                            <div class="pp-house-detail">
+                                                @h.ActiveStudents<text> active</text>
+                                                @if (h.MatchPlayers > 0)
+                                                {
+                                                    <text> · </text>@h.MatchPlayers<text> match</text>
+                                                }
+                                                @if (h.Unavailable > 0)
+                                                {
+                                                    <text> · </text>@h.Unavailable<text> out</text>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* Day total — once per day, outside the slot loop *@
+                @if (day.DayTotalIngredients != null && day.DayTotalIngredients.Count > 0)
+                {
+                    <div class="pp-slot" style="background:#fcfcfc;">
+                        <div class="pp-day-total">
+                            <div class="pp-day-total-title">Day Total — @day.Date.ToString("dddd")</div>
+                            <table>
+                                <tbody>
+                                    @foreach (var line in day.DayTotalIngredients)
+                                    {
+                                        <tr>
+                                            <td>@line.IngredientName</td>
+                                            <td class="num">
+                                                @line.TotalRequired.ToString("N2")
+                                                <span class="unit">@line.Unit</span>
+                                            </td>
+                                            <td style="text-align:right;">
+                                                @if (line.IsCovered)
+                                                {
+                                                    <span class="stock-ok">✓</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="stock-low">short @line.Shortfall.ToString("N2")</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.WeekTotalIngredients != null && Model.WeekTotalIngredients.Count > 0)
+        {
+            <div class="pp-week-total">
+                <div class="pp-week-total-header">
+                    Week Total — All Ingredients
+                    <span class="text-muted small ms-2">This is what the kitchen must order / draw from stock.</span>
+                </div>
+                <table class="pp-week-total-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th style="text-align:right;">Required</th>
+                            <th style="text-align:right;">In stock</th>
+                            <th style="text-align:right;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var line in Model.WeekTotalIngredients)
+                        {
+                            <tr>
+                                <td>@line.IngredientName</td>
+                                <td class="num">
+                                    @line.TotalRequired.ToString("N2")
+                                    <span class="unit">@line.Unit</span>
+                                </td>
+                                <td class="num">
+                                    @line.StockAvailable.ToString("N2")
+                                    <span class="unit">@line.Unit</span>
+                                </td>
+                                <td style="text-align:right;">
+                                    @if (line.IsCovered)
+                                    {
+                                        <span class="stock-ok">✓ Covered</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="stock-low">Short by @line.Shortfall.ToString("N2") @line.Unit</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!Model.IsProductionConfirmed)
+        {
+            <div class="pp-actions">
+                <div class="info">
+                    <strong>Chef sign-off required.</strong>
+                    Review the ingredient breakdown, then confirm.
+                </div>
+                <form action="@Url.Action("ConfirmProduction", "Cafeteria", new { id = Model.MenuId })" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="btn btn-success btn-lg"
+                            onclick="return confirm('Confirm the production plan for this week?');">
+                        Confirm Production Plan
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success mt-4">
+                <strong>Production confirmed</strong>
+                @if (Model.ConfirmedAt.HasValue)
+                {
+                    <text>on @Model.ConfirmedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                }
+                — the kitchen can prepare to schedule.
+            </div>
+        }
+
+        <div class="mt-4">
+            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="btn btn-outline-secondary">
+                ← Back to Kitchen Review Queue
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function toggleBom(el) {
+        var bom = el.parentElement.querySelector('.pp-bom');
+        if (!bom) return;
+
+        var isOpen = bom.style.display !== 'none';
+        bom.style.display = isOpen ? 'none' : 'block';
+
+        var count = el.textContent.match(/\d+/);
+        var n = count ? count[0] : '';
+        el.textContent = (isOpen ? '▸' : '▾') + ' ' + (isOpen ? 'Show' : 'Hide') + ' ingredients (' + n + ')';
+    }
+</script>

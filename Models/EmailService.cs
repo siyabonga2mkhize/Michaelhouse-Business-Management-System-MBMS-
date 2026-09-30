@@ -264,8 +264,10 @@ namespace Michaelhouse.Services
             {
                 using (var client = new SmtpClient(_smtpHost, _smtpPort))
                 {
-                    client.EnableSsl = true;
+                    // CRITICAL ORDER OF OPERATIONS FOR GMAIL:
+                    client.UseDefaultCredentials = false; // Must be false BEFORE setting Credentials
                     client.Credentials = new NetworkCredential(_smtpUser, _smtpPass);
+                    client.EnableSsl = true; // Required for Gmail Port 587
 
                     var msg = new MailMessage
                     {
@@ -274,6 +276,7 @@ namespace Michaelhouse.Services
                         Body = htmlBody,
                         IsBodyHtml = true
                     };
+
                     msg.To.Add(toEmail);
                     client.Send(msg);
                 }
@@ -281,6 +284,7 @@ namespace Michaelhouse.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Email failed: {ex.Message}");
+                // Optional: throw new Exception($"Failed to dispatch email: {ex.Message}", ex);
             }
         }
 
