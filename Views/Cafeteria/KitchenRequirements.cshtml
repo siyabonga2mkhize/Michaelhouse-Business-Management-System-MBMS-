@@ -1,351 +1,169 @@
-﻿@using System
-@using System.Collections.Generic
-@model List<Michaelhouse.Services.MenuSchedulingService.IngredientRequirement>
+﻿@using System.Linq
+@using Michaelhouse.Models.ViewModels
+@model ProductionPlanViewModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Kitchen Requirements";
 
-    var menuId = ViewBag.MealMenuId;
-    var startDate = ViewBag.StartDate as DateTime?;
-    var endDate = ViewBag.EndDate as DateTime?;
-    var menuStatus = ViewBag.MenuStatus != null
-        ? ViewBag.MenuStatus.ToString()
-        : "Draft";
+    bool hasSelections = Model.IsMenuPublished && Model.SubmittedPlanCount > 0 && Model.WeekTotalIngredients.Any();
+    var problems = Model.Warnings.Where(w => w.Severity != KitchenWarningSeverity.Info).ToList();
+}
 
-    var ingredientCount = Model == null ? 0 : Model.Count;
+@helper Status(IngredientLineViewModel line)
+{
+    if (line.Status == IngredientAvailability.Available)
+    {
+        <span class="badge bg-success">Available</span>
+    }
+    else if (line.Status == IngredientAvailability.Insufficient)
+    {
+        <span class="badge bg-warning text-dark">Insufficient</span>
+        <div class="small text-danger">short @KitchenQuantity.Format(line.Shortfall, line.Unit)</div>
+    }
+    else
+    {
+        <span class="badge bg-danger">Not available</span>
+    }
+}
+
+@helper Table(IEnumerable<IngredientLineViewModel> lines)
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ingredient</th>
+                    <th class="text-end">Required</th>
+                    <th class="text-end">Available</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in lines)
+                {
+                    <tr>
+                        <td><strong>@line.IngredientName</strong></td>
+                        <td class="text-end">@KitchenQuantity.Format(line.TotalRequired, line.Unit)</td>
+                        <td class="text-end">@KitchenQuantity.Format(line.StockAvailable, line.Unit)</td>
+                        <td>@Status(line)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 
 <div class="container-fluid py-4">
 
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="mb-1">
-                <i class="fas fa-clipboard-list"></i>
-                Kitchen Requirements
-            </h2>
-
+            <h1 class="h3 mb-1">Kitchen Requirements</h1>
             <p class="text-muted mb-0">
-                Ingredient requirements generated from the scheduled weekly menu.
+                @Model.WeekStart.ToString("dd MMM yyyy") – @Model.WeekEnd.ToString("dd MMM yyyy")
+                · calculated from students' submitted meal plans
             </p>
         </div>
-
-        <div>
-            @if (menuId != null)
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("Review", "Cafeteria", new { id = Model.MenuId })" class="btn btn-outline-secondary">Back to Menu</a>
+            @if (hasSelections)
             {
-                <a href="@Url.Action("Review", "Cafeteria", new { id = menuId })"
-                   class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Review
-                </a>
+                <a href="@Url.Action("ProductionPlan", "Cafeteria", new { id = Model.MenuId })" class="btn btn-primary">Open Kitchen Plan</a>
             }
         </div>
-
     </div>
 
-
-    <!-- Menu Information -->
-    <div class="card shadow-sm mb-4">
-
-        <div class="card-header bg-light">
-            <h5 class="mb-0">
-                <i class="fas fa-calendar-alt"></i>
-                Menu Information
-            </h5>
+    @if (!Model.IsMenuPublished)
+    {
+        <div class="alert alert-info">
+            Kitchen requirements are calculated from what students choose, so they appear once this menu is
+            published and students have submitted their meal plans.
         </div>
-
-        <div class="card-body">
-
-            <div class="row">
-
-                <div class="col-md-4">
-                    <strong>Menu Period</strong>
-
-                    <div class="mt-1">
-                        @if (startDate.HasValue && endDate.HasValue)
-                        {
-                            @startDate.Value.ToString("dd MMM yyyy")
-                            <span class="mx-1">–</span>
-                            @endDate.Value.ToString("dd MMM yyyy")
-                        }
-                        else
-                        {
-                            <span class="text-muted">Not available</span>
-                        }
-                    </div>
-                </div>
-
-
-                <div class="col-md-4">
-                    <strong>Menu Status</strong>
-
-                    <div class="mt-1">
-                        @if (menuStatus == "Accepted")
-                        {
-                            <span class="badge badge-success">
-                                Accepted
-                            </span>
-                        }
-                        else if (menuStatus == "PendingReview")
-                        {
-                            <span class="badge badge-warning">
-                                Pending Review
-                            </span>
-                        }
-                        else if (menuStatus == "Rejected")
-                        {
-                            <span class="badge badge-danger">
-                                Rejected
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-secondary">
-                                @menuStatus
-                            </span>
-                        }
-                    </div>
-                </div>
-
-
-                <div class="col-md-4">
-                    <strong>Total Ingredients</strong>
-
-                    <div class="mt-1">
-                        <span class="badge badge-primary">
-                            @ingredientCount
-                        </span>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- Explanation -->
-    <div class="alert alert-info">
-
-        <div class="d-flex">
-
-            <div class="mr-3">
-                <i class="fas fa-info-circle fa-lg"></i>
-            </div>
-
-            <div>
-                <strong>How the requirements are calculated</strong>
-
-                <p class="mb-0 mt-1">
-                    Ingredient quantities are calculated from the scheduled menu
-                    portions and the recipe quantity required for one standard
-                    portion.
-                </p>
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- Requirements Table -->
-    <div class="card shadow-sm">
-
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-
-            <h5 class="mb-0">
-                <i class="fas fa-boxes"></i>
-                Required Ingredients
-            </h5>
-
-            <span class="text-muted">
-                @ingredientCount ingredient(s)
-            </span>
-
-        </div>
-
-
-        <div class="card-body p-0">
-
-            @if (Model == null || Model.Count == 0)
+    }
+    else if (!hasSelections)
+    {
+        <div class="alert alert-info">
+            No student has submitted a meal plan for this week yet, so there are no requirements to calculate.
+            @if (Model.UnsubmittedPlansWithPicks > 0)
             {
-                <div class="text-center py-5">
-
-                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-
-                    <h5>No ingredient requirements found</h5>
-
-                    <p class="text-muted mb-0">
-                        The scheduled menu does not currently have recipe
-                        ingredient requirements available.
-                    </p>
-
-                </div>
+                <span>@Model.UnsubmittedPlansWithPicks student(s) have chosen meals but not submitted.</span>
             }
-            else
-            {
-                <div class="table-responsive">
-
-                    <table class="table table-hover table-striped mb-0">
-
-                        <thead class="thead-dark">
-
-                            <tr>
-                                <th style="width: 55%;">
-                                    Ingredient
-                                </th>
-
-                                <th style="width: 25%;" class="text-right">
-                                    Required Quantity
-                                </th>
-
-                                <th style="width: 20%;">
-                                    Unit
-                                </th>
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            @foreach (var requirement in Model)
-                            {
-                                <tr>
-
-                                    <td>
-                                        <strong>
-                                            @requirement.IngredientName
-                                        </strong>
-                                    </td>
-
-                                    <td class="text-right">
-
-                                        <strong>
-                                            @requirement.RequiredQuantity.ToString("N2")
-                                        </strong>
-
-                                    </td>
-
-                                    <td>
-                                        @requirement.Unit
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-            }
-
         </div>
-
-    </div>
-
-
-    <!-- Kitchen Workflow Information -->
-    <div class="row mt-4">
-
-        <div class="col-md-4">
-
-            <div class="card h-100 shadow-sm">
-
-                <div class="card-body">
-
-                    <h6>
-                        <i class="fas fa-utensils"></i>
-                        Recipe Based
-                    </h6>
-
-                    <p class="text-muted small mb-0">
-                        Requirements are derived from the recipes linked to
-                        scheduled menu items.
-                    </p>
-
-                </div>
-
+    }
+    else
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100"><div class="card-body">
+                    <div class="small text-muted text-uppercase">Submitted meal plans</div>
+                    <div class="display-6">@Model.SubmittedPlanCount</div>
+                    <div class="small text-muted">of @Model.StudentCount students</div>
+                </div></div>
             </div>
-
-        </div>
-
-
-        <div class="col-md-4">
-
-            <div class="card h-100 shadow-sm">
-
-                <div class="card-body">
-
-                    <h6>
-                        <i class="fas fa-calculator"></i>
-                        Portion Based
-                    </h6>
-
-                    <p class="text-muted small mb-0">
-                        Each scheduled item's calculated portion quantity is
-                        used when determining the required ingredients.
-                    </p>
-
-                </div>
-
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100"><div class="card-body">
+                    <div class="small text-muted text-uppercase">Portions to prepare</div>
+                    <div class="display-6">@Model.TotalMeals</div>
+                    <div class="small text-muted">incl. @Model.StaffMeals staff per meal</div>
+                </div></div>
             </div>
-
-        </div>
-
-
-        <div class="col-md-4">
-
-            <div class="card h-100 shadow-sm">
-
-                <div class="card-body">
-
-                    <h6>
-                        <i class="fas fa-warehouse"></i>
-                        Kitchen Planning
-                    </h6>
-
-                    <p class="text-muted small mb-0">
-                        The resulting quantities provide the kitchen with a
-                        consolidated requirement list for preparation and
-                        stock planning.
-                    </p>
-
-                </div>
-
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100"><div class="card-body">
+                    <div class="small text-muted text-uppercase">Ingredients</div>
+                    <div class="display-6">@Model.WeekTotalIngredients.Count</div>
+                </div></div>
             </div>
-
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100"><div class="card-body">
+                    <div class="small text-muted text-uppercase">Availability problems</div>
+                    <div class="display-6 @(problems.Any() ? "text-danger" : "text-success")">@problems.Count</div>
+                </div></div>
+            </div>
         </div>
 
-    </div>
+        if (problems.Any())
+        {
+            <div class="alert alert-danger">
+                <strong>Some ingredients may stop meals being prepared.</strong>
+                <ul class="mb-0 mt-1 small">
+                    @foreach (var w in problems.OrderByDescending(w => w.Severity))
+                    {
+                        <li><strong>@w.When:</strong> @w.Message <span class="text-muted">Affects: @string.Join(", ", w.AffectedMeals)</span></li>
+                    }
+                </ul>
+            </div>
+        }
+
+        if (Model.UnsubmittedPlansWithPicks > 0)
+        {
+            <div class="alert alert-light border small">
+                @Model.UnsubmittedPlansWithPicks student(s) have chosen meals but not submitted — they aren't counted.
+            </div>
+        }
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white"><strong>Week total</strong> <span class="text-muted small ms-2">compared with current stock — nothing is reserved or deducted</span></div>
+            <div class="card-body p-0">
+                @Table(Model.WeekTotalIngredients)
+            </div>
+        </div>
+
+        foreach (var day in Model.Days.Where(d => d.DayTotalIngredients.Any()))
+        {
+            <details class="card shadow-sm mb-2">
+                <summary class="card-header bg-white">
+                    <strong>@day.Date.ToString("dddd dd MMM")</strong>
+                    <span class="text-muted small ms-2">@day.Slots.Sum(s => s.Portions) portions</span>
+                    @if (!day.SelectionsFinal)
+                    {
+                        <span class="text-warning small ms-2">students can still change these meals</span>
+                    }
+                </summary>
+                <div class="card-body p-0">
+                    @Table(day.DayTotalIngredients)
+                </div>
+            </details>
+        }
+    }
 
 </div>
-
-
-<style>
-
-    .card {
-        border-radius: 8px;
-    }
-
-    .card-header {
-        border-bottom: 1px solid #e5e5e5;
-    }
-
-    .table th {
-        vertical-align: middle;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
-    .badge {
-        font-size: 0.85rem;
-        padding: 0.45em 0.7em;
-    }
-</style>

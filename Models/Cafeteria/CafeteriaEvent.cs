@@ -21,6 +21,9 @@ namespace Michaelhouse.Models.Cafeteria
         [StringLength(150)]
         public string EventName { get; set; }
 
+        [StringLength(1000)]
+        public string Description { get; set; }
+
         [Required]
         public EventType EventType { get; set; }
 
@@ -34,9 +37,9 @@ namespace Michaelhouse.Models.Cafeteria
         public TimeSpan EndTime { get; set; }
 
         // ── Venue ────────────────────────────────────────────────
-        [Required]
+        // Optional: not every event (e.g. a holiday meal) has one
         [ForeignKey("Venue")]
-        public int VenueId { get; set; }
+        public int? VenueId { get; set; }
         public virtual EventVenue Venue { get; set; }
 
         // ── Headcounts ───────────────────────────────────────────
@@ -87,6 +90,17 @@ namespace Michaelhouse.Models.Cafeteria
         // ── RSVPs (UC18) ─────────────────────────────────────────
         public virtual ICollection<EventRsvp> Rsvps { get; set; }
 
+        // ── Buffet meals (from the Dietitian's meal library) ─────
+        public virtual ICollection<CafeteriaEventMenuItem> BuffetItems { get; set; }
+
+        // Attendees pick one of the buffet meals on their RSVP;
+        // otherwise everyone helps themselves from the buffet
+        public bool OffersMealChoice { get; set; }
+
+        // Parents and staff may bring up to this many guests each
+        public bool AllowGuests { get; set; }
+        public int MaxGuestsPerInvitee { get; set; }
+
         // ── Audit ────────────────────────────────────────────────
 
         // ── RSVP lifecycle (UC18) ────────────────────────────────
@@ -99,6 +113,16 @@ namespace Michaelhouse.Models.Cafeteria
         // CSV of ResidenceIds, e.g. "1,3". Null or empty = all parents.
         [StringLength(200)]
         public string InviteParentResidenceIds { get; set; }
+
+        // If set, only students living in these houses are invited.
+        // CSV of ResidenceIds. Null or empty = all registered students.
+        [StringLength(200)]
+        public string InviteStudentResidenceIds { get; set; }
+
+        // When RSVPs open automatically (school time). Null = only
+        // when the manager opens them. Separate from EventDate.
+        public DateTime? RsvpOpensAt { get; set; }
+
         public DateTime? RsvpDeadline { get; set; }
         public DateTime? RsvpOpenedAt { get; set; }
         public DateTime? RsvpClosedAt { get; set; }
@@ -111,6 +135,7 @@ namespace Michaelhouse.Models.Cafeteria
             SubEvents = new HashSet<CafeteriaEvent>();
             StaffAssignments = new HashSet<EventStaffAssignment>();
             Rsvps = new HashSet<EventRsvp>();
+            BuffetItems = new HashSet<CafeteriaEventMenuItem>();
             CreatedAt = DateTime.UtcNow;
         }
     }

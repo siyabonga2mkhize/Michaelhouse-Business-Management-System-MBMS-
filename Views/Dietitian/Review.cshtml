@@ -143,15 +143,24 @@
         @if (Model.Student != null && Model.Student.StudentProfile != null)
         {
             var p = Model.Student.StudentProfile;
-            if (!string.IsNullOrWhiteSpace(p.Allergies) ||
+            var diet = Michaelhouse.Services.DietaryProfileService.FromStudentProfile(p);
+            if (diet.HasAnyInformation ||
                 !string.IsNullOrWhiteSpace(p.MedicalConditions) ||
                 !string.IsNullOrWhiteSpace(p.Sports))
             {
                 <div class="alert alert-info">
                     <strong>Student profile:</strong>
-                    @if (!string.IsNullOrWhiteSpace(p.Allergies))
+                    @if (!string.IsNullOrWhiteSpace(diet.PreferenceSummary))
                     {
-                        <span>Allergies: <strong>@p.Allergies</strong> · </span>
+                        <span>Preference: <strong>@diet.PreferenceSummary</strong> · </span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(diet.AllergySummary))
+                    {
+                        <span>Allergies: <strong>@diet.AllergySummary</strong> · </span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(diet.MedicalRestrictionSummary))
+                    {
+                        <span>Medical dietary: <strong>@diet.MedicalRestrictionSummary</strong> · </span>
                     }
                     @if (!string.IsNullOrWhiteSpace(p.MedicalConditions))
                     {
@@ -160,6 +169,10 @@
                     @if (!string.IsNullOrWhiteSpace(p.Sports))
                     {
                         <span>Sports: <strong>@p.Sports</strong></span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(diet.Notes))
+                    {
+                        <div class="mt-1">Dietary notes: @diet.Notes</div>
                     }
                 </div>
             }

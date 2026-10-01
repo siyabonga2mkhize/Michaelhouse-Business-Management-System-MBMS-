@@ -1,0 +1,153 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model System.Collections.Generic.List<Michaelhouse.Models.ViewModels.MealListItemViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Meal Library";
+
+    bool canEdit = ViewBag.CanEdit == true;
+    bool showInactive = ViewBag.ShowInactive == true;
+}
+
+<style>
+    .ml-shell {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+    .ml-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .ml-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+        .ml-header p {
+            color: #6b7280;
+            font-size: .88rem;
+            margin: 0;
+        }
+
+    .ml-table {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        .ml-table table {
+            margin: 0;
+            font-size: .88rem;
+        }
+
+        .ml-table th {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+            background: #f9fafb;
+        }
+
+    .ml-inactive td {
+        color: #9ca3af;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="ml-shell">
+
+        <div class="ml-header">
+            <div>
+                <h1>Meal Library</h1>
+                <p>Meals available to menu scheduling and student meal plans. Nutrition and allergens are calculated from each meal's ingredients.</p>
+            </div>
+            <div class="d-flex gap-2">
+                @if (showInactive)
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MealLibrary")">Hide inactive</a>
+                }
+                else
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MealLibrary", new { showInactive = true })">Show inactive</a>
+                }
+                @if (canEdit)
+                {
+                    <a class="btn btn-success" href="@Url.Action("Create", "MealLibrary")"><i class="bi bi-plus-lg"></i> Create Meal</a>
+                }
+            </div>
+        </div>
+
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-secondary">No meals yet.</div>
+        }
+        else
+        {
+            <div class="ml-table table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Meal</th>
+                            <th>Meal type</th>
+                            <th>Dietary</th>
+                            <th>Nutrition category</th>
+                            <th class="text-end">kcal</th>
+                            <th class="text-end">Protein (g)</th>
+                            <th>Allergens</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model)
+                        {
+                            <tr class="@(m.IsActive ? "" : "ml-inactive")">
+                                <td>
+                                    <strong>@m.Name</strong>
+                                    @if (!m.IsActive)
+                                    {
+                                        <span class="badge bg-secondary ms-1">Inactive</span>
+                                    }
+                                    @if (m.IngredientCount == 0)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1">No ingredients</span>
+                                    }
+                                </td>
+                                <td>@m.MealSlots</td>
+                                <td>
+                                    @m.DietaryClassification
+                                    @if (m.IsHalal)
+                                    {
+                                        <span class="badge bg-success ms-1">Halal</span>
+                                    }
+                                </td>
+                                <td>@(Enum.IsDefined(typeof(NutritionCategory), m.NutritionCategory) ? m.NutritionCategory.ToString() : "Not set")</td>
+                                <td class="text-end">@m.CaloriesPerPortion.ToString("0")</td>
+                                <td class="text-end">@m.ProteinGramsPerPortion.ToString("0.#")</td>
+                                <td>@(string.IsNullOrEmpty(m.Allergens) ? "None" : m.Allergens)</td>
+                                <td class="text-end text-nowrap">
+                                    <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details", "MealLibrary", new { id = m.Id })">View</a>
+                                    @if (canEdit)
+                                    {
+                                        <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Edit", "MealLibrary", new { id = m.Id })">Edit</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+</div>

@@ -11,33 +11,70 @@ namespace Michaelhouse.Services
     // ============================================================
     // UC13 — Personalized Meal Plan Service
     //
-    // Rule-based recommender. No external AI:
-    //   1. Loads the currently Accepted UC12 menu (latest published)
-    //   2. For each (day, slot) finds the scheduled item (the chef's choice)
-    //   3. Loads the wider MenuItem library as alternatives
-    //   4. HARD FILTERS by student allergies (walks recipe → ingredients)
-    //   5. RANKS remaining options using the student's active sport,
-    //      sport archetype (UC12), and match-day context
-    //   6. Returns top 3 options per slot
+    // The Cafeteria Manager publishes (accepts) a weekly menu with
+    // several options per breakfast / lunch / dinner. The student's
+    // meal plan is one choice per slot FROM THOSE OPTIONS:
     //
-    // UC12 integration:
-    //   - Sports come from StudentSportStatus (structured, injury-aware)
-    //     instead of the free-text StudentProfile.Sports field.
-    //   - Archetype drives preference: Power→protein, Endurance→carb.
-    //   - If the student is marked unavailable for a date, we do NOT
-    //     push athletic nutrition on that date (they're recovering).
+    //   1. Loads the most recently published menu
+    //   2. For each (day, slot) takes the menu's options — nothing
+    //      outside the published menu is ever offered
+    //   3. Checks each against the student's dietary profile —
+    //      allergies, preference, medical restrictions
+    //      (DietaryProfileService). Every option is shown; ones that
+    //      conflict are greyed out with the reason and can't be chosen
+    //      (the server refuses them too).
+    //   4. RANKS what's left for the student's own sport: their
+    //      fixtures (match day, day before a match, training),
+    //      priority sports and archetype (same rules as the
+    //      scheduler, MenuSchedulingService.MatchDayCategory etc.)
+    //   5. Enforces, on the server, every save and submit:
+    //      own plan only, published option for that date + slot,
+    //      suitable for the current profile, and the selection
+    //      deadline — a meal can't be chosen or changed from 00:00
+    //      the day before it is served (school time, SchoolClock).
+    //
+    // Submitting sends the plan straight to the kitchen (status
+    // Submitted) — there is no Dietitian review of student plans; the
+    // Dietitian has already approved the meals. The saved picks
+    // (MealPlanItem → MenuScheduleItem) of submitted plans are the
+    // demand the kitchen plan uses (MenuSchedulingService.BuildProductionPlan).
     // ============================================================
 
     public class MealPlanService
     {
         private readonly DBContextClass _db;
+        private readonly DietaryProfileService _dietary;
+        private readonly Func<DateTime> _now;
 
-        // How many options to show the student per meal slot
-        private const int OptionsPerSlot = 3;
+        private static readonly MealSlot[] Slots = { MealSlot.Breakfast, MealSlot.Lunch, MealSlot.Dinner };
 
         public MealPlanService(DBContextClass db)
+            : this(db, null)
+        {
+        }
+
+        // now: school time; defaults to SchoolClock.Now (tests can fix it)
+        public MealPlanService(DBContextClass db, Func<DateTime> now)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
+            _dietary = new DietaryProfileService(_db);
+            _now = now ?? (() => SchoolClock.Now);
+        }
+
+        // ============================================================
+        // SELECTION DEADLINE
+        // A meal's selection closes at 00:00 on the day before it is
+        // served, e.g. Wednesday's meals lock at the start of Tuesday.
+        // ============================================================
+
+        public static DateTime SelectionCutoff(DateTime mealDate)
+        {
+            return mealDate.Date.AddDays(-1);
+        }
+
+        private bool IsLocked(DateTime mealDate)
+        {
+            return _now() >= SelectionCutoff(mealDate);
         }
 
         // ============================================================
@@ -106,26 +143,26 @@ namespace Michaelhouse.Services
 
         // ============================================================
         // STUDENT — SAVE PICKS
+        //
+        // picks: "yyyy-MM-dd|Lunch" → MenuItemId, as posted by the page.
+        // Nothing posted is trusted — every pick is checked here, and
+        // nothing is saved unless every pick is valid.
+        //
+        // Allowed in any status while the meal's deadline hasn't passed.
+        // A Submitted / Approved plan keeps its status: each changed pick
+        // is re-validated against the student's current profile.
         // ============================================================
 
-        public void SavePicks(int mealPlanId, Dictionary<string, int> picks)
+        public void SavePicks(int mealPlanId, int studentId, Dictionary<string, int> picks)
         {
-            var plan = _db.MealPlans
-                .Include(p => p.Items)
-                .FirstOrDefault(p => p.Id == mealPlanId);
+            var plan = LoadOwnPlan(mealPlanId, studentId);
 
-            if (plan == null)
-            {
-                throw new InvalidOperationException("Meal plan not found.");
-            }
+            var profile = _dietary.GetProfileForStudent(plan.StudentId);
+            var candidates = LoadCandidates().ToDictionary(c => c.Id);
+            var menuOptions = LoadMenuOptions(plan);
+            var validPicks = new List<Tuple<DateTime, MealSlot, int, int>>();
 
-            if (plan.Status != MealPlanStatus.Draft && plan.Status != MealPlanStatus.SentBack)
-            {
-                throw new InvalidOperationException(
-                    "This plan has been submitted and can no longer be edited.");
-            }
-
-            foreach (var entry in picks)
+            foreach (var entry in picks ?? new Dictionary<string, int>())
             {
                 // Key format: "yyyy-MM-dd|Breakfast"
                 var parts = entry.Key.Split('|');
@@ -135,7 +172,53 @@ namespace Michaelhouse.Services
                 if (!DateTime.TryParse(parts[0], out date)) continue;
 
                 MealSlot slot;
-                if (!Enum.TryParse(parts[1], out slot)) continue;
+                if (!Enum.TryParse(parts[1], out slot) || !Slots.Contains(slot)) continue;
+
+                if (date.Date < plan.WeekStartDate.Date || date.Date > plan.WeekEndDate.Date) continue;
+
+                var existing = plan.Items
+                    .FirstOrDefault(i => i.Date.Date == date.Date && i.MealSlot == slot);
+
+                // Deadline: an unchanged pick is fine; anything else is refused
+                if (IsLocked(date))
+                {
+                    if (existing != null && existing.MenuItemId == entry.Value) continue;
+
+                    throw new InvalidOperationException(string.Format(
+                        "{0} on {1:ddd dd MMM} can no longer be chosen or changed — selection closed at the start of {2:ddd dd MMM}.",
+                        slot, date, SelectionCutoff(date)));
+                }
+
+                // Must be one of this week's published options for that slot
+                var option = menuOptions.FirstOrDefault(s =>
+                    s.Date.Date == date.Date && s.MealSlot == slot && s.MenuItemId == entry.Value);
+
+                MenuItem item;
+                if (option == null
+                    || !candidates.TryGetValue(entry.Value, out item)
+                    || !IsEligibleForSlot(item, slot))
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "The meal chosen for {0} on {1:ddd dd MMM} is not one of the menu options for that meal.",
+                        slot, date));
+                }
+
+                // Must suit the student's CURRENT dietary profile
+                var conflicts = _dietary.GetConflicts(profile, item);
+                if (conflicts.Count > 0)
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "{0} can't be chosen for {1} on {2:ddd dd MMM}: {3}.",
+                        item.Name, slot, date, conflicts[0].Message));
+                }
+
+                validPicks.Add(Tuple.Create(date.Date, slot, item.Id, option.Id));
+            }
+
+            foreach (var pick in validPicks)
+            {
+                var date = pick.Item1;
+                var slot = pick.Item2;
 
                 var existing = plan.Items
                     .FirstOrDefault(i => i.Date.Date == date.Date && i.MealSlot == slot);
@@ -147,13 +230,15 @@ namespace Michaelhouse.Services
                         MealPlanId = plan.Id,
                         Date = date.Date,
                         MealSlot = slot,
-                        MenuItemId = entry.Value,
+                        MenuItemId = pick.Item3,
+                        MenuScheduleItemId = pick.Item4,
                         CreatedAt = DateTime.UtcNow
                     });
                 }
                 else
                 {
-                    existing.MenuItemId = entry.Value;
+                    existing.MenuItemId = pick.Item3;
+                    existing.MenuScheduleItemId = pick.Item4;
                 }
             }
 
@@ -167,35 +252,142 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
-        // STUDENT — SUBMIT TO DIETITIAN
+        // STUDENT — SUBMIT (straight to the kitchen)
         // ============================================================
 
-        public void Submit(int mealPlanId)
+        public void Submit(int mealPlanId, int studentId)
+        {
+            var plan = LoadOwnPlan(mealPlanId, studentId);
+
+            if (plan.Status != MealPlanStatus.Draft && plan.Status != MealPlanStatus.SentBack)
+            {
+                throw new InvalidOperationException("This meal plan has already been submitted.");
+            }
+
+            var profile = _dietary.GetProfileForStudent(plan.StudentId);
+            var candidatesById = LoadCandidates().ToDictionary(c => c.Id);
+            var menuOptions = LoadMenuOptions(plan);
+
+            // ── Re-check picks that can still change ──
+            // The profile or menu may have changed since they were saved.
+            // Locked picks can't be changed any more, so they aren't
+            // blocked here (the collection terminal still warns staff).
+            foreach (var item in plan.Items.OrderBy(i => i.Date).ThenBy(i => i.MealSlot))
+            {
+                if (IsLocked(item.Date)) continue;
+
+                MenuItem menuItem;
+                bool onMenu = menuOptions.Any(s =>
+                    s.Date.Date == item.Date.Date && s.MealSlot == item.MealSlot && s.MenuItemId == item.MenuItemId);
+
+                if (!onMenu || !candidatesById.TryGetValue(item.MenuItemId, out menuItem))
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "Your pick for {0} on {1:ddd dd MMM} is no longer one of the menu options. Please choose again.",
+                        item.MealSlot, item.Date));
+                }
+
+                var conflicts = _dietary.GetConflicts(profile, menuItem);
+                if (conflicts.Count > 0)
+                {
+                    throw new InvalidOperationException(string.Format(
+                        "Your pick for {0} on {1:ddd dd MMM} ({2}) no longer fits your dietary profile: {3}. Please choose another meal.",
+                        item.MealSlot, item.Date, menuItem.Name, conflicts[0].Message));
+                }
+            }
+
+            // ── Completeness ──
+            // Every slot that is still open and has a suitable option
+            // must be chosen. Slots past their deadline, or where nothing
+            // on the menu suits the student, don't block submission.
+            var missing = new List<string>();
+            bool anyOpen = false;
+
+            for (var date = plan.WeekStartDate.Date; date <= plan.WeekEndDate.Date; date = date.AddDays(1))
+            {
+                if (IsLocked(date)) continue;
+
+                foreach (var slot in Slots)
+                {
+                    anyOpen = true;
+
+                    bool hasSuitableOption = SlotMenuItems(menuOptions, candidatesById, date, slot)
+                        .Any(c => _dietary.IsSafe(profile, c));
+
+                    bool picked = plan.Items.Any(i => i.Date.Date == date && i.MealSlot == slot);
+
+                    if (hasSuitableOption && !picked)
+                    {
+                        missing.Add(date.ToString("ddd dd MMM") + " " + slot);
+                    }
+                }
+            }
+
+            if (!anyOpen && plan.Items.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "The selection deadline has passed for every meal in this plan.");
+            }
+
+            if (missing.Count > 0)
+            {
+                throw new InvalidOperationException(string.Format(
+                    "Please choose a meal for every open slot. Still to choose: {0}{1}.",
+                    string.Join(", ", missing.Take(5)),
+                    missing.Count > 5 ? string.Format(" and {0} more", missing.Count - 5) : ""));
+            }
+
+            plan.Status = MealPlanStatus.Submitted;
+            plan.SubmittedAt = DateTime.UtcNow;
+            plan.UpdatedAt = DateTime.UtcNow;
+
+            _db.SaveChanges();
+        }
+
+        // Students may only work on their own plan
+        private MealPlan LoadOwnPlan(int mealPlanId, int studentId)
         {
             var plan = _db.MealPlans
                 .Include(p => p.Items)
                 .FirstOrDefault(p => p.Id == mealPlanId);
 
-            if (plan == null)
+            if (plan == null || plan.StudentId != studentId)
             {
                 throw new InvalidOperationException("Meal plan not found.");
             }
 
-            var slotsRequired = (int)((plan.WeekEndDate - plan.WeekStartDate).TotalDays + 1) * 3;
+            return plan;
+        }
 
-            if (plan.Items.Count < slotsRequired)
-            {
-                throw new InvalidOperationException(
-                    string.Format(
-                        "Please choose a meal for every slot. You have {0} of {1} picks.",
-                        plan.Items.Count, slotsRequired));
-            }
+        // ============================================================
+        // SUBMITTED PLANS — the selections the kitchen and the
+        // collection terminal work from. Plans submitted before the
+        // Dietitian review step was removed (SubmittedToDietitian /
+        // Approved) count too.
+        // ============================================================
 
-            plan.Status = MealPlanStatus.SubmittedToDietitian;
-            plan.SubmittedAt = DateTime.UtcNow;
-            plan.UpdatedAt = DateTime.UtcNow;
+        public static bool IsSubmitted(MealPlanStatus status)
+        {
+            return status == MealPlanStatus.Submitted
+                   || status == MealPlanStatus.SubmittedToDietitian
+                   || status == MealPlanStatus.Approved;
+        }
 
-            _db.SaveChanges();
+        // The student's submitted plan whose week includes this date
+        public MealPlan FindSubmittedPlanFor(int studentId, DateTime date)
+        {
+            var day = date.Date;
+
+            return _db.MealPlans
+                .Where(p => p.StudentId == studentId
+                            && p.WeekStartDate <= day
+                            && p.WeekEndDate >= day
+                            && (p.Status == MealPlanStatus.Submitted
+                                || p.Status == MealPlanStatus.SubmittedToDietitian
+                                || p.Status == MealPlanStatus.Approved))
+                .OrderByDescending(p => p.SubmittedAt)
+                .ThenByDescending(p => p.Id)
+                .FirstOrDefault();
         }
 
         // ============================================================
@@ -307,72 +499,87 @@ namespace Michaelhouse.Services
                 WeekStartDate = plan.WeekStartDate,
                 WeekEndDate = plan.WeekEndDate,
                 Status = plan.Status,
-                IsEditable = plan.Status == MealPlanStatus.Draft || plan.Status == MealPlanStatus.SentBack,
+                CanSubmit = plan.Status == MealPlanStatus.Draft || plan.Status == MealPlanStatus.SentBack,
                 DietitianComment = plan.DietitianComment,
                 SubmittedAt = plan.SubmittedAt,
                 ReviewedAt = plan.ReviewedAt,
                 SourceMenuId = acceptedMenu.Id,
-                Allergies = profile != null ? profile.Allergies : "",
                 MedicalConditions = profile != null ? profile.MedicalConditions : "",
-                Sports = sportsDisplay
+                Sports = sportsDisplay,
+                Now = _now()
             };
 
-            // Parse the student's allergens into a set (case-insensitive)
-            var studentAllergens = ParseAllergens(vm.Allergies);
+            // The student's dietary profile drives the hard filter
+            var dietaryProfile = DietaryProfileService.FromStudentProfile(profile);
 
-            // Load all candidate menu items with recipe + ingredients
-            var candidates = _db.MenuItems
-                .Where(m => m.IsActive)
-                .Include(m => m.Recipe.RecipeIngredients.Select(ri => ri.Ingredient))
-                .ToList();
+            vm.Allergies = dietaryProfile.AllergySummary;
+            vm.DietaryPreference = dietaryProfile.PreferenceSummary;
+            vm.MedicalDietaryRestrictions = dietaryProfile.MedicalRestrictionSummary;
 
-            // Load this menu's schedule items (the chef's picks)
+            // Active menu items with recipe + ingredients (for the
+            // dietary check), keyed by id
+            var candidatesById = LoadCandidates().ToDictionary(c => c.Id);
+
+            // The published menu's options for the week
             var scheduleItems = _db.MenuScheduleItems
                 .Where(s => s.MealMenuId == acceptedMenu.Id)
                 .ToList();
 
-            // For each date in the week
+            // The student's own sports context for every day
+            var sportDays = BuildSportContexts(sportStatuses, plan.WeekStartDate.Date, plan.WeekEndDate.Date);
+
             for (var date = plan.WeekStartDate.Date;
                  date <= plan.WeekEndDate.Date;
                  date = date.AddDays(1))
             {
                 var dayVm = new MealPlanDayViewModel { Date = date };
+                var sportCtx = sportDays[date];
 
-                // ── UC12: build sport context for this specific day ──
-                var sportCtx = BuildSportContextForDate(sportStatuses, date);
-
-                foreach (var slot in new[] { MealSlot.Breakfast, MealSlot.Lunch, MealSlot.Dinner })
+                foreach (var slot in Slots)
                 {
                     var slotVm = BuildSlot(
                         date,
                         slot,
                         scheduleItems,
-                        candidates,
+                        candidatesById,
                         plan,
-                        studentAllergens,
+                        dietaryProfile,
                         sportCtx);
 
                     dayVm.Slots.Add(slotVm);
+
+                    if (!slotVm.IsLocked && slotVm.Options.Any(o => o.IsAvailable))
+                    {
+                        vm.OpenSlotCount++;
+                        if (slotVm.CurrentPickMenuItemId.HasValue) vm.OpenSlotsChosen++;
+                    }
                 }
 
                 vm.Days.Add(dayVm);
             }
 
+            vm.IsEditable = vm.Days.Any(d => d.Slots.Any(s => !s.IsLocked));
+
             return vm;
         }
 
         // ============================================================
-        // UC12: SPORT CONTEXT
+        // SPORT CONTEXT — for THIS student, per day
         // ------------------------------------------------------------
-        // Evaluates a student's sport statuses FOR A GIVEN DATE and
-        // converts them into ranked nutrition preferences.
+        // Uses the student's StudentSportStatus rows (injury-aware),
+        // SportEvent fixtures for their sports and SportPriority, with
+        // the same category rules as the menu scheduler:
         //
-        //   Power     → prefer HighProtein
-        //   Endurance → prefer HighCarb
-        //   Skill / Speed → no strong preference
+        //   Match day          → archetype category (Power → HighProtein,
+        //                        Endurance → HighCarb, Skill → Light,
+        //                        Speed → Hydration)
+        //   Day before a match → HighCarb
+        //   Training day       → Power → HighProtein, Endurance → HighCarb
+        //   Priority sport week→ same as training
         //
-        // If every sport is marked unavailable on that date, the
-        // student is treated as "recovering" — no athletic push.
+        // Every day also keeps the archetype baseline (Power → protein,
+        // Endurance → carb). If every sport is marked unavailable on a
+        // date, the student is "recovering" — no athletic push.
         // ============================================================
 
         private class StudentSportContext
@@ -381,46 +588,120 @@ namespace Michaelhouse.Services
             public bool PrefersProtein { get; set; }
             public bool PrefersCarb { get; set; }
             public bool IsRecovering { get; set; }
+
+            public bool IsMatchDay { get; set; }
+            public bool IsDayBeforeMatch { get; set; }
+            public bool IsTrainingDay { get; set; }
+            public bool IsPriorityWeek { get; set; }
+
+            // What the day calls for, if anything
+            public NutritionCategory? PreferredCategory { get; set; }
+
+            // e.g. "Rugby vs Hilton"
+            public string Description { get; set; }
         }
 
-        private StudentSportContext BuildSportContextForDate(
+        private Dictionary<DateTime, StudentSportContext> BuildSportContexts(
             List<StudentSportStatus> statuses,
-            DateTime date)
+            DateTime weekStart,
+            DateTime weekEnd)
         {
-            var ctx = new StudentSportContext();
+            var result = new Dictionary<DateTime, StudentSportContext>();
+            var afterEnd = weekEnd.AddDays(2);   // day-before needs tomorrow's fixtures
 
-            if (statuses == null || statuses.Count == 0)
+            var mySports = new HashSet<string>(statuses.Select(s => s.Sport), StringComparer.OrdinalIgnoreCase);
+
+            var fixtures = mySports.Count == 0
+                ? new List<SportEvent>()
+                : _db.SportEvents
+                    .Where(e => !e.IsCancelled && e.ScheduledDate >= weekStart && e.ScheduledDate < afterEnd)
+                    .ToList()
+                    .Where(e => (string.IsNullOrEmpty(e.Status) || e.Status == "Scheduled") && mySports.Contains(e.Sport))
+                    .ToList();
+
+            var prioritySports = mySports.Count == 0
+                ? new List<string>()
+                : _db.SportPriorities
+                    .Where(p => p.PriorityLevel == 2 && p.WeekStartDate <= weekEnd && p.WeekEndDate >= weekStart)
+                    .Select(p => p.Sport)
+                    .ToList();
+
+            for (var date = weekStart; date <= weekEnd; date = date.AddDays(1))
             {
-                return ctx;
-            }
+                var ctx = new StudentSportContext();
+                result[date] = ctx;
 
-            var active = statuses.Where(s => IsStatusActiveOn(s, date)).ToList();
+                if (statuses.Count == 0) continue;
 
-            if (active.Count == 0)
-            {
-                ctx.IsRecovering = true;
-                return ctx;
-            }
+                var active = statuses.Where(s => IsStatusActiveOn(s, date)).ToList();
 
-            ctx.HasActiveSport = true;
-
-            foreach (var s in active)
-            {
-                switch (s.Archetype)
+                if (active.Count == 0)
                 {
-                    case SportArchetype.Power:
-                        ctx.PrefersProtein = true;
-                        break;
+                    ctx.IsRecovering = true;
+                    continue;
+                }
 
-                    case SportArchetype.Endurance:
-                        ctx.PrefersCarb = true;
-                        break;
+                ctx.HasActiveSport = true;
+                ctx.PrefersProtein = active.Any(s => s.Archetype == SportArchetype.Power);
+                ctx.PrefersCarb = active.Any(s => s.Archetype == SportArchetype.Endurance);
 
-                        // Skill / Speed: no strong category preference.
+                var activeTomorrow = statuses.Where(s => IsStatusActiveOn(s, date.AddDays(1))).ToList();
+
+                var matchToday = fixtures.FirstOrDefault(e =>
+                    e.EventType == "Match" && e.ScheduledDate.Date == date && active.Any(s => SameSport(s, e)));
+
+                var matchTomorrow = fixtures.FirstOrDefault(e =>
+                    e.EventType == "Match" && e.ScheduledDate.Date == date.AddDays(1) && activeTomorrow.Any(s => SameSport(s, e)));
+
+                var training = fixtures.FirstOrDefault(e =>
+                    e.EventType == "Training" && e.ScheduledDate.Date == date && active.Any(s => SameSport(s, e)));
+
+                var priority = active.FirstOrDefault(s =>
+                    prioritySports.Any(p => string.Equals(p, s.Sport, StringComparison.OrdinalIgnoreCase)));
+
+                if (matchToday != null)
+                {
+                    ctx.IsMatchDay = true;
+                    ctx.Description = MatchLabel(matchToday);
+                    ctx.PreferredCategory = MenuSchedulingService.MatchDayCategory(ArchetypeFor(active, matchToday));
+                }
+                else if (matchTomorrow != null)
+                {
+                    ctx.IsDayBeforeMatch = true;
+                    ctx.Description = MatchLabel(matchTomorrow);
+                    ctx.PreferredCategory = NutritionCategory.HighCarb;
+                }
+                else if (training != null)
+                {
+                    ctx.IsTrainingDay = true;
+                    ctx.Description = training.Sport + " training";
+                    ctx.PreferredCategory = MenuSchedulingService.TrainingCategory(ArchetypeFor(active, training));
+                }
+                else if (priority != null)
+                {
+                    ctx.IsPriorityWeek = true;
+                    ctx.Description = priority.Sport + " priority week";
+                    ctx.PreferredCategory = MenuSchedulingService.TrainingCategory(priority.Archetype);
                 }
             }
 
-            return ctx;
+            return result;
+        }
+
+        private static bool SameSport(StudentSportStatus status, SportEvent e)
+        {
+            return string.Equals(status.Sport, e.Sport, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static SportArchetype ArchetypeFor(List<StudentSportStatus> statuses, SportEvent e)
+        {
+            var status = statuses.FirstOrDefault(s => SameSport(s, e));
+            return status != null ? status.Archetype : SportArchetype.None;
+        }
+
+        private static string MatchLabel(SportEvent e)
+        {
+            return string.IsNullOrEmpty(e.Opponent) ? e.Sport + " match" : e.Sport + " vs " + e.Opponent;
         }
 
         private bool IsStatusActiveOn(StudentSportStatus status, DateTime date)
@@ -437,50 +718,47 @@ namespace Michaelhouse.Services
 
         // ============================================================
         // BUILD ONE SLOT
+        //
+        // Every published menu option for this slot is listed. Options
+        // that suit the student come first, ranked for their sport;
+        // options that conflict with their dietary profile follow,
+        // marked unavailable with the reason. Nothing outside the menu
+        // is ever listed.
         // ============================================================
 
         private MealPlanSlotViewModel BuildSlot(
             DateTime date,
             MealSlot slot,
             List<MenuScheduleItem> scheduleItems,
-            List<MenuItem> candidates,
+            Dictionary<int, MenuItem> candidatesById,
             MealPlan plan,
-            HashSet<string> studentAllergens,
+            StudentDietaryProfile dietaryProfile,
             StudentSportContext sportCtx)
         {
             var vm = new MealPlanSlotViewModel
             {
-                MealSlot = slot
+                MealSlot = slot,
+                SelectionCutoff = SelectionCutoff(date),
+                IsLocked = IsLocked(date),
+                IsMatchDay = sportCtx.IsMatchDay,
+                IsDayBeforeMatch = sportCtx.IsDayBeforeMatch,
+                IsTrainingDay = sportCtx.IsTrainingDay,
+                MatchDescription = sportCtx.Description
             };
 
-            // 1. What's the UC12 default for this (date, slot)?
-            var scheduled = scheduleItems
-                .FirstOrDefault(s => s.Date.Date == date.Date && s.MealSlot == slot);
+            // 1. The menu's options for this (date, slot)
+            var menuItems = SlotMenuItems(scheduleItems, candidatesById, date, slot);
 
-            // 2. Match-day context (from UC12's tagged reason).
-            //    We only surface this if the student is not recovering —
-            //    an injured athlete shouldn't see "match-day recovery".
-            var reason = scheduled != null ? (scheduled.TagReason ?? "") : "";
-            bool rawMatchDay = reason.Contains("Match-day");
-            bool rawDayBefore = reason.Contains("Pre-match");
-
-            bool studentActive = sportCtx != null
-                                 && sportCtx.HasActiveSport
-                                 && !sportCtx.IsRecovering;
-
-            vm.IsMatchDay = rawMatchDay && studentActive;
-            vm.IsDayBeforeMatch = rawDayBefore && studentActive;
-
-            if (vm.IsMatchDay || vm.IsDayBeforeMatch)
+            // Kept for the mobile API: the first menu option
+            if (menuItems.Count > 0)
             {
-                var dotIdx = reason.IndexOf(". ");
-                vm.MatchDescription = dotIdx > 0 ? reason.Substring(0, dotIdx) : reason;
+                vm.DefaultItemName = menuItems[0].Name;
             }
 
-            if (scheduled != null && scheduled.MenuItem != null)
-            {
-                vm.DefaultItemName = scheduled.MenuItem.Name;
-            }
+            // 2. Options this student may choose
+            var suitable = menuItems
+                .Where(c => _dietary.IsSafe(dietaryProfile, c))
+                .ToList();
 
             // 3. What did the student already pick?
             var pick = plan.Items
@@ -488,69 +766,142 @@ namespace Michaelhouse.Services
 
             if (pick != null)
             {
-                vm.CurrentPickMenuItemId = pick.MenuItemId;
                 vm.CurrentPickMealPlanItemId = pick.Id;
-            }
+                vm.CurrentPickName = pick.MenuItem != null ? pick.MenuItem.Name : null;
 
-            // 4. Build the ranked list of options
-            var eligible = candidates
-                .Where(c => IsEligibleForSlot(c, slot))
-                .Where(c => IsSafeForStudent(c, studentAllergens))
-                .ToList();
-
-            var scored = eligible
-                .Select(c => new
+                if (suitable.Any(c => c.Id == pick.MenuItemId))
                 {
-                    Item = c,
-                    Score = ScoreCandidate(c, vm.IsMatchDay, vm.IsDayBeforeMatch, sportCtx)
-                })
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.Item.Name)
-                .ToList();
-
-            var options = new List<MenuItem>();
-
-            if (scheduled != null
-                && scheduled.MenuItem != null
-                && IsSafeForStudent(scheduled.MenuItem, studentAllergens))
-            {
-                options.Add(scheduled.MenuItem);
-            }
-
-            if (pick != null)
-            {
-                var pickItem = candidates
-                    .FirstOrDefault(c => c.Id == pick.MenuItemId);
-
-                if (pickItem != null
-                    && IsSafeForStudent(pickItem, studentAllergens)
-                    && !options.Any(o => o.Id == pickItem.Id))
+                    vm.CurrentPickMenuItemId = pick.MenuItemId;
+                }
+                else
                 {
-                    options.Add(pickItem);
+                    // No longer on the menu, or no longer fits the
+                    // (updated) dietary profile.
+                    vm.CurrentPickNoLongerSuitable = true;
                 }
             }
 
-            foreach (var entry in scored)
+            vm.HasNoSuitableOption = suitable.Count == 0;
+
+            // 4. Sports: say so if nothing suitable meets the day's need
+            if (sportCtx.PreferredCategory.HasValue
+                && !sportCtx.IsRecovering
+                && suitable.Count > 0
+                && !suitable.Any(c => c.NutritionCategory == sportCtx.PreferredCategory.Value))
             {
-                if (options.Count >= OptionsPerSlot) break;
-                if (options.Any(o => o.Id == entry.Item.Id)) continue;
-                options.Add(entry.Item);
+                vm.SportsNote = string.Format(
+                    "No {0} option on this menu suits your dietary profile for {1} — choose the closest match.",
+                    CategoryWords(sportCtx.PreferredCategory.Value),
+                    sportCtx.Description);
             }
 
-            // 5. Map to option view models
-            vm.Options = options.Select(o => new MealPlanOptionViewModel
+            // 5. Suitable options first, ranked for the student's sport
+            vm.Options = suitable
+                .Select(o => new
+                {
+                    Item = o,
+                    Score = ScoreCandidate(o, sportCtx)
+                })
+                .OrderByDescending(x => x.Score)
+                .ThenBy(x => x.Item.Name)
+                .Select(x => ToOption(x.Item, sportCtx, null))
+                .ToList();
+
+            // 6. Then the rest of the menu, shown but not selectable
+            foreach (var item in menuItems.Where(c => !suitable.Contains(c)).OrderBy(c => c.Name))
             {
-                MenuItemId = o.Id,
-                Name = o.Name,
-                DietaryClassification = o.DietaryClassification,
-                CaloriesPerPortion = o.CaloriesPerPortion,
-                ProteinGramsPerPortion = o.ProteinGramsPerPortion,
-                NutritionCategory = o.NutritionCategory,
-                IsDefault = scheduled != null && scheduled.MenuItemId == o.Id,
-                Tags = BuildOptionTags(o, vm.IsMatchDay, vm.IsDayBeforeMatch, sportCtx)
-            }).ToList();
+                var reason = string.Join("; ", _dietary.GetConflicts(dietaryProfile, item).Select(c => c.Message));
+                vm.Options.Add(ToOption(item, sportCtx, reason));
+            }
 
             return vm;
+        }
+
+        // unavailableReason: null when the student may choose it
+        private MealPlanOptionViewModel ToOption(MenuItem item, StudentSportContext sportCtx, string unavailableReason)
+        {
+            bool available = unavailableReason == null;
+
+            return new MealPlanOptionViewModel
+            {
+                MenuItemId = item.Id,
+                Name = item.Name,
+                IsAvailable = available,
+                UnavailableReason = unavailableReason,
+                DietaryClassification = item.DietaryClassification,
+                CaloriesPerPortion = item.CaloriesPerPortion,
+                ProteinGramsPerPortion = item.ProteinGramsPerPortion,
+                CarbohydrateGramsPerPortion = item.CarbohydrateGramsPerPortion,
+                FatGramsPerPortion = item.FatGramsPerPortion,
+                NutritionCategory = item.NutritionCategory,
+                IsDefault = false,
+
+                // Sports tags only make sense on meals they can choose
+                Tags = available ? BuildOptionTags(item, sportCtx) : new List<string>()
+            };
+        }
+
+        private static string CategoryWords(NutritionCategory category)
+        {
+            switch (category)
+            {
+                case NutritionCategory.HighProtein: return "high-protein";
+                case NutritionCategory.HighCarb: return "high-carb";
+                case NutritionCategory.Light: return "light";
+                case NutritionCategory.Hydration: return "hydration-focused";
+                default: return "standard";
+            }
+        }
+
+        // ============================================================
+        // MENU OPTIONS
+        // ============================================================
+
+        // The accepted menu a plan was built from: same week start,
+        // most recently published (same ordering as GetOrCreateDraft).
+        private List<MenuScheduleItem> LoadMenuOptions(MealPlan plan)
+        {
+            var menu = _db.MealMenus
+                .Where(m => m.MenuStatus == MenuStatus.Accepted && m.StartDate == plan.WeekStartDate)
+                .OrderByDescending(m => m.LastModifiedDate)
+                .ThenByDescending(m => m.CreatedDate)
+                .ThenByDescending(m => m.Id)
+                .FirstOrDefault();
+
+            if (menu == null)
+            {
+                throw new InvalidOperationException(
+                    "The published menu for this week could not be found. Ask the Meal Coordinator.");
+            }
+
+            return _db.MenuScheduleItems
+                .Where(s => s.MealMenuId == menu.Id)
+                .ToList();
+        }
+
+        // Active, slot-eligible menu items offered in one slot
+        private List<MenuItem> SlotMenuItems(
+            IEnumerable<MenuScheduleItem> menuOptions,
+            Dictionary<int, MenuItem> candidatesById,
+            DateTime date,
+            MealSlot slot)
+        {
+            var result = new List<MenuItem>();
+
+            foreach (var option in menuOptions
+                         .Where(s => s.Date.Date == date.Date && s.MealSlot == slot)
+                         .OrderBy(s => s.Id))
+            {
+                MenuItem item;
+                if (candidatesById.TryGetValue(option.MenuItemId, out item)
+                    && IsEligibleForSlot(item, slot)
+                    && !result.Any(r => r.Id == item.Id))
+                {
+                    result.Add(item);
+                }
+            }
+
+            return result;
         }
 
         // ============================================================
@@ -569,99 +920,42 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
-        // HARD FILTER — ALLERGENS
+        // CANDIDATES — active menu items with recipe + ingredients
+        // (needed by the dietary conflict check)
         // ============================================================
 
-        private bool IsSafeForStudent(MenuItem item, HashSet<string> studentAllergens)
+        private List<MenuItem> LoadCandidates()
         {
-            if (studentAllergens.Count == 0)
-            {
-                return true;
-            }
-
-            var itemAllergens = GetAllergensForMenuItem(item);
-
-            return !itemAllergens.Any(a => studentAllergens.Contains(a));
-        }
-
-        private HashSet<string> GetAllergensForMenuItem(MenuItem item)
-        {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            if (item == null || item.Recipe == null || item.Recipe.RecipeIngredients == null)
-            {
-                return result;
-            }
-
-            foreach (var ri in item.Recipe.RecipeIngredients)
-            {
-                if (ri.Ingredient == null) continue;
-                if (string.IsNullOrWhiteSpace(ri.Ingredient.Allergens)) continue;
-
-                foreach (var a in ri.Ingredient.Allergens.Split(','))
-                {
-                    var trimmed = a.Trim();
-                    if (!string.IsNullOrEmpty(trimmed)) result.Add(trimmed);
-                }
-            }
-
-            return result;
-        }
-
-        private HashSet<string> ParseAllergens(string allergies)
-        {
-            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            if (string.IsNullOrWhiteSpace(allergies))
-            {
-                return result;
-            }
-
-            foreach (var a in allergies.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                var trimmed = a.Trim();
-                if (!string.IsNullOrEmpty(trimmed)) result.Add(trimmed);
-            }
-
-            return result;
+            return _db.MenuItems
+                .Where(m => m.IsActive)
+                .Include(m => m.Recipe.RecipeIngredients.Select(ri => ri.Ingredient))
+                .ToList();
         }
 
         // ============================================================
-        // SOFT RANK — match-day + sport archetype
+        // SOFT RANK — the day's sports need + sport archetype
         // ============================================================
 
-        private int ScoreCandidate(
-            MenuItem item,
-            bool isMatchDay,
-            bool isDayBeforeMatch,
-            StudentSportContext sportCtx)
+        private int ScoreCandidate(MenuItem item, StudentSportContext sportCtx)
         {
             int score = 0;
 
-            // Match-day recovery: heavy protein tilt
-            if (isMatchDay && item.NutritionCategory == NutritionCategory.HighProtein)
+            if (sportCtx != null && sportCtx.HasActiveSport && !sportCtx.IsRecovering)
             {
-                score += 10;
-            }
+                // What today calls for (match, day before, training, priority)
+                if (sportCtx.PreferredCategory.HasValue
+                    && item.NutritionCategory == sportCtx.PreferredCategory.Value)
+                {
+                    score += 10;
+                }
 
-            // Day before: carb loading tilt
-            if (isDayBeforeMatch && item.NutritionCategory == NutritionCategory.HighCarb)
-            {
-                score += 10;
-            }
-
-            // UC12: archetype-driven baseline preference.
-            // Applied for every active day, not just match days.
-            if (sportCtx != null && sportCtx.HasActiveSport)
-            {
-                if (sportCtx.PrefersProtein &&
-                    item.NutritionCategory == NutritionCategory.HighProtein)
+                // UC12: archetype-driven baseline preference, every day
+                if (sportCtx.PrefersProtein && item.NutritionCategory == NutritionCategory.HighProtein)
                 {
                     score += 3;
                 }
 
-                if (sportCtx.PrefersCarb &&
-                    item.NutritionCategory == NutritionCategory.HighCarb)
+                if (sportCtx.PrefersCarb && item.NutritionCategory == NutritionCategory.HighCarb)
                 {
                     score += 3;
                 }
@@ -676,31 +970,29 @@ namespace Michaelhouse.Services
         // TAGS — human-readable labels shown under each option
         // ============================================================
 
-        private List<string> BuildOptionTags(
-            MenuItem item,
-            bool isMatchDay,
-            bool isDayBeforeMatch,
-            StudentSportContext sportCtx)
+        private List<string> BuildOptionTags(MenuItem item, StudentSportContext sportCtx)
         {
             var tags = new List<string>();
 
-            if (isMatchDay && item.NutritionCategory == NutritionCategory.HighProtein)
+            bool fitsToday = sportCtx != null
+                             && !sportCtx.IsRecovering
+                             && sportCtx.PreferredCategory.HasValue
+                             && item.NutritionCategory == sportCtx.PreferredCategory.Value;
+
+            if (fitsToday)
             {
-                tags.Add("Match-day recovery");
+                if (sportCtx.IsMatchDay) tags.Add("Match-day recovery");
+                else if (sportCtx.IsDayBeforeMatch) tags.Add("Pre-match loading");
+                else if (sportCtx.IsTrainingDay) tags.Add("Training fuel");
+                else if (sportCtx.IsPriorityWeek) tags.Add("Priority sport");
             }
 
-            if (isDayBeforeMatch && item.NutritionCategory == NutritionCategory.HighCarb)
+            switch (item.NutritionCategory)
             {
-                tags.Add("Pre-match loading");
-            }
-
-            if (item.NutritionCategory == NutritionCategory.HighProtein)
-            {
-                tags.Add("High protein");
-            }
-            else if (item.NutritionCategory == NutritionCategory.HighCarb)
-            {
-                tags.Add("High carb");
+                case NutritionCategory.HighProtein: tags.Add("High protein"); break;
+                case NutritionCategory.HighCarb: tags.Add("High carb"); break;
+                case NutritionCategory.Light: tags.Add("Light"); break;
+                case NutritionCategory.Hydration: tags.Add("Hydration"); break;
             }
 
             if (item.IsFarmGrownProduce)

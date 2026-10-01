@@ -5,12 +5,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Michaelhouse.Models.Cafeteria
 {
+    // Students submit their plan and it goes straight to the kitchen
+    // (Submitted). There is no Dietitian review of student plans any
+    // more — the Dietitian approves the meals themselves. The review
+    // statuses remain for plans created before that change; plans in
+    // SubmittedToDietitian or Approved also count as submitted.
     public enum MealPlanStatus
     {
         Draft = 1,
         SubmittedToDietitian = 2,
         Approved = 3,
-        SentBack = 4
+        SentBack = 4,
+        Submitted = 5
     }
 
     // ============================================================

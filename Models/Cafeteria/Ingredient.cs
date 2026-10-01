@@ -28,6 +28,17 @@ namespace Michaelhouse.Models.Cafeteria
         [StringLength(200)]
         public string Allergens { get; set; }
 
+        /// <summary>
+        /// Comma-separated dietary tags used for dietary preferences
+        /// (vegetarian, vegan, halal). Possible values:
+        /// Meat, Poultry, Pork, Gelatin, Honey, Alcohol, Halal.
+        /// "Halal" marks a Meat / Poultry / Gelatin ingredient as halal-certified.
+        /// Fish, Shellfish, Egg and Dairy are NOT repeated here — they are
+        /// read from Allergens.
+        /// </summary>
+        [StringLength(200)]
+        public string DietaryTags { get; set; }
+
         [Range(0, 1000000)]
         public decimal CaloriesPerUnit { get; set; }
 
@@ -53,6 +64,10 @@ namespace Michaelhouse.Models.Cafeteria
 
         [Range(0, 1000000000)]
         public decimal ReorderLevel { get; set; }
+
+        // Optional: the level to order back up to (cafeteria inventory)
+        [Range(0, 1000000000)]
+        public decimal? TargetStockLevel { get; set; }
 
         public bool IsActive { get; set; }
 

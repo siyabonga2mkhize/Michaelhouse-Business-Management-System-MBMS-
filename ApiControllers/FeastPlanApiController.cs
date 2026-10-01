@@ -55,9 +55,9 @@ namespace Michaelhouse.ApiControllers
                     }, JsonRequestBehavior.AllowGet);
                 }
 
-                // Reuse the same builder used by the web page
-                var svc = new MenuSchedulingService(_db);
-                var vm = BuildFeastPlanFromEvent(evt);
+                // Same builder as the web page — from the RSVPs
+                var vm = new EventBuffetService(_db).BuildFeastPlan(evt);
+                var req = vm.Requirements;
 
                 var dto = new
                 {
@@ -76,6 +76,20 @@ namespace Michaelhouse.ApiControllers
                     otherGuests = vm.OtherGuests,
                     shortageCount = vm.ShortageCount,
                     dietaryNotes = vm.DietaryNotes,
+                    attendance = new
+                    {
+                        students = req.Attendance.Students,
+                        parents = req.Attendance.Parents,
+                        staff = req.Attendance.Staff,
+                        guests = req.Attendance.Guests,
+                        total = req.Attendance.Total
+                    },
+                    dietaryCounts = req.PreferenceCounts.Select(kv => new { group = kv.Key, attendees = kv.Value }),
+                    restrictionCounts = req.RestrictionCounts.Select(kv => new { requirement = kv.Key, attendees = kv.Value }),
+                    meals = req.Meals.Select(m => new { name = m.MenuItem.Name, chosen = m.Selected, byType = m.TypeSummary, allocated = m.Allocated, portions = m.Portions }),
+                    buffetMeals = vm.Coverage.Meals.Select(m => new { name = m.Name, suitableFor = m.SuitableFor, allergens = m.Allergens }),
+                    dietaryGroups = vm.Coverage.Groups.Select(g => new { label = g.Label, students = g.StudentCount, covered = g.IsCovered, meals = g.SuitableMeals }),
+                    dietaryWarnings = vm.Coverage.Warnings,
                     timeline = vm.Timeline.Select(t => new
                     {
                         phase = t.Phase.ToString(),
@@ -133,177 +147,6 @@ namespace Michaelhouse.ApiControllers
                     error = "Server error: " + ex.Message
                 }, JsonRequestBehavior.AllowGet);
             }
-        }
-
-        // ── Local builder (mirrors EventController.BuildFeastPlan) ──
-        private Michaelhouse.Models.ViewModels.FeastPlanViewModel BuildFeastPlanFromEvent(CafeteriaEvent evt)
-        {
-            var vm = new Michaelhouse.Models.ViewModels.FeastPlanViewModel
-            {
-                EventId = evt.Id,
-                EventName = evt.EventName,
-                EventDate = evt.EventDate,
-                StartTime = evt.StartTime,
-                EndTime = evt.EndTime,
-                VenueName = evt.Venue != null ? evt.Venue.Name : "",
-                MenuTemplateName = evt.MenuTemplate != null ? evt.MenuTemplate.Name : "",
-                TotalGuests = evt.GuaranteedHeadcount ?? 0
-            };
-
-            var attending = _db.EventRsvps
-                .Where(r => r.EventId == evt.Id && r.ResponseStatus == "Attending")
-                .ToList();
-
-            vm.StandardGuests = attending.Sum(r => r.StandardCount);
-            vm.VegetarianGuests = attending.Sum(r => r.VegetarianCount);
-            vm.OtherGuests = attending.Sum(r => r.OtherDietCount);
-
-            vm.DietaryNotes = attending
-                .Where(r => !string.IsNullOrWhiteSpace(r.DietaryNotes))
-                .Select(r => r.ResponderName + ": " + r.DietaryNotes)
-                .ToList();
-
-            var ingredientStock = _db.Ingredients
-                .Where(i => i.IsActive)
-                .ToDictionary(
-                    i => i.Id,
-                    i => i.FarmAvailableQuantity + i.ExternalAvailableQuantity);
-
-            var serveTime = evt.StartTime;
-
-            if (evt.MenuTemplateId.HasValue)
-            {
-                var templateItems = _db.EventMenuTemplateItems
-                    .Include("MenuItem.Recipe.RecipeIngredients.Ingredient")
-                    .Where(t => t.TemplateId == evt.MenuTemplateId.Value)
-                    .OrderBy(t => t.SortOrder)
-                    .ToList();
-
-                var combinedTotals = new System.Collections.Generic.Dictionary<int, Michaelhouse.Models.ViewModels.FeastPlanIngredient>();
-
-                foreach (var item in templateItems)
-                {
-                    if (item.MenuItem == null) continue;
-
-                    int portions = (int)Math.Ceiling(vm.TotalGuests * item.QuantityPerGuest);
-                    if (portions < 1) portions = 1;
-
-                    var recipe = item.MenuItem.Recipe;
-
-                    var dish = new Michaelhouse.Models.ViewModels.FeastPlanDish
-                    {
-                        Section = item.Section,
-                        DishName = item.MenuItem.Name,
-                        Classification = item.MenuItem.DietaryClassification,
-                        Portions = portions,
-                        QuantityPerGuest = item.QuantityPerGuest,
-                        Station = recipe != null && !string.IsNullOrWhiteSpace(recipe.Station)
-                                    ? recipe.Station
-                                    : "Line",
-                        PrepMinutes = recipe != null ? recipe.PrepTimeMinutes : 0,
-                        CookMinutes = recipe != null ? recipe.CookTimeMinutes : 0
-                    };
-
-                    int totalMinutes = dish.PrepMinutes + dish.CookMinutes;
-
-                    if (totalMinutes >= 240)
-                        dish.PrepPhase = Michaelhouse.Models.ViewModels.FeastPrepPhase.TwoDaysBefore;
-                    else if (totalMinutes >= 90)
-                        dish.PrepPhase = Michaelhouse.Models.ViewModels.FeastPrepPhase.DayBefore;
-                    else
-                        dish.PrepPhase = Michaelhouse.Models.ViewModels.FeastPrepPhase.DayOf;
-
-                    var cookSpan = TimeSpan.FromMinutes(dish.CookMinutes);
-                    var startSpan = serveTime.Subtract(cookSpan);
-                    dish.StartTime = startSpan < TimeSpan.Zero ? startSpan.Add(TimeSpan.FromHours(24)) : startSpan;
-                    dish.ReadyTime = serveTime.Subtract(TimeSpan.FromMinutes(5));
-
-                    if (recipe != null && recipe.RecipeIngredients != null)
-                    {
-                        foreach (var ri in recipe.RecipeIngredients)
-                        {
-                            if (ri.Ingredient == null) continue;
-
-                            decimal required = ri.QuantityPerStandardPortion * portions;
-                            decimal available = ingredientStock.ContainsKey(ri.IngredientId)
-                                ? ingredientStock[ri.IngredientId]
-                                : 0m;
-
-                            var line = new Michaelhouse.Models.ViewModels.FeastPlanIngredient
-                            {
-                                IngredientId = ri.IngredientId,
-                                Name = ri.Ingredient.Name,
-                                Unit = ri.Ingredient.Unit,
-                                QuantityPerPortion = ri.QuantityPerStandardPortion,
-                                TotalRequired = required,
-                                StockAvailable = available,
-                                Shortfall = required > available ? required - available : 0m
-                            };
-
-                            dish.Ingredients.Add(line);
-
-                            if (combinedTotals.ContainsKey(line.IngredientId))
-                            {
-                                var existing = combinedTotals[line.IngredientId];
-                                existing.TotalRequired += line.TotalRequired;
-                                existing.Shortfall = existing.TotalRequired > existing.StockAvailable
-                                    ? existing.TotalRequired - existing.StockAvailable
-                                    : 0m;
-                            }
-                            else
-                            {
-                                combinedTotals[line.IngredientId] = new Michaelhouse.Models.ViewModels.FeastPlanIngredient
-                                {
-                                    IngredientId = line.IngredientId,
-                                    Name = line.Name,
-                                    Unit = line.Unit,
-                                    QuantityPerPortion = line.QuantityPerPortion,
-                                    TotalRequired = line.TotalRequired,
-                                    StockAvailable = line.StockAvailable,
-                                    Shortfall = line.Shortfall
-                                };
-                            }
-                        }
-                    }
-
-                    vm.Dishes.Add(dish);
-                }
-
-                vm.TotalIngredients = combinedTotals.Values
-                    .OrderBy(x => x.Name)
-                    .ToList();
-            }
-
-            // Timeline
-            var eventDate = evt.EventDate.Date;
-
-            var d2 = new Michaelhouse.Models.ViewModels.FeastPlanTimelineDay
-            {
-                Phase = Michaelhouse.Models.ViewModels.FeastPrepPhase.TwoDaysBefore,
-                CalendarDate = eventDate.AddDays(-2),
-                DayLabel = "Two days before",
-                Dishes = vm.Dishes.Where(d => d.PrepPhase == Michaelhouse.Models.ViewModels.FeastPrepPhase.TwoDaysBefore).ToList()
-            };
-            var d1 = new Michaelhouse.Models.ViewModels.FeastPlanTimelineDay
-            {
-                Phase = Michaelhouse.Models.ViewModels.FeastPrepPhase.DayBefore,
-                CalendarDate = eventDate.AddDays(-1),
-                DayLabel = "Day before",
-                Dishes = vm.Dishes.Where(d => d.PrepPhase == Michaelhouse.Models.ViewModels.FeastPrepPhase.DayBefore).ToList()
-            };
-            var d0 = new Michaelhouse.Models.ViewModels.FeastPlanTimelineDay
-            {
-                Phase = Michaelhouse.Models.ViewModels.FeastPrepPhase.DayOf,
-                CalendarDate = eventDate,
-                DayLabel = "Day of event",
-                Dishes = vm.Dishes.Where(d => d.PrepPhase == Michaelhouse.Models.ViewModels.FeastPrepPhase.DayOf).ToList()
-            };
-
-            if (d2.Dishes.Count > 0) vm.Timeline.Add(d2);
-            if (d1.Dishes.Count > 0) vm.Timeline.Add(d1);
-            if (d0.Dishes.Count > 0) vm.Timeline.Add(d0);
-
-            return vm;
         }
     }
 }

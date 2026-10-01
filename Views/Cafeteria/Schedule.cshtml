@@ -56,7 +56,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
                 <div class="row g-3">
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         @Html.LabelFor(
                             x => x.StartDate,
                             new { @class = "form-label" })
@@ -77,7 +77,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                             new { @class = "text-danger" })
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         @Html.LabelFor(
                             x => x.EndDate,
                             new { @class = "form-label" })
@@ -98,7 +98,7 @@ Layout = "~/Views/Shared/_Layout.cshtml";
                             new { @class = "text-danger" })
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         @Html.LabelFor(
                             x => x.StaffMeals,
                             new { @class = "form-label" })
@@ -115,6 +115,32 @@ Layout = "~/Views/Shared/_Layout.cshtml";
 
                         @Html.ValidationMessageFor(
                             x => x.StaffMeals,
+                            "",
+                            new { @class = "text-danger" })
+                    </div>
+
+                    <div class="col-md-3">
+                        @Html.LabelFor(
+                            x => x.OptionsPerSlot,
+                            new { @class = "form-label" })
+
+                        @Html.TextBoxFor(
+                            x => x.OptionsPerSlot,
+                            new
+                            {
+                                @class = "form-control",
+                                type = "number",
+                                min = "1",
+                                max = "6",
+                                required = "required"
+                            })
+
+                        <div class="form-text">
+                            Choices per breakfast, lunch and dinner. Students pick one in their meal plan.
+                        </div>
+
+                        @Html.ValidationMessageFor(
+                            x => x.OptionsPerSlot,
                             "",
                             new { @class = "text-danger" })
                     </div>

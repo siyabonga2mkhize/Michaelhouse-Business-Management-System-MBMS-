@@ -3,6 +3,12 @@
     ViewBag.Title = "Collection Terminal";
 
     int todayCount = ViewBag.TodayCount != null ? (int)ViewBag.TodayCount : 0;
+    string currentSlot = ViewBag.CurrentSlot as string;
+    string currentSlotHours = ViewBag.CurrentSlotHours as string;
+    string collectionHours = ViewBag.CollectionHours as string;
+    bool isManualOpening = ViewBag.IsManualOpening == true;
+    bool canOpenCollection = ViewBag.CanOpenCollection == true;
+    int[] durationOptions = ViewBag.DurationOptions as int[] ?? new int[0];
 }
 
 <style>
@@ -34,36 +40,76 @@
             color: #333;
         }
 
-    .mc-slot-picker {
+    .mc-slot-banner {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
         gap: .5rem;
+        padding: .85rem 1.1rem;
+        border: 1.5px solid #C21E2E;
+        border-radius: 8px;
+        background: #fef2f2;
         margin-bottom: 1.25rem;
     }
 
-    .mc-slot-btn {
-        flex: 1;
-        padding: .85rem 1rem;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 8px;
-        background: #fff;
-        font-size: .85rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .06em;
-        color: #6b7280;
-        cursor: pointer;
-        transition: all .15s;
-    }
-
-        .mc-slot-btn:hover {
-            border-color: #C21E2E;
+        .mc-slot-banner .slot {
+            font-size: .95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
             color: #C21E2E;
         }
 
-        .mc-slot-btn.active {
-            border-color: #C21E2E;
-            background: #fef2f2;
-            color: #C21E2E;
+        .mc-slot-banner .hours {
+            font-size: .8rem;
+            color: #6b7280;
+        }
+
+        .mc-slot-banner.manual {
+            border-color: #d97706;
+            background: #fffbeb;
+        }
+
+            .mc-slot-banner.manual .slot {
+                color: #b45309;
+            }
+
+        .mc-slot-banner.closed {
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+
+            .mc-slot-banner.closed .slot {
+                color: #6b7280;
+            }
+
+    .mc-opening {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .5rem;
+        padding: .75rem 1.1rem;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+        font-size: .85rem;
+    }
+
+        .mc-opening .label {
+            font-weight: 600;
+            color: #374151;
+            margin-right: .25rem;
+        }
+
+        .mc-opening .hint {
+            flex-basis: 100%;
+            color: #6b7280;
+            font-size: .75rem;
+        }
+
+        .mc-opening select {
+            width: auto;
         }
 
     .mc-grid {
@@ -190,6 +236,12 @@
         margin-bottom: 1rem;
     }
 
+    .mc-result-message {
+        font-size: .9rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
     .mc-result-meal {
         background: #fff;
         border: 1px solid #e5e7eb;
@@ -218,40 +270,9 @@
         font-size: .85rem;
         margin-bottom: 1rem;
         font-weight: 600;
+        background: #fee2e2;
+        color: #991b1b;
     }
-
-        .mc-warning.allergen {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .mc-warning.already {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-    .mc-confidence-bar {
-        height: 6px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        overflow: hidden;
-        margin: .35rem 0 .5rem 0;
-    }
-
-    .mc-confidence-fill {
-        height: 100%;
-        background: #10b981;
-        transition: width .3s;
-    }
-
-    .mc-confidence-label {
-        font-size: .78rem;
-        color: #6b7280;
-    }
-
-        .mc-confidence-label strong {
-            color: #111827;
-        }
 
     .mc-actions {
         display: flex;
@@ -268,17 +289,63 @@
             <div>
                 <h1>Collection Terminal</h1>
                 <div class="mc-meta">
-                    Kitchen staff only · <strong>@todayCount</strong> meals collected today
+                    Kitchen staff only · <strong id="todayCount">@todayCount</strong> meals collected today
                 </div>
             </div>
         </div>
 
-        <!-- MEAL SLOT SELECTOR -->
-        <div class="mc-slot-picker">
-            <button type="button" class="mc-slot-btn active" data-slot="Breakfast">Breakfast</button>
-            <button type="button" class="mc-slot-btn" data-slot="Lunch">Lunch</button>
-            <button type="button" class="mc-slot-btn" data-slot="Dinner">Dinner</button>
-        </div>
+        <!-- MEAL BEING SERVED (decided by the server from school time) -->
+        @if (currentSlot != null)
+        {
+            <div class="mc-slot-banner @(isManualOpening ? "manual" : "")">
+                <span class="slot">Now serving: @currentSlot</span>
+                <span class="hours">@currentSlotHours</span>
+            </div>
+        }
+        else
+        {
+            <div class="mc-slot-banner closed">
+                <span class="slot">No meal is being served right now</span>
+                <span class="hours">@collectionHours</span>
+            </div>
+        }
+
+        <!-- MANUAL OPENING (Cafeteria Manager) -->
+        @if (canOpenCollection)
+        {
+            if (isManualOpening)
+            {
+                using (Html.BeginForm("CloseCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <span class="label">@currentSlot collection is open manually.</span>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Close now</button>
+                    <span class="hint">Normal hours: @collectionHours</span>
+                }
+            }
+            else
+            {
+                using (Html.BeginForm("OpenCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <span class="label">Open collection for today's</span>
+                    <select name="slot" class="form-select form-select-sm">
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch" selected>Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                    </select>
+                    <span class="label">for</span>
+                    <select name="minutes" class="form-select form-select-sm">
+                        @foreach (var m in durationOptions)
+                        {
+                            <option value="@m" @(m == 60 ? "selected" : "")>@(m < 60 ? m + " minutes" : (m / 60) + (m == 60 ? " hour" : " hours"))</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Open collection</button>
+                    <span class="hint">For testing and demonstrations. Overrides the normal hours (@collectionHours) until it ends or is closed. All other checks still apply, and collections are noted as made during a manual opening.</span>
+                }
+            }
+        }
 
         <div class="mc-grid">
 
@@ -305,18 +372,14 @@
 
             <!-- RESULT -->
             <div id="resultCard" class="mc-result-card">
-                <div class="mc-result-label">Verified Student</div>
+                <div id="resultLabel" class="mc-result-label"></div>
                 <div id="resultName" class="mc-result-name"></div>
                 <div id="resultMeta" class="mc-result-meta"></div>
-
-                <div class="mc-confidence-bar">
-                    <div id="confidenceFill" class="mc-confidence-fill" style="width:0%;"></div>
-                </div>
-                <div id="confidenceLabel" class="mc-confidence-label"></div>
+                <div id="resultMessage" class="mc-result-message"></div>
 
                 <div id="warningBox" class="mc-warning" style="display:none;"></div>
 
-                <div class="mc-result-meal">
+                <div id="mealBox" class="mc-result-meal">
                     <div class="mc-result-meal-slot" id="mealSlotLabel"></div>
                     <div class="mc-result-meal-name" id="mealName"></div>
                     <div id="allergenInfo" style="font-size:.75rem; color:#6b7280; margin-top:.5rem;"></div>
@@ -341,43 +404,32 @@
     <script>
     (function () {
         // ── State ──────────────────────────────────────────────────
+        // The browser only ever sends a photo (Verify) and the one-time
+        // token the server returned (Record). Who the student is, which
+        // meal and slot, and whether they may collect are all decided
+        // on the server.
         var stream = null;
-        var currentSlot = "Breakfast";
-        var lastVerify = null;   // holds the full Verify JSON response
+        var pendingToken = null;
         var video = document.getElementById("video");
         var placeholder = document.getElementById("placeholder");
         var startBtn = document.getElementById("startBtn");
         var captureBtn = document.getElementById("captureBtn");
         var statusBox = document.getElementById("status");
         var resultCard = document.getElementById("resultCard");
+        var resultLabel = document.getElementById("resultLabel");
         var resultName = document.getElementById("resultName");
         var resultMeta = document.getElementById("resultMeta");
-        var confidenceFill = document.getElementById("confidenceFill");
-        var confidenceLabel = document.getElementById("confidenceLabel");
+        var resultMessage = document.getElementById("resultMessage");
         var warningBox = document.getElementById("warningBox");
+        var mealBox = document.getElementById("mealBox");
         var mealSlotLabel = document.getElementById("mealSlotLabel");
         var mealName = document.getElementById("mealName");
         var allergenInfo = document.getElementById("allergenInfo");
         var confirmBtn = document.getElementById("confirmBtn");
         var cancelBtn = document.getElementById("cancelBtn");
 
-        // Grab the anti-forgery token that the view renders
         var tokenInput = document.querySelector('#mc-root input[name="__RequestVerificationToken"]');
-        var token = tokenInput ? tokenInput.value : "";
-
-        // ── Slot picker ────────────────────────────────────────────
-        document.querySelectorAll(".mc-slot-btn").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                document.querySelectorAll(".mc-slot-btn").forEach(function (b) {
-                    b.classList.remove("active");
-                });
-                btn.classList.add("active");
-                currentSlot = btn.getAttribute("data-slot");
-
-                // Reset result if slot changes
-                hideResult();
-            });
-        });
+        var antiForgery = tokenInput ? tokenInput.value : "";
 
         // ── Camera ─────────────────────────────────────────────────
         startBtn.addEventListener("click", function () {
@@ -411,81 +463,131 @@
             var canvas = document.createElement("canvas");
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
             showStatus("Verifying…", "info");
             captureBtn.disabled = true;
+            hideResult();
 
-            var form = new FormData();
-            form.append("__RequestVerificationToken", token);
-            form.append("imageBase64", dataUrl);
-            form.append("mealSlot", currentSlot);
+            post('@Url.Action("Verify", "MealCollection")', { imageBase64: canvas.toDataURL("image/jpeg", 0.85) })
+                .then(function (data) {
+                    captureBtn.disabled = false;
 
-            fetch('@Url.Action("Verify", "MealCollection")', {
-                method: "POST",
-                body: form,
-                credentials: "same-origin"
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                captureBtn.disabled = false;
-                lastVerify = data;
-
-                if (!data.success) {
-                    if (data.alreadyCollected) {
-                        showStatus(data.message + " (" + (data.studentName || "") + " at " + (data.collectedAt || "") + ")", "err");
+                    if (data.success) {
+                        pendingToken = data.token;
+                        showStatus("Check the meal, then confirm to record the collection.", "ok");
                     } else {
-                        showStatus(data.message || "Verification failed.", "err");
+                        showStatus(data.title + ".", "err");
                     }
-                    hideResult();
-                    return;
-                }
 
-                showStatus("Match found. Confirm to record the collection.", "ok");
-                showResult(data);
-            })
-            .catch(function (err) {
-                captureBtn.disabled = false;
-                showStatus("Error: " + err.message, "err");
-            });
+                    showResult(data);
+                })
+                .catch(function (err) {
+                    captureBtn.disabled = false;
+                    showStatus("Error: " + err.message, "err");
+                });
         });
 
-        // ── Show result ────────────────────────────────────────────
+        // ── Confirm collection ─────────────────────────────────────
+        confirmBtn.addEventListener("click", function () {
+            if (!pendingToken) return;
+
+            confirmBtn.disabled = true;
+
+            post('@Url.Action("Record", "MealCollection")', { token: pendingToken })
+                .then(function (data) {
+                    confirmBtn.disabled = false;
+                    pendingToken = null;
+
+                    showResult(data);
+
+                    if (!data.success) {
+                        showStatus("Not recorded: " + data.title + ".", "err");
+                        return;
+                    }
+
+                    showStatus("✓ " + data.studentName + " collected " + data.mealSlot + " at " + data.collectedAt + ".", "ok");
+
+                    var counter = document.getElementById("todayCount");
+                    if (counter) counter.textContent = ((parseInt(counter.textContent, 10) || 0) + 1).toString();
+                })
+                .catch(function (err) {
+                    confirmBtn.disabled = false;
+                    showStatus("Error: " + err.message, "err");
+                });
+        });
+
+        // ── Cancel ─────────────────────────────────────────────────
+        cancelBtn.addEventListener("click", function () {
+            hideResult();
+            showStatus("Ready. Position the next student.", "info");
+        });
+
+        // ── Result card ────────────────────────────────────────────
+        // outcome: ReadyForCollection → green with Confirm
+        //          Collected          → green, done
+        //          anything else      → red with the reason
         function showResult(data) {
+            var ready = data.outcome === "ReadyForCollection";
+            var collected = data.outcome === "Collected";
+
             resultCard.classList.remove("ok", "warn", "err");
-            resultCard.classList.add("visible");
+            resultCard.classList.add("visible", (ready || collected) ? "ok" : "err");
 
-            resultName.textContent = data.studentName;
-            resultMeta.textContent = "Student #" + data.studentId;
+            resultLabel.textContent = data.title || "";
+            resultName.textContent = data.studentName || "";
+            resultName.style.display = data.studentName ? "block" : "none";
+            resultMeta.textContent = data.studentNumber ? "Student no. " + data.studentNumber : "";
+            resultMessage.textContent = ready ? "Ready for collection." : (data.message || "");
 
-            var conf = Math.round((data.confidence || 0) * 100);
-            confidenceFill.style.width = conf + "%";
-            confidenceLabel.innerHTML = "Match confidence <strong>" + conf + "%</strong>";
+            // The meal (when the server found one)
+            mealBox.style.display = data.mealName ? "block" : "none";
+            mealSlotLabel.textContent = data.mealDate || data.mealSlot || "";
+            mealName.textContent = data.mealName || "";
 
-            mealSlotLabel.textContent = data.mealSlot || currentSlot;
-            mealName.textContent = data.mealName || "(no dish linked)";
+            allergenInfo.textContent = "";
+            addInfoLine("Contains", data.allergens);
+            addInfoLine("Student allergies", data.studentAllergies);
+            addInfoLine("Dietary preference", data.dietaryPreference);
+            addInfoLine("Medical dietary", data.medicalDietaryRestrictions);
+            addInfoLine("Dietary notes", data.dietaryNotes);
 
-            if (data.allergens) {
-                allergenInfo.textContent = "Contains: " + data.allergens;
-            } else {
-                allergenInfo.textContent = "";
-            }
-
-            // Warnings
+            // Dietary warnings — shown, staff decide
             warningBox.style.display = "none";
-            if (data.hasAllergenConflict) {
-                warningBox.textContent = "⚠ Student allergy conflict — please review before confirming.";
-                warningBox.className = "mc-warning allergen";
+            warningBox.textContent = "";
+            if (data.hasDietaryConflict) {
+                var heading = document.createElement("div");
+                heading.style.fontWeight = "700";
+                heading.textContent = "⚠ Dietary conflict — please review before confirming.";
+                warningBox.appendChild(heading);
+
+                (data.dietaryConflicts || []).forEach(function (msg) {
+                    var line = document.createElement("div");
+                    line.textContent = "• " + msg;
+                    warningBox.appendChild(line);
+                });
+
                 warningBox.style.display = "block";
-                resultCard.classList.add("warn");
+                if (ready) resultCard.classList.replace("ok", "warn");
             }
+
+            confirmBtn.style.display = ready ? "" : "none";
+            cancelBtn.textContent = ready ? "Cancel" : "Next student";
+        }
+
+        function addInfoLine(label, value) {
+            if (!value) return;
+            var line = document.createElement("div");
+            var strong = document.createElement("strong");
+            strong.textContent = label + ": ";
+            line.appendChild(strong);
+            line.appendChild(document.createTextNode(value));
+            allergenInfo.appendChild(line);
         }
 
         function hideResult() {
             resultCard.classList.remove("visible");
-            lastVerify = null;
+            pendingToken = null;
         }
 
         function showStatus(msg, kind) {
@@ -494,61 +596,17 @@
             statusBox.style.display = "block";
         }
 
-        // ── Confirm collection ─────────────────────────────────────
-        confirmBtn.addEventListener("click", function () {
-            if (!lastVerify || !lastVerify.success) return;
-
-            confirmBtn.disabled = true;
-
+        function post(url, fields) {
             var form = new FormData();
-            form.append("__RequestVerificationToken", token);
-            form.append("studentId", lastVerify.studentId);
-            form.append("mealSlot", lastVerify.mealSlot || currentSlot);
-            form.append("method", "FaceMatch");
-            form.append("confidence", lastVerify.confidence || 0);
+            form.append("__RequestVerificationToken", antiForgery);
+            Object.keys(fields).forEach(function (k) { form.append(k, fields[k]); });
 
-            // UC12 fix: pass the plan item id so the collection links
-            // to the student's actual UC13 pick.
-            if (lastVerify.mealPlanItemId !== null && lastVerify.mealPlanItemId !== undefined) {
-                form.append("mealPlanItemId", lastVerify.mealPlanItemId);
-            }
-
-            fetch('@Url.Action("Record", "MealCollection")', {
-                method: "POST",
-                body: form,
-                credentials: "same-origin"
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                confirmBtn.disabled = false;
-
-                if (!data.success) {
-                    showStatus("Failed to record: " + (data.message || "unknown error"), "err");
-                    return;
-                }
-
-                showStatus("✓ " + lastVerify.studentName + " collected " + (lastVerify.mealSlot || currentSlot)
-                    + " at " + data.collectedAt + ".", "ok");
-                hideResult();
-
-                // Bump today's counter in the header
-                var meta = document.querySelector(".mc-meta strong");
-                if (meta) {
-                    var n = parseInt(meta.textContent, 10) || 0;
-                    meta.textContent = (n + 1).toString();
-                }
-            })
-            .catch(function (err) {
-                confirmBtn.disabled = false;
-                showStatus("Error: " + err.message, "err");
-            });
-        });
-
-        // ── Cancel ─────────────────────────────────────────────────
-        cancelBtn.addEventListener("click", function () {
-            hideResult();
-            showStatus("Ready. Position the next student.", "info");
-        });
+            return fetch(url, { method: "POST", body: form, credentials: "same-origin" })
+                .then(function (r) {
+                    if (!r.ok) throw new Error("server returned " + r.status);
+                    return r.json();
+                });
+        }
 
     })();
     </script>

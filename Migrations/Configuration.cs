@@ -953,6 +953,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             SeedMenuItems(context);
             SeedRecipesAndIngredients(context);
 
+
             // ──────────────────────────────────────────────────────────────
             // Seed Categories & Products (from HEAD)
             // ──────────────────────────────────────────────────────────────
@@ -1962,6 +1963,12 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             // ── Seed Boarding House test data (from other branch) ──
             SeedBoardingHouseTestData(context);
         }
+
+        // More meals, their ingredients, cafeteria suppliers and opening
+        // stock. Outside the student loop above so it runs once. Only
+        // adds what's missing; never overwrites edits or real stock.
+        // See Models/Cafeteria/CafeteriaInventorySeed.cs
+        Michaelhouse.Models.Cafeteria.CafeteriaInventorySeed.Run(context);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -2430,7 +2437,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         new
         {
             Name = "Grilled Fish & Rice",
-            DietaryClassification = "Pescatarian",
+            DietaryClassification = "Standard",
             IsBreakfastItem = false,
             IsLunchItem = true,
             IsDinnerItem = true,
@@ -2588,7 +2595,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         new
         {
             Name = "Baked Hake & Potato Wedges",
-            DietaryClassification = "Pescatarian",
+            DietaryClassification = "Standard",
             IsBreakfastItem = false,
             IsLunchItem = false,
             IsDinnerItem = true,
@@ -2658,7 +2665,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         new
         {
             Name = "Fish, Rice & Mixed Vegetables",
-            DietaryClassification = "Pescatarian",
+            DietaryClassification = "Standard",
             IsBreakfastItem = false,
             IsLunchItem = false,
             IsDinnerItem = true,
@@ -3167,14 +3174,14 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             { "Milk",              "Dairy" },
             { "Greek Yoghurt",     "Dairy" },
             { "Cheese",            "Dairy" },
-            { "Egg",               "Egg" },
+            { "Egg",               "Eggs" },
             { "Whole Wheat Bread", "Gluten" },
             { "Breakfast Wrap",    "Gluten" },
             { "Pasta",             "Gluten" },
             { "Couscous",          "Gluten" },
             { "Weet-Bix",          "Gluten" },
             { "Granola",           "Gluten" },
-            { "Peanut Butter",     "Nuts" },
+            { "Peanut Butter",     "Peanuts" },
             { "Hake Fillet",       "Fish" }
         };
 
@@ -3186,6 +3193,33 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             if (ing != null)
             {
                 ing.Allergens = kvp.Value;
+            }
+        }
+
+        context.SaveChanges();
+
+        // =============================================================
+        // DIETARY TAGS (vegetarian / vegan / halal checks)
+        // Fish, egg and dairy come from the allergen tags above.
+        // No ingredient is tagged "Halal" — only add that once the
+        // kitchen has confirmed the supplier is halal-certified.
+        // =============================================================
+
+        var dietaryTagMap = new Dictionary<string, string>
+        {
+            { "Chicken Breast", "Poultry" },
+            { "Turkey Breast",  "Poultry" },
+            { "Lean Beef",      "Meat" }
+        };
+
+        foreach (var kvp in dietaryTagMap)
+        {
+            var ing = context.Ingredients
+                .FirstOrDefault(x => x.Name == kvp.Key);
+
+            if (ing != null)
+            {
+                ing.DietaryTags = kvp.Value;
             }
         }
 
@@ -3846,6 +3880,28 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             {
                 r.Station = station;
             }
+        }
+
+        context.SaveChanges();
+
+        // =============================================================
+        // NUTRITION — calculated from each recipe's ingredients so the
+        // per-portion values can't contradict the recipe. Replaces the
+        // hand-entered calories / protein from SeedMenuItems.
+        // =============================================================
+
+        var itemsWithRecipes = context.MenuItems
+            .Include("Recipe.RecipeIngredients.Ingredient")
+            .Where(m => m.RecipeId != null)
+            .ToList();
+
+        foreach (var menuItem in itemsWithRecipes)
+        {
+            if (menuItem.Recipe == null || !menuItem.Recipe.RecipeIngredients.Any()) continue;
+
+            Michaelhouse.Services.MealLibraryService.ApplyNutrition(
+                menuItem,
+                Michaelhouse.Services.MealLibraryService.CalculateNutrition(menuItem.Recipe.RecipeIngredients));
         }
 
         context.SaveChanges();

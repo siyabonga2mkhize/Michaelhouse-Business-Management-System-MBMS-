@@ -242,7 +242,26 @@
             .app-shell::-webkit-scrollbar {
                 display: none;
             }
-    </style>
+    
+        /* Phones: the sidebar slides over the page instead of taking
+           its width (desktop unchanged) */
+        @@media (max-width: 767.98px) {
+            #sidebar {
+                position: fixed !important;
+                left: 0;
+                width: 260px !important;
+                min-width: 260px !important;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                background: #fff;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            }
+
+                #sidebar.mobile-open {
+                    transform: translateX(0);
+                }
+        }
+</style>
 </head>
 
 <body>
@@ -725,6 +744,10 @@
                            href="@Url.Action("MyCollections", "StudentMealPlan")">
                             <i class="bi bi-check2-circle"></i> <span class="link-text">My Collections</span>
                         </a>
+                        <a class="nav-link @(currentController == "DietaryProfile" ? "active" : "")"
+                           href="@Url.Action("Index", "DietaryProfile")">
+                            <i class="bi bi-clipboard2-heart"></i> <span class="link-text">Dietary Profile</span>
+                        </a>
                         <a class="nav-link @(currentController == "FaceEnrollment" ? "active" : "")"
                            href="@Url.Action("Index", "FaceEnrollment")">
                             <i class="bi bi-person-badge"></i> <span class="link-text">Face Enrollment</span>
@@ -970,6 +993,30 @@
                             }
                         </a>
 
+                        <a class="nav-link @(currentController == "MealLibrary" ? "active" : "")"
+                           href="@Url.Action("Index", "MealLibrary")">
+                            <i class="bi bi-journal-bookmark"></i> <span class="link-text">Meal Library</span>
+                        </a>
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Inventory</div>
+
+                        <a class="nav-link @(currentController == "CafeteriaInventory" && currentAction != "Suppliers" && currentAction != "SupplierEdit" ? "active" : "")"
+                           href="@Url.Action("Index", "CafeteriaInventory")">
+                            <i class="bi bi-box-seam"></i> <span class="link-text">Stock</span>
+                        </a>
+                        <a class="nav-link @(currentController == "IngredientOrder" ? "active" : "")"
+                           href="@Url.Action("Index", "IngredientOrder")">
+                            <i class="bi bi-cart3"></i> <span class="link-text">Purchase Orders</span>
+                        </a>
+                        <a class="nav-link @(currentController == "IngredientDelivery" ? "active" : "")"
+                           href="@Url.Action("Index", "IngredientDelivery")">
+                            <i class="bi bi-truck"></i> <span class="link-text">Deliveries</span>
+                        </a>
+                        <a class="nav-link @(currentController == "CafeteriaInventory" && (currentAction == "Suppliers" || currentAction == "SupplierEdit") ? "active" : "")"
+                           href="@Url.Action("Suppliers", "CafeteriaInventory")">
+                            <i class="bi bi-building"></i> <span class="link-text">Suppliers</span>
+                        </a>
+
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Events</div>
 
@@ -1016,11 +1063,15 @@
                         </a>
                         <a class="nav-link @(currentController == "Cafeteria" && currentAction == "ProductionPlan" ? "active" : "")"
                            href="@Url.Action("ChefIndex", "Cafeteria")">
-                            <i class="bi bi-fire"></i> <span class="link-text">Production Plan</span>
+                            <i class="bi bi-fire"></i> <span class="link-text">Kitchen Plan</span>
                         </a>
                         <a class="nav-link @(currentController == "Event" && currentAction == "Queue" ? "active" : "")"
                            href="@Url.Action("Queue", "Event")">
                             <i class="bi bi-calendar-event"></i> <span class="link-text">Event Queue</span>
+                        </a>
+                        <a class="nav-link @(currentController == "MealLibrary" ? "active" : "")"
+                           href="@Url.Action("Index", "MealLibrary")">
+                            <i class="bi bi-journal-bookmark"></i> <span class="link-text">Meal Library</span>
                         </a>
 
                         <hr class="sidebar-divider" />
@@ -1033,6 +1084,14 @@
                         <a class="nav-link @(currentController == "MealCollection" && currentAction == "ServedToday" ? "active" : "")"
                            href="@Url.Action("ServedToday", "MealCollection")">
                             <i class="bi bi-graph-up"></i> <span class="link-text">Served Today</span>
+                        </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Inventory</div>
+
+                        <a class="nav-link @(currentController == "CafeteriaInventory" ? "active" : "")"
+                           href="@Url.Action("Index", "CafeteriaInventory")">
+                            <i class="bi bi-box-seam"></i> <span class="link-text">Stock</span>
                         </a>
 
                         <hr class="sidebar-divider" />
@@ -1080,9 +1139,9 @@
                     {
                         <div class="sidebar-label">Dietitian</div>
 
-                        <a class="nav-link @(currentController == "Dietitian" && currentAction == "Index" ? "active" : "")"
-                           href="@Url.Action("Index", "Dietitian")">
-                            <i class="bi bi-clipboard-check"></i> <span class="link-text">Review Queue</span>
+                        <a class="nav-link @(currentController == "MealLibrary" ? "active" : "")"
+                           href="@Url.Action("Index", "MealLibrary")">
+                            <i class="bi bi-journal-bookmark"></i> <span class="link-text">Meals</span>
                         </a>
 
                         <hr class="sidebar-divider" />
@@ -1091,6 +1150,18 @@
                         <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")"
                            href="@Url.Action("Profile", "Account")">
                             <i class="bi bi-person-gear"></i> <span class="link-text">My Profile</span>
+                        </a>
+                    }
+
+                    @* Event invitations — students, parents and staff RSVP here,
+                       whether or not they saw the notification *@
+                    @if (userRole == "Student" || userRole == "Parent" || Michaelhouse.Services.EventRsvpService.IsStaffRole(userRole))
+                    {
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Invitations</div>
+                        <a class="nav-link @(currentController == "Rsvp" ? "active" : "")"
+                           href="@Url.Action("MyEvents", "Rsvp")">
+                            <i class="bi bi-calendar-event"></i> <span class="link-text">My Event Invitations</span>
                         </a>
                     }
 
@@ -1139,8 +1210,20 @@
                     btn.setAttribute("aria-expanded", "false");
                 }
 
+                // Phones: hidden until the menu button opens it
+                var phone = window.matchMedia("(max-width: 767.98px)");
+                if (phone.matches) {
+                    sidebar.classList.remove("collapsed");
+                    btn.setAttribute("aria-expanded", "false");
+                }
+
                 btn.addEventListener("click", function (event) {
                     event.preventDefault();
+                    if (phone.matches) {
+                        var open = sidebar.classList.toggle("mobile-open");
+                        btn.setAttribute("aria-expanded", open.toString());
+                        return;
+                    }
                     var isCollapsed = sidebar.classList.toggle("collapsed");
                     btn.setAttribute("aria-expanded", (!isCollapsed).toString());
                     localStorage.setItem("mhSidebarCollapsed", isCollapsed.toString());

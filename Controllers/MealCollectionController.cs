@@ -1,4 +1,4 @@
-﻿using Michaelhouse.Models;
+using Michaelhouse.Models;
 using Michaelhouse.Models.Cafeteria;
 using Michaelhouse.Services;
 using System;
@@ -12,12 +12,12 @@ namespace Michaelhouse.Controllers
     public class MealCollectionController : Controller
     {
         private readonly DBContextClass _db;
-        private readonly IFaceRecognitionService _faceService;
+        private readonly MealCollectionService _collections;
 
         public MealCollectionController()
         {
             _db = new DBContextClass();
-            _faceService = new SimulatedFaceRecognitionService();
+            _collections = new MealCollectionService(_db);
         }
 
         protected override void Dispose(bool disposing)
@@ -28,321 +28,103 @@ namespace Michaelhouse.Controllers
 
         // ============================================================
         // GET: MealCollection
-        // The collection terminal — camera + verify
+        // The collection terminal — camera + verify. The meal being
+        // served is worked out on the server from school time.
         // ============================================================
 
         [HttpGet]
         public ActionResult Index()
         {
-            ViewBag.TodayCount = _db.MealCollections
-                .Count(c => c.Date == DateTime.Today);
+            var now = SchoolClock.Now;
+            var today = now.Date;
+            var opening = CollectionOpening.Current(now);
+            var slot = CollectionOpening.ServingSlot(now);
+
+            ViewBag.TodayCount = _db.MealCollections.Count(c => c.Date == today);
+            ViewBag.CurrentSlot = slot.HasValue ? slot.Value.ToString() : null;
+            ViewBag.CurrentSlotHours = opening != null
+                ? string.Format("Opened manually by {0} until {1:HH:mm}", opening.OpenedBy, opening.OpenUntil)
+                : slot.HasValue
+                    ? string.Format("Collection {0:hh\\:mm}–{1:hh\\:mm}", MealTimes.CollectionOpens(slot.Value), MealTimes.CollectionCloses(slot.Value))
+                    : null;
+            ViewBag.IsManualOpening = opening != null;
+            ViewBag.CollectionHours = MealTimes.CollectionHours();
+            ViewBag.CanOpenCollection = User.IsInRole("CafeteriaManager") || User.IsInRole("Admin");
+            ViewBag.DurationOptions = CollectionOpening.DurationOptions;
 
             return View();
         }
 
         // ============================================================
         // POST: MealCollection/Verify
-        // Takes a captured face image, matches it, looks up today's
-        // meal for that student, and returns verification info.
-        // Does NOT write a collection yet — staff confirms first.
-        //
-        // UC12 follow-up fixes:
-        //   - Plan lookup now orders by ReviewedAt desc (same bug
-        //     pattern that was causing the wrong plan to be picked
-        //     when two approved plans overlapped).
-        //   - Returns MealPlanItemId so Record can link it.
+        // Photo in; the server identifies the student and checks they
+        // may collect the current meal. Nothing is recorded yet — staff
+        // confirm with the one-time token this returns.
         // ============================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult Verify(string imageBase64, string mealSlot)
+        public JsonResult Verify(string imageBase64)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(imageBase64))
-                {
-                    return Json(new { success = false, message = "No image received." });
-                }
-
-                int commaIdx = imageBase64.IndexOf(',');
-                if (commaIdx > 0) imageBase64 = imageBase64.Substring(commaIdx + 1);
-
-                byte[] imageBytes;
-                try
-                {
-                    imageBytes = Convert.FromBase64String(imageBase64);
-                }
-                catch
-                {
-                    return Json(new { success = false, message = "Invalid image data." });
-                }
-
-                if (imageBytes.Length < 500)
-                {
-                    return Json(new { success = false, message = "Image too small." });
-                }
-
-                // Generate signature for the captured image
-                string candidate = _faceService.GenerateEncoding(imageBytes);
-
-                // Load all enrolled signatures
-                var enrolled = _db.StudentFaceSignatures
-                    .Where(x => x.IsActive)
-                    .ToList();
-
-                if (enrolled.Count == 0)
-                {
-                    return Json(new { success = false, message = "No students are enrolled yet." });
-                }
-
-                // Match
-                var match = _faceService.FindBestMatch(candidate, enrolled);
-
-                if (match == null)
-                {
-                    return Json(new { success = false, message = "No match found." });
-                }
-
-                if (!match.IsAutoVerified)
-                {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Match confidence too low — please verify manually.",
-                        confidence = match.Confidence
-                    });
-                }
-
-                // Parse requested meal slot
-                MealSlot slot;
-                if (!Enum.TryParse(mealSlot, out slot))
-                {
-                    return Json(new { success = false, message = "Invalid meal slot." });
-                }
-
-                // Look up student
-                var student = _db.Students
-                    .Include("StudentProfile")
-                    .FirstOrDefault(s => s.StudentId == match.StudentId);
-
-                if (student == null)
-                {
-                    return Json(new { success = false, message = "Student not found." });
-                }
-
-                // Anti-fraud: already collected?
-                var existing = _db.MealCollections
-                    .FirstOrDefault(c => c.StudentId == student.StudentId
-                                       && c.Date == DateTime.Today
-                                       && c.MealSlot == slot);
-
-                if (existing != null)
-                {
-                    return Json(new
-                    {
-                        success = false,
-                        alreadyCollected = true,
-                        studentName = student.FirstName + " " + student.LastName,
-                        collectedAt = existing.CollectedAt.ToString("HH:mm"),
-                        message = "Already collected this meal."
-                    });
-                }
-
-                // Look up what they ordered via UC13.
-                // BUG FIX: order by ReviewedAt desc — same pattern as
-                // the fix in MealPlanService and StudentMealPlanController.
-                var plan = _db.MealPlans
-                    .Where(p => p.StudentId == student.StudentId
-                                && p.Status == MealPlanStatus.Approved)
-                    .OrderByDescending(p => p.ReviewedAt)
-                    .ThenByDescending(p => p.Id)
-                    .FirstOrDefault();
-
-                string mealName = "(no approved meal plan)";
-                int? mealPlanItemId = null;
-                List<string> allergens = new List<string>();
-
-                if (plan != null)
-                {
-                    var planItem = _db.MealPlanItems
-                        .Include("MenuItem.Recipe.RecipeIngredients.Ingredient")
-                        .FirstOrDefault(i => i.MealPlanId == plan.Id
-                                          && i.Date == DateTime.Today
-                                          && i.MealSlot == slot);
-
-                    if (planItem != null && planItem.MenuItem != null)
-                    {
-                        mealName = planItem.MenuItem.Name;
-                        mealPlanItemId = planItem.Id;
-
-                        if (planItem.MenuItem.Recipe != null
-                            && planItem.MenuItem.Recipe.RecipeIngredients != null)
-                        {
-                            foreach (var ri in planItem.MenuItem.Recipe.RecipeIngredients)
-                            {
-                                if (ri.Ingredient == null) continue;
-                                if (string.IsNullOrWhiteSpace(ri.Ingredient.Allergens)) continue;
-                                allergens.Add(ri.Ingredient.Allergens);
-                            }
-                        }
-                    }
-                }
-
-                // Check student's own allergy list
-                bool hasAllergenConflict = false;
-                string studentAllergies = student.StudentProfile != null
-                    ? student.StudentProfile.Allergies
-                    : "";
-
-                if (!string.IsNullOrWhiteSpace(studentAllergies)
-                    && allergens.Count > 0)
-                {
-                    var studentSet = studentAllergies
-                        .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x => x.Trim().ToLower())
-                        .ToHashSet();
-
-                    foreach (var a in allergens)
-                    {
-                        foreach (var piece in a.Split(','))
-                        {
-                            if (studentSet.Contains(piece.Trim().ToLower()))
-                            {
-                                hasAllergenConflict = true;
-                            }
-                        }
-                    }
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    studentId = student.StudentId,
-                    studentName = student.FirstName + " " + student.LastName,
-                    mealName = mealName,
-                    mealSlot = slot.ToString(),
-                    mealPlanItemId = mealPlanItemId,
-                    confidence = match.Confidence,
-                    matchDistance = Math.Round(match.Distance, 2),
-                    allergens = string.Join(", ", allergens),
-                    studentAllergies = studentAllergies,
-                    hasAllergenConflict = hasAllergenConflict
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            byte[] photo = DecodePhoto(imageBase64);
+            return Json(ToJson(_collections.Verify(photo, ResolveUserId())));
         }
 
         // ============================================================
         // POST: MealCollection/Record
-        // Staff confirmed — write the collection row.
-        //
-        // BUG FIX: now accepts mealPlanItemId and links the row to
-        // the student's UC13 pick. Previously this was left null,
-        // which broke My Collections ("-" meal names) and any
-        // reporting that walks MealCollection → MealPlanItem.
-        //
-        // If mealPlanItemId is null (student had no plan / no pick
-        // for this slot), the collection is still recorded — the
-        // student still ate — but it won't have a dish link.
+        // Token in — nothing else from the browser is used. The
+        // service re-checks the student, plan, meal and duplicates
+        // before writing the MealCollection.
         // ============================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public JsonResult Record(
-            int studentId,
-            string mealSlot,
-            string method,
-            decimal? confidence,
-            int? mealPlanItemId)
+        public JsonResult Record(string token)
         {
-            try
+            return Json(ToJson(_collections.Record(token, ResolveUserId())));
+        }
+
+        // ============================================================
+        // POST: MealCollection/OpenCollection
+        // Cafeteria Manager opens one of today's meals outside the
+        // normal hours (testing / demonstrations). Only the time
+        // window changes — every collection check still applies.
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "CafeteriaManager, Admin")]
+        public ActionResult OpenCollection(string slot, int minutes = 0)
+        {
+            MealSlot mealSlot;
+            if (!Enum.TryParse(slot, out mealSlot) || !Enum.IsDefined(typeof(MealSlot), mealSlot)
+                || !CollectionOpening.DurationOptions.Contains(minutes))
             {
-                MealSlot slot;
-                if (!Enum.TryParse(mealSlot, out slot))
-                {
-                    return Json(new { success = false, message = "Invalid meal slot." });
-                }
-
-                int userId = ResolveUserId();
-
-                // Defensive: if we were passed an id, confirm it belongs
-                // to this student and slot. If not, silently drop it
-                // rather than write a wrong link.
-                int? verifiedPlanItemId = null;
-
-                if (mealPlanItemId.HasValue)
-                {
-                    var candidate = _db.MealPlanItems
-                        .Include("MealPlan")
-                        .FirstOrDefault(i => i.Id == mealPlanItemId.Value);
-
-                    if (candidate != null
-                        && candidate.MealPlan != null
-                        && candidate.MealPlan.StudentId == studentId
-                        && candidate.Date.Date == DateTime.Today
-                        && candidate.MealSlot == slot)
-                    {
-                        verifiedPlanItemId = candidate.Id;
-                    }
-                }
-
-                // If the caller didn't pass an id (or it failed validation),
-                // try to find one ourselves. Same ordering as Verify.
-                if (!verifiedPlanItemId.HasValue)
-                {
-                    var fallbackPlan = _db.MealPlans
-                        .Where(p => p.StudentId == studentId
-                                    && p.Status == MealPlanStatus.Approved)
-                        .OrderByDescending(p => p.ReviewedAt)
-                        .ThenByDescending(p => p.Id)
-                        .FirstOrDefault();
-
-                    if (fallbackPlan != null)
-                    {
-                        var fallbackItem = _db.MealPlanItems
-                            .FirstOrDefault(i => i.MealPlanId == fallbackPlan.Id
-                                              && i.Date == DateTime.Today
-                                              && i.MealSlot == slot);
-
-                        if (fallbackItem != null)
-                        {
-                            verifiedPlanItemId = fallbackItem.Id;
-                        }
-                    }
-                }
-
-                var collection = new MealCollection
-                {
-                    StudentId = studentId,
-                    Date = DateTime.Today,
-                    MealSlot = slot,
-                    MealPlanItemId = verifiedPlanItemId,
-                    CollectedAt = DateTime.UtcNow,
-                    VerifiedByMethod = string.Equals(method, "ManualOverride", StringComparison.OrdinalIgnoreCase)
-                        ? CollectionMethod.ManualOverride
-                        : CollectionMethod.FaceMatch,
-                    MatchConfidence = confidence,
-                    CollectedByUserId = userId > 0 ? (int?)userId : null
-                };
-
-                _db.MealCollections.Add(collection);
-                _db.SaveChanges();
-
-                return Json(new
-                {
-                    success = true,
-                    collectionId = collection.Id,
-                    collectedAt = collection.CollectedAt.ToString("HH:mm:ss"),
-                    mealPlanItemId = verifiedPlanItemId
-                });
+                TempData["Error"] = "Choose a meal and how long to open collection for.";
+                return RedirectToAction("Index");
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+
+            var user = _db.Users.Find(ResolveUserId());
+            var opening = CollectionOpening.Open(mealSlot, minutes, user != null ? user.Name : User.Identity.Name, SchoolClock.Now);
+
+            TempData["Success"] = string.Format("{0} collection is open until {1:HH:mm}.", mealSlot, opening.OpenUntil);
+            return RedirectToAction("Index");
+        }
+
+        // ============================================================
+        // POST: MealCollection/CloseCollection
+        // Ends a manual opening; the normal hours apply again.
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "CafeteriaManager, Admin")]
+        public ActionResult CloseCollection()
+        {
+            CollectionOpening.Close();
+
+            TempData["Success"] = "Manual opening closed. Normal collection hours apply.";
+            return RedirectToAction("Index");
         }
 
         // ============================================================
@@ -354,10 +136,14 @@ namespace Michaelhouse.Controllers
         [Authorize(Roles = "Chef, CafeteriaManager, Admin")]
         public ActionResult ServedToday()
         {
-            var today = DateTime.Today;
+            var today = SchoolClock.Today;
 
+            // Submitted plans (incl. older Dietitian-approved ones) covering today
             var approvedPlans = _db.MealPlans
-                .Where(p => p.Status == MealPlanStatus.Approved)
+                .Where(p => (p.Status == MealPlanStatus.Submitted
+                             || p.Status == MealPlanStatus.SubmittedToDietitian
+                             || p.Status == MealPlanStatus.Approved)
+                            && p.WeekStartDate <= today && p.WeekEndDate >= today)
                 .Select(p => p.Id)
                 .ToList();
 
@@ -397,7 +183,7 @@ namespace Michaelhouse.Controllers
         [HttpGet]
         public ActionResult Log()
         {
-            var today = DateTime.Today;
+            var today = SchoolClock.Today;
 
             var collections = _db.MealCollections
                 .Include("Student")
@@ -411,6 +197,52 @@ namespace Michaelhouse.Controllers
         // ============================================================
         // HELPERS
         // ============================================================
+
+        // What the terminal shows. No face-matching scores or student
+        // ids are sent to the browser.
+        private static object ToJson(CollectionResult r)
+        {
+            return new
+            {
+                success = r.IsSuccess,
+                outcome = r.Outcome.ToString(),
+                identityVerified = r.IdentityVerified,
+                title = r.Title,
+                message = r.Message,
+                studentName = r.StudentName,
+                studentNumber = r.StudentNumber,
+                mealName = r.MealName,
+                mealSlot = r.MealSlot,
+                mealDate = r.MealDateLabel,
+                collectedAt = r.CollectedAt,
+                token = r.Token,
+                allergens = r.MealAllergens,
+                studentAllergies = r.StudentAllergies,
+                dietaryPreference = r.DietaryPreference,
+                medicalDietaryRestrictions = r.MedicalDietaryRestrictions,
+                dietaryNotes = r.DietaryNotes,
+                hasDietaryConflict = r.DietaryWarnings.Count > 0,
+                dietaryConflicts = r.DietaryWarnings
+            };
+        }
+
+        // Accepts a data URL or plain base64; null if unreadable
+        private static byte[] DecodePhoto(string imageBase64)
+        {
+            if (string.IsNullOrWhiteSpace(imageBase64)) return null;
+
+            int commaIdx = imageBase64.IndexOf(',');
+            if (commaIdx > 0) imageBase64 = imageBase64.Substring(commaIdx + 1);
+
+            try
+            {
+                return Convert.FromBase64String(imageBase64);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
 
         private int ResolveUserId()
         {

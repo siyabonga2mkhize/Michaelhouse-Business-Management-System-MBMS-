@@ -10,19 +10,12 @@
     var statusClass = "";
 
     if (Model.Status == MealPlanStatus.Draft) { statusText = "Draft"; statusClass = "bg-secondary"; }
-    else if (Model.Status == MealPlanStatus.SubmittedToDietitian) { statusText = "Awaiting Dietitian"; statusClass = "bg-warning text-dark"; }
+    else if (Model.Status == MealPlanStatus.Submitted || Model.Status == MealPlanStatus.SubmittedToDietitian) { statusText = "Submitted"; statusClass = "bg-success"; }
     else if (Model.Status == MealPlanStatus.Approved) { statusText = "Approved"; statusClass = "bg-success"; }
     else if (Model.Status == MealPlanStatus.SentBack) { statusText = "Sent Back — Action Needed"; statusClass = "bg-danger"; }
 
-    var totalSlots = Model.Days.Count * 3;
-    int filledSlots = 0;
-    foreach (var d in Model.Days)
-    {
-        foreach (var s in d.Slots)
-        {
-            if (s.CurrentPickMenuItemId.HasValue) { filledSlots = filledSlots + 1; }
-        }
-    }
+    int lockedSlots = Model.Days.Sum(d => d.Slots.Count(s => s.IsLocked));
+    int openStillToChoose = Model.OpenSlotCount - Model.OpenSlotsChosen;
 }
 
 <style>
@@ -303,6 +296,62 @@
             .mp-actions .info strong {
                 color: #111827;
             }
+
+    .mp-slot.locked {
+        background: #f9fafb;
+    }
+
+    .mp-lock {
+        font-size: .72rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-left: auto;
+    }
+
+        .mp-lock.closed {
+            color: #9ca3af;
+        }
+
+    .mp-locked-pick {
+        font-size: .9rem;
+        padding: .6rem .8rem;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .mp-option.unavailable,
+    .mp-option.unavailable:hover {
+        opacity: .55;
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+    }
+
+        .mp-option.unavailable .reason {
+            font-size: .72rem;
+            color: #b91c1c;
+            margin-top: .35rem;
+        }
+
+    .mp-option .tag.sport {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .mp-review td, .mp-review th {
+        font-size: .85rem;
+        vertical-align: top;
+    }
+
+    .mp-review .missing {
+        color: #b91c1c;
+        font-style: italic;
+    }
+
+    .mp-review .locked {
+        color: #6b7280;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -314,20 +363,11 @@
                 <div class="mp-meta">
                     @Model.WeekStartDate.ToString("dd MMM") – @Model.WeekEndDate.ToString("dd MMM yyyy")
                     &nbsp;·&nbsp;
-                    <strong>@filledSlots</strong> of <strong>@totalSlots</strong> meals chosen
+                    <strong>@Model.OpenSlotsChosen</strong> of <strong>@Model.OpenSlotCount</strong> open meals chosen
                 </div>
             </div>
             <span class="badge @statusClass fs-6">@statusText</span>
         </div>
-
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
 
         @if (Model.Status == MealPlanStatus.SentBack && !string.IsNullOrWhiteSpace(Model.DietitianComment))
         {
@@ -361,36 +401,63 @@
             </div>
         }
 
-        @if (Model.Status == MealPlanStatus.SubmittedToDietitian)
+        @if (Model.Status == MealPlanStatus.Submitted || Model.Status == MealPlanStatus.SubmittedToDietitian)
         {
-            <div class="mp-banner info">
-                <div style="font-size:1.5rem;">&hellip;</div>
+            <div class="mp-banner ok">
+                <div style="font-size:1.5rem;">&check;</div>
                 <div>
-                    <div style="font-weight:700; font-size:.95rem;">Awaiting Dietitian review</div>
+                    <div style="font-weight:700; font-size:.95rem;">Your meal plan has been submitted</div>
                     <div style="font-size:.85rem;">
                         Submitted
                         @if (Model.SubmittedAt.HasValue)
                         {
-                            <text>on @Model.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                            <text>on @Michaelhouse.Services.SchoolClock.FromUtc(Model.SubmittedAt.Value).ToString("dd MMM yyyy HH:mm")</text>
                         }
-                        — you'll see feedback here once they've reviewed it.
+                        — your choices go straight to the kitchen.
                     </div>
                 </div>
             </div>
         }
 
+        <div class="mp-banner info">
+            <div style="font-size:1.5rem;">&#9202;</div>
+            <div style="font-size:.85rem;">
+                <div style="font-weight:700; font-size:.9rem;">Choose or change a meal until the end of the day before it is served</div>
+                For example, Wednesday's meals lock at the start of Tuesday.
+                @if (lockedSlots > 0)
+                {
+                    <span>@lockedSlots meal(s) this week are already locked.</span>
+                }
+                @if (Model.Status == MealPlanStatus.Submitted || Model.Status == MealPlanStatus.SubmittedToDietitian || Model.Status == MealPlanStatus.Approved)
+                {
+                    <span>You can still change open meals after submitting.</span>
+                }
+            </div>
+        </div>
+
         @if (!string.IsNullOrWhiteSpace(Model.Allergies)
+             || !string.IsNullOrWhiteSpace(Model.DietaryPreference)
+             || !string.IsNullOrWhiteSpace(Model.MedicalDietaryRestrictions)
              || !string.IsNullOrWhiteSpace(Model.MedicalConditions)
              || !string.IsNullOrWhiteSpace(Model.Sports))
         {
             <div class="mp-banner info">
                 <div style="font-size:1.5rem;">&#9881;</div>
                 <div>
-                    <div style="font-weight:700; font-size:.9rem;">How your plan is personalized</div>
+                    <div style="font-weight:700; font-size:.9rem;">How your options are chosen</div>
                     <div style="font-size:.8rem; margin-top:.25rem;">
+                        <div>You see every option on this week's menu. Options that don't suit you are greyed out with the reason and can't be chosen.</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.DietaryPreference))
+                        {
+                            <div><strong>Dietary preference:</strong> @Model.DietaryPreference</div>
+                        }
                         @if (!string.IsNullOrWhiteSpace(Model.Allergies))
                         {
                             <div><strong>Allergies:</strong> @Model.Allergies — these meals are excluded</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.MedicalDietaryRestrictions))
+                        {
+                            <div><strong>Medical dietary restrictions:</strong> @Model.MedicalDietaryRestrictions</div>
                         }
                         @if (!string.IsNullOrWhiteSpace(Model.MedicalConditions))
                         {
@@ -398,27 +465,15 @@
                         }
                         @if (!string.IsNullOrWhiteSpace(Model.Sports))
                         {
-                            <div><strong>Sports:</strong> @Model.Sports — options ranked for athletic needs</div>
+                            <div><strong>Sports:</strong> @Model.Sports — options are ordered for your training and matches</div>
                         }
+                    </div>
+                    <div style="font-size:.78rem; margin-top:.35rem;">
+                        <a href="@Url.Action("Index", "DietaryProfile")">Update my dietary profile</a>
                     </div>
                 </div>
             </div>
         }
-
-        <div class="mp-progress">
-            <div>
-                <div class="label">Picks made</div>
-                <div class="value">@filledSlots / @totalSlots</div>
-            </div>
-            <div>
-                <div class="label">Allergen-safe options</div>
-                <div class="value">@(totalSlots * 3)</div>
-            </div>
-            <div>
-                <div class="label">Status</div>
-                <div class="value" style="font-size:1rem;">@statusText</div>
-            </div>
-        </div>
 
         <form action="@Url.Action("Save", "StudentMealPlan")" method="post" id="mealPlanForm">
             @Html.AntiForgeryToken()
@@ -426,114 +481,250 @@
 
             @foreach (var day in Model.Days)
             {
-                int dayFilled = 0;
-                foreach (var s in day.Slots)
-                {
-                    if (s.CurrentPickMenuItemId.HasValue) { dayFilled = dayFilled + 1; }
-                }
-
                 <div class="mp-day">
                     <div class="mp-day-header">
                         <div class="date">@day.Date.ToString("dddd, dd MMMM")</div>
-                        <div class="progress">@dayFilled of 3 chosen</div>
+                        <div class="progress">@day.Slots.Count(s => s.CurrentPickMenuItemId.HasValue || (s.IsLocked && s.CurrentPickName != null)) of 3 chosen</div>
                     </div>
 
                     @foreach (var slot in day.Slots)
                     {
                         var slotKey = day.Date.ToString("yyyy-MM-dd") + "|" + slot.MealSlot.ToString();
+                        var lastChangeDay = slot.SelectionCutoff.AddDays(-1);
 
-                        <div class="mp-slot">
+                        <div class="mp-slot @(slot.IsLocked ? "locked" : "")">
                             <div class="mp-slot-header">
                                 <div class="mp-slot-name">@slot.MealSlot</div>
 
                                 @if (slot.IsMatchDay)
                                 {
-                                    <span class="mp-slot-tag matchday">@(string.IsNullOrEmpty(slot.MatchDescription) ? "Match day" : slot.MatchDescription)</span>
+                                    <span class="mp-slot-tag matchday">Match day: @slot.MatchDescription</span>
                                 }
                                 else if (slot.IsDayBeforeMatch)
                                 {
-                                    <span class="mp-slot-tag prematch">Pre-match</span>
+                                    <span class="mp-slot-tag prematch">Pre-match: @slot.MatchDescription</span>
                                 }
-                            </div>
-
-                            <div class="mp-options">
-                                @foreach (var opt in slot.Options)
+                                else if (slot.IsTrainingDay)
                                 {
-                                    var isSelected = slot.CurrentPickMenuItemId == opt.MenuItemId;
-                                    var inputId = "pick_" + slotKey.Replace("-", "").Replace("|", "_") + "_" + opt.MenuItemId;
+                                    <span class="mp-slot-tag prematch">@slot.MatchDescription</span>
+                                }
 
-                                    <label class="mp-option @(isSelected ? "selected" : "")" for="@inputId">
-                                        <input type="radio"
-                                               id="@inputId"
-                                               name="pick[@slotKey]"
-                                               value="@opt.MenuItemId"
-                                               @(isSelected ? "checked" : "")
-                                               onchange="selectOption(this);" />
-
-                                        <div class="name">@opt.Name</div>
-                                        <div class="diet">@opt.DietaryClassification</div>
-                                        <div class="stats">
-                                            @opt.CaloriesPerPortion.ToString("0") kcal ·
-                                            @opt.ProteinGramsPerPortion.ToString("0.0")g protein
-                                        </div>
-
-                                        <div class="tags">
-                                            @if (opt.IsDefault)
-                                            {
-                                                <span class="tag default">Chef's choice</span>
-                                            }
-                                            @if (opt.NutritionCategory == NutritionCategory.HighProtein)
-                                            {
-                                                <span class="tag protein">High protein</span>
-                                            }
-                                            @if (opt.NutritionCategory == NutritionCategory.HighCarb)
-                                            {
-                                                <span class="tag carb">High carb</span>
-                                            }
-                                            @if (opt.Tags.Contains("Match-day recovery"))
-                                            {
-                                                <span class="tag match">Match-day recovery</span>
-                                            }
-                                            @if (opt.Tags.Contains("Pre-match loading"))
-                                            {
-                                                <span class="tag match">Pre-match loading</span>
-                                            }
-                                            @if (opt.Tags.Contains("Farm-grown"))
-                                            {
-                                                <span class="tag farm">Farm-grown</span>
-                                            }
-                                        </div>
-                                    </label>
+                                @if (slot.IsLocked)
+                                {
+                                    <span class="mp-lock closed"><i class="bi bi-lock"></i> Locked</span>
+                                }
+                                else
+                                {
+                                    <span class="mp-lock"><i class="bi bi-unlock"></i> Choose by end of @lastChangeDay.ToString("ddd dd MMM")</span>
                                 }
                             </div>
+
+                            @if (slot.IsLocked)
+                            {
+                                <div class="mp-locked-pick">
+                                    @if (!string.IsNullOrEmpty(slot.CurrentPickName))
+                                    {
+                                        <span>Your meal: <strong>@slot.CurrentPickName</strong></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No meal chosen — selection has closed.</span>
+                                    }
+                                </div>
+                                if (slot.CurrentPickNoLongerSuitable && !string.IsNullOrEmpty(slot.CurrentPickName))
+                                {
+                                    <div class="alert alert-warning py-2 small mt-2 mb-0">
+                                        This meal no longer fits your dietary profile. Tell the kitchen staff when you collect it.
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                if (slot.CurrentPickNoLongerSuitable)
+                                {
+                                    <div class="alert alert-warning py-2 small mb-2">
+                                        Your earlier pick is no longer available to you (it is not on this menu, or no longer fits your dietary profile). Please choose again.
+                                    </div>
+                                }
+                                if (slot.HasNoSuitableOption)
+                                {
+                                    <div class="alert alert-secondary py-2 small mb-2">
+                                        None of this meal's menu options fit your dietary profile.
+                                        You can still submit — speak to the cafeteria about an alternative.
+                                    </div>
+                                }
+                                if (!string.IsNullOrEmpty(slot.SportsNote))
+                                {
+                                    <div class="alert alert-info py-2 small mb-2">@slot.SportsNote</div>
+                                }
+
+                                <div class="mp-options">
+                                    @foreach (var opt in slot.Options.Where(o => o.IsAvailable))
+                                    {
+                                        var isSelected = slot.CurrentPickMenuItemId == opt.MenuItemId;
+                                        var inputId = "pick_" + slotKey.Replace("-", "").Replace("|", "_") + "_" + opt.MenuItemId;
+                                        var sportTag = opt.Tags.FirstOrDefault(t => t == "Match-day recovery" || t == "Pre-match loading" || t == "Training fuel" || t == "Priority sport");
+
+                                        <label class="mp-option @(isSelected ? "selected" : "")" for="@inputId">
+                                            <input type="radio"
+                                                   id="@inputId"
+                                                   name="pick[@slotKey]"
+                                                   value="@opt.MenuItemId"
+                                                   data-slot-key="@slotKey"
+                                                   data-meal-name="@opt.Name"
+                                                   @(isSelected ? "checked" : "")
+                                                   onchange="selectOption(this);" />
+
+                                            <div class="name">@opt.Name</div>
+                                            <div class="diet">@opt.DietaryClassification</div>
+                                            <div class="stats">
+                                                @opt.CaloriesPerPortion.ToString("0") kcal ·
+                                                @opt.ProteinGramsPerPortion.ToString("0") g protein ·
+                                                @opt.CarbohydrateGramsPerPortion.ToString("0") g carbs ·
+                                                @opt.FatGramsPerPortion.ToString("0") g fat
+                                            </div>
+
+                                            <div class="tags">
+                                                @if (sportTag != null)
+                                                {
+                                                    <span class="tag sport">@sportTag</span>
+                                                }
+                                                @if (opt.Tags.Contains("High protein"))
+                                                {
+                                                    <span class="tag protein">High protein</span>
+                                                }
+                                                @if (opt.Tags.Contains("High carb"))
+                                                {
+                                                    <span class="tag carb">High carb</span>
+                                                }
+                                                @if (opt.Tags.Contains("Light"))
+                                                {
+                                                    <span class="tag default">Light</span>
+                                                }
+                                                @if (opt.Tags.Contains("Hydration"))
+                                                {
+                                                    <span class="tag default">Hydration</span>
+                                                }
+                                                @if (opt.Tags.Contains("Farm-grown"))
+                                                {
+                                                    <span class="tag farm">Farm-grown</span>
+                                                }
+                                            </div>
+                                        </label>
+                                    }
+                                    @foreach (var opt in slot.Options.Where(o => !o.IsAvailable))
+                                    {
+                                        // Visible but not selectable — the server refuses it too
+                                        <div class="mp-option unavailable" aria-disabled="true" title="Not available to you">
+                                            <input type="radio" disabled tabindex="-1" aria-label="@opt.Name — not available to you" />
+                                            <div class="name">@opt.Name</div>
+                                            <div class="diet">@opt.DietaryClassification</div>
+                                            <div class="stats">
+                                                @opt.CaloriesPerPortion.ToString("0") kcal ·
+                                                @opt.ProteinGramsPerPortion.ToString("0") g protein ·
+                                                @opt.CarbohydrateGramsPerPortion.ToString("0") g carbs ·
+                                                @opt.FatGramsPerPortion.ToString("0") g fat
+                                            </div>
+                                            <div class="reason"><i class="bi bi-slash-circle me-1"></i>Not available to you: @opt.UnavailableReason</div>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     }
                 </div>
             }
 
+            <!-- WEEK REVIEW -->
+            <div class="mp-day">
+                <div class="mp-day-header">
+                    <div class="date">Your week at a glance</div>
+                    <div class="progress">Check your choices before you save or submit</div>
+                </div>
+                <div class="table-responsive p-3 pt-0">
+                    <table class="table table-sm mp-review mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Breakfast</th>
+                                <th>Lunch</th>
+                                <th>Dinner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Model.Days)
+                            {
+                                <tr>
+                                    <td class="text-nowrap">@day.Date.ToString("ddd dd MMM")</td>
+                                    @foreach (var slot in day.Slots)
+                                    {
+                                        var slotKey = day.Date.ToString("yyyy-MM-dd") + "|" + slot.MealSlot.ToString();
+                                        var chosen = slot.CurrentPickMenuItemId.HasValue
+                                            ? slot.Options.Where(o => o.MenuItemId == slot.CurrentPickMenuItemId.Value).Select(o => o.Name).FirstOrDefault()
+                                            : (slot.IsLocked ? slot.CurrentPickName : null);
+
+                                        <td data-review-key="@slotKey" class="@(slot.IsLocked ? "locked" : "")">
+                                            @if (!string.IsNullOrEmpty(chosen))
+                                            {
+                                                @chosen
+                                            }
+                                            else if (slot.IsLocked)
+                                            {
+                                                <span>— (closed)</span>
+                                            }
+                                            else if (slot.HasNoSuitableOption)
+                                            {
+                                                <span>— (no suitable option)</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="missing">Not chosen</span>
+                                            }
+                                            @if (slot.IsLocked)
+                                            {
+                                                <i class="bi bi-lock ms-1"></i>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             @if (Model.IsEditable)
             {
                 <div class="mp-actions">
                     <div class="info">
-                        <strong>@filledSlots</strong> of <strong>@totalSlots</strong> picks made.
-                        @if (filledSlots < totalSlots)
+                        <strong id="chosenCount">@Model.OpenSlotsChosen</strong> of <strong>@Model.OpenSlotCount</strong> open meals chosen.
+                        @if (Model.CanSubmit && openStillToChoose > 0)
                         {
-                            <span>You must choose every slot before submitting.</span>
+                            <span>Choose every open meal before submitting.</span>
                         }
                     </div>
                     <div style="display:flex; gap:.65rem;">
                         <button type="submit"
                                 formaction="@Url.Action("Save", "StudentMealPlan")"
-                                class="btn btn-outline-secondary">
-                            Save Draft
+                                class="btn @(Model.CanSubmit ? "btn-outline-secondary" : "btn-success")">
+                            @(Model.CanSubmit ? "Save Draft" : "Save Changes")
                         </button>
-                        <button type="submit"
-                                formaction="@Url.Action("Submit", "StudentMealPlan")"
-                                class="btn btn-success"
-                                onclick="return confirm('Submit this plan to the Dietitian? You can no longer edit it after submission.');">
-                            Submit to Dietitian
-                        </button>
+                        @if (Model.CanSubmit)
+                        {
+                            <button type="submit"
+                                    formaction="@Url.Action("Submit", "StudentMealPlan")"
+                                    class="btn btn-success"
+                                    onclick="return confirm('Submit your meal plan? Your choices go to the kitchen. You can still change open meals until the day before each is served.');">
+                                Submit Meal Plan
+                            </button>
+                        }
                     </div>
+                </div>
+            }
+            else
+            {
+                <div class="mp-actions">
+                    <div class="info">Every meal this week is locked. Your choices are final.</div>
                 </div>
             }
         </form>
@@ -542,6 +733,8 @@
 </div>
 
 <script>
+    // Highlights the chosen card and updates the week-at-a-glance table.
+    // The server re-checks every choice and the deadline on save.
     function selectOption(radio) {
         var group = document.querySelectorAll('input[name="' + radio.name + '"]');
 
@@ -551,5 +744,19 @@
                 parent.classList.toggle('selected', r.checked);
             }
         });
+
+        var cell = document.querySelector('[data-review-key="' + radio.getAttribute('data-slot-key') + '"]');
+        if (cell) {
+            cell.textContent = radio.getAttribute('data-meal-name');
+        }
+
+        var counter = document.getElementById('chosenCount');
+        if (counter) {
+            var keys = {};
+            document.querySelectorAll('.mp-option input[type=radio]:checked').forEach(function (r) {
+                keys[r.getAttribute('data-slot-key')] = true;
+            });
+            counter.textContent = Object.keys(keys).length;
+        }
     }
 </script>

@@ -4,7 +4,7 @@
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Kitchen Production Plan";
+    ViewBag.Title = "Kitchen Plan";
 }
 
 <style>
@@ -405,30 +405,211 @@
             .pp-actions .info strong {
                 color: #111827;
             }
+
+    /* ── Kitchen plan: availability ─────────────────────────── */
+    .av {
+        display: inline-block;
+        font-size: .68rem;
+        font-weight: 700;
+        padding: .15rem .5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+        .av.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .av.short {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .av.none {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .pp-check {
+        width: 100%;
+        font-size: .8rem;
+        border-collapse: collapse;
+        margin-top: .5rem;
+    }
+
+        .pp-check th {
+            text-align: left;
+            font-size: .66rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+            padding: .35rem .5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pp-check td {
+            padding: .35rem .5rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .pp-check .num {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .pp-check .meals {
+            color: #6b7280;
+            font-size: .72rem;
+        }
+
+    .pp-warnings {
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+        .pp-warnings.bad {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .pp-warnings.good {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+        }
+
+        .pp-warnings ul {
+            margin: .5rem 0 0 0;
+            padding-left: 1.1rem;
+            font-size: .85rem;
+        }
+
+        .pp-warnings li {
+            margin-bottom: .35rem;
+        }
+
+        .pp-warnings .when {
+            font-weight: 700;
+        }
+
+        .pp-warnings .affects {
+            display: block;
+            color: #6b7280;
+            font-size: .76rem;
+        }
+
+    .pp-instructions {
+        font-size: .76rem;
+        color: #374151;
+        background: #f9fafb;
+        border-radius: 6px;
+        padding: .4rem .6rem;
+        margin: .25rem 0 .35rem 0;
+        white-space: pre-line;
+    }
+
+    .pp-not-chosen {
+        font-size: .76rem;
+        color: #6b7280;
+        margin-top: .35rem;
+    }
+
+    .pp-final {
+        font-size: .72rem;
+        font-weight: 600;
+    }
 </style>
+
+@helper Availability(IngredientLineViewModel line)
+{
+    if (line.Status == IngredientAvailability.Available)
+    {
+        <span class="av ok">Available</span>
+    }
+    else if (line.Status == IngredientAvailability.Insufficient)
+    {
+        <span class="av short">Insufficient</span>
+    }
+    else
+    {
+        <span class="av none">Not available</span>
+    }
+}
+
+@helper CheckTable(IEnumerable<IngredientLineViewModel> lines, bool showMeals)
+{
+    <table class="pp-check">
+        <thead>
+            <tr>
+                <th>Ingredient</th>
+                <th class="num">Required</th>
+                <th class="num">Available</th>
+                <th>Status</th>
+                @if (showMeals)
+                {
+                    <th>Needed for</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in lines)
+            {
+                <tr>
+                    <td>@line.IngredientName</td>
+                    <td class="num">@KitchenQuantity.Format(line.TotalRequired, line.Unit)</td>
+                    <td class="num">@KitchenQuantity.Format(line.StockAvailable, line.Unit)</td>
+                    <td>
+                        @Availability(line)
+                        @if (line.Status == IngredientAvailability.Insufficient)
+                        {
+                            <span class="stock-low" style="font-size:.7rem;">short @KitchenQuantity.Format(line.Shortfall, line.Unit)</span>
+                        }
+                    </td>
+                    @if (showMeals)
+                    {
+                        <td class="meals">@string.Join(", ", line.AffectedMeals)</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@{
+    var problems = Model.Warnings.Where(w => w.Severity != KitchenWarningSeverity.Info)
+        .OrderByDescending(w => w.Severity)
+        .ToList();
+    var notes = Model.Warnings.Where(w => w.Severity == KitchenWarningSeverity.Info).ToList();
+}
 
 <div class="container-fluid py-4">
     <div class="pp-shell">
 
         <div class="pp-header">
             <div>
-                <h1>Kitchen Production Plan</h1>
+                <h1>Kitchen Plan</h1>
                 <div class="pp-meta">
                     @Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")
                     &nbsp;·&nbsp;
-                    <strong>@Model.TotalMeals</strong> meals to produce
+                    <strong>@Model.TotalMeals</strong> portions to prepare
                     &nbsp;·&nbsp;
-                    <strong>@Model.WeekTotalIngredients.Count</strong> distinct ingredients
+                    from <strong>@Model.SubmittedPlanCount</strong> of <strong>@Model.StudentCount</strong> students' submitted meal plans
                 </div>
             </div>
-            <div>
+            <div class="d-flex gap-2 align-items-center">
+                @if (Model.HasIngredientProblems)
+                {
+                    <span class="badge bg-danger fs-6">@problems.Count ingredient problem(s)</span>
+                }
+                else if (Model.TotalMeals > 0)
+                {
+                    <span class="badge bg-success fs-6">Ingredients available</span>
+                }
                 @if (Model.IsProductionConfirmed)
                 {
-                    <span class="badge bg-success fs-6">Production Confirmed</span>
-                }
-                else
-                {
-                    <span class="badge bg-warning text-dark fs-6">Awaiting Chef Sign-Off</span>
+                    <span class="badge bg-success fs-6">Confirmed</span>
                 }
             </div>
         </div>
@@ -442,12 +623,90 @@
             <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
         }
 
+        @if (!Model.IsMenuPublished)
+        {
+            <div class="alert alert-warning">
+                This menu hasn't been published, so students can't choose from it yet. The kitchen plan fills in as students submit meal plans.
+            </div>
+        }
+        else if (Model.SubmittedPlanCount == 0)
+        {
+            <div class="alert alert-info">
+                No student has submitted a meal plan for this week yet, so there is nothing to prepare.
+            </div>
+        }
+
+        <div class="alert alert-light border small">
+            Portions are the number of students who chose each meal in their <strong>submitted</strong> meal plans.
+            @if (Model.StaffMeals > 0)
+            {
+                <span>The menu's <strong>@Model.StaffMeals</strong> staff meals per meal are added to that meal's most chosen dish.</span>
+            }
+            @if (Model.UnsubmittedPlansWithPicks > 0)
+            {
+                <span><strong>@Model.UnsubmittedPlansWithPicks</strong> student(s) have chosen meals but not submitted — they aren't counted.</span>
+            }
+            Availability compares what's required with the ingredient stock on record; nothing is reserved or deducted.
+        </div>
+
+        @* ── Readiness ─────────────────────────────────────────── *@
+        @if (problems.Any())
+        {
+            <div class="pp-warnings bad">
+                <strong><i class="bi bi-exclamation-triangle me-1"></i>Not ready: some ingredients may stop meals being prepared.</strong>
+                <ul>
+                    @foreach (var w in problems)
+                    {
+                        <li>
+                            <span class="when">@w.When:</span> @w.Message
+                            <span class="affects">Affects: @string.Join(", ", w.AffectedMeals)</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+        else if (Model.TotalMeals > 0)
+        {
+            <div class="pp-warnings good">
+                <strong><i class="bi bi-check-circle me-1"></i>All ingredients for the chosen meals are available.</strong>
+            </div>
+        }
+
+        @if (notes.Any())
+        {
+            <div class="alert alert-secondary small">
+                @foreach (var n in notes)
+                {
+                    <div><strong>@n.When:</strong> @n.Message</div>
+                }
+            </div>
+        }
+
         @foreach (var day in Model.Days)
         {
             <div class="pp-day">
                 <div class="pp-day-header">
                     <span>@day.Date.ToString("dddd, dd MMMM yyyy")</span>
-                    <span class="count">@day.Slots.Count service@(day.Slots.Count == 1 ? "" : "s")</span>
+                    @if (day.SelectionsFinal)
+                    {
+                        <span class="pp-final text-success"><i class="bi bi-lock"></i> Selections final</span>
+                    }
+                    else
+                    {
+                        <span class="pp-final text-warning">Students can change these meals until the end of @day.SelectionCutoff.AddDays(-1).ToString("ddd dd MMM")</span>
+                    }
+                    @if (day.IsIssued)
+                    {
+                        <a class="pp-final text-success" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
+                            <i class="bi bi-box-seam"></i> Ingredients issued@(day.IssuedAt.HasValue ? " " + Michaelhouse.Services.SchoolClock.FromUtc(day.IssuedAt.Value).ToString("ddd HH:mm") : "")@(day.IssuedBy != null ? " by " + day.IssuedBy : "")
+                        </a>
+                    }
+                    else if (day.Slots.Any(s => s.Tasks.Any()))
+                    {
+                        <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
+                            <i class="bi bi-box-seam"></i> Issue ingredients
+                        </a>
+                    }
                 </div>
 
                 @foreach (var slot in day.Slots)
@@ -457,9 +716,14 @@
                             <span class="pp-slot-name">@slot.MealSlot</span>
                             <span class="pp-serve">
                                 Serve at <strong>@slot.ServeTime.ToString(@"hh\:mm")</strong>
-                                · @slot.Portions portions
+                                · <strong>@slot.Portions</strong> portions
                             </span>
                         </div>
+
+                        @if (!slot.Tasks.Any())
+                        {
+                            <div class="text-muted small">No student has chosen a meal here yet — nothing to prepare.</div>
+                        }
 
                         @foreach (var task in slot.Tasks)
                         {
@@ -469,7 +733,7 @@
                             else if (task.Station == "Oven") { stClass = "ov"; }
                             else if (task.Station == "Cold Prep") { stClass = "cp"; }
 
-                            var shortCount = task.Ingredients.Count(i => !i.IsCovered);
+                            var problemCount = task.Ingredients.Count(i => i.Status != IngredientAvailability.Available);
 
                             <div class="pp-task">
                                 <div class="pp-task-top">
@@ -488,23 +752,37 @@
                                         </div>
                                     </div>
                                     <div><span class="pp-station @stClass">@task.Station</span></div>
-                                    <div style="text-align:right; font-size:.75rem; color:#6b7280;">
+                                    <div style="text-align:right; font-size:.9rem; font-weight:700;">
                                         @task.Portions
-                                        <small style="display:block; font-size:.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.04em;">portions</small>
+                                        <small style="display:block; font-size:.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.04em; font-weight:400;">portions</small>
+                                        @if (task.StaffPortions > 0)
+                                        {
+                                            <small style="display:block; font-size:.62rem; color:#6b7280; font-weight:400;">@task.StudentPortions students + @task.StaffPortions staff</small>
+                                        }
                                     </div>
                                     <div style="text-align:right; font-size:.75rem;">
-                                        @if (shortCount > 0)
+                                        @if (!task.HasRecipe)
                                         {
-                                            <span class="stock-low">@shortCount short</span>
+                                            <span class="av short">No recipe</span>
+                                        }
+                                        else if (problemCount > 0)
+                                        {
+                                            <span class="av none">@problemCount problem(s)</span>
                                         }
                                         else
                                         {
-                                            <span class="stock-ok">✓ @task.Ingredients.Count ok</span>
+                                            <span class="av ok">Ready</span>
                                         }
                                     </div>
                                 </div>
 
-                                <div>
+                                @if (!string.IsNullOrWhiteSpace(task.Instructions))
+                                {
+                                    <div class="pp-instructions">@task.Instructions</div>
+                                }
+
+                                @if (task.Ingredients.Any())
+                                {
                                     <span class="pp-bom-toggle" onclick="toggleBom(this)">▸ Show ingredients (@task.Ingredients.Count)</span>
 
                                     <div class="pp-bom" style="display:none;">
@@ -513,8 +791,8 @@
                                                 <tr>
                                                     <th>Ingredient</th>
                                                     <th style="text-align:right;">Per portion</th>
-                                                    <th style="text-align:right;">Required</th>
-                                                    <th style="text-align:right;">In stock</th>
+                                                    <th style="text-align:right;">For @task.Portions portions</th>
+                                                    <th style="text-align:right;">Available</th>
                                                     <th style="text-align:right;">Status</th>
                                                 </tr>
                                             </thead>
@@ -523,156 +801,66 @@
                                                 {
                                                     <tr>
                                                         <td>@ing.IngredientName</td>
-                                                        <td class="num">
-                                                            @ing.QuantityPerPortion.ToString("N2")
-                                                            <span class="unit">@ing.Unit</span>
-                                                        </td>
-                                                        <td class="num">
-                                                            @ing.TotalRequired.ToString("N2")
-                                                            <span class="unit">@ing.Unit</span>
-                                                        </td>
-                                                        <td class="num">
-                                                            @ing.StockAvailable.ToString("N2")
-                                                            <span class="unit">@ing.Unit</span>
-                                                        </td>
-                                                        <td class="num">
-                                                            @if (ing.IsCovered)
-                                                            {
-                                                                <span class="stock-ok">✓</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="stock-low">
-                                                                    short @ing.Shortfall.ToString("N2") @ing.Unit
-                                                                </span>
-                                                            }
-                                                        </td>
+                                                        <td class="num">@KitchenQuantity.Format(ing.QuantityPerPortion, ing.Unit)</td>
+                                                        <td class="num">@KitchenQuantity.Format(ing.TotalRequired, ing.Unit)</td>
+                                                        <td class="num">@KitchenQuantity.Format(ing.StockAvailable, ing.Unit)</td>
+                                                        <td class="num">@Availability(ing)</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
+                                }
                             </div>
                         }
 
-                        @* ───────────────────────────────────────────
-                               UC12: per-house breakdown for this slot.
-                            ─────────────────────────────────────────── *@
-                        @if (slot.HouseBreakdown != null && slot.HouseBreakdown.Count > 0)
+                        @if (slot.NotSelectedOptions.Any())
                         {
-                            <div class="pp-houses">
-                                <div class="pp-houses-title">
-                                    Portions by house
-                                    @if (slot.EventsThisMeal != null && slot.EventsThisMeal.Count > 0)
-                                    {
-                                        <span class="pp-events">· @string.Join(" · ", slot.EventsThisMeal)</span>
-                                    }
+                            <div class="pp-not-chosen">
+                                Not chosen by anyone — nothing to prepare: @string.Join(", ", slot.NotSelectedOptions)
+                            </div>
+                        }
+                        @if (slot.StudentsWithoutPick > 0)
+                        {
+                            <div class="pp-not-chosen">
+                                @slot.StudentsWithoutPick student(s) with a submitted plan didn't choose a meal here.
+                            </div>
+                        }
+
+                        @if (slot.Ingredients.Any())
+                        {
+                            <div class="mt-2">
+                                <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#374151;">
+                                    @slot.MealSlot ingredients — total for this meal
                                 </div>
-                                <div class="pp-house-grid">
-                                    @foreach (var h in slot.HouseBreakdown)
-                                    {
-                                        <div class="pp-house">
-                                            <div class="pp-house-name">@h.ResidenceName</div>
-                                            <div class="pp-house-count">@h.TotalPortions</div>
-                                            <div class="pp-house-detail">
-                                                @h.ActiveStudents<text> active</text>
-                                                @if (h.MatchPlayers > 0)
-                                                {
-                                                    <text> · </text>@h.MatchPlayers<text> match</text>
-                                                }
-                                                @if (h.Unavailable > 0)
-                                                {
-                                                    <text> · </text>@h.Unavailable<text> out</text>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
+                                @CheckTable(slot.Ingredients, true)
                             </div>
                         }
                     </div>
                 }
 
-                @* Day total — once per day, outside the slot loop *@
-                @if (day.DayTotalIngredients != null && day.DayTotalIngredients.Count > 0)
+                @if (day.DayTotalIngredients.Any())
                 {
                     <div class="pp-slot" style="background:#fcfcfc;">
                         <div class="pp-day-total">
-                            <div class="pp-day-total-title">Day Total — @day.Date.ToString("dddd")</div>
-                            <table>
-                                <tbody>
-                                    @foreach (var line in day.DayTotalIngredients)
-                                    {
-                                        <tr>
-                                            <td>@line.IngredientName</td>
-                                            <td class="num">
-                                                @line.TotalRequired.ToString("N2")
-                                                <span class="unit">@line.Unit</span>
-                                            </td>
-                                            <td style="text-align:right;">
-                                                @if (line.IsCovered)
-                                                {
-                                                    <span class="stock-ok">✓</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="stock-low">short @line.Shortfall.ToString("N2")</span>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                            <div class="pp-day-total-title">Day total — @day.Date.ToString("dddd")</div>
+                            @CheckTable(day.DayTotalIngredients, true)
                         </div>
                     </div>
                 }
             </div>
         }
 
-        @if (Model.WeekTotalIngredients != null && Model.WeekTotalIngredients.Count > 0)
+        @if (Model.WeekTotalIngredients.Any())
         {
             <div class="pp-week-total">
                 <div class="pp-week-total-header">
-                    Week Total — All Ingredients
-                    <span class="text-muted small ms-2">This is what the kitchen must order / draw from stock.</span>
+                    Week total — all ingredients
+                    <span class="text-muted small ms-2">Every chosen meal this week together, compared with current stock.</span>
                 </div>
-                <table class="pp-week-total-table">
-                    <thead>
-                        <tr>
-                            <th>Ingredient</th>
-                            <th style="text-align:right;">Required</th>
-                            <th style="text-align:right;">In stock</th>
-                            <th style="text-align:right;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var line in Model.WeekTotalIngredients)
-                        {
-                            <tr>
-                                <td>@line.IngredientName</td>
-                                <td class="num">
-                                    @line.TotalRequired.ToString("N2")
-                                    <span class="unit">@line.Unit</span>
-                                </td>
-                                <td class="num">
-                                    @line.StockAvailable.ToString("N2")
-                                    <span class="unit">@line.Unit</span>
-                                </td>
-                                <td style="text-align:right;">
-                                    @if (line.IsCovered)
-                                    {
-                                        <span class="stock-ok">✓ Covered</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="stock-low">Short by @line.Shortfall.ToString("N2") @line.Unit</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <div style="padding: 0 1.25rem 1rem 1.25rem;">
+                    @CheckTable(Model.WeekTotalIngredients, false)
+                </div>
             </div>
         }
 
@@ -680,34 +868,44 @@
         {
             <div class="pp-actions">
                 <div class="info">
-                    <strong>Chef sign-off required.</strong>
-                    Review the ingredient breakdown, then confirm.
+                    <strong>Chef confirmation.</strong>
+                    @if (problems.Any())
+                    {
+                        <span class="text-danger">@problems.Count ingredient problem(s) still open.</span>
+                    }
+                    else
+                    {
+                        <span>Review the plan, then confirm.</span>
+                    }
                 </div>
                 <form action="@Url.Action("ConfirmProduction", "Cafeteria", new { id = Model.MenuId })" method="post">
                     @Html.AntiForgeryToken()
                     <button type="submit"
-                            class="btn btn-success btn-lg"
-                            onclick="return confirm('Confirm the production plan for this week?');">
-                        Confirm Production Plan
+                            class="btn @(problems.Any() ? "btn-outline-danger" : "btn-success") btn-lg"
+                            onclick="return confirm('@(problems.Any() ? "Some ingredients are insufficient or not available. Confirm the kitchen plan anyway?" : "Confirm the kitchen plan for this week?")');">
+                        Confirm Kitchen Plan
                     </button>
                 </form>
             </div>
         }
         else
         {
-            <div class="alert alert-success mt-4">
-                <strong>Production confirmed</strong>
+            <div class="alert @(problems.Any() ? "alert-warning" : "alert-success") mt-4">
+                <strong>Kitchen plan confirmed</strong>
                 @if (Model.ConfirmedAt.HasValue)
                 {
-                    <text>on @Model.ConfirmedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                    <text>on @Michaelhouse.Services.SchoolClock.FromUtc(Model.ConfirmedAt.Value).ToString("dd MMM yyyy HH:mm")</text>
                 }
-                — the kitchen can prepare to schedule.
+                @if (problems.Any())
+                {
+                    <text> — but @problems.Count ingredient problem(s) are still open.</text>
+                }
             </div>
         }
 
         <div class="mt-4">
             <a href="@Url.Action("ChefIndex", "Cafeteria")" class="btn btn-outline-secondary">
-                ← Back to Kitchen Review Queue
+                ← Back to Kitchen
             </a>
         </div>
 

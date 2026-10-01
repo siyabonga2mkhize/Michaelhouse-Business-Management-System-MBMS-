@@ -152,8 +152,19 @@ namespace Michaelhouse.Models
         public DbSet<EventMenuTemplate> EventMenuTemplates { get; set; }
         public DbSet<EventMenuTemplateItem> EventMenuTemplateItems { get; set; }
         public DbSet<EventStaffAssignment> EventStaffAssignments { get; set; }
+        public DbSet<CafeteriaEventMenuItem> CafeteriaEventMenuItems { get; set; }
+
+        // ─── Cafeteria ingredient inventory ───────────────────────────────
+        public DbSet<IngredientSupplier> IngredientSuppliers { get; set; }
+        public DbSet<IngredientPurchaseOrder> IngredientPurchaseOrders { get; set; }
+        public DbSet<IngredientPurchaseOrderLine> IngredientPurchaseOrderLines { get; set; }
+        public DbSet<IngredientDelivery> IngredientDeliveries { get; set; }
+        public DbSet<IngredientDeliveryLine> IngredientDeliveryLines { get; set; }
+        public DbSet<IngredientStockTransaction> IngredientStockTransactions { get; set; }
+        public DbSet<KitchenIngredientIssue> KitchenIngredientIssues { get; set; }
 
         public DbSet<EventRsvp> EventRsvps { get; set; }
+        public DbSet<EventRsvpGuest> EventRsvpGuests { get; set; }
 
         public DbSet<StudentSportStatus> StudentSportStatuses { get; set; }
 
@@ -384,6 +395,14 @@ namespace Michaelhouse.Models
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.CarbohydrateGramsPerPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MenuItem>()
+                .Property(mi => mi.FatGramsPerPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<MenuItem>()
                 .HasMany(mi => mi.ScheduleItems)
                 .WithRequired(ms => ms.MenuItem)
                 .HasForeignKey(ms => ms.MenuItemId)
@@ -415,6 +434,21 @@ namespace Michaelhouse.Models
                 .WithMany(mi => mi.SubstitutionScheduleItems)
                 .HasForeignKey(ms => ms.SubstitutionMenuItemId)
                 .WillCascadeOnDelete(false);
+
+            // ── Cafeteria inventory: no cascading deletes from shared
+            //    records (Ingredient, Supplier); lines go with their header
+            modelBuilder.Entity<IngredientSupplier>().HasRequired(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientSupplier>().HasRequired(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientPurchaseOrder>().HasRequired(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientPurchaseOrder>().HasOptional(x => x.ShortfallOf).WithMany().HasForeignKey(x => x.ShortfallOfOrderId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientPurchaseOrderLine>().HasRequired(x => x.PurchaseOrder).WithMany(o => o.Lines).HasForeignKey(x => x.PurchaseOrderId).WillCascadeOnDelete(true);
+            modelBuilder.Entity<IngredientPurchaseOrderLine>().HasRequired(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientDelivery>().HasOptional(x => x.PurchaseOrder).WithMany().HasForeignKey(x => x.PurchaseOrderId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientDelivery>().HasRequired(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientDeliveryLine>().HasRequired(x => x.Delivery).WithMany(d => d.Lines).HasForeignKey(x => x.DeliveryId).WillCascadeOnDelete(true);
+            modelBuilder.Entity<IngredientDeliveryLine>().HasRequired(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientDeliveryLine>().HasOptional(x => x.PurchaseOrderLine).WithMany().HasForeignKey(x => x.PurchaseOrderLineId).WillCascadeOnDelete(false);
+            modelBuilder.Entity<IngredientStockTransaction>().HasRequired(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId).WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Ingredient>()
     .HasKey(i => i.Id);

@@ -57,6 +57,8 @@ namespace Michaelhouse.Controllers
         // ============================================================
         // POST: StudentMealPlan/Save
         // Saves the student's current picks. Does not submit.
+        // The service checks ownership, the published menu, the
+        // student's dietary profile and the selection deadline.
         // ============================================================
 
         [HttpPost]
@@ -69,7 +71,7 @@ namespace Michaelhouse.Controllers
             try
             {
                 var picks = ExtractPicks(Request.Form);
-                _service.SavePicks(mealPlanId, picks);
+                _service.SavePicks(mealPlanId, studentId, picks);
 
                 TempData["Success"] = "Your picks have been saved.";
             }
@@ -98,11 +100,11 @@ namespace Michaelhouse.Controllers
                 var picks = ExtractPicks(Request.Form);
 
                 // Save first, then submit
-                _service.SavePicks(mealPlanId, picks);
-                _service.Submit(mealPlanId);
+                _service.SavePicks(mealPlanId, studentId, picks);
+                _service.Submit(mealPlanId, studentId);
 
                 TempData["Success"] =
-                    "Your meal plan has been submitted to the Dietitian for review.";
+                    "Your meal plan has been submitted. Your choices go straight to the kitchen.";
             }
             catch (Exception ex)
             {
@@ -131,17 +133,20 @@ namespace Michaelhouse.Controllers
             int studentId = ResolveStudentId();
             if (studentId <= 0) return new HttpStatusCodeResult(403);
 
-            // Find the most recently APPROVED meal plan.
+            // The most recent SUBMITTED meal plan (plans go straight to the
+            // kitchen on submit; older Dietitian-approved plans count too).
             var plan = _db.MealPlans
                 .Where(p => p.StudentId == studentId
-                            && p.Status == MealPlanStatus.Approved)
-                .OrderByDescending(p => p.ReviewedAt)
+                            && (p.Status == MealPlanStatus.Submitted
+                                || p.Status == MealPlanStatus.SubmittedToDietitian
+                                || p.Status == MealPlanStatus.Approved))
+                .OrderByDescending(p => p.WeekStartDate)
                 .ThenByDescending(p => p.Id)
                 .FirstOrDefault();
 
             if (plan == null)
             {
-                ViewBag.Message = "You don't have an approved meal plan yet.";
+                ViewBag.Message = "You haven't submitted a meal plan yet.";
                 ViewBag.Collections = new List<MealCollection>();
                 ViewBag.WeekStart = DateTime.Today;
                 ViewBag.WeekEnd = DateTime.Today;

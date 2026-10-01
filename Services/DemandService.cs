@@ -57,10 +57,12 @@ namespace Michaelhouse.Services
                 .GroupBy(s => s.StudentId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            // Group students by residence
+            // Group active students by the house they live in
+            // (residence allocation — see StudentHouseService)
+            var houseByStudent = new StudentHouseService(_db).HouseByStudent();
             var studentsByResidence = students
-                .Where(s => s.ResidenceId.HasValue)
-                .GroupBy(s => s.ResidenceId.Value)
+                .Where(s => s.IsActive && houseByStudent.ContainsKey(s.StudentId))
+                .GroupBy(s => houseByStudent[s.StudentId])
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             // Residence name lookup

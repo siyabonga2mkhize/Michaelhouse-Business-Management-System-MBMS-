@@ -133,42 +133,31 @@ namespace Michaelhouse.Controllers
                 .OrderBy(x => x.Name)
                 .ToList();
 
+            // Do the options in each slot give every dietary group of
+            // students a suitable choice? Recalculated on every view so
+            // it reflects manual changes.
+            ViewBag.Coverage = new MenuCoverageService(_db).AnalyseMenu(id);
+
             return View(model);
         }
 
         // ============================================================
         // GET: Cafeteria/KitchenRequirements/5
+        // Ingredient requirements for the week — calculated only from
+        // students' submitted meal plans (+ staff meals), the same
+        // figures as the Kitchen Plan. Nothing is shown before
+        // students have chosen.
         // ============================================================
 
         [HttpGet]
         public ActionResult KitchenRequirements(int id)
         {
-            MealMenu menu = _menuService.GetMenu(id);
-
-            if (menu == null)
+            if (!_db.MealMenus.Any(m => m.Id == id))
             {
                 return HttpNotFound();
             }
 
-            List<MenuSchedulingService.IngredientRequirement> requirements;
-
-            try
-            {
-                requirements = _menuService.CalculateIngredientRequirements(id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-
-                return RedirectToAction("Review", new { id = id });
-            }
-
-            ViewBag.MealMenuId = menu.Id;
-            ViewBag.StartDate = menu.StartDate;
-            ViewBag.EndDate = menu.EndDate;
-            ViewBag.MenuStatus = menu.MenuStatus;
-
-            return View(requirements);
+            return View(_menuService.BuildProductionPlan(id));
         }
 
         // ============================================================
@@ -181,20 +170,15 @@ namespace Michaelhouse.Controllers
         {
             try
             {
-                // Workflow gate: Chef must sign off first
+                // The Chef no longer signs off before acceptance: the menu
+                // is a set of options for students to choose from, and
+                // the Chef / stock / production steps follow once students'
+                // meal plans give actual demand.
                 var menu = _db.MealMenus.FirstOrDefault(x => x.Id == id);
 
                 if (menu == null)
                 {
                     return HttpNotFound();
-                }
-
-                if (!menu.IsKitchenReady)
-                {
-                    TempData["ErrorMessage"] =
-                        "The Chef must mark this menu Kitchen Ready before it can be accepted.";
-
-                    return RedirectToAction("Review", new { id = id });
                 }
 
                 _menuService.AcceptMenu(id);
@@ -268,7 +252,7 @@ namespace Michaelhouse.Controllers
                 MenuScheduleItem item = _menuService.ModifyItem(scheduleItemId, newMenuItemId, newPortions);
 
                 TempData["SuccessMessage"] =
-                    "The schedule item was modified and its status recalculated.";
+                    "The option was changed. Dietary coverage has been rechecked.";
 
                 return RedirectToAction("Review", new { id = item.MealMenuId });
             }
@@ -350,17 +334,9 @@ namespace Michaelhouse.Controllers
 
             ViewBag.SubstitutesByItem = substitutesByItem;
 
-            // Kitchen BOM for the whole proposed week
-            try
-            {
-                ViewBag.IngredientRequirements =
-                    _menuService.CalculateIngredientRequirements(id);
-            }
-            catch
-            {
-                ViewBag.IngredientRequirements =
-                    new List<MenuSchedulingService.IngredientRequirement>();
-            }
+            // Ingredient requirements are only calculated from students'
+            // submitted meal plans (Kitchen Plan / Kitchen Requirements),
+            // never from a proposed menu.
 
             return View(model);
         }
@@ -415,12 +391,66 @@ namespace Michaelhouse.Controllers
 
             _db.SaveChanges();
 
-            TempData["SuccessMessage"] =
-                "Production plan confirmed. The kitchen can now prepare to schedule.";
+            // Don't let a plan with missing ingredients look fully ready
+            int problems = _menuService.BuildProductionPlan(id).Warnings
+                .Count(w => w.Severity != KitchenWarningSeverity.Info);
+
+            TempData["SuccessMessage"] = problems == 0
+                ? "Kitchen plan confirmed. All ingredients for the chosen meals are available."
+                : string.Format("Kitchen plan confirmed, but {0} ingredient problem(s) are still open.", problems);
 
             return RedirectToAction("ProductionPlan", new { id = id });
         }
 
+
+        // ============================================================
+        // GET: Cafeteria/IssueIngredients/5?date=2026-10-07
+        // The day's ingredients from the kitchen plan, against stock.
+        // POST: the Chef confirms what was used — stock goes down.
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Chef, CafeteriaManager, Admin")]
+        public ActionResult IssueIngredients(int id, DateTime date)
+        {
+            try
+            {
+                var vm = new KitchenIssueService(_db).ForMenuDay(id, date);
+                ViewBag.PostUrl = Url.Action("IssueIngredients", "Cafeteria", new { id, date = date.ToString("yyyy-MM-dd") });
+                ViewBag.BackUrl = Url.Action("ProductionPlan", "Cafeteria", new { id });
+                ViewBag.BackLabel = "Back to Kitchen Plan";
+                ViewBag.CanSubmit = User.IsInRole("Chef") || User.IsInRole("Admin");
+                return View("~/Views/Shared/KitchenIssue.cshtml", vm);
+            }
+            catch (InventoryException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("ProductionPlan", new { id });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Chef, Admin")]
+        public ActionResult IssueIngredients(int id, DateTime date, string notes)
+        {
+            var service = new KitchenIssueService(_db);
+
+            try
+            {
+                var vm = service.ForMenuDay(id, date);
+                var quantities = KitchenIssueService.ReadQuantities(k => Request.Form[k], vm);
+                service.IssueMenuDay(id, date, quantities, notes, (int)(Session["UserId"] ?? 0));
+
+                TempData["Success"] = "Ingredients for " + date.ToString("dddd dd MMM") + " issued — stock updated.";
+                return RedirectToAction("ProductionPlan", new { id });
+            }
+            catch (InventoryException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("IssueIngredients", new { id, date = date.ToString("yyyy-MM-dd") });
+            }
+        }
 
         // ============================================================
         // POST: Cafeteria/ConfirmSubstitution
@@ -605,6 +635,8 @@ namespace Michaelhouse.Controllers
             return new MenuScheduleItemDisplay
             {
                 Id = item.Id,
+                MenuItemId = item.MenuItemId,
+                NutritionCategory = item.MenuItem != null ? item.MenuItem.NutritionCategory : NutritionCategory.Standard,
                 Date = item.Date,
                 MealSlot = item.MealSlot.ToString(),
                 MenuItemName = item.MenuItem != null ? item.MenuItem.Name : "Unknown item",

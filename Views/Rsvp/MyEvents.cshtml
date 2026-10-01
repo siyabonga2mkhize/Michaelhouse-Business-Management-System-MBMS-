@@ -1,0 +1,139 @@
+﻿@model List<Michaelhouse.Services.EventInvitation>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "My Event Invitations";
+}
+
+<style>
+    .me-shell {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .me-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .me-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .me-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .me-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: .75rem;
+    }
+
+    .me-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #111827;
+    }
+
+    .me-when {
+        font-size: .82rem;
+        color: #6b7280;
+        margin-top: .15rem;
+    }
+
+    .me-badge {
+        display: inline-block;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        margin-top: .45rem;
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+        .me-badge.open {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .me-badge.scheduled {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .me-badge.answered {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .me-empty {
+        background: #fff;
+        border: 1px dashed #d1d5db;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="me-shell">
+
+        <div class="me-header">
+            <h1>My Event Invitations</h1>
+            <div class="me-meta">Events you're invited to. Open one to RSVP or change your answer while RSVPs are open.</div>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="me-empty">You have no event invitations right now.</div>
+        }
+
+        @foreach (var inv in Model)
+        {
+            var evt = inv.Event;
+            bool open = inv.Status.AcceptingResponses;
+            string answer = inv.Response == null ? null
+                : inv.Response.ResponseStatus == "Attending" ? "You're attending" : "You're not attending";
+
+            <div class="me-card">
+                <div>
+                    <div class="me-name">@evt.EventName</div>
+                    <div class="me-when">
+                        @evt.EventDate.ToString("dddd dd MMMM yyyy") · @evt.StartTime.ToString(@"hh\:mm")–@evt.EndTime.ToString(@"hh\:mm")
+                        @if (evt.Venue != null)
+                        {
+                            <text> · @evt.Venue.Name</text>
+                        }
+                    </div>
+                    <span class="me-badge @(open ? "open" : inv.Status.State == Michaelhouse.Services.RsvpState.ScheduledToOpen ? "scheduled" : "")">
+                        RSVP @inv.Status.Label — @inv.Status.Detail
+                    </span>
+                    @if (answer != null)
+                    {
+                        <span class="me-badge answered">@answer</span>
+                    }
+                </div>
+                <div>
+                    <a href="@Url.Action("Event", "Rsvp", new { id = evt.Id })" class="btn @(open && inv.Response == null ? "btn-primary" : "btn-outline-secondary")">
+                        @(open ? (inv.Response == null ? "RSVP now" : "View / change RSVP") : "View")
+                    </a>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

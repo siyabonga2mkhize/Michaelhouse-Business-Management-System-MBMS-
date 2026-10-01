@@ -17,6 +17,9 @@
         MatricDance = 10,
         Valedictory = 11,
         StaffFunction = 12,
+        SchoolEvent = 13,
+        SpecialFunction = 14,
+        Holiday = 15,
         Other = 99
     }
 }

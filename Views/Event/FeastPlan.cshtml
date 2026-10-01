@@ -35,9 +35,15 @@
 
     .fp-stats {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: .75rem;
         margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 700px) {
+        .fp-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
 
     .fp-stat {
@@ -425,20 +431,24 @@
         <!-- STATS -->
         <div class="fp-stats">
             <div class="fp-stat">
-                <div class="fp-stat-label">Confirmed Guests</div>
+                <div class="fp-stat-label">Total Attending</div>
                 <div class="fp-stat-value green">@Model.TotalGuests</div>
             </div>
             <div class="fp-stat">
-                <div class="fp-stat-label">Standard Meals</div>
-                <div class="fp-stat-value">@Model.StandardGuests</div>
+                <div class="fp-stat-label">Students</div>
+                <div class="fp-stat-value">@(Model.Requirements != null ? Model.Requirements.Attendance.Students : 0)</div>
             </div>
             <div class="fp-stat">
-                <div class="fp-stat-label">Vegetarian</div>
-                <div class="fp-stat-value">@Model.VegetarianGuests</div>
+                <div class="fp-stat-label">Parents</div>
+                <div class="fp-stat-value">@(Model.Requirements != null ? Model.Requirements.Attendance.Parents : 0)</div>
             </div>
             <div class="fp-stat">
-                <div class="fp-stat-label">Other Diets</div>
-                <div class="fp-stat-value">@Model.OtherGuests</div>
+                <div class="fp-stat-label">Staff</div>
+                <div class="fp-stat-value">@(Model.Requirements != null ? Model.Requirements.Attendance.Staff : 0)</div>
+            </div>
+            <div class="fp-stat">
+                <div class="fp-stat-label">Guests</div>
+                <div class="fp-stat-value">@(Model.Requirements != null ? Model.Requirements.Attendance.Guests : 0)</div>
             </div>
             <div class="fp-stat">
                 <div class="fp-stat-label">Shortages</div>
@@ -447,6 +457,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- BUFFET + DIETARY GROUPS ATTENDING -->
+        @if (Model.Coverage != null)
+        {
+            <div class="fp-diet-notes" style="background:#fff; border-color:#e5e7eb; color:#374151;">
+                <strong style="color:#111827;">Buffet &amp; dietary groups attending</strong>
+                <div style="margin-top:.4rem;">
+                    Buffet: @(Model.Coverage.Meals.Count == 0 ? "no meals selected" : string.Join(", ", Model.Coverage.Meals.Select(m => m.Name + (m.SuitableFor.Count > 0 ? " (" + string.Join(", ", m.SuitableFor) + ")" : ""))))
+                </div>
+                @if (Model.Requirements != null)
+                {
+                    <div style="margin-top:.4rem;">
+                        <strong>Dietary groups:</strong>
+                        @string.Join(", ", Model.Requirements.PreferenceCounts.OrderByDescending(kv => kv.Value).Select(kv => kv.Value + " " + kv.Key.ToLower()))
+                    </div>
+                    if (Model.Requirements.RestrictionCounts.Count > 0)
+                    {
+                        <div>
+                            <strong>Allergies / medical:</strong>
+                            @string.Join(", ", Model.Requirements.RestrictionCounts.OrderByDescending(kv => kv.Value).Select(kv => kv.Value + " × " + kv.Key))
+                        </div>
+                    }
+                    foreach (var note in Model.Requirements.Notes)
+                    {
+                        <div style="color:#6b7280;">ℹ @note</div>
+                    }
+                    foreach (var w in Model.Requirements.Warnings)
+                    {
+                        <div style="color:#92400e;">⚠ @w</div>
+                    }
+                }
+                <div style="margin-top:.4rem;">
+                    Suitable meals per group — @Model.Coverage.Basis:
+                </div>
+                @foreach (var g in Model.Coverage.Groups)
+                {
+                    <div>
+                        · @g.Label — @g.StudentCount:
+                        @if (g.IsCovered)
+                        {
+                            <text>@string.Join(", ", g.SuitableMeals)</text>
+                        }
+                        else
+                        {
+                            <span style="color:#b91c1c; font-weight:700;">no suitable meal</span>
+                        }
+                    </div>
+                }
+                @foreach (var w in Model.Coverage.Warnings)
+                {
+                    <div style="color:#92400e; margin-top:.25rem;">⚠ @w</div>
+                }
+            </div>
+        }
 
         <!-- DIETARY NOTES -->
         @if (Model.DietaryNotes.Count > 0)
@@ -524,6 +588,16 @@
                     <div class="fp-dish-portions">
                         <strong>@dish.Portions</strong>
                         <span>portions</span>
+                        @if (dish.SelectedCount > 0 || dish.AllocatedCount > 0)
+                        {
+                            <div style="font-size:.7rem; color:#6b7280; margin-top:.2rem; text-align:right;">
+                                @dish.SelectedCount chosen@(string.IsNullOrEmpty(dish.SelectedByType) ? "" : " (" + dish.SelectedByType + ")")
+                                @if (dish.AllocatedCount > 0)
+                                {
+                                    <br />@("+ " + dish.AllocatedCount + " without a choice")
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -630,6 +704,18 @@
                class="btn btn-outline-secondary">
                 ← Back to Event
             </a>
+            @if (Model.IngredientsIssuedAt.HasValue)
+            {
+                <a href="@Url.Action("IssueIngredients", "Event", new { id = Model.EventId })" class="btn btn-outline-success">
+                    ✓ Ingredients issued @Michaelhouse.Services.SchoolClock.FromUtc(Model.IngredientsIssuedAt.Value).ToString("ddd dd MMM HH:mm")@(Model.IngredientsIssuedBy != null ? " by " + Model.IngredientsIssuedBy : "")
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("IssueIngredients", "Event", new { id = Model.EventId })" class="btn btn-outline-primary">
+                    Issue ingredients
+                </a>
+            }
             <button type="button" onclick="window.print();" class="btn btn-primary">
                 🖨 Print Feast Plan
             </button>

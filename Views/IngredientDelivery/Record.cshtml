@@ -1,0 +1,320 @@
+﻿@using Michaelhouse.Models.ViewModels
+@using Michaelhouse.Models.Cafeteria
+@model DeliveryFormViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Record Delivery";
+
+    var suppliers = ViewBag.Suppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+    string formError = ViewBag.FormError as string;
+    bool choosing = !Model.PurchaseOrderId.HasValue && !Model.NoOrder && !Model.FromScan;
+    Func<decimal?, string> num = q => q.HasValue ? q.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "";
+}
+
+@Html.Partial("_InventoryStyles")
+
+<style>
+    .dl-line { border: 1px solid #e5e7eb; border-radius: 10px; padding: .85rem 1rem; margin-bottom: .75rem; background: #fff; }
+    .dl-line.unmatched { border-color: #fecaca; background: #fffafa; }
+    .dl-line.excluded { opacity: .75; }
+    .dl-invoice { font-size: .78rem; color: #6b7280; margin-bottom: .35rem; }
+    .dl-name { font-weight: 700; font-size: 1rem; }
+    .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .5rem; align-items: end; }
+    .dl-check { display: flex; gap: .45rem; align-items: center; font-size: .9rem; margin: .4rem 0 0 0; font-weight: 400 !important; }
+    .dl-check input { width: 20px; height: 20px; }
+    .dl-scan { border: 2px dashed #d1d5db; border-radius: 10px; padding: 1rem; text-align: center; background: #fafafa; }
+    .dl-order { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 0; border-bottom: 1px solid #f3f4f6; }
+    .dl-order:last-child { border-bottom: none; }
+    @@media (max-width: 640px) { .dl-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="inv-shell" style="max-width:820px;">
+
+        <div class="inv-header">
+            <div>
+                <h1>Record Delivery</h1>
+                <div class="inv-meta">
+                    @if (Model.PurchaseOrderId.HasValue)
+                    {
+                        <text>Order <strong>@Model.PoNumber</strong> · @Model.SupplierName</text>
+                    }
+                    else if (Model.NoOrder || Model.FromScan)
+                    {
+                        <text>Check every item before confirming. Stock only changes when you confirm.</text>
+                    }
+                    else
+                    {
+                        <text>Choose the purchase order the delivery is for, or scan the invoice.</text>
+                    }
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "IngredientDelivery")" class="btn btn-outline-secondary">← Deliveries</a>
+        </div>
+
+        @if (!string.IsNullOrEmpty(formError))
+        {
+            <div class="inv-note bad"><strong>Not recorded:</strong> @formError</div>
+        }
+        @foreach (var m in Model.Messages)
+        {
+            <div class="inv-note info">@m</div>
+        }
+
+        <!-- SCAN / UPLOAD INVOICE -->
+        @if (!Model.FromScan)
+        {
+            <form method="post" action="@Url.Action("Scan", "IngredientDelivery")" enctype="multipart/form-data" class="inv-card dl-scan">
+                @Html.AntiForgeryToken()
+                @if (Model.PurchaseOrderId.HasValue)
+                {
+                    <input type="hidden" name="orderId" value="@Model.PurchaseOrderId" />
+                }
+                <div style="font-weight:700; margin-bottom:.35rem;">📷 Scan or upload the supplier's invoice</div>
+                <div class="inv-help" style="margin-bottom:.6rem;">
+                    @if (Model.ScanAvailable)
+                    {
+                        <text>The items are read from the invoice and matched to ingredients for you to check. Nothing is saved until you confirm.</text>
+                    }
+                    else
+                    {
+                        <text>Invoice reading isn't set up on this server, but the invoice will still be attached to the delivery.</text>
+                    }
+                </div>
+                <input type="file" name="invoice" accept="image/*,application/pdf" capture="environment" required class="inv-input" style="max-width:420px; margin:0 auto .6rem auto;" />
+                <button class="btn btn-primary">Read invoice</button>
+            </form>
+        }
+
+        @if (choosing)
+        {
+            <!-- CHOOSE ORDER -->
+            <div class="inv-card">
+                <h2>Orders awaiting delivery</h2>
+                @if (Model.OpenOrders.Count == 0)
+                {
+                    <div class="inv-muted" style="font-size:.85rem;">No orders are waiting for a delivery.</div>
+                }
+                @foreach (var o in Model.OpenOrders)
+                {
+                    <div class="dl-order">
+                        <div>
+                            <strong>@o.PoNumber</strong> · @(o.Supplier != null ? o.Supplier.Name : "")
+                            <div class="inv-help">
+                                @string.Join(", ", o.Lines.Where(l => l.Outstanding > 0m).Select(l => l.Ingredient.Name + " " + Michaelhouse.Services.IngredientUnits.Format(l.Outstanding, l.Ingredient.Unit)))
+                            </div>
+                        </div>
+                        <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="btn btn-primary">Receive</a>
+                    </div>
+                }
+                <div style="margin-top:.75rem;">
+                    <a href="@Url.Action("Record", "IngredientDelivery", new { noOrder = true })" class="inv-help">Record a delivery that has no purchase order</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- REVIEW + CONFIRM -->
+            <form method="post" action="@Url.Action("Record", "IngredientDelivery")" class="inv-form" id="deliveryForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Token" value="@Model.Token" />
+                <input type="hidden" name="PurchaseOrderId" value="@Model.PurchaseOrderId" />
+                <input type="hidden" name="InvoiceFilePath" value="@Model.InvoiceFilePath" />
+                <input type="hidden" name="InvoiceFileName" value="@Model.InvoiceFileName" />
+                <input type="hidden" name="LineCount" id="lineCount" value="@Model.Lines.Count" />
+
+                <div class="inv-card">
+                    @if (!Model.PurchaseOrderId.HasValue)
+                    {
+                        <div class="inv-note warn">
+                            No purchase order is linked.
+                            @if (Model.OpenOrders.Count > 0)
+                            {
+                                <text>If this delivery is for an order, <a href="@Url.Action("Record", "IngredientDelivery")">choose it first</a>.</text>
+                            }
+                        </div>
+                        <div class="inv-row">
+                            <div>
+                                <label>Supplier *</label>
+                                <select name="SupplierId" class="inv-input" required>
+                                    <option value="">— Choose —</option>
+                                    @foreach (var s in suppliers)
+                                    {
+                                        <option value="@s.SupplierId" @(s.SupplierId == Model.SupplierId ? "selected" : "")>@s.Name</option>
+                                    }
+                                </select>
+                                @if (!string.IsNullOrEmpty(Model.DetectedSupplier))
+                                {
+                                    <div class="inv-help">Invoice says: @Model.DetectedSupplier</div>
+                                }
+                            </div>
+                        </div>
+                        <label class="dl-check"><input type="checkbox" name="NoOrderConfirmed" value="true" required /> I confirm this delivery has no purchase order</label>
+                    }
+
+                    <div class="inv-row" style="margin-top:.75rem;">
+                        <div>
+                            <label>Invoice number</label>
+                            <input name="InvoiceNumber" class="inv-input" maxlength="60" value="@Model.InvoiceNumber" />
+                        </div>
+                        <div>
+                            <label>Invoice date</label>
+                            <input type="date" name="InvoiceDate" class="inv-input" value="@(Model.InvoiceDate.HasValue ? Model.InvoiceDate.Value.ToString("yyyy-MM-dd") : "")" />
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.InvoiceFileName))
+                    {
+                        <div class="inv-help">📎 Invoice attached: @Model.InvoiceFileName</div>
+                    }
+                </div>
+
+                <h2 style="font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6b7280;">Items received</h2>
+
+                <div id="lines">
+                    @for (int n = 0; n < Model.Lines.Count; n++)
+                    {
+                        var l = Model.Lines[n];
+                        string p = "Lines[" + n + "].";
+                        bool linked = l.PurchaseOrderLineId.HasValue;
+
+                        <div class="dl-line @(l.Matched ? "" : "unmatched") @(l.Include ? "" : "excluded")">
+                            <input type="hidden" name="@(p)PurchaseOrderLineId" value="@l.PurchaseOrderLineId" />
+                            <input type="hidden" name="@(p)InvoiceDescription" value="@l.InvoiceDescription" />
+                            <input type="hidden" name="@(p)InvoiceQuantity" value="@num(l.InvoiceQuantity)" />
+                            <input type="hidden" name="@(p)InvoiceUnit" value="@l.InvoiceUnit" />
+                            <input type="hidden" name="@(p)MatchMessage" value="@l.MatchMessage" />
+                            <input type="hidden" name="@(p)UnitMessage" value="@l.UnitMessage" />
+
+                            @if (!string.IsNullOrEmpty(l.InvoiceDescription))
+                            {
+                                <div class="dl-invoice">Invoice: <strong>@l.InvoiceDescription</strong> — detected @num(l.InvoiceQuantity) @l.InvoiceUnit</div>
+                            }
+                            @if (!string.IsNullOrEmpty(l.MatchMessage))
+                            {
+                                <div class="inv-note @(l.Matched ? "ok" : "bad")" style="padding:.3rem .6rem; font-size:.8rem;">@l.MatchMessage</div>
+                            }
+                            @if (!string.IsNullOrEmpty(l.UnitMessage))
+                            {
+                                <div class="inv-note warn" style="padding:.3rem .6rem; font-size:.8rem;">@l.UnitMessage</div>
+                            }
+
+                            @if (linked)
+                            {
+                                <input type="hidden" name="@(p)IngredientId" value="@l.IngredientId" />
+                                <div class="dl-name">@l.IngredientName</div>
+                                <div class="inv-help">Ordered @num(l.Ordered) @l.DisplayUnit · outstanding <strong>@num(l.Outstanding) @l.DisplayUnit</strong></div>
+                            }
+                            else
+                            {
+                                <label>Matched ingredient</label>
+                                <select name="@(p)IngredientId" class="inv-input">
+                                    <option value="">— Choose the ingredient —</option>
+                                    @foreach (var opt in Model.IngredientOptions)
+                                    {
+                                        <option value="@opt.Id" data-unit="@opt.DisplayUnit" @(l.IngredientId == opt.Id ? "selected" : "")>@opt.Name (@opt.DisplayUnit)</option>
+                                    }
+                                </select>
+                            }
+
+                            <div class="dl-grid">
+                                <div>
+                                    <label>Quantity received @(l.DisplayUnit != null ? "(" + l.DisplayUnit + ")" : "(kg / L)")</label>
+                                    <input name="@(p)Quantity" class="inv-input" inputmode="decimal" value="@num(l.Quantity)" />
+                                </div>
+                                <div>
+                                    <label class="dl-check"><input type="checkbox" name="@(p)Include" value="true" @(l.Include ? "checked" : "") /> Received — record this item</label>
+                                </div>
+                            </div>
+
+                            @if (!linked && Model.PurchaseOrderId.HasValue)
+                            {
+                                <label class="dl-check"><input type="checkbox" name="@(p)NotOnOrderConfirmed" value="true" @(l.NotOnOrderConfirmed ? "checked" : "") /> Not on the order — I confirm it was delivered</label>
+                            }
+                            <details @(l.AcceptExtra ? "open" : "")>
+                                <summary class="inv-help" style="cursor:pointer;">More than ordered?</summary>
+                                <label class="dl-check"><input type="checkbox" name="@(p)AcceptExtra" value="true" @(l.AcceptExtra ? "checked" : "") /> Accept the extra</label>
+                                <input name="@(p)Note" class="inv-input" maxlength="300" placeholder="Note (required to accept extra)" value="@l.Note" style="margin-top:.35rem;" />
+                            </details>
+                        </div>
+                    }
+                </div>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="addLine" style="margin-bottom:1rem;">+ Add an item</button>
+
+                <div class="inv-card">
+                    <label>Notes</label>
+                    <textarea name="Notes" class="inv-input" rows="2" maxlength="1000">@Model.Notes</textarea>
+                </div>
+
+                <div class="inv-actions" style="margin-bottom:2rem;">
+                    <button type="submit" class="btn btn-primary btn-lg">Confirm delivery &amp; update stock</button>
+                    <span class="inv-help">Only items ticked "Received" are recorded.</span>
+                </div>
+            </form>
+
+            <template id="lineTemplate">
+                <div class="dl-line unmatched">
+                    <input type="hidden" data-name="PurchaseOrderLineId" value="" />
+                    <label>Ingredient</label>
+                    <select data-name="IngredientId" class="inv-input">
+                        <option value="">— Choose the ingredient —</option>
+                        @foreach (var opt in Model.IngredientOptions)
+                        {
+                            <option value="@opt.Id">@opt.Name (@opt.DisplayUnit)</option>
+                        }
+                    </select>
+                    <div class="dl-grid">
+                        <div>
+                            <label>Quantity received (kg / L)</label>
+                            <input data-name="Quantity" class="inv-input" inputmode="decimal" />
+                        </div>
+                        <div>
+                            <label class="dl-check"><input type="checkbox" data-name="Include" value="true" checked /> Received — record this item</label>
+                        </div>
+                    </div>
+                    @if (Model.PurchaseOrderId.HasValue)
+                    {
+                        <label class="dl-check"><input type="checkbox" data-name="NotOnOrderConfirmed" value="true" /> Not on the order — I confirm it was delivered</label>
+                    }
+                    <details>
+                        <summary class="inv-help" style="cursor:pointer;">More than ordered?</summary>
+                        <label class="dl-check"><input type="checkbox" data-name="AcceptExtra" value="true" /> Accept the extra</label>
+                        <input data-name="Note" class="inv-input" maxlength="300" placeholder="Note (required to accept extra)" style="margin-top:.35rem;" />
+                    </details>
+                </div>
+            </template>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        var add = document.getElementById('addLine');
+        if (!add) return;
+
+        var counter = document.getElementById('lineCount');
+        var lines = document.getElementById('lines');
+        var template = document.getElementById('lineTemplate');
+
+        add.addEventListener('click', function () {
+            var n = parseInt(counter.value, 10) || 0;
+            var node = template.content.firstElementChild.cloneNode(true);
+            node.querySelectorAll('[data-name]').forEach(function (el) {
+                el.name = 'Lines[' + n + '].' + el.getAttribute('data-name');
+            });
+            lines.appendChild(node);
+            counter.value = n + 1;
+            node.querySelector('select').focus();
+        });
+
+        // Dim lines that won't be recorded
+        lines.addEventListener('change', function (e) {
+            if (e.target.name && /\.Include$/.test(e.target.name)) {
+                e.target.closest('.dl-line').classList.toggle('excluded', !e.target.checked);
+            }
+        });
+    })();
+    </script>
+}

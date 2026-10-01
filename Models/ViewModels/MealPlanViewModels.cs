@@ -27,13 +27,29 @@ namespace Michaelhouse.Models.ViewModels
 
         public string DietitianComment { get; set; }
 
-        // True only when Status is Draft or SentBack
+        // True while at least one meal can still be chosen / changed
+        // (selection closes the day before each meal)
         public bool IsEditable { get; set; }
+
+        // True when the plan can be submitted (Draft or SentBack)
+        public bool CanSubmit { get; set; }
+
+        // Meals still open for selection that have a suitable option,
+        // and how many of those the student has chosen
+        public int OpenSlotCount { get; set; }
+        public int OpenSlotsChosen { get; set; }
+
+        // School time used for the selection deadline
+        public DateTime Now { get; set; }
 
         // Shown to the student so they understand WHY certain meals are filtered
         public string Allergies { get; set; }
         public string MedicalConditions { get; set; }
         public string Sports { get; set; }
+
+        // From the student's dietary profile ("" when not set)
+        public string DietaryPreference { get; set; }
+        public string MedicalDietaryRestrictions { get; set; }
 
         public List<MealPlanDayViewModel> Days { get; set; }
 
@@ -89,6 +105,28 @@ namespace Michaelhouse.Models.ViewModels
 
         public string MatchDescription { get; set; }
 
+        // The student's sport has training that day
+        public bool IsTrainingDay { get; set; }
+
+        // e.g. "No high-carb option on this menu suits your dietary
+        // profile — choose the closest match."
+        public string SportsNote { get; set; }
+
+        // Selection closes at 00:00 the day before the meal
+        public DateTime SelectionCutoff { get; set; }
+        public bool IsLocked { get; set; }
+
+        // Name of the chosen meal (also shown when the slot is locked)
+        public string CurrentPickName { get; set; }
+
+        // True when nothing on the menu fits the student's dietary
+        // profile for this slot — the Dietitian resolves it.
+        public bool HasNoSuitableOption { get; set; }
+
+        // True when the saved pick conflicts with the (updated)
+        // dietary profile and must be changed.
+        public bool CurrentPickNoLongerSuitable { get; set; }
+
         public List<MealPlanOptionViewModel> Options { get; set; }
     }
 
@@ -102,11 +140,22 @@ namespace Michaelhouse.Models.ViewModels
 
         public string Name { get; set; }
 
+        // False when the meal conflicts with the student's dietary
+        // profile: it is shown, greyed out, but can't be chosen.
+        public bool IsAvailable { get; set; }
+
+        // Why it can't be chosen, e.g. "Peanuts allergy — contains Peanut Butter"
+        public string UnavailableReason { get; set; }
+
         public string DietaryClassification { get; set; }
 
         public decimal CaloriesPerPortion { get; set; }
 
         public decimal ProteinGramsPerPortion { get; set; }
+
+        public decimal CarbohydrateGramsPerPortion { get; set; }
+
+        public decimal FatGramsPerPortion { get; set; }
 
         // Marks the UC12 scheduled item — the "chef's choice" of the day
         public bool IsDefault { get; set; }

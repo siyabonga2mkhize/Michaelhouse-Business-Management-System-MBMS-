@@ -1,0 +1,266 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model IngredientPurchaseOrder
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.PoNumber;
+
+    var deliveries = ViewBag.Deliveries as List<IngredientDelivery> ?? new List<IngredientDelivery>();
+    var shortfallOrders = ViewBag.ShortfallOrders as List<IngredientPurchaseOrder> ?? new List<IngredientPurchaseOrder>();
+    var otherSuppliers = ViewBag.OtherSuppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+
+    var s = Model.Status;
+    bool isDraft = s == IngredientOrderStatus.Draft;
+    bool isOpen = s == IngredientOrderStatus.Pending || s == IngredientOrderStatus.Confirmed || s == IngredientOrderStatus.PartiallyFulfilled;
+    bool anyReceived = Model.Lines.Any(l => l.QuantityReceived > 0m);
+    var lines = Model.Lines.OrderBy(l => l.Ingredient.Name).ToList();
+    var openShortfalls = lines.Where(l => l.Shortfall > 0m && l.ShortfallAction == ShortfallAction.None).ToList();
+    Func<decimal, string, string> shown = (q, unit) => IngredientUnits.ToDisplay(q, unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>@Model.PoNumber</h1>
+                <div class="inv-meta">
+                    @Html.Partial("_OrderStatusBadge", Model.Status)
+                    &nbsp;@(Model.Supplier != null ? Model.Supplier.Name : "") · ordered @Model.OrderDate.ToString("dd MMM yyyy")
+                    @if (Model.RequestedDeliveryDate.HasValue)
+                    {
+                        <text> · wanted by @Model.RequestedDeliveryDate.Value.ToString("ddd dd MMM")</text>
+                    }
+                    @if (!string.IsNullOrEmpty(ViewBag.CreatedBy as string))
+                    {
+                        <text> · by @ViewBag.CreatedBy</text>
+                    }
+                </div>
+                @if (Model.ShortfallOfOrderId.HasValue)
+                {
+                    <div class="inv-help">Re-order of a shortfall on <a href="@Url.Action("Details", "IngredientOrder", new { id = Model.ShortfallOfOrderId })">the original order</a>.</div>
+                }
+            </div>
+            <div class="inv-actions">
+                @if (isDraft)
+                {
+                    <a href="@Url.Action("Edit", "IngredientOrder", new { id = Model.Id })" class="btn btn-outline-secondary">Edit draft</a>
+                    <form method="post" action="@Url.Action("Send", "IngredientOrder", new { id = Model.Id })" onsubmit="return confirm('Send this order to @(Model.Supplier != null ? Model.Supplier.Name : "the supplier")?');">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-primary">Send to supplier</button>
+                    </form>
+                }
+                @if (isOpen)
+                {
+                    <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = Model.Id })" class="btn btn-primary">Record delivery</a>
+                }
+            </div>
+        </div>
+
+        @if (isDraft)
+        {
+            <div class="inv-note info">Review the order below. It isn't sent until you press <strong>Send to supplier</strong>.</div>
+        }
+        @if (openShortfalls.Count > 0)
+        {
+            <div class="inv-note bad">
+                The supplier can't supply everything: @string.Join(", ", openShortfalls.Select(l => l.Ingredient.Name + " short by " + IngredientUnits.Format(l.Shortfall, l.Ingredient.Unit))).
+                Choose what to do with the shortfall below.
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="inv-note info" style="white-space:pre-line;">@Model.Notes</div>
+        }
+
+        <!-- LINES (+ supplier confirmation) -->
+        <form method="post" action="@Url.Action("Confirm", "IngredientOrder", new { id = Model.Id })" class="inv-card inv-form" style="padding:0;">
+            @Html.AntiForgeryToken()
+            <div class="inv-table-wrap">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th class="num">Ordered</th>
+                            <th class="num">Supplier confirmed</th>
+                            <th class="num">Received</th>
+                            <th class="num">Outstanding</th>
+                            <th>Shortfall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in lines)
+                        {
+                            string unit = l.Ingredient.Unit;
+                            <tr>
+                                <td><a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.IngredientId })">@l.Ingredient.Name</a></td>
+                                <td class="num">@IngredientUnits.Format(l.QuantityOrdered, unit)</td>
+                                <td class="num">
+                                    @if (isOpen && l.ShortfallAction != ShortfallAction.Reordered)
+                                    {
+                                        <input name="confirmed_@l.Id" class="inv-input qty" inputmode="decimal"
+                                               value="@(l.QuantityConfirmed.HasValue ? shown(l.QuantityConfirmed.Value, unit) : "")"
+                                               placeholder="@shown(l.QuantityOrdered, unit)" />
+                                        <span class="inv-muted" style="font-size:.75rem;">@IngredientUnits.DisplayUnit(unit)</span>
+                                    }
+                                    else
+                                    {
+                                        @(l.QuantityConfirmed.HasValue ? IngredientUnits.Format(l.QuantityConfirmed.Value, unit) : "—")
+                                    }
+                                </td>
+                                <td class="num">@IngredientUnits.Format(l.QuantityReceived, unit)</td>
+                                <td class="num">@(l.Outstanding > 0m ? IngredientUnits.Format(l.Outstanding, unit) : "—")</td>
+                                <td>
+                                    @if (l.Shortfall > 0m)
+                                    {
+                                        <span class="inv-badge @(l.ShortfallAction == ShortfallAction.None ? "bad" : "muted")">@IngredientUnits.Format(l.Shortfall, unit)</span>
+                                        if (l.ShortfallAction == ShortfallAction.Accepted)
+                                        {
+                                            <div class="inv-help">Accepted@(string.IsNullOrEmpty(l.ShortfallNote) ? "" : ": " + l.ShortfallNote)</div>
+                                        }
+                                        else if (l.ShortfallAction == ShortfallAction.Reordered)
+                                        {
+                                            <div class="inv-help"><a href="@Url.Action("Details", "IngredientOrder", new { id = l.ShortfallReorderedOnOrderId })">@l.ShortfallNote</a></div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="inv-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (isOpen)
+            {
+                <div class="inv-actions" style="padding:.75rem 1rem;">
+                    <button class="btn btn-sm btn-outline-secondary">Save supplier confirmation</button>
+                    <span class="inv-help">Enter what the supplier says they can supply. Less than ordered = a shortfall.</span>
+                </div>
+            }
+        </form>
+
+        <!-- SHORTFALL -->
+        @if (openShortfalls.Count > 0)
+        {
+            <form method="post" action="@Url.Action("Shortfall", "IngredientOrder", new { id = Model.Id })" class="inv-card inv-form">
+                @Html.AntiForgeryToken()
+                <h2>Supplier shortfall</h2>
+                @foreach (var l in openShortfalls)
+                {
+                    <label style="display:flex; gap:.4rem; align-items:center; font-weight:400;">
+                        <input type="checkbox" name="lineIds" value="@l.Id" checked />
+                        @l.Ingredient.Name — short by @IngredientUnits.Format(l.Shortfall, l.Ingredient.Unit)
+                        (ordered @IngredientUnits.Format(l.QuantityOrdered, l.Ingredient.Unit), confirmed @IngredientUnits.Format(l.QuantityConfirmed ?? 0m, l.Ingredient.Unit))
+                    </label>
+                }
+                <div class="inv-row" style="margin-top:.75rem;">
+                    <div>
+                        <label>Order the shortfall from</label>
+                        <select name="supplierId" class="inv-input">
+                            <option value="">Automatic — each ingredient's next supplier</option>
+                            @foreach (var sup in otherSuppliers)
+                            {
+                                <option value="@sup.SupplierId">@sup.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label>Note (when accepting)</label>
+                        <input name="note" class="inv-input" maxlength="300" placeholder="e.g. Enough for this week" />
+                    </div>
+                </div>
+                <div class="inv-actions">
+                    <button name="shortfallAction" value="reorder" class="btn btn-primary">Re-order shortfall</button>
+                    <button name="shortfallAction" value="accept" class="btn btn-outline-secondary">Accept the smaller quantity</button>
+                </div>
+                <div class="inv-help">Re-ordering creates a draft order for the shortfall (one per supplier) for you to check and send.</div>
+            </form>
+        }
+
+        @if (shortfallOrders.Count > 0)
+        {
+            <div class="inv-card">
+                <h2>Shortfall re-orders</h2>
+                @foreach (var so in shortfallOrders)
+                {
+                    <div><a href="@Url.Action("Details", "IngredientOrder", new { id = so.Id })">@so.PoNumber</a> — @(so.Supplier != null ? so.Supplier.Name : "") @Html.Partial("_OrderStatusBadge", so.Status)</div>
+                }
+            </div>
+        }
+
+        <!-- MANUAL AMENDMENT -->
+        @if (isOpen && lines.Any(x => x.ShortfallAction != ShortfallAction.Reordered))
+        {
+            <form method="post" action="@Url.Action("Amend", "IngredientOrder", new { id = Model.Id })" class="inv-card inv-form">
+                @Html.AntiForgeryToken()
+                <h2>Amend an item</h2>
+                <div class="inv-row">
+                    <div>
+                        <label>Item</label>
+                        <select name="lineId" class="inv-input" required>
+                            @foreach (var l in lines.Where(x => x.ShortfallAction != ShortfallAction.Reordered))
+                            {
+                                <option value="@l.Id">@l.Ingredient.Name (@IngredientUnits.Format(l.QuantityOrdered, l.Ingredient.Unit))</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label>New ordered quantity (kg / L)</label>
+                        <input name="quantity" class="inv-input" inputmode="decimal" required />
+                    </div>
+                    <div>
+                        <label>Reason</label>
+                        <input name="note" class="inv-input" maxlength="300" placeholder="e.g. Agreed by phone" />
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary">Amend</button>
+            </form>
+        }
+
+        <!-- DELIVERIES -->
+        @if (deliveries.Count > 0)
+        {
+            <div class="inv-card">
+                <h2>Deliveries</h2>
+                @foreach (var d in deliveries)
+                {
+                    <div style="margin-bottom:.3rem;">
+                        <a href="@Url.Action("Details", "IngredientDelivery", new { id = d.Id })">@SchoolClock.FromUtc(d.ReceivedAt).ToString("ddd dd MMM HH:mm")</a>
+                        — @d.Lines.Count item(s)@(string.IsNullOrEmpty(d.InvoiceNumber) ? "" : ", invoice " + d.InvoiceNumber)
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- CLOSE / CANCEL -->
+        <div class="inv-row">
+            @if (isOpen && anyReceived)
+            {
+                <form method="post" action="@Url.Action("Close", "IngredientOrder", new { id = Model.Id })" class="inv-card inv-form">
+                    @Html.AntiForgeryToken()
+                    <h2>Close order</h2>
+                    <div class="inv-help" style="margin-bottom:.5rem;">Nothing more will arrive on this order.</div>
+                    <input name="reason" class="inv-input" required maxlength="300" placeholder="Why the rest won't be delivered" style="margin-bottom:.5rem;" />
+                    <button class="btn btn-sm btn-outline-secondary">Close order</button>
+                </form>
+            }
+            @if ((isDraft || isOpen) && !anyReceived)
+            {
+                <form method="post" action="@Url.Action("Cancel", "IngredientOrder", new { id = Model.Id })" class="inv-card inv-form"
+                      onsubmit="return confirm('Cancel @Model.PoNumber?');">
+                    @Html.AntiForgeryToken()
+                    <h2>Cancel order</h2>
+                    <input name="reason" class="inv-input" maxlength="300" placeholder="Reason (optional)" style="margin-bottom:.5rem;" />
+                    <button class="btn btn-sm btn-outline-danger">Cancel order</button>
+                </form>
+            }
+        </div>
+
+        <a href="@Url.Action("Index", "IngredientOrder")" class="btn btn-outline-secondary">← Purchase Orders</a>
+    </div>
+</div>

@@ -5,6 +5,8 @@
 
     var upcoming = ViewBag.Upcoming as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
     var past = ViewBag.Past as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+    var rsvpStatuses = ViewBag.RsvpStatuses as Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>
+        ?? new Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>();
 }
 
 <style>
@@ -233,7 +235,15 @@
                                             </div>
                                         }
                                     </td>
-                                    <td><span class="ev-status @statusClass">@statusText</span></td>
+                                    <td>
+                                        <span class="ev-status @statusClass">@statusText</span>
+                                        @if (rsvpStatuses.ContainsKey(evt.Id))
+                                        {
+                                            <div class="small text-muted" style="margin-top:.25rem;" title="@rsvpStatuses[evt.Id].Detail">
+                                                RSVP: @rsvpStatuses[evt.Id].Label
+                                            </div>
+                                        }
+                                    </td>
                                     <td class="text-end">
                                         <a href="@Url.Action("Details", "Event", new { id = evt.Id })"
                                            class="btn btn-sm btn-outline-secondary">

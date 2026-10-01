@@ -1,0 +1,148 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.ViewModels
+@model KitchenIssueViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Issue Ingredients";
+    bool canSubmit = ViewBag.CanSubmit == true && Model.CanIssue;
+    Func<decimal, string, string> shown = (q, unit) => IngredientUnits.ToDisplay(q, unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell" style="max-width:900px;">
+
+        <div class="inv-header">
+            <div>
+                <h1>Issue Ingredients</h1>
+                <div class="inv-meta">@Model.Title — from the kitchen plan (actual choices), against current stock.</div>
+            </div>
+            <a href="@ViewBag.BackUrl" class="btn btn-outline-secondary">← @ViewBag.BackLabel</a>
+        </div>
+
+        @if (Model.Issue != null)
+        {
+            <div class="inv-note ok">
+                ✓ Issued @SchoolClock.FromUtc(Model.Issue.IssuedAt).ToString("ddd dd MMM HH:mm")@(Model.IssuedByName != null ? " by " + Model.IssuedByName : "") — stock has been reduced.
+                @if (!string.IsNullOrEmpty(Model.Issue.Notes))
+                {
+                    <div>@Model.Issue.Notes</div>
+                }
+            </div>
+
+            <div class="inv-card" style="padding:0;">
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead><tr><th>Ingredient</th><th>From</th><th class="num">Used</th><th class="num">Stock after</th></tr></thead>
+                        <tbody>
+                            @foreach (var t in Model.Issued)
+                            {
+                                <tr>
+                                    <td>@t.Ingredient.Name</td>
+                                    <td>@(t.Source == Michaelhouse.Models.Cafeteria.StockSource.Farm ? "Farm" : "Bought-in")</td>
+                                    <td class="num">@IngredientUnits.Format(-t.Quantity, t.Ingredient.Unit)</td>
+                                    <td class="num">@IngredientUnits.Format(t.TotalAfter, t.Ingredient.Unit)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            if (!Model.CanIssue && !string.IsNullOrEmpty(Model.CannotIssueReason))
+            {
+                <div class="inv-note warn">@Model.CannotIssueReason</div>
+            }
+            if (Model.HasShortages)
+            {
+                <div class="inv-note bad">
+                    Not enough stock for: @string.Join(", ", Model.Lines.Where(l => l.Shortfall > 0m).Select(l => l.Name + " (short " + IngredientUnits.Format(l.Shortfall, l.Unit) + ")")).
+                    The meals using them are affected — only what's in stock can be issued.
+                </div>
+            }
+
+            <form method="post" action="@ViewBag.PostUrl" class="inv-form"
+                  onsubmit="return confirm('Issue these ingredients? Stock will be reduced and this can only be done once for @Model.Title.');">
+                @Html.AntiForgeryToken()
+
+                <div class="inv-card" style="padding:0;">
+                    <div class="inv-table-wrap">
+                        <table class="inv-table">
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th class="num">Required</th>
+                                    <th class="num">In stock</th>
+                                    <th>Status</th>
+                                    <th class="num">Used</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Lines.Count == 0)
+                                {
+                                    <tr><td colspan="5" class="inv-muted">No ingredients are needed.</td></tr>
+                                }
+                                @foreach (var l in Model.Lines)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@l.Name</strong>
+                                            <div class="inv-help">@string.Join(" · ", l.UsedFor)</div>
+                                        </td>
+                                        <td class="num">@IngredientUnits.Format(l.Required, l.Unit)</td>
+                                        <td class="num">
+                                            @IngredientUnits.Format(l.Available, l.Unit)
+                                            @if (l.Farm > 0m)
+                                            {
+                                                <div class="inv-help">@IngredientUnits.Format(l.Farm, l.Unit) farm</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (l.Available <= 0m)
+                                            {
+                                                <span class="inv-badge bad">Not available</span>
+                                            }
+                                            else if (l.Shortfall > 0m)
+                                            {
+                                                <span class="inv-badge low">Insufficient</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inv-badge ok">Available</span>
+                                            }
+                                        </td>
+                                        <td class="num">
+                                            <input name="qty_@l.IngredientId" class="inv-input qty" inputmode="decimal"
+                                                   value="@shown(l.SuggestedIssue, l.Unit)" @(canSubmit ? "" : "disabled") />
+                                            <span class="inv-muted" style="font-size:.75rem;">@IngredientUnits.DisplayUnit(l.Unit)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                @if (canSubmit)
+                {
+                    <div class="inv-card">
+                        <label>Notes</label>
+                        <input name="notes" class="inv-input" maxlength="500" placeholder="e.g. Used a little extra rice" />
+                    </div>
+                    <div class="inv-actions">
+                        <button class="btn btn-primary btn-lg">Issue ingredients &amp; reduce stock</button>
+                        <span class="inv-help">Pre-filled with what the plan needs (or all that's in stock). Change it to what was actually used. Farm stock is used first.</span>
+                    </div>
+                }
+                else if (Model.CanIssue)
+                {
+                    <div class="inv-help">The Chef issues ingredients.</div>
+                }
+            </form>
+        }
+
+    </div>
+</div>

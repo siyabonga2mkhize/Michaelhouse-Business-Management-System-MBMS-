@@ -1,0 +1,263 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model IngredientStockLine
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ing = Model.Ingredient;
+    ViewBag.Title = ing.Name;
+
+    var links = ViewBag.Links as List<IngredientSupplier> ?? new List<IngredientSupplier>();
+    var suppliers = ViewBag.Suppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+    var history = ViewBag.History as List<IngredientStockTransaction> ?? new List<IngredientStockTransaction>();
+    var upcoming = ViewBag.Upcoming as UpcomingRequirement;
+    var userNames = ViewBag.UserNames as Dictionary<int, string> ?? new Dictionary<int, string>();
+    bool isManager = ViewBag.IsManager == true;
+    string unit = IngredientUnits.DisplayUnit(ing.Unit);
+    string css = Model.Status == "In stock" ? "ok" : Model.Status == "Low stock" ? "low" : Model.Status == "Out of stock" ? "bad" : "muted";
+    Func<decimal, string> shown = q => IngredientUnits.ToDisplay(q, ing.Unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>@ing.Name</h1>
+                <div class="inv-meta">
+                    <span class="inv-badge @css">@Model.Status</span>
+                    &nbsp;Measured in @unit
+                    @if (!string.IsNullOrEmpty(ing.Allergens))
+                    {
+                        <text> · allergens: @ing.Allergens</text>
+                    }
+                </div>
+            </div>
+            <a href="@Url.Action("Stock", "CafeteriaInventory")" class="btn btn-outline-secondary">← Stock</a>
+        </div>
+
+        <div class="inv-stats">
+            <div class="inv-stat"><div class="label">Available</div><div class="value">@IngredientUnits.Format(Model.Available, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">Farm</div><div class="value">@IngredientUnits.Format(Model.Farm, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">Bought-in</div><div class="value">@IngredientUnits.Format(Model.External, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">Reorder level</div><div class="value">@IngredientUnits.Format(Model.ReorderLevel, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">On order</div><div class="value">@IngredientUnits.Format(Model.OnOrder, ing.Unit)</div></div>
+        </div>
+
+        @if (upcoming != null)
+        {
+            <div class="inv-note @(upcoming.Shortfall > 0m ? "bad" : "info")">
+                Upcoming kitchen plans need <strong>@IngredientUnits.Format(upcoming.Required, ing.Unit)</strong>
+                (@string.Join(", ", upcoming.NeededFor)).
+                @if (upcoming.Shortfall > 0m)
+                {
+                    <text>Short by <strong>@IngredientUnits.Format(upcoming.Shortfall, ing.Unit)</strong>@(upcoming.OnOrder > 0m ? " before orders arrive" : "").</text>
+                }
+            </div>
+        }
+
+        @if (isManager)
+        {
+            <div class="inv-row">
+                <!-- LEVELS -->
+                <form class="inv-card inv-form" method="post" action="@Url.Action("Levels", "CafeteriaInventory", new { id = ing.Id })">
+                    @Html.AntiForgeryToken()
+                    <h2>Stock levels</h2>
+                    <div class="inv-row">
+                        <div>
+                            <label>Reorder level (@unit)</label>
+                            <input name="reorderLevel" class="inv-input" inputmode="decimal" value="@shown(Model.ReorderLevel)" />
+                        </div>
+                        <div>
+                            <label>Target level (@unit)</label>
+                            <input name="targetLevel" class="inv-input" inputmode="decimal" value="@(Model.TargetStockLevel.HasValue ? shown(Model.TargetStockLevel.Value) : "")" />
+                            <div class="inv-help">Optional — orders top up to this.</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary">Save levels</button>
+                </form>
+
+                <!-- FARM PRODUCE -->
+                <form class="inv-card inv-form" method="post" action="@Url.Action("FarmProduce", "CafeteriaInventory", new { id = ing.Id })">
+                    @Html.AntiForgeryToken()
+                    <h2>Farm produce received</h2>
+                    <div style="margin-bottom:.6rem;">
+                        <label>Quantity (@unit)</label>
+                        <input name="quantity" class="inv-input" inputmode="decimal" required />
+                    </div>
+                    <div style="margin-bottom:.6rem;">
+                        <label>Notes</label>
+                        <input name="notes" class="inv-input" maxlength="500" placeholder="e.g. Harvest from field 2" />
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" @(ing.IsActive ? "" : "disabled")>Add to farm stock</button>
+                </form>
+
+                <!-- ADJUST -->
+                <form class="inv-card inv-form" method="post" action="@Url.Action("Adjust", "CafeteriaInventory", new { id = ing.Id })">
+                    @Html.AntiForgeryToken()
+                    <h2>Stock count / correction</h2>
+                    <div class="inv-row" style="margin-bottom:.6rem;">
+                        <div>
+                            <label>Stock</label>
+                            <select name="source" class="inv-input">
+                                <option value="External">Bought-in</option>
+                                <option value="Farm">Farm</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Counted (@unit)</label>
+                            <input name="countedQuantity" class="inv-input" inputmode="decimal" required />
+                        </div>
+                    </div>
+                    <div style="margin-bottom:.6rem;">
+                        <label>Reason</label>
+                        <input name="reason" class="inv-input" maxlength="500" required placeholder="e.g. Opening balance, stock take, spoilage" />
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary">Set stock</button>
+                </form>
+            </div>
+        }
+
+        <!-- SUPPLIERS -->
+        <div class="inv-card">
+            <h2>Suppliers</h2>
+            @if (links.Count == 0)
+            {
+                <div class="inv-muted" style="font-size:.85rem; margin-bottom:.5rem;">No supplier linked yet.</div>
+            }
+            else
+            {
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>Supplier</th>
+                                <th class="inv-hide-sm">Their item name</th>
+                                <th class="num inv-hide-sm">Cost / @unit</th>
+                                <th class="num inv-hide-sm">Lead time</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var link in links)
+                            {
+                                <tr>
+                                    <td>
+                                        @link.Supplier.Name
+                                        @if (link.IsPreferred)
+                                        {
+                                            <span class="inv-badge ok">Preferred</span>
+                                        }
+                                        @if (!link.IsActive || !link.Supplier.IsActive || !link.Supplier.SuppliesCafeteria)
+                                        {
+                                            <span class="inv-badge muted">Inactive</span>
+                                        }
+                                    </td>
+                                    <td class="inv-hide-sm">@(link.SupplierItemName ?? "—")</td>
+                                    <td class="num inv-hide-sm">@(link.UnitCost.HasValue ? "R " + link.UnitCost.Value.ToString("0.00") : "—")</td>
+                                    <td class="num inv-hide-sm">@link.LeadTimeDays days</td>
+                                    <td class="num">
+                                        @if (isManager)
+                                        {
+                                            <form method="post" action="@Url.Action("UnlinkSupplier", "CafeteriaInventory", new { id = ing.Id, linkId = link.Id })" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button class="btn btn-sm btn-link text-danger p-0">Remove</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (isManager)
+            {
+                <form class="inv-form" method="post" action="@Url.Action("LinkSupplier", "CafeteriaInventory", new { id = ing.Id })" style="margin-top:.75rem; border-top:1px solid #f3f4f6; padding-top:.75rem;">
+                    @Html.AntiForgeryToken()
+                    <div class="inv-row">
+                        <div>
+                            <label>Supplier</label>
+                            <select name="supplierId" class="inv-input" required>
+                                <option value="">— Choose —</option>
+                                @foreach (var s in suppliers)
+                                {
+                                    <option value="@s.SupplierId">@s.Name</option>
+                                }
+                            </select>
+                            <div class="inv-help"><a href="@Url.Action("Suppliers", "CafeteriaInventory")">Manage suppliers</a></div>
+                        </div>
+                        <div>
+                            <label>Their item name / code</label>
+                            <input name="supplierItemName" class="inv-input" maxlength="150" placeholder="As on their invoices" />
+                            <div class="inv-help">Helps match scanned invoices.</div>
+                        </div>
+                        <div>
+                            <label>Cost per @unit (R)</label>
+                            <input name="unitCost" class="inv-input" inputmode="decimal" />
+                        </div>
+                        <div>
+                            <label>Lead time (days)</label>
+                            <input name="leadTimeDays" type="number" min="0" max="90" value="3" class="inv-input" />
+                        </div>
+                    </div>
+                    <label style="display:flex; gap:.4rem; align-items:center; font-weight:400;">
+                        <input type="checkbox" name="isPreferred" value="true" /> Preferred supplier for @ing.Name
+                    </label>
+                    <button class="btn btn-sm btn-outline-secondary" style="margin-top:.5rem;">Add / update supplier</button>
+                </form>
+            }
+        </div>
+
+        <!-- HISTORY -->
+        <div class="inv-card">
+            <h2>Stock history</h2>
+            @if (history.Count == 0)
+            {
+                <div class="inv-muted" style="font-size:.85rem;">No stock changes recorded yet.</div>
+            }
+            else
+            {
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>What</th>
+                                <th class="num">Change</th>
+                                <th class="num inv-hide-sm">Stock after</th>
+                                <th class="inv-hide-sm">Reference</th>
+                                <th class="inv-hide-sm">By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in history)
+                            {
+                                string what = t.Type == StockTransactionType.KitchenIssue ? "Kitchen issue"
+                                    : t.Type == StockTransactionType.FarmProduce ? "Farm produce"
+                                    : t.Type.ToString();
+                                <tr>
+                                    <td style="white-space:nowrap;">@SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM HH:mm")</td>
+                                    <td>
+                                        @what <span class="inv-muted">(@(t.Source == StockSource.Farm ? "farm" : "bought-in"))</span>
+                                        @if (!string.IsNullOrEmpty(t.Notes))
+                                        {
+                                            <div class="inv-help">@t.Notes</div>
+                                        }
+                                    </td>
+                                    <td class="num" style="color:@(t.Quantity < 0 ? "#b91c1c" : "#065f46");">@(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)</td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(t.TotalAfter, ing.Unit)</td>
+                                    <td class="inv-hide-sm">@t.Reference</td>
+                                    <td class="inv-hide-sm">@(t.CreatedByUserId.HasValue && userNames.ContainsKey(t.CreatedByUserId.Value) ? userNames[t.CreatedByUserId.Value] : "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

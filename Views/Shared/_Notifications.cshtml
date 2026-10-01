@@ -102,7 +102,9 @@ else
 </style>
 
 <script>
-    $(function () {
+    // Rendered in the page header, before jQuery is loaded at the end
+    // of the layout — so wait for the page before using $
+    document.addEventListener('DOMContentLoaded', function () {
         $('.notification-item').click(function (e) {
             e.preventDefault();
 

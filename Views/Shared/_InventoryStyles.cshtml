@@ -1,0 +1,57 @@
+﻿<style>
+    .inv-shell { max-width: 1100px; margin: 0 auto; }
+
+    .inv-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: .75rem; padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid #eaeaea; }
+    .inv-header h1 { font-size: 1.7rem; margin: 0 0 .25rem 0; }
+    .inv-meta { color: #6b7280; font-size: .82rem; }
+
+    .inv-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+    .inv-card h2 { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #6b7280; margin: 0 0 .75rem 0; }
+
+    .inv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+    .inv-stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: .85rem 1rem; display: block; color: inherit; text-decoration: none; }
+    .inv-stat:hover { border-color: #C21E2E; color: inherit; }
+    .inv-stat .label { font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; font-weight: 700; }
+    .inv-stat .value { font-size: 1.6rem; font-weight: 700; color: #111827; }
+    .inv-stat.warn .value { color: #b45309; }
+    .inv-stat.bad .value { color: #b91c1c; }
+
+    .inv-table-wrap { overflow-x: auto; }
+    .inv-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .inv-table th { text-align: left; font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; padding: .45rem .55rem; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    .inv-table td { padding: .5rem .55rem; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+    .inv-table tr:last-child td { border-bottom: none; }
+    .inv-table .num { text-align: right; white-space: nowrap; }
+
+    .inv-badge { display: inline-block; font-size: .64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 4px; background: #f3f4f6; color: #374151; white-space: nowrap; }
+    .inv-badge.ok { background: #d1fae5; color: #065f46; }
+    .inv-badge.low { background: #fef3c7; color: #92400e; }
+    .inv-badge.bad { background: #fee2e2; color: #991b1b; }
+    .inv-badge.info { background: #dbeafe; color: #1e40af; }
+    .inv-badge.muted { background: #f3f4f6; color: #6b7280; }
+
+    .inv-note { border-radius: 6px; padding: .55rem .8rem; font-size: .84rem; margin-bottom: .5rem; }
+    .inv-note.warn { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+    .inv-note.bad { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+    .inv-note.ok { background: #d1fae5; border: 1px solid #a7f3d0; color: #065f46; }
+    .inv-note.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+    .inv-form label { display: block; font-size: .75rem; font-weight: 600; color: #374151; margin-bottom: .3rem; }
+    .inv-input { width: 100%; padding: .45rem .65rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .9rem; background: #fff; }
+    .inv-input:focus { border-color: #C21E2E; outline: none; }
+    .inv-input.qty { max-width: 130px; text-align: right; }
+    .inv-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; margin-bottom: .75rem; }
+    .inv-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .inv-help { font-size: .72rem; color: #6b7280; margin-top: .2rem; }
+    .inv-muted { color: #6b7280; }
+    .inv-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+    .inv-tabs a { padding: .35rem .8rem; border: 1px solid #e5e7eb; border-radius: 999px; font-size: .8rem; color: #374151; text-decoration: none; background: #fff; }
+    .inv-tabs a.active { border-color: #C21E2E; color: #C21E2E; background: #fef2f2; font-weight: 600; }
+
+    @@media (max-width: 640px) {
+        .inv-header h1 { font-size: 1.35rem; }
+        .inv-hide-sm { display: none; }
+        .inv-card { padding: .9rem; }
+        .inv-input.qty { max-width: none; }
+    }
+</style>
