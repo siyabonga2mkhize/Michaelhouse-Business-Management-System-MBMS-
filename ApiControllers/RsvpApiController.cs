@@ -1,5 +1,6 @@
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Models.Cafeteria;
+using Michaelhouse.Services;
 using Newtonsoft.Json;
 using System;
 using System.Data.Entity;
@@ -43,11 +44,16 @@ namespace Michaelhouse.ApiControllers
         [Route("current-event")]
         public JsonResult GetCurrentEvent()
         {
+            var rsvp = new EventRsvpService(_db);
+            rsvp.OpenDueRsvps(null);
+
+            // Most recently opened event still accepting responses
             var evt = _db.CafeteriaEvents
                 .Include("Venue")
                 .Where(e => e.Status == EventStatus.RsvpOpen)
                 .OrderByDescending(e => e.RsvpOpenedAt)
-                .FirstOrDefault();
+                .ToList()
+                .FirstOrDefault(e => rsvp.GetStatus(e).AcceptingResponses);
 
             if (evt == null)
             {
@@ -122,7 +128,7 @@ namespace Michaelhouse.ApiControllers
                     return Json(new { ok = false, error = "Event not found." });
                 }
 
-                if (evt.Status != EventStatus.RsvpOpen)
+                if (!new EventRsvpService(_db).GetStatus(evt).AcceptingResponses)
                 {
                     return Json(new { ok = false, error = "This event is no longer accepting RSVPs." });
                 }
@@ -176,9 +182,7 @@ namespace Michaelhouse.ApiControllers
                     ResponderName = data.ResponderName.Trim(),
                     ResponderEmail = (data.ResponderEmail ?? "").Trim(),
                     ResponderPhone = (data.ResponderPhone ?? "").Trim(),
-                    ResponderGroup = string.IsNullOrWhiteSpace(data.ResponderGroup)
-                        ? "Guest"
-                        : data.ResponderGroup.Trim(),
+                    ResponderGroup = Michaelhouse.Controllers.RsvpController.GuestGroup(data.ResponderGroup),
                     ResponseStatus = status,
                     TotalAttendees = total,
                     StandardCount = std,

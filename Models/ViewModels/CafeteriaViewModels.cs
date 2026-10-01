@@ -53,17 +53,28 @@ namespace Michaelhouse.Models.ViewModels
         [Display(Name = "Special event notes")]
         public string SpecialEventNotes { get; set; }
 
+        // How many meal options to offer in each breakfast / lunch /
+        // dinner slot. Students choose one of them in their meal plan.
+        [Range(1, 6)]
+        [Display(Name = "Options per meal")]
+        public int OptionsPerSlot { get; set; }
+
         public IList<BoardingHouseScheduleOption> BoardingHouses { get; set; }
 
         public ScheduleMenuInputViewModel()
         {
             BoardingHouses = new List<BoardingHouseScheduleOption>();
+            OptionsPerSlot = 3;
         }
     }
 
     public class MenuScheduleItemDisplay
     {
         public int Id { get; set; }
+
+        public int MenuItemId { get; set; }
+
+        public NutritionCategory NutritionCategory { get; set; }
 
         public DateTime Date { get; set; }
 

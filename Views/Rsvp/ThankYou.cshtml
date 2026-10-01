@@ -87,9 +87,32 @@
             </div>
         </div>
 
+        @if (ViewBag.CalendarUrl != null)
+        {
+            <p>
+                <a href="@ViewBag.CalendarUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">📅 Add to Google Calendar</a>
+            </p>
+            <p style="font-size:.8rem; color:#6b7280;">
+                If you already added this event earlier, there's no need to add it again.
+            </p>
+        }
+        else if (ViewBag.Declined == true)
+        {
+            <p style="font-size:.85rem; color:#6b7280;">
+                If you added this event to your Google Calendar earlier, you can remove it there.
+            </p>
+        }
+
         <p style="font-size:.88rem;">
             The cafeteria will use your response to plan the meal.
-            If you need to change your RSVP, contact the cafeteria directly.
+            @if (ViewBag.CalendarUrl != null || ViewBag.Declined == true)
+            {
+                <text>You can change your RSVP from the event link until RSVPs close.</text>
+            }
+            else
+            {
+                <text>If you need to change your RSVP, contact the cafeteria directly.</text>
+            }
         </p>
 
         <div class="ty-close">

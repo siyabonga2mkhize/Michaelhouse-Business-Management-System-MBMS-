@@ -86,6 +86,10 @@ namespace Michaelhouse.Controllers
 
                 // Generate the signature
                 string encoding = _faceService.GenerateEncoding(imageBytes);
+                if (encoding == null)
+                {
+                    return Json(new { success = false, message = "The photo could not be read. Make sure your face is well lit and centred, then try again." });
+                }
 
                 // Save or update
                 var existing = _db.StudentFaceSignatures

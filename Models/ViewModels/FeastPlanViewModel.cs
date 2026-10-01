@@ -32,6 +32,16 @@ namespace Michaelhouse.Models.ViewModels
 
         public List<string> DietaryNotes { get; set; }
 
+        // Dietary groups attending and whether the buffet covers them
+        public Michaelhouse.Services.BuffetCoverageReport Coverage { get; set; }
+
+        // Ingredients issued from stock for this event (KitchenIssueService)
+        public DateTime? IngredientsIssuedAt { get; set; }
+        public string IngredientsIssuedBy { get; set; }
+
+        // Attendance by type, dietary summary and meals chosen (RSVPs)
+        public Michaelhouse.Services.EventRequirements Requirements { get; set; }
+
         public List<FeastPlanDish> Dishes { get; set; }
         public List<FeastPlanIngredient> TotalIngredients { get; set; }
         public List<FeastPlanTimelineDay> Timeline { get; set; }
@@ -59,6 +69,12 @@ namespace Michaelhouse.Models.ViewModels
         public string Classification { get; set; }
         public int Portions { get; set; }
         public decimal QuantityPerGuest { get; set; }
+
+        // Meal choice events: people who chose it (and by type),
+        // plus attendees without a choice given this meal
+        public int SelectedCount { get; set; }
+        public int AllocatedCount { get; set; }
+        public string SelectedByType { get; set; }
         public List<FeastPlanIngredient> Ingredients { get; set; }
 
         public string Station { get; set; }

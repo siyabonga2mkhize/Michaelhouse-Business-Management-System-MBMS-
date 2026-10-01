@@ -1,5 +1,6 @@
 ﻿@using System.Linq
 @using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
 @model CafeteriaEvent
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -43,7 +44,36 @@
         case EventStatus.Cancelled: statusClass = "cancelled"; break;
     }
 
-    bool isConfirmed = Model.Status == EventStatus.Confirmed;
+    var rsvpStatus = ViewBag.RsvpStatus as RsvpStatusInfo;
+    var coverage = ViewBag.Coverage as BuffetCoverageReport ?? new BuffetCoverageReport();
+    bool usesTemplateMenu = ViewBag.UsesTemplateMenu == true;
+    bool canEdit = ViewBag.CanEdit == true;
+    var houseNames = ViewBag.Houses as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var attendance = ViewBag.Attendance as EventAttendance ?? new EventAttendance();
+    var invited = ViewBag.Invited as InvitedSummary ?? new InvitedSummary();
+    var requirements = ViewBag.Requirements as EventRequirements ?? new EventRequirements();
+    var mealNames = ViewBag.MealNames as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    Func<string, string, string> audience = (csv, everyone) =>
+    {
+        var ids = EventRsvpService.ParseIds(csv);
+        return ids.Count == 0
+            ? everyone
+            : "Only " + string.Join(", ", ids.Select(i => houseNames.ContainsKey(i) ? houseNames[i] : "house " + i));
+    };
+
+    string rsvpClass = "draft";
+    if (rsvpStatus != null)
+    {
+        switch (rsvpStatus.State)
+        {
+            case RsvpState.ScheduledToOpen: rsvpClass = "confirmed"; break;
+            case RsvpState.Open: rsvpClass = "rsvp-open"; break;
+            case RsvpState.Closed: rsvpClass = "rsvp-closed"; break;
+        }
+    }
+
+    bool isConfirmed = rsvpStatus != null && rsvpStatus.CanOpenNow;
     bool isRsvpOpen = Model.Status == EventStatus.RsvpOpen;
     bool isRsvpClosed = Model.Status == EventStatus.RsvpClosed;
     bool isFeastPlanReady = Model.Status == EventStatus.FeastPlanGenerated;
@@ -159,6 +189,12 @@
         gap: .75rem;
     }
 
+    @@media (max-width: 600px) {
+        .ed-stats {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
     .ed-stat {
         background: #f9fafb;
         border: 1px solid #e5e7eb;
@@ -219,6 +255,51 @@
         word-break: break-all;
     }
 
+    .ed-tag {
+        display: inline-block;
+        font-size: .65rem;
+        font-weight: 700;
+        padding: .1rem .4rem;
+        border-radius: 4px;
+        margin-right: .25rem;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .ed-warning {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        border-radius: 6px;
+        padding: .55rem .8rem;
+        font-size: .84rem;
+        margin-bottom: .4rem;
+    }
+
+    .ed-ok {
+        background: #d1fae5;
+        color: #065f46;
+        border-radius: 6px;
+        padding: .55rem .8rem;
+        font-size: .84rem;
+        margin-bottom: .75rem;
+    }
+
+    .ed-sub {
+        font-size: .8rem;
+        color: #4b5563;
+        margin-bottom: .6rem;
+    }
+
+    .ed-none {
+        color: #b91c1c;
+        font-weight: 600;
+    }
+
+    .ed-table-wrap {
+        overflow-x: auto;
+    }
+
     .ed-rsvp-table {
         width: 100%;
         border-collapse: collapse;
@@ -260,19 +341,21 @@
                     @(Model.Venue != null ? Model.Venue.Name : "—")
                 </div>
             </div>
-            <div>
+            <div style="text-align:right;">
                 <span class="ed-status @statusClass">@Model.Status</span>
+                @if (rsvpStatus != null)
+                {
+                    <div style="margin-top:.4rem;">
+                        <span class="ed-status @rsvpClass">RSVP: @rsvpStatus.Label</span>
+                    </div>
+                    <div class="ed-meta" style="margin-top:.25rem;">@rsvpStatus.Detail</div>
+                }
+                @if (canEdit)
+                {
+                    <a href="@Url.Action("Edit", "Event", new { id = Model.Id })" class="btn btn-sm btn-outline-secondary" style="margin-top:.5rem;">Edit event</a>
+                }
             </div>
         </div>
-
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
 
         <!-- EVENT INFO -->
         <div class="ed-card">
@@ -280,7 +363,74 @@
 
             <div class="ed-info-row">
                 <div class="ed-info-label">Type</div>
-                <div class="ed-info-value">@Model.EventType</div>
+                <div class="ed-info-value">@System.Text.RegularExpressions.Regex.Replace(Model.EventType.ToString(), "([a-z])([A-Z])", "$1 $2")</div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="ed-info-row">
+                    <div class="ed-info-label">About</div>
+                    <div class="ed-info-value">@Model.Description</div>
+                </div>
+            }
+            <div class="ed-info-row">
+                <div class="ed-info-label">Invited</div>
+                <div class="ed-info-value">
+                    @if (Model.InviteStudents)
+                    {
+                        <div>Students — @audience(Model.InviteStudentResidenceIds, "all registered students")
+                            <span style="color:#6b7280;">(@invited.Students invited, @invited.StudentsWithLogin with a login)</span></div>
+                    }
+                    @if (Model.InviteParents)
+                    {
+                        <div>Parents — @audience(Model.InviteParentResidenceIds, "all parents")
+                            <span style="color:#6b7280;">(@invited.Parents invited, @invited.ParentsWithLogin with a login)</span></div>
+                    }
+                    @if (Model.InviteStaff)
+                    {
+                        <div>All staff <span style="color:#6b7280;">(@invited.StaffWithLogin with a login)</span></div>
+                    }
+                    @if (invited.CanBeNotified == 0)
+                    {
+                        <div class="ed-warning" style="margin-top:.5rem;">
+                            ⚠ Nobody invited can be notified or RSVP with a login.
+                            @if ((Model.InviteStudents && !string.IsNullOrEmpty(Model.InviteStudentResidenceIds)) || (Model.InviteParents && !string.IsNullOrEmpty(Model.InviteParentResidenceIds)))
+                            {
+                                <text>No students are allocated to the houses chosen — check Residence Allocations, or invite all students / parents.</text>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="ed-info-row">
+                <div class="ed-info-label">Meals</div>
+                <div class="ed-info-value">
+                    @(Model.OffersMealChoice ? "Attendees choose a meal when they RSVP" : "Self-service buffet")
+                    @if (Model.AllowGuests)
+                    {
+                        <text> · parents and staff may bring up to @Model.MaxGuestsPerInvitee guest@(Model.MaxGuestsPerInvitee == 1 ? "" : "s")</text>
+                    }
+                </div>
+            </div>
+            <div class="ed-info-row">
+                <div class="ed-info-label">RSVP</div>
+                <div class="ed-info-value">
+                    @if (Model.RsvpOpenedAt.HasValue)
+                    {
+                        <text>Opened @SchoolClock.FromUtc(Model.RsvpOpenedAt.Value).ToString("ddd dd MMM yyyy 'at' HH:mm")</text>
+                    }
+                    else if (Model.RsvpOpensAt.HasValue)
+                    {
+                        <text>Opens @Model.RsvpOpensAt.Value.ToString("ddd dd MMM yyyy 'at' HH:mm")</text>
+                    }
+                    else
+                    {
+                        <text>No opening time set</text>
+                    }
+                    @if (Model.RsvpDeadline.HasValue)
+                    {
+                        <text> · deadline @Model.RsvpDeadline.Value.ToString("ddd dd MMM yyyy")</text>
+                    }
+                </div>
             </div>
             <div class="ed-info-row">
                 <div class="ed-info-label">Expected</div>
@@ -308,30 +458,41 @@
             }
         </div>
 
-        <!-- CONFIRMED → Open RSVP -->
+        <!-- NOT OPEN / SCHEDULED → Open RSVPs now -->
         @if (isConfirmed)
         {
             <div class="ed-card" style="border-color:#bfdbfe; background:#eff6ff;">
-                <div class="ed-card-title">Next Step — Open RSVPs</div>
+                <div class="ed-card-title">
+                    @(rsvpStatus.State == RsvpState.ScheduledToOpen ? "RSVPs — Scheduled to Open" : "RSVPs — Not Open")
+                </div>
                 <p style="font-size:.88rem; color:#1e40af; margin-bottom:.85rem;">
-                    Set a deadline by which invitees must respond. After that date,
-                    close RSVPs to freeze the headcount.
+                    @if (rsvpStatus.State == RsvpState.ScheduledToOpen)
+                    {
+                        <text>RSVPs will open automatically on <strong>@Model.RsvpOpensAt.Value.ToString("dddd dd MMMM 'at' HH:mm")</strong>
+                        and invitations will be sent then. You can open them earlier here.</text>
+                    }
+                    else
+                    {
+                        <text>No opening time is set. Open RSVPs when you're ready, or edit the event to schedule the opening.</text>
+                    }
                 </p>
 
                 <form action="@Url.Action("OpenRsvp", "Event", new { id = Model.Id })" method="post"
-                      class="d-flex gap-2 align-items-end">
+                      class="d-flex gap-2 align-items-end flex-wrap"
+                      onsubmit="return confirm('Open RSVPs now and send the invitations?');">
                     @Html.AntiForgeryToken()
                     <div>
                         <label style="font-size:.75rem; font-weight:600; display:block; margin-bottom:.35rem;">
                             RSVP Deadline
                         </label>
                         <input type="date" name="rsvpDeadline"
-                               value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")"
-                               min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")"
-                               class="form-control form-control-sm" required />
+                               value="@(Model.RsvpDeadline.HasValue ? Model.RsvpDeadline.Value.ToString("yyyy-MM-dd") : "")"
+                               min="@SchoolClock.Today.ToString("yyyy-MM-dd")"
+                               max="@Model.EventDate.ToString("yyyy-MM-dd")"
+                               class="form-control form-control-sm" />
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        Open RSVPs
+                        Open RSVPs now
                     </button>
                 </form>
             </div>
@@ -356,6 +517,16 @@
                 {
                     <div style="font-size:.8rem; color:#78350f; margin-top:.5rem;">
                         Deadline: <strong>@Model.RsvpDeadline.Value.ToString("dddd, dd MMM yyyy")</strong>
+                        @if (rsvpStatus != null && !rsvpStatus.AcceptingResponses)
+                        {
+                            <text> — passed; the form no longer takes responses. Close RSVPs to confirm the headcount.</text>
+                        }
+                    </div>
+                }
+                @if (Model.InviteStudents)
+                {
+                    <div style="font-size:.8rem; color:#78350f; margin-top:.5rem;">
+                        Students respond by logging in and opening the link — their dietary needs come from their profile.
                     </div>
                 }
             </div>
@@ -369,12 +540,12 @@
 
                 <div class="ed-stats" style="margin-bottom:1rem;">
                     <div class="ed-stat">
-                        <div class="ed-stat-label">Responses</div>
+                        <div class="ed-stat-label">Accepted</div>
                         <div class="ed-stat-value">@attending.Count</div>
                     </div>
                     <div class="ed-stat">
                         <div class="ed-stat-label">Total Attendees</div>
-                        <div class="ed-stat-value green">@totalAttendees</div>
+                        <div class="ed-stat-value green">@attendance.Total</div>
                     </div>
                     <div class="ed-stat">
                         <div class="ed-stat-label">Declined</div>
@@ -386,20 +557,26 @@
                     </div>
                 </div>
 
-                <div class="ed-stats" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Standard Meals</div>
-                        <div class="ed-stat-value">@standard</div>
+                @AttendanceStats(attendance)
+
+                @if (Model.OffersMealChoice && requirements.Meals.Count > 0)
+                {
+                    <div style="margin-top:1rem;">
+                        <div class="ed-card-title" style="margin-bottom:.5rem;">Meals chosen so far</div>
+                        <div class="ed-diet-list">
+                            @foreach (var m in requirements.Meals)
+                            {
+                                <div>
+                                    <span class="who">@m.MenuItem.Name:</span> @m.Selected
+                                    @if (m.Selected > 0)
+                                    {
+                                        <span style="color:#6b7280;">(@m.TypeSummary)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Vegetarian</div>
-                        <div class="ed-stat-value">@vegetarian</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Other Diets</div>
-                        <div class="ed-stat-value">@other</div>
-                    </div>
-                </div>
+                }
 
                 @if (dietaryNotes.Count > 0)
                 {
@@ -419,10 +596,10 @@
 
                 <div class="ed-btn-row">
                     <form action="@Url.Action("CloseRsvp", "Event", new { id = Model.Id })" method="post"
-                          onsubmit="return confirm('Close RSVPs and freeze the headcount at @totalAttendees?');">
+                          onsubmit="return confirm('Close RSVPs now, fix the headcount at @attendance.Total and send the plan to the kitchen?');">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-warning">
-                            Close RSVPs (@totalAttendees guests)
+                            Close RSVPs &amp; send to kitchen (@attendance.Total attending)
                         </button>
                     </form>
                 </div>
@@ -438,12 +615,10 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Group</th>
-                            <th style="text-align:right;">Total</th>
-                            <th style="text-align:right;">Std</th>
-                            <th style="text-align:right;">Veg</th>
-                            <th style="text-align:right;">Other</th>
-                            <th>Notes</th>
+                            <th>Type</th>
+                            <th style="text-align:right;">Party</th>
+                            <th>Meal</th>
+                            <th>Dietary</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -451,12 +626,12 @@
                         {
                             <tr>
                                 <td><strong>@r.ResponderName</strong></td>
-                                <td style="color:#6b7280;">@r.ResponderGroup</td>
+                                <td style="color:#6b7280;">@r.ResponderGroup@(r.RespondedByUserId.HasValue ? "" : " (public form)")</td>
                                 <td style="text-align:right;">@r.TotalAttendees</td>
-                                <td style="text-align:right;">@r.StandardCount</td>
-                                <td style="text-align:right;">@r.VegetarianCount</td>
-                                <td style="text-align:right;">@r.OtherDietCount</td>
-                                <td style="color:#6b7280; font-size:.8rem;">@r.DietaryNotes</td>
+                                <td>@(r.MenuItemId.HasValue && mealNames.ContainsKey(r.MenuItemId.Value) ? mealNames[r.MenuItemId.Value] : "—")@(r.GuestCount > 0 ? " + " + r.GuestCount + " guest meal" + (r.GuestCount == 1 ? "" : "s") : "")</td>
+                                <td style="color:#6b7280; font-size:.8rem;">
+                                    @(r.ResponderGroup == "Student" ? "From student profile" : string.Join("; ", new[] { r.DietaryPreference != null && r.DietaryPreference != "None" ? r.DietaryPreference : null, r.Allergies, r.DietaryNotes }.Where(x => !string.IsNullOrWhiteSpace(x))))
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -469,24 +644,7 @@
         {
             <div class="ed-card" style="border-color:#c7d2fe; background:#eef2ff;">
                 <div class="ed-card-title">RSVPs Closed</div>
-                <div class="ed-stats">
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Confirmed Attendees</div>
-                        <div class="ed-stat-value green">@Model.GuaranteedHeadcount</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Standard</div>
-                        <div class="ed-stat-value">@standard</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Vegetarian</div>
-                        <div class="ed-stat-value">@vegetarian</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Other</div>
-                        <div class="ed-stat-value">@other</div>
-                    </div>
-                </div>
+                @AttendanceStats(attendance)
                 <div style="margin-top:1rem;">
                     <a href="@Url.Action("FeastPlan", "Event", new { id = Model.Id })"
                        class="btn btn-primary">
@@ -500,33 +658,135 @@
         @if (isFeastPlanReady)
         {
             <div class="ed-card" style="border-color:#bbf7d0; background:#f0fdf4;">
-                <div class="ed-card-title">Feast Plan Generated</div>
-                <div class="ed-stats">
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Confirmed Attendees</div>
-                        <div class="ed-stat-value green">@Model.GuaranteedHeadcount</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Standard</div>
-                        <div class="ed-stat-value">@standard</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Vegetarian</div>
-                        <div class="ed-stat-value">@vegetarian</div>
-                    </div>
-                    <div class="ed-stat">
-                        <div class="ed-stat-label">Other</div>
-                        <div class="ed-stat-value">@other</div>
-                    </div>
-                </div>
+                <div class="ed-card-title">RSVPs Closed — Kitchen Plan Sent</div>
+                <p style="font-size:.85rem; color:#065f46; margin-bottom:.75rem;">
+                    The kitchen has the plan, built from the accepted RSVPs@(Model.RsvpClosedAt.HasValue ? " on " + SchoolClock.FromUtc(Model.RsvpClosedAt.Value).ToString("dd MMM 'at' HH:mm") : "").
+                </p>
+                @AttendanceStats(attendance)
                 <div style="margin-top:1rem;">
                     <a href="@Url.Action("FeastPlan", "Event", new { id = Model.Id })"
                        class="btn btn-success">
-                        🍽 View Feast Plan
+                        🍽 View Kitchen Plan
                     </a>
                 </div>
             </div>
         }
+
+        <!-- BUFFET MEALS + DIETARY COVERAGE -->
+        <div class="ed-card">
+            <div class="ed-card-title">Buffet &amp; Dietary Coverage</div>
+
+            @if (usesTemplateMenu)
+            {
+                <div class="ed-sub">Using the meals from the <strong>@(Model.MenuTemplate != null ? Model.MenuTemplate.Name : "menu")</strong> template. Edit the event to choose buffet meals.</div>
+            }
+
+            @if (coverage.Meals.Count > 0)
+            {
+                <div class="ed-table-wrap">
+                    <table class="ed-rsvp-table" style="margin-bottom:1rem;">
+                        <thead>
+                            <tr>
+                                <th>Buffet meal</th>
+                                <th>Suits</th>
+                                <th>Allergens</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var meal in coverage.Meals)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@meal.Name</strong>
+                                        @if (!meal.IsActive)
+                                        {
+                                            <span class="ed-none"> (inactive)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @foreach (var tag in meal.SuitableFor)
+                                        {
+                                            <span class="ed-tag">@tag</span>
+                                        }
+                                    </td>
+                                    <td style="color:#6b7280; font-size:.8rem;">@(string.IsNullOrEmpty(meal.Allergens) ? "—" : meal.Allergens)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <div class="ed-sub">
+                Checked against: <strong>@coverage.Basis</strong>@(coverage.StudentCount > 0 ? " (" + coverage.StudentCount + " " + (coverage.Noun ?? "student") + (coverage.StudentCount == 1 ? "" : "s") + ")" : "")
+            </div>
+
+            @if (coverage.Warnings.Count == 0)
+            {
+                <div class="ed-ok">✓ Every dietary group has at least one suitable buffet meal.</div>
+            }
+            @foreach (var w in coverage.Warnings)
+            {
+                <div class="ed-warning">⚠ @w</div>
+            }
+
+            @if (coverage.Groups.Count > 0)
+            {
+                <div class="ed-table-wrap">
+                    <table class="ed-rsvp-table" style="margin-top:.75rem;">
+                        <thead>
+                            <tr>
+                                <th>Dietary group</th>
+                                <th style="text-align:right;">Students</th>
+                                <th>Suitable buffet meals</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var g in coverage.Groups)
+                            {
+                                <tr>
+                                    <td>@g.Label</td>
+                                    <td style="text-align:right;">@g.StudentCount</td>
+                                    @if (g.IsCovered)
+                                    {
+                                        <td>@string.Join(", ", g.SuitableMeals)</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="ed-none">None</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (coverage.AttendingStudentCount > 0)
+            {
+                <div class="ed-card-title" style="margin-top:1.25rem;">Accepted so far — students, parents, staff and guests (@coverage.AttendingStudentCount)</div>
+                <div class="ed-diet-list">
+                    @foreach (var g in coverage.AttendingGroups)
+                    {
+                        <div>
+                            <span class="who">@g.Label:</span> @g.StudentCount
+                            @if (!g.IsCovered)
+                            {
+                                <span class="ed-none"> — no suitable meal</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (coverage.GuestAttendees > 0)
+            {
+                <div class="ed-sub" style="margin-top:1rem;">
+                    Parents, staff and guests attending: <strong>@coverage.GuestAttendees</strong>
+                    (@coverage.GuestVegetarian vegetarian / vegan, @coverage.GuestOtherDiets with other requirements — see their dietary notes).
+                </div>
+            }
+        </div>
 
         <div style="margin-top:1.5rem;">
             <a href="@Url.Action("Index", "Event")" class="btn btn-outline-secondary">
@@ -562,3 +822,29 @@
         }
     }
 </script>
+
+@helper AttendanceStats(EventAttendance a)
+{
+    <div class="ed-stats" style="grid-template-columns: repeat(5, 1fr); margin-top:.75rem;">
+        <div class="ed-stat">
+            <div class="ed-stat-label">Students</div>
+            <div class="ed-stat-value">@a.Students</div>
+        </div>
+        <div class="ed-stat">
+            <div class="ed-stat-label">Parents</div>
+            <div class="ed-stat-value">@a.Parents</div>
+        </div>
+        <div class="ed-stat">
+            <div class="ed-stat-label">Staff</div>
+            <div class="ed-stat-value">@a.Staff</div>
+        </div>
+        <div class="ed-stat">
+            <div class="ed-stat-label">Guests</div>
+            <div class="ed-stat-value">@a.Guests</div>
+        </div>
+        <div class="ed-stat">
+            <div class="ed-stat-label">Total</div>
+            <div class="ed-stat-value green">@a.Total</div>
+        </div>
+    </div>
+}

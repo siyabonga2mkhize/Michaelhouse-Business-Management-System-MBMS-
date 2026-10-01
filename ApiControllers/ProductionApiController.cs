@@ -62,6 +62,15 @@ namespace Michaelhouse.ApiControllers
                     weekLabel = plan.WeekStart.ToString("dd MMM") + " - " + plan.WeekEnd.ToString("dd MMM yyyy"),
                     isProductionConfirmed = plan.IsProductionConfirmed,
                     totalMeals = plan.TotalMeals,
+                    submittedPlanCount = plan.SubmittedPlanCount,
+                    hasIngredientProblems = plan.HasIngredientProblems,
+                    warnings = plan.Warnings.Select(w => new
+                    {
+                        when = w.When,
+                        severity = w.Severity.ToString(),
+                        message = w.Message,
+                        affectedMeals = w.AffectedMeals
+                    }).ToList(),
                     days = plan.Days.Select(d => new
                     {
                         date = d.Date.ToString("yyyy-MM-dd"),
@@ -91,7 +100,8 @@ namespace Michaelhouse.ApiControllers
                         totalRequired = i.TotalRequired,
                         stockAvailable = i.StockAvailable,
                         shortfall = i.Shortfall,
-                        isCovered = i.IsCovered
+                        isCovered = i.IsCovered,
+                        status = i.Status.ToString()
                     }).ToList()
                 };
 

@@ -1,0 +1,181 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model IngredientPurchaseOrder
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isEdit = Model.Id > 0;
+    ViewBag.Title = isEdit ? "Edit Order " + Model.PoNumber : "Place Stock Order";
+
+    var suppliers = ViewBag.Suppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+    var lines = ViewBag.StockLines as List<IngredientStockLine> ?? new List<IngredientStockLine>();
+    var suggested = ViewBag.Suggested as Dictionary<int, decimal> ?? new Dictionary<int, decimal>();
+    var preselect = ViewBag.Preselect as List<int> ?? new List<int>();
+    var upcoming = ViewBag.Upcoming as Dictionary<int, UpcomingRequirement> ?? new Dictionary<int, UpcomingRequirement>();
+    var supplierLinks = ViewBag.SupplierLinks as Dictionary<int, List<int>> ?? new Dictionary<int, List<int>>();
+    int selectedSupplier = Model.SupplierId;
+
+    // Ingredient id → supplier ids, for the "only this supplier" filter
+    var suppliersByIngredient = new Dictionary<int, List<int>>();
+    foreach (var kv in supplierLinks)
+    {
+        foreach (var ingId in kv.Value)
+        {
+            if (!suppliersByIngredient.ContainsKey(ingId))
+            {
+                suppliersByIngredient[ingId] = new List<int>();
+            }
+            suppliersByIngredient[ingId].Add(kv.Key);
+        }
+    }
+
+    // Ticked rows first, then the rest by name
+    var ordered = lines.OrderBy(l => preselect.Contains(l.Ingredient.Id) ? 0 : 1).ThenBy(l => l.Ingredient.Name).ToList();
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>@(isEdit ? "Edit " + Model.PoNumber : "Place Stock Order")</h1>
+                <div class="inv-meta">
+                    1. choose the supplier · 2. tick the ingredients and enter quantities · 3. save the draft and review it · 4. send it.
+                </div>
+            </div>
+            <a href="@(isEdit ? Url.Action("Details", "IngredientOrder", new { id = Model.Id }) : Url.Action("Index", "CafeteriaInventory"))" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+        @if (suppliers.Count == 0)
+        {
+            <div class="inv-note warn">
+                There are no cafeteria suppliers yet. <a href="@Url.Action("Suppliers", "CafeteriaInventory")">Add a supplier</a> first.
+            </div>
+        }
+
+        <form method="post" action="@(isEdit ? Url.Action("Edit", "IngredientOrder", new { id = Model.Id }) : Url.Action("Create", "IngredientOrder"))" id="orderForm" class="inv-form">
+            @Html.AntiForgeryToken()
+
+            <div class="inv-card">
+                <div class="inv-row">
+                    <div>
+                        <label>Supplier *</label>
+                        <select name="supplierId" id="supplierSelect" class="inv-input" required>
+                            <option value="">— Choose —</option>
+                            @foreach (var s in suppliers)
+                            {
+                                <option value="@s.SupplierId" @(s.SupplierId == selectedSupplier ? "selected" : "")>@s.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label>Requested delivery date</label>
+                        <input type="date" name="requestedDeliveryDate" class="inv-input"
+                               value="@(Model.RequestedDeliveryDate.HasValue ? Model.RequestedDeliveryDate.Value.ToString("yyyy-MM-dd") : "")"
+                               min="@SchoolClock.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div>
+                        <label>Notes for the supplier</label>
+                        <input name="notes" class="inv-input" maxlength="1000" value="@Model.Notes" />
+                    </div>
+                </div>
+                <label style="display:flex; gap:.4rem; align-items:center; font-weight:400;">
+                    <input type="checkbox" id="onlySupplier" checked /> Only show ingredients this supplier supplies
+                </label>
+            </div>
+
+            <div class="inv-card" style="padding:0;">
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30px;"></th>
+                                <th>Ingredient</th>
+                                <th class="num">Available</th>
+                                <th class="num inv-hide-sm">Reorder</th>
+                                <th class="num inv-hide-sm">On order</th>
+                                <th class="num inv-hide-sm">Upcoming short</th>
+                                <th class="num">Order</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var l in ordered)
+                            {
+                                var id = l.Ingredient.Id;
+                                bool on = preselect.Contains(id);
+                                decimal qty = suggested.ContainsKey(id) ? suggested[id] : 0m;
+                                string supplierIds = suppliersByIngredient.ContainsKey(id) ? string.Join(",", suppliersByIngredient[id]) : "";
+                                UpcomingRequirement up;
+                                upcoming.TryGetValue(id, out up);
+
+                                <tr class="order-row" data-suppliers="@supplierIds" data-ticked="@(on ? "1" : "0")">
+                                    <td><input type="checkbox" class="row-tick" @(on ? "checked" : "") aria-label="Order @l.Ingredient.Name" /></td>
+                                    <td>
+                                        <strong>@l.Ingredient.Name</strong>
+                                        @if (l.IsOutOfStock)
+                                        {
+                                            <span class="inv-badge bad">Out</span>
+                                        }
+                                        else if (l.IsLowStock)
+                                        {
+                                            <span class="inv-badge low">Low</span>
+                                        }
+                                    </td>
+                                    <td class="num">@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
+                                    <td class="num inv-hide-sm">@(up != null && up.Shortfall > 0m ? IngredientUnits.Format(up.Shortfall, l.Ingredient.Unit) : "—")</td>
+                                    <td class="num">
+                                        <input type="hidden" name="ingredientId" value="@id" class="row-field" @(on ? "" : "disabled") />
+                                        <input name="quantity" class="inv-input qty row-field" inputmode="decimal" @(on ? "" : "disabled")
+                                               value="@(qty > 0m ? IngredientUnits.ToDisplay(qty, l.Ingredient.Unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                                        <span class="inv-muted" style="font-size:.75rem;">@IngredientUnits.DisplayUnit(l.Ingredient.Unit)</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="inv-actions">
+                <button type="submit" class="btn btn-primary" @(suppliers.Count == 0 ? "disabled" : "")>@(isEdit ? "Save draft" : "Save draft and review")</button>
+                <span class="inv-help">Nothing is sent to the supplier until you press Send on the next page.</span>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        var supplierSelect = document.getElementById('supplierSelect');
+        var onlySupplier = document.getElementById('onlySupplier');
+        var rows = Array.prototype.slice.call(document.querySelectorAll('.order-row'));
+
+        // Tick a row to order it: only ticked rows are posted
+        rows.forEach(function (row) {
+            var tick = row.querySelector('.row-tick');
+            tick.addEventListener('change', function () {
+                row.querySelectorAll('.row-field').forEach(function (f) { f.disabled = !tick.checked; });
+                if (tick.checked) row.querySelector('input[name=quantity]').focus();
+            });
+        });
+
+        function filter() {
+            var supplierId = supplierSelect.value;
+            rows.forEach(function (row) {
+                var supplied = (row.getAttribute('data-suppliers') || '').split(',').indexOf(supplierId) >= 0;
+                var ticked = row.querySelector('.row-tick').checked;
+                row.style.display = !onlySupplier.checked || !supplierId || supplied || ticked ? '' : 'none';
+            });
+        }
+
+        supplierSelect.addEventListener('change', filter);
+        onlySupplier.addEventListener('change', filter);
+        filter();
+    })();
+    </script>
+}

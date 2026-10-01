@@ -23,6 +23,13 @@ namespace Michaelhouse.Models.Cafeteria
         [StringLength(200)]
         public string Name { get; set; }
 
+        // Shown to students and staff. Instructions live on Recipe.
+        [StringLength(500)]
+        public string Description { get; set; }
+
+        // "Standard", "Vegetarian" or "Vegan" (MealLibraryService.Classification*).
+        // Halal and allergens are NOT stored here — they are derived
+        // from the recipe's ingredients.
         [Required]
         [StringLength(100)]
         public string DietaryClassification { get; set; }
@@ -50,6 +57,18 @@ namespace Michaelhouse.Models.Cafeteria
 
         [Range(0, 10000)]
         public decimal ProteinGramsPerPortion { get; set; }
+
+        // Calories, protein, carbohydrate and fat per portion are
+        // calculated from the recipe's ingredients when a meal is saved
+        // (MealLibraryService.CalculateNutrition) and stored here so the
+        // scheduler and meal plans can read them directly.
+        // NutritionCategory above remains a separate classification.
+
+        [Range(0, 10000)]
+        public decimal CarbohydrateGramsPerPortion { get; set; }
+
+        [Range(0, 10000)]
+        public decimal FatGramsPerPortion { get; set; }
 
         // ------------------------------------------------------------
         // Available portions

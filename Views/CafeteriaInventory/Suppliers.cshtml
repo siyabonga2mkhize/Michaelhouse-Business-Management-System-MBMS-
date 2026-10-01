@@ -1,0 +1,93 @@
+﻿@model List<Michaelhouse.Models.Supplier>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Cafeteria Suppliers";
+    var counts = ViewBag.IngredientCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var others = ViewBag.OtherSuppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
+    bool isManager = ViewBag.IsManager == true;
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>Cafeteria Suppliers</h1>
+                <div class="inv-meta">Suppliers of ingredients. Link each ingredient to its suppliers on the ingredient's page.</div>
+            </div>
+            @if (isManager)
+            {
+                <a href="@Url.Action("SupplierEdit", "CafeteriaInventory")" class="btn btn-primary">Add supplier</a>
+            }
+        </div>
+
+        <div class="inv-card" style="padding:0;">
+            <div class="inv-table-wrap">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>Supplier</th>
+                            <th class="inv-hide-sm">Contact</th>
+                            <th class="inv-hide-sm">Phone / email</th>
+                            <th class="num">Ingredients</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr><td colspan="5" class="inv-muted">No cafeteria suppliers yet.</td></tr>
+                        }
+                        @foreach (var s in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@s.Name</strong>
+                                    @if (!s.IsActive)
+                                    {
+                                        <span class="inv-badge muted">Inactive</span>
+                                    }
+                                </td>
+                                <td class="inv-hide-sm">@s.ContactPerson</td>
+                                <td class="inv-hide-sm">@s.Phone<br /><span class="inv-muted">@s.Email</span></td>
+                                <td class="num">@(counts.ContainsKey(s.SupplierId) ? counts[s.SupplierId] : 0)</td>
+                                <td class="num">
+                                    @if (isManager)
+                                    {
+                                        <a href="@Url.Action("SupplierEdit", "CafeteriaInventory", new { id = s.SupplierId })" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        <form method="post" action="@Url.Action("RemoveSupplier", "CafeteriaInventory", new { supplierId = s.SupplierId })" style="display:inline;"
+                                              onsubmit="return confirm('Stop using @s.Name for the cafeteria? (The Store keeps it.)');">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-link text-danger">Remove</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (isManager && others.Count > 0)
+        {
+            <form class="inv-card inv-form" method="post" action="@Url.Action("AddSupplier", "CafeteriaInventory")">
+                @Html.AntiForgeryToken()
+                <h2>Use a supplier the Store already has</h2>
+                <div class="inv-actions">
+                    <select name="supplierId" class="inv-input" style="max-width:320px;" required>
+                        <option value="">— Choose —</option>
+                        @foreach (var s in others)
+                        {
+                            <option value="@s.SupplierId">@s.Name</option>
+                        }
+                    </select>
+                    <button class="btn btn-outline-secondary">Add to cafeteria</button>
+                </div>
+            </form>
+        }
+
+    </div>
+</div>

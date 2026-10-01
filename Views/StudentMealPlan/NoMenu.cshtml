@@ -1,0 +1,24 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "My Meal Plan";
+}
+
+<div class="container-fluid py-4">
+    <div style="max-width: 640px; margin: 0 auto;">
+        <h1 class="h3 mb-3">My Meal Plan</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="mb-2"><strong>There is no meal plan to fill in yet.</strong></p>
+                <p class="text-muted mb-0">
+                    Your meal plan opens once the cafeteria publishes this week's menu.
+                    You'll then choose one option for each breakfast, lunch and dinner.
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "DietaryProfile")">Check my dietary profile</a>
+        </div>
+    </div>
+</div>

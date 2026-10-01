@@ -42,10 +42,18 @@ namespace Michaelhouse
                 System.Diagnostics.Trace.TraceError("Stripe initialization failed: " + ex);
             }
 
+            // UC18: opens scheduled event RSVPs on time
+            Michaelhouse.Services.EventRsvpScheduler.Start();
+
             // 🌱 SEED THE DATABASE ONCE WHEN THE APP STARTS
             //SeedDrivers();
             //SeedMichaelhouseSystem();
         }
+        protected void Application_End()
+        {
+            Michaelhouse.Services.EventRsvpScheduler.Stop();
+        }
+
         protected void Application_AuthenticateRequest(object sender, EventArgs e)
         {
             HttpApplication app = (HttpApplication)sender;

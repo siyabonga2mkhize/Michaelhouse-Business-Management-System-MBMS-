@@ -1,4 +1,5 @@
 ﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
 @model Michaelhouse.Models.ViewModels.ProposedMenuViewModel
 
 @{
@@ -9,41 +10,52 @@
     var isCoordinator = userRole == "CafeteriaManager" || userRole == "Admin";
     var isChef = userRole == "Chef";
 
-    var menuItems = ViewBag.MenuItems as IEnumerable<MenuItem>;
+    var menuItems = (ViewBag.MenuItems as IEnumerable<MenuItem>) ?? Enumerable.Empty<MenuItem>();
+    var coverage = ViewBag.Coverage as MenuCoverageReport;
 
-    var scheduleItems = Model.ScheduleItems != null
-        ? Model.ScheduleItems
-            .OrderBy(x => x.Date)
-            .ThenBy(x =>
-                x.MealSlot == "Breakfast" ? 1 :
-                x.MealSlot == "Lunch" ? 2 :
-                x.MealSlot == "Dinner" ? 3 : 4)
-        : Enumerable.Empty<Michaelhouse.Models.ViewModels.MenuScheduleItemDisplay>();
+    var allItems = Model.ScheduleItems ?? new List<Michaelhouse.Models.ViewModels.MenuScheduleItemDisplay>();
 
-    var canAccept = Model.IsKitchenReady
-                    && Model.MenuStatus != MenuStatus.Accepted
+    Func<string, int> slotOrder = s => s == "Breakfast" ? 1 : s == "Lunch" ? 2 : s == "Dinner" ? 3 : 4;
+
+    // Options grouped by day, then by meal slot
+    var days = allItems
+        .GroupBy(x => x.Date.Date)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    // Chef sign-off is no longer required before acceptance
+    var canAccept = Model.MenuStatus != MenuStatus.Accepted
                     && Model.MenuStatus != MenuStatus.Rejected;
 
     var showCoordinatorActions = isCoordinator && Model.MenuStatus != MenuStatus.Accepted;
-    var showChefBanner = isCoordinator && Model.MenuStatus == MenuStatus.PendingReview && Model.IsKitchenReady;
-    var showWaitingBanner = isCoordinator && Model.MenuStatus == MenuStatus.PendingReview && !Model.IsKitchenReady;
 
-    // ── UC12: portion range across the week ─────────────────────────
-    // Portions now vary per day (house + staff + sports uplift),
-    // so we show the range rather than a single number.
-    int minPortions = 0;
-    int maxPortions = 0;
+    // Portions per slot = all its options together
+    var slotTotals = allItems
+        .GroupBy(x => new { x.Date, x.MealSlot })
+        .Select(g => g.Sum(x => x.CalculatedPortions))
+        .ToList();
+
     string portionsLabel = "—";
-
-    if (Model.ScheduleItems != null && Model.ScheduleItems.Any())
+    if (slotTotals.Any())
     {
-        minPortions = Model.ScheduleItems.Min(x => x.CalculatedPortions);
-        maxPortions = Model.ScheduleItems.Max(x => x.CalculatedPortions);
-
-        portionsLabel = (minPortions == maxPortions)
+        int minPortions = slotTotals.Min();
+        int maxPortions = slotTotals.Max();
+        portionsLabel = minPortions == maxPortions
             ? minPortions.ToString()
             : minPortions.ToString() + "–" + maxPortions.ToString();
     }
+
+    var optionCounts = allItems
+        .GroupBy(x => new { x.Date, x.MealSlot })
+        .Select(g => g.Count())
+        .ToList();
+
+    string optionsLabel = !optionCounts.Any() ? "—"
+        : optionCounts.Min() == optionCounts.Max() ? optionCounts.Min().ToString()
+        : optionCounts.Min() + "–" + optionCounts.Max();
+
+    int slotsWithWarnings = coverage != null ? coverage.SlotsWithWarnings : 0;
+    int totalSlots = coverage != null ? coverage.Slots.Count : 0;
 }
 
 <div class="container-fluid py-4">
@@ -53,15 +65,12 @@
             <h1 class="h3 mb-1">Proposed Menu</h1>
             <p class="text-muted mb-0">
                 @Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")
+                · <strong>@optionsLabel</strong> options per meal
                 · <strong>@portionsLabel</strong> portions per meal
                 · <strong>@Model.StaffMeals</strong> staff meals
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            @if (Model.IsKitchenReady && Model.MenuStatus != MenuStatus.Accepted)
-            {
-                <span class="badge bg-success fs-6">Kitchen Ready</span>
-            }
             <span class="badge bg-primary fs-6">@Model.MenuStatus</span>
         </div>
     </div>
@@ -88,77 +97,104 @@
         </div>
     }
 
+    <div class="alert alert-light border small">
+        This menu lists the <strong>options</strong> for each meal. Students choose one option per meal in their meal plan,
+        and only see the options that suit their dietary profile. Portions per option are an estimate until meal plans are in.
+    </div>
+
     <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Options / meal</div>
+                    <div class="display-6">@optionsLabel</div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <div class="small text-muted text-uppercase">Portions / meal</div>
                     <div class="display-6">@portionsLabel</div>
+                    <div class="small text-muted mt-1">incl. @Model.StaffMeals staff</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="small text-muted text-uppercase">Staff meals</div>
-                    <div class="display-6">@Model.StaffMeals</div>
+                    <div class="small text-muted text-uppercase">Students</div>
+                    <div class="display-6">@(coverage != null ? coverage.TotalStudents : 0)</div>
+                    <div class="small text-muted mt-1">@(coverage != null ? coverage.Groups.Count(g => !g.IsUnrestricted) : 0) dietary group(s)</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="small text-muted text-uppercase">Confirmed</div>
-                    <div class="display-6 text-success">@Model.ConfirmedCount</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Needs attention</div>
-                    <div class="display-6 text-warning">
-                        @(Model.NeedsSubstitutionCount + Model.NeedsReviewCount)
+                    <div class="small text-muted text-uppercase">Dietary coverage</div>
+                    <div class="display-6 @(slotsWithWarnings > 0 ? "text-warning" : "text-success")">
+                        @(totalSlots - slotsWithWarnings)/@totalSlots
                     </div>
-                    <div class="small text-muted mt-1">
-                        @Model.NeedsSubstitutionCount substitution
-                        · @Model.NeedsReviewCount review
-                    </div>
+                    <div class="small text-muted mt-1">meals where every group has a choice</div>
                 </div>
             </div>
         </div>
     </div>
 
-    @if (showChefBanner)
+    @if (coverage != null && coverage.Groups.Any(g => !g.IsUnrestricted))
     {
-        <div class="alert alert-success">
-            <strong>Chef has marked this menu Kitchen Ready.</strong> You can now accept it.
+        <div class="card shadow-sm mb-3">
+            <div class="card-body py-2 small">
+                <strong>Student dietary groups:</strong>
+                @foreach (var g in coverage.Groups)
+                {
+                    <span class="badge @(g.IsUnrestricted ? "bg-light text-dark border" : "bg-secondary") me-1">@g.Label: @g.StudentCount</span>
+                }
+            </div>
         </div>
     }
 
-    @if (showWaitingBanner)
+    @if (slotsWithWarnings > 0)
     {
-        <div class="alert alert-info">
-            <strong>Chef review in progress</strong> - Accept is locked until the Chef signs off.
+        <div class="alert alert-warning">
+            <strong><i class="bi bi-exclamation-triangle me-1"></i>@slotsWithWarnings meal(s) don't give every dietary group a suitable option.</strong>
+            Review the warnings below and modify options as needed.
+            <details class="mt-2">
+                <summary class="small">Show all warnings</summary>
+                <ul class="small mb-0 mt-1">
+                    @foreach (var slot in coverage.Slots.Where(s => s.Warnings.Any()))
+                    {
+                        foreach (var w in slot.Warnings)
+                        {
+                            <li>Warning: @w</li>
+                        }
+                    }
+                </ul>
+            </details>
+        </div>
+    }
+    else if (coverage != null && totalSlots > 0)
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-1"></i>Every meal gives every dietary group at least one suitable option.
         </div>
     }
 
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white">
-            <strong>Weekly Menu</strong>
-            <span class="text-muted small ms-2">@Model.ScheduleItems.Count item(s)</span>
+            <strong>Menu Options</strong>
+            <span class="text-muted small ms-2">@allItems.Count option(s)</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 120px;">Date</th>
-                            <th style="width: 100px;">Meal</th>
-                            <th>Item</th>
-                            <th style="width: 90px;">Portions</th>
-                            <th style="width: 190px;">Nutrition</th>
-                            <th style="width: 170px;">Status</th>
+                            <th style="width: 200px;">Option</th>
+                            <th>Suitable for</th>
+                            <th style="width: 110px;">Est. portions</th>
+                            <th style="width: 200px;">Nutrition</th>
                             @if (showCoordinatorActions)
                             {
                                 <th style="width: 90px;"></th>
@@ -166,75 +202,90 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in scheduleItems)
+                        @foreach (var day in days)
                         {
-                            var mealClass = "";
-                            var badgeText = "";
-                            var badgeClass = "";
-                            var reasonText = "";
-                            var showReason = false;
-
-                            if (item.MealSlot == "Breakfast") { mealClass = "border-start border-4 border-info"; }
-                            if (item.MealSlot == "Lunch") { mealClass = "border-start border-4 border-primary"; }
-                            if (item.MealSlot == "Dinner") { mealClass = "border-start border-4 border-warning"; }
-
-                            if (item.StatusText != "Confirmed")
-                            {
-                                badgeText = item.StatusText;
-                                badgeClass = item.StatusCssClass;
-                                reasonText = item.TagReason ?? "";
-                                showReason = true;
-                            }
-
-                            if ((item.TagReason ?? "").Contains("Match-day") || (item.TagReason ?? "").Contains("Pre-match"))
-                            {
-                                badgeText = "Match context";
-                                badgeClass = "bg-info text-dark";
-                            }
-
-                            <tr class="@mealClass">
-                                <td>
-                                    <div class="fw-bold">@item.Date.ToString("ddd dd MMM")</div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold text-uppercase small">@item.MealSlot</span>
-                                </td>
-                                <td>
-                                    <div class="fw-bold">@item.MenuItemName</div>
-                                    <div class="small text-muted">@item.DietaryClassification</div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold">@item.CalculatedPortions</span>
-                                </td>
-                                <td class="small text-muted">
-                                    @item.CaloriesPerPortion.ToString("0") kcal,
-                                    @item.ProteinGramsPerPortion.ToString("0.0") g protein
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(badgeText))
-                                    {
-                                        <span class="badge @badgeClass">@badgeText</span>
-                                    }
-                                </td>
-                                @if (showCoordinatorActions)
-                                {
-                                    <td class="text-end">
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary"
-                                                onclick="openUc12Modal('modifyModal-@item.Id')">
-                                            Modify
-                                        </button>
-                                    </td>
-                                }
+                            <tr class="table-secondary">
+                                <td colspan="@(showCoordinatorActions ? 5 : 4)" class="fw-bold">@day.Key.ToString("dddd dd MMM")</td>
                             </tr>
-                            if (showReason && !string.IsNullOrWhiteSpace(reasonText))
+
+                            foreach (var slotGroup in day.GroupBy(x => x.MealSlot).OrderBy(g => slotOrder(g.Key)))
                             {
-                                <tr class="@mealClass">
-                                    <td></td>
-                                    <td colspan="6" class="pt-0 pb-2">
-                                        <div class="small text-muted fst-italic">@reasonText</div>
+                                MealSlot slotEnum;
+                                Enum.TryParse(slotGroup.Key, out slotEnum);
+                                var slotCoverage = coverage != null ? coverage.For(day.Key, slotEnum) : null;
+                                var accent = slotGroup.Key == "Breakfast" ? "#0dcaf0" : slotGroup.Key == "Lunch" ? "#0d6efd" : "#ffc107";
+
+                                <tr>
+                                    <td colspan="@(showCoordinatorActions ? 5 : 4)" class="pb-1" style="border-left: 4px solid @accent;">
+                                        <span class="fw-bold text-uppercase small">@slotGroup.Key</span>
+                                        <span class="text-muted small ms-2">@slotGroup.Count() option(s) · @slotGroup.Sum(x => x.CalculatedPortions) portions</span>
+                                        @if (slotCoverage != null)
+                                        {
+                                            if (slotCoverage.Warnings.Any())
+                                            {
+                                                <span class="badge bg-warning text-dark ms-2">@slotCoverage.StudentsWithOption of @slotCoverage.TotalStudents students have a choice</span>
+                                                foreach (var w in slotCoverage.Warnings)
+                                                {
+                                                    <div class="small text-danger mt-1"><i class="bi bi-exclamation-triangle me-1"></i>Warning: @w</div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success ms-2">All dietary groups covered</span>
+                                            }
+                                        }
                                     </td>
                                 </tr>
+
+                                foreach (var item in slotGroup.OrderBy(x => x.Id))
+                                {
+                                    var optionCoverage = slotCoverage != null
+                                        ? slotCoverage.Options.FirstOrDefault(o => o.ScheduleItemId == item.Id)
+                                        : null;
+                                    var reason = item.TagReason ?? "";
+                                    var isMatchContext = reason.StartsWith("Match-day") || reason.StartsWith("Pre-match");
+
+                                    <tr>
+                                        <td style="border-left: 4px solid @accent;">
+                                            <div class="fw-bold">@item.MenuItemName</div>
+                                            <div class="small text-muted">@item.DietaryClassification</div>
+                                        </td>
+                                        <td class="small">
+                                            @if (optionCoverage != null)
+                                            {
+                                                foreach (var label in optionCoverage.SuitableFor)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success-emphasis border me-1">@label</span>
+                                                }
+                                                <span class="text-muted">@optionCoverage.StudentsSuited of @(slotCoverage.TotalStudents) students</span>
+                                            }
+                                            @if (isMatchContext)
+                                            {
+                                                <span class="badge bg-info text-dark ms-1">Match context</span>
+                                            }
+                                            <div class="text-muted fst-italic mt-1">@reason</div>
+                                        </td>
+                                        <td><span class="fw-bold">@item.CalculatedPortions</span></td>
+                                        <td class="small text-muted">
+                                            @item.CaloriesPerPortion.ToString("0") kcal,
+                                            @item.ProteinGramsPerPortion.ToString("0.0") g protein
+                                            @if (item.NutritionCategory != NutritionCategory.Standard && Enum.IsDefined(typeof(NutritionCategory), item.NutritionCategory))
+                                            {
+                                                <div><span class="badge bg-light text-dark border">@item.NutritionCategory</span></div>
+                                            }
+                                        </td>
+                                        @if (showCoordinatorActions)
+                                        {
+                                            <td class="text-end">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        onclick="openUc12Modal('modifyModal-@item.Id')">
+                                                    Modify
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
                             }
                         }
                     </tbody>
@@ -255,7 +306,7 @@
                             <button type="submit"
                                     class="btn btn-success w-100"
                                     disabled="@(!canAccept)"
-                                    onclick="return confirm('Accept this menu?');">
+                                    onclick="return confirm('@(slotsWithWarnings > 0 ? "Some meals do not give every dietary group a suitable option. Accept anyway?" : "Accept this menu?")');">
                                 Accept Menu
                             </button>
                         </form>
@@ -278,7 +329,7 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <strong>Chef workspace</strong>
-                    <div class="small text-muted">Resolve flagged items on the Kitchen Review page.</div>
+                    <div class="small text-muted">Kitchen review is optional at this stage.</div>
                 </div>
                 <a href="@Url.Action("ChefReview", "Cafeteria", new { id = Model.Id })"
                    class="btn btn-primary">
@@ -290,15 +341,25 @@
 
 </div>
 
-@if (showCoordinatorActions && Model.ScheduleItems != null)
+@if (showCoordinatorActions)
 {
-    foreach (var item in Model.ScheduleItems)
+    foreach (var item in allItems)
     {
+        // Replacement must suit the same meal slot (the server checks this too)
+        // and must not already be an option on the same day.
+        var sameDayIds = allItems.Where(x => x.Date.Date == item.Date.Date && x.Id != item.Id).Select(x => x.MenuItemId).ToList();
+        var slotItems = menuItems
+            .Where(mi => (item.MealSlot == "Breakfast" && mi.IsBreakfastItem)
+                      || (item.MealSlot == "Lunch" && mi.IsLunchItem)
+                      || (item.MealSlot == "Dinner" && mi.IsDinnerItem))
+            .Where(mi => !sameDayIds.Contains(mi.Id))
+            .ToList();
+
         <div class="uc12-modal" id="modifyModal-@item.Id" aria-hidden="true">
             <div class="uc12-modal-dialog">
                 <div class="uc12-modal-content">
                     <div class="uc12-modal-header">
-                        <h5 class="uc12-modal-title">Modify Menu Item</h5>
+                        <h5 class="uc12-modal-title">Change @item.MealSlot option — @item.Date.ToString("ddd dd MMM")</h5>
                         <button type="button"
                                 class="uc12-modal-close"
                                 onclick="closeUc12Modal('modifyModal-@item.Id')"
@@ -310,21 +371,20 @@
                         @Html.AntiForgeryToken()
                         <div class="uc12-modal-body">
                             <input type="hidden" name="scheduleItemId" value="@item.Id" />
+                            <div class="mb-2 small text-muted">Currently: <strong>@item.MenuItemName</strong></div>
                             <div class="mb-3">
-                                <label class="form-label">Replacement dish</label>
+                                <label class="form-label">Replacement @item.MealSlot.ToLower() option</label>
                                 <select name="newMenuItemId" class="form-select" required>
                                     <option value="">Select dish...</option>
-                                    @if (menuItems != null)
+                                    @foreach (var mi in slotItems)
                                     {
-                                        foreach (var mi in menuItems)
-                                        {
-                                            <option value="@mi.Id">@mi.Name</option>
-                                        }
+                                        <option value="@mi.Id" @(mi.Id == item.MenuItemId ? "selected" : "")>@mi.Name (@mi.DietaryClassification)</option>
                                     }
                                 </select>
+                                <div class="form-text">Only @item.MealSlot.ToLower() dishes that aren't already on this day are listed.</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Portions</label>
+                                <label class="form-label">Estimated portions</label>
                                 <input type="number"
                                        name="newPortions"
                                        value="@item.CalculatedPortions"
@@ -332,8 +392,7 @@
                                        class="form-control"
                                        required />
                                 <div class="form-text">
-                                    Current calculated need for this slot is @item.CalculatedPortions portions.
-                                    Adjust upward if you know extra guests are coming (visiting parents, etc).
+                                    An estimate for planning; actual numbers come from students' meal plans.
                                 </div>
                             </div>
                         </div>
@@ -343,7 +402,7 @@
                                     onclick="closeUc12Modal('modifyModal-@item.Id')">
                                 Cancel
                             </button>
-                            <button type="submit" class="btn btn-primary">Save Modification</button>
+                            <button type="submit" class="btn btn-primary">Save Change</button>
                         </div>
                     </form>
                 </div>

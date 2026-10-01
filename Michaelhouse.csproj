@@ -84,7 +84,6 @@
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.10.0.11\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\lib\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
@@ -135,7 +134,6 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -145,12 +143,10 @@
     </Reference>
     <Reference Include="Stripe.net, Version=52.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\Stripe.net.52.3.0\lib\net462\Stripe.net.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.ClientModel, Version=1.10.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
       <HintPath>packages\System.ClientModel.1.10.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
@@ -170,11 +166,9 @@
     </Reference>
     <Reference Include="System.IO.Pipelines, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.IO.Pipelines.10.0.11\lib\net462\System.IO.Pipelines.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Memory.Data, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Memory.Data.10.0.11\lib\net462\System.Memory.Data.dll</HintPath>
@@ -188,7 +182,6 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
@@ -197,7 +190,6 @@
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
@@ -228,15 +220,12 @@
     </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Encodings.Web.10.0.11\lib\net462\System.Text.Encodings.Web.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Text.Json, Version=10.0.0.11, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Text.Json.10.0.11\lib\net462\System.Text.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
@@ -310,6 +299,8 @@
     <Compile Include="Controllers\CafeteriaController.cs" />
     <Compile Include="Controllers\CoachController.cs" />
     <Compile Include="Controllers\CoachSquadController.cs" />
+    <Compile Include="Controllers\DietaryProfileController.cs" />
+    <Compile Include="Controllers\MealLibraryController.cs" />
     <Compile Include="Controllers\DietitianController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Controllers\DriverDocument.cs" />
@@ -350,89 +341,17 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101337415_initialcreate.cs" />
-    <Compile Include="Migrations\202608101337415_initialcreate.Designer.cs">
-      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202609302215028_Cafeteria.cs" />
+    <Compile Include="Migrations\202609302215028_Cafeteria.Designer.cs">
+      <DependentUpon>202609302215028_Cafeteria.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.cs" />
-    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.Designer.cs">
-      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
+    <Compile Include="Migrations\202610011032558_EventAndRSPV.cs" />
+    <Compile Include="Migrations\202610011032558_EventAndRSPV.Designer.cs">
+      <DependentUpon>202610011032558_EventAndRSPV.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.cs" />
-    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.Designer.cs">
-      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.cs" />
-    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.Designer.cs">
-      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.cs" />
-    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.Designer.cs">
-      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.cs" />
-    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.Designer.cs">
-      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.cs" />
-    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.Designer.cs">
-      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.cs" />
-    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.Designer.cs">
-      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609231900592_SyncMissingTables.cs" />
-    <Compile Include="Migrations\202609231900592_SyncMissingTables.Designer.cs">
-      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.cs" />
-    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.Designer.cs">
-      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609232107354_AddSportEvents.cs" />
-    <Compile Include="Migrations\202609232107354_AddSportEvents.Designer.cs">
-      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.cs" />
-    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.Designer.cs">
-      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.cs" />
-    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.Designer.cs">
-      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240101119_AddMealPlans.cs" />
-    <Compile Include="Migrations\202609240101119_AddMealPlans.Designer.cs">
-      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.cs" />
-    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.Designer.cs">
-      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.cs" />
-    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.Designer.cs">
-      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.cs" />
-    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.Designer.cs">
-      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.cs" />
-    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.Designer.cs">
-      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.cs" />
-    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.Designer.cs">
-      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.cs" />
-    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.Designer.cs">
-      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609250713262_AddEventAudience.cs" />
-    <Compile Include="Migrations\202609250713262_AddEventAudience.Designer.cs">
-      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
+    <Compile Include="Migrations\202610011347521_CafInventory.cs" />
+    <Compile Include="Migrations\202610011347521_CafInventory.Designer.cs">
+      <DependentUpon>202610011347521_CafInventory.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -446,7 +365,9 @@
     <Compile Include="Models\AttendanceSummaryViewModel.cs" />
     <Compile Include="Models\BoardingHouse.cs" />
     <Compile Include="Models\Cafeteria\CafeteriaEvent.cs" />
+    <Compile Include="Models\Cafeteria\CafeteriaEventMenuItem.cs" />
     <Compile Include="Models\Cafeteria\EventRsvp.cs" />
+    <Compile Include="Models\Cafeteria\EventRsvpGuest.cs" />
     <Compile Include="Models\Cafeteria\EventMenuTemplate.cs" />
     <Compile Include="Models\Cafeteria\EventMenuTemplateItem.cs" />
     <Compile Include="Models\Cafeteria\EventStaffAssignment.cs" />
@@ -565,6 +486,8 @@
     <Compile Include="Models\ViewModels.cs" />
     <Compile Include="Models\ViewModels\AlertAccountabilityViewModel.cs" />
     <Compile Include="Models\ViewModels\CafeteriaViewModels.cs" />
+    <Compile Include="Models\ViewModels\DietaryProfileViewModels.cs" />
+    <Compile Include="Models\ViewModels\MealLibraryViewModels.cs" />
     <Compile Include="Models\ViewModels\CreateTripVM.cs" />
     <Compile Include="Models\ViewModels\DriverTripVM.cs" />
     <Compile Include="Models\ViewModels\FeastPlanViewModel.cs" />
@@ -590,6 +513,29 @@
     <Compile Include="Services\FaceRecognitionService.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
     <Compile Include="Services\MealPlanService.cs" />
+    <Compile Include="Services\DietaryProfileService.cs" />
+    <Compile Include="Services\MealLibraryService.cs" />
+    <Compile Include="Services\MenuCoverageService.cs" />
+    <Compile Include="Services\SchoolClock.cs" />
+    <Compile Include="Services\MealTimes.cs" />
+    <Compile Include="Services\MealCollectionService.cs" />
+    <Compile Include="Services\CollectionOpening.cs" />
+    <Compile Include="Services\EventRsvpService.cs" />
+    <Compile Include="Services\EventBuffetService.cs" />
+    <Compile Include="Services\StudentHouseService.cs" />
+    <Compile Include="Models\Cafeteria\IngredientInventoryModels.cs" />
+    <Compile Include="Models\Cafeteria\CafeteriaInventorySeed.cs" />
+    <Compile Include="Models\ViewModels\IngredientInventoryViewModels.cs" />
+    <Compile Include="Services\IngredientInventoryService.cs" />
+    <Compile Include="Services\IngredientPurchasingService.cs" />
+    <Compile Include="Services\IngredientDeliveryService.cs" />
+    <Compile Include="Services\InvoiceScanService.cs" />
+    <Compile Include="Services\IngredientMatchingService.cs" />
+    <Compile Include="Services\KitchenIssueService.cs" />
+    <Compile Include="Controllers\CafeteriaInventoryController.cs" />
+    <Compile Include="Controllers\IngredientOrderController.cs" />
+    <Compile Include="Controllers\IngredientDeliveryController.cs" />
+    <Compile Include="ApiControllers\CafeteriaInventoryApiController.cs" />
     <Compile Include="Services\MenuSchedulingService.cs" />
     <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
@@ -809,10 +755,15 @@
     <Content Include="Views\Cafeteria\View.cshtml" />
     <Content Include="Views\Cafeteria\ProductionPlan.cshtml" />
     <Content Include="Views\FaceEnrollment\Index.cshtml" />
+    <Content Include="Views\DietaryProfile\Index.cshtml" />
+    <Content Include="Views\MealLibrary\Index.cshtml" />
+    <Content Include="Views\MealLibrary\Details.cshtml" />
+    <Content Include="Views\MealLibrary\Form.cshtml" />
     <Content Include="Views\MealCollection\Index.cshtml" />
     <Content Include="Views\MealCollection\ServedToday.cshtml" />
     <Content Include="Views\MealCollection\Log.cshtml" />
     <Content Include="Views\StudentMealPlan\MyCollections.cshtml" />
+    <Content Include="Views\StudentMealPlan\NoMenu.cshtml" />
     <Content Include="Views\CoachSquad\Index.cshtml" />
     <Content Include="Views\CoachSquad\Priorities.cshtml" />
     <Content Include="Views\Event\Index.cshtml" />
@@ -820,6 +771,21 @@
     <Content Include="Views\Event\Details.cshtml" />
     <Content Include="Views\Rsvp\Event.cshtml" />
     <Content Include="Views\Rsvp\ThankYou.cshtml" />
+    <Content Include="Views\Rsvp\MyEvents.cshtml" />
+    <Content Include="Views\CafeteriaInventory\Index.cshtml" />
+    <Content Include="Views\CafeteriaInventory\Ingredient.cshtml" />
+    <Content Include="Views\CafeteriaInventory\Stock.cshtml" />
+    <Content Include="Views\CafeteriaInventory\SupplierEdit.cshtml" />
+    <Content Include="Views\CafeteriaInventory\Suppliers.cshtml" />
+    <Content Include="Views\IngredientDelivery\Details.cshtml" />
+    <Content Include="Views\IngredientDelivery\Index.cshtml" />
+    <Content Include="Views\IngredientDelivery\Record.cshtml" />
+    <Content Include="Views\IngredientOrder\Create.cshtml" />
+    <Content Include="Views\IngredientOrder\Details.cshtml" />
+    <Content Include="Views\IngredientOrder\Index.cshtml" />
+    <Content Include="Views\Shared\KitchenIssue.cshtml" />
+    <Content Include="Views\Shared\_InventoryStyles.cshtml" />
+    <Content Include="Views\Shared\_OrderStatusBadge.cshtml" />
     <Content Include="Views\Event\FeastPlan.cshtml" />
     <Content Include="Views\Event\Queue.cshtml" />
     <WebConfigFile Include="Web.config" />
@@ -1012,68 +978,14 @@
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608101337415_initialcreate.resx">
-      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202609302215028_Cafeteria.resx">
+      <DependentUpon>202609302215028_Cafeteria.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608101735353_AddVisitorScanLog.resx">
-      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610011032558_EventAndRSPV.resx">
+      <DependentUpon>202610011032558_EventAndRSPV.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609212014436_AddCafeteriaModels.resx">
-      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.resx">
-      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.resx">
-      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609221006413_AddRecipeIngredientFoundation.resx">
-      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609221749265_AddIngredientStockQuantities.resx">
-      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609222004308_AddMenuItemNutritionCategory.resx">
-      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609231900592_SyncMissingTables.resx">
-      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609231931106_AddKitchenReadyFlag.resx">
-      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609232107354_AddSportEvents.resx">
-      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609232310141_AddChefChallengeFields.resx">
-      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240044568_AddIngredientAllergens.resx">
-      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240101119_AddMealPlans.resx">
-      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240318188_AddRecipeKitchenTiming.resx">
-      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240340578_AddProductionConfirmation.resx">
-      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.resx">
-      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.resx">
-      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609242027162_AddEventSchedulingSchema.resx">
-      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609242224425_AddRsvpLifecycleFields.resx">
-      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609250713262_AddEventAudience.resx">
-      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610011347521_CafInventory.resx">
+      <DependentUpon>202610011347521_CafInventory.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

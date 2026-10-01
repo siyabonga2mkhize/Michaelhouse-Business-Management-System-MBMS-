@@ -68,19 +68,27 @@ namespace Michaelhouse.ApiControllers
                         slots = d.Slots.Select(s => new
                         {
                             mealSlot = s.MealSlot.ToString(),
+                            isLocked = s.IsLocked,
+                            selectionCutoff = s.SelectionCutoff.ToString("yyyy-MM-dd"),
+                            currentPickName = s.CurrentPickName,
+                            sportsNote = s.SportsNote,
                             isMatchDay = s.IsMatchDay,
                             isDayBeforeMatch = s.IsDayBeforeMatch,
                             matchDescription = s.MatchDescription,
                             defaultItemName = s.DefaultItemName,
                             currentPickMenuItemId = s.CurrentPickMenuItemId,
                             currentPickMealPlanItemId = s.CurrentPickMealPlanItemId,
-                            options = s.Options.Select(o => new
+                            // Only meals the student may choose (the web page also
+                            // shows the others greyed out)
+                            options = s.Options.Where(o => o.IsAvailable).Select(o => new
                             {
                                 menuItemId = o.MenuItemId,
                                 name = o.Name,
                                 dietaryClassification = o.DietaryClassification,
                                 calories = o.CaloriesPerPortion,
                                 protein = o.ProteinGramsPerPortion,
+                                carbohydrate = o.CarbohydrateGramsPerPortion,
+                                fat = o.FatGramsPerPortion,
                                 nutritionCategory = o.NutritionCategory.ToString(),
                                 isDefault = o.IsDefault,
                                 tags = o.Tags
