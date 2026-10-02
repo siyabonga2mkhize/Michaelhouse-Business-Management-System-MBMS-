@@ -1,0 +1,50 @@
+@using Michaelhouse.Services
+@model FeastPlanSource
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Quantities";
+    var evt = Model.Event;
+    decimal buffer = ViewBag.Buffer;
+    string bufferText = buffer.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    var check = ViewBag.Check as FeastPlanCheck ?? new FeastPlanCheck();
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 3)
+
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Step 3 — Dish quantities</h1>
+        <p class="text-muted mb-0">
+            @evt.EventName · @evt.EventDate.ToString("dddd dd MMMM yyyy").
+            One portion per attending guest, shared between the dishes for their group, plus a
+            @buffer.ToString("0.##")% buffer rounded up. Common dishes cover everyone.
+        </p>
+    </div>
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    @Html.Partial("_Check", check)
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Dishes)
+        </div>
+    </div>
+
+    <p class="small text-muted">Nothing has been saved yet. Generating the plan saves it as a proposal for review.</p>
+
+    <div class="d-flex justify-content-between">
+        <a class="btn btn-outline-secondary" href="@Url.Action("EventDetails", "FeastPlan", new { id = evt.Id, buffer = bufferText })">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+        <form method="post" action="@Url.Action("Generate", "FeastPlan")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@evt.Id" />
+            <input type="hidden" name="buffer" value="@bufferText" />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-magic"></i> Step 4: generate proposed plan
+            </button>
+        </form>
+    </div>
+</div>

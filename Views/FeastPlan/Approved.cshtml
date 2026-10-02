@@ -1,0 +1,79 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Approved";
+
+    var approval = Model.History
+        .Where(h => h.Action == FeastPlanService.ActionApproved)
+        .OrderByDescending(h => h.At)
+        .FirstOrDefault();
+    var sent = Model.History
+        .Where(h => h.Action == FeastPlanService.ActionSent)
+        .OrderByDescending(h => h.At)
+        .FirstOrDefault();
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-print-none">
+        @Html.Partial("_Steps", 8)
+    </div>
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="alert alert-success">
+        <i class="bi bi-lock-fill me-1"></i>
+        <strong>Approved and locked.</strong>
+        @if (approval != null)
+        {
+            <span>
+                Approved by @(string.IsNullOrEmpty(approval.UserName) ? "the Cafeteria Manager" : approval.UserName)
+                on @SchoolClock.FromUtc(approval.At).ToString("dd MMM yyyy HH:mm").
+            </span>
+        }
+        @if (Model.SentAt.HasValue)
+        {
+            <span>Sent to the kitchen on @SchoolClock.FromUtc(Model.SentAt.Value).ToString("dd MMM yyyy HH:mm").</span>
+        }
+        @if (sent != null && !string.IsNullOrEmpty(sent.Comments))
+        {
+            <div class="small mt-1">@sent.Comments</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.ManagerComments))
+        {
+            <div class="mt-1">Cafeteria Manager: @Model.ManagerComments</div>
+        }
+    </div>
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">What to prepare</div>
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Items)
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.CoordinatorNotes))
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Meal Coordinator's notes</div>
+            <div class="card-body">@Model.CoordinatorNotes</div>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between d-print-none">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+            <i class="bi bi-arrow-left"></i> Feast plans
+        </a>
+        <button type="button" class="btn btn-outline-dark" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print
+        </button>
+    </div>
+
+    <div class="d-print-none">
+        @Html.Partial("_History", Model.History)
+    </div>
+</div>

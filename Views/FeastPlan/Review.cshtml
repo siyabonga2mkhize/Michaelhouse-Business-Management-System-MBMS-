@@ -1,0 +1,116 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Review";
+
+    bool canCoordinate = ViewBag.CanCoordinate == true;
+    bool canApprove = ViewBag.CanApprove == true;
+    var check = ViewBag.Check as FeastPlanCheck ?? new FeastPlanCheck();
+    string rowVersion = Model.RowVersion != null ? Convert.ToBase64String(Model.RowVersion) : "";
+
+    // The review step repeats after changes (step 7 → step 5)
+    int step = Model.IsEditable ? 5 : FeastPlanService.StepFor(Model.Status);
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", step)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    @if (Model.Status == FeastPlanStatus.Proposed)
+    {
+        <div class="alert alert-secondary">
+            <strong>Step 5 — Meal Coordinator review.</strong>
+            Check the proposed quantities. Edit and recalculate if anything needs changing, then send the plan to the Cafeteria Manager.
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.ChangesRequested)
+    {
+        <div class="alert alert-info">
+            <strong>The Cafeteria Manager asked for changes.</strong>
+            <div class="mt-1">@Model.ManagerComments</div>
+            <div class="small mt-2">Edit and recalculate the plan (step 7), review it again here, then send it back for approval.</div>
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.AwaitingApproval)
+    {
+        <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span><strong>Waiting for the Cafeteria Manager</strong> to approve, reject or request changes.</span>
+            @if (canApprove)
+            {
+                <a class="btn btn-sm btn-dark" href="@Url.Action("Decision", "FeastPlan", new { id = Model.Id })">
+                    Step 6: make a decision <i class="bi bi-arrow-right"></i>
+                </a>
+            }
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.Rejected)
+    {
+        <div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>
+                <strong>Rejected by the Cafeteria Manager.</strong> @Model.ManagerComments
+            </span>
+            @if (canCoordinate)
+            {
+                <a class="btn btn-sm btn-outline-danger" href="@Url.Action("Rsvps", "FeastPlan", new { id = Model.EventId })">
+                    Start a new plan for this event
+                </a>
+            }
+        </div>
+    }
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    @if (Model.IsEditable || Model.Status == FeastPlanStatus.AwaitingApproval)
+    {
+        @Html.Partial("_Check", check)
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Items)
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.CoordinatorNotes))
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Meal Coordinator's notes</div>
+            <div class="card-body">@Model.CoordinatorNotes</div>
+        </div>
+    }
+
+    @if (canCoordinate && Model.IsEditable)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="post" action="@Url.Action("Submit", "FeastPlan")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="rowVersion" value="@rowVersion" />
+
+                    <label for="notes" class="form-label fw-semibold">Note for the Cafeteria Manager (optional)</label>
+                    <textarea class="form-control mb-3" id="notes" name="notes" rows="2" maxlength="1000"></textarea>
+
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        <a class="btn btn-outline-primary" href="@Url.Action("Edit", "FeastPlan", new { id = Model.Id })">
+                            <i class="bi bi-pencil"></i> Edit and recalculate
+                        </a>
+                        <button type="submit" class="btn btn-primary" @(check.Problems.Count > 0 ? "disabled" : "")>
+                            <i class="bi bi-send"></i> Send to Cafeteria Manager for approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+        <i class="bi bi-arrow-left"></i> Feast plans
+    </a>
+
+    @Html.Partial("_History", Model.History)
+</div>

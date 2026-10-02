@@ -1,0 +1,78 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Approval";
+
+    var check = ViewBag.Check as FeastPlanCheck ?? new FeastPlanCheck();
+    string rowVersion = Model.RowVersion != null ? Convert.ToBase64String(Model.RowVersion) : "";
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 6)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="alert alert-warning">
+        <strong>Step 6 — Cafeteria Manager decision.</strong>
+        Approving saves and locks the plan and sends it to the Cafeteria Manager and Kitchen Staff.
+        Requesting changes sends it back to the Meal Coordinator.
+    </div>
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    @Html.Partial("_Check", check)
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Items)
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.CoordinatorNotes))
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Meal Coordinator's notes</div>
+            <div class="card-body">@Model.CoordinatorNotes</div>
+        </div>
+    }
+
+    <form method="post" action="@Url.Action("Decision", "FeastPlan", new { id = Model.Id })" class="card shadow-sm mb-4">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="rowVersion" value="@rowVersion" />
+
+        <div class="card-header bg-white fw-semibold">Your decision</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="decision" id="decApprove" value="@FeastPlanService.DecisionApprove" required />
+                    <label class="form-check-label" for="decApprove">Approve — lock the plan and send it to the kitchen</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="decision" id="decChanges" value="@FeastPlanService.DecisionRequestChanges" />
+                    <label class="form-check-label" for="decChanges">Request changes — back to the Meal Coordinator</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="decision" id="decReject" value="@FeastPlanService.DecisionReject" />
+                    <label class="form-check-label" for="decReject">Reject — a new plan will have to be generated</label>
+                </div>
+            </div>
+
+            <label for="comments" class="form-label fw-semibold">Comments</label>
+            <textarea class="form-control" id="comments" name="comments" rows="3" maxlength="1000"></textarea>
+            <div class="form-text">Required when rejecting or requesting changes.</div>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+                <i class="bi bi-arrow-left"></i> Feast plans
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i> Submit decision
+            </button>
+        </div>
+    </form>
+
+    @Html.Partial("_History", Model.History)
+</div>

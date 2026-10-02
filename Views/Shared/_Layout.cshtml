@@ -553,6 +553,14 @@
                             <i class="bi bi-person-walking"></i>
                             <span class="link-text">Active Visitors</span>
                         </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Cafeteria Events</div>
+
+                        <a class="nav-link @(currentController == "FeastPlan" ? "active" : "")"
+                           href="@Url.Action("Index", "FeastPlan")">
+                            <i class="bi bi-egg-fried"></i> <span class="link-text">Feast Plans</span>
+                        </a>
                     }
                     else if (userRole == "InventoryManager")
                     {

@@ -341,18 +341,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202609302215028_Cafeteria.cs" />
-    <Compile Include="Migrations\202609302215028_Cafeteria.Designer.cs">
-      <DependentUpon>202609302215028_Cafeteria.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610011032558_EventAndRSPV.cs" />
-    <Compile Include="Migrations\202610011032558_EventAndRSPV.Designer.cs">
-      <DependentUpon>202610011032558_EventAndRSPV.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610011347521_CafInventory.cs" />
-    <Compile Include="Migrations\202610011347521_CafInventory.Designer.cs">
-      <DependentUpon>202610011347521_CafInventory.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
     <Compile Include="Models\AIAllocationHistory.cs" />
@@ -522,6 +510,14 @@
     <Compile Include="Services\CollectionOpening.cs" />
     <Compile Include="Services\EventRsvpService.cs" />
     <Compile Include="Services\EventBuffetService.cs" />
+    <Compile Include="Services\FeastPlanService.cs" />
+    <Compile Include="Controllers\FeastPlanController.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlan.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlanItem.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlanHistory.cs" />
+    <Compile Include="Models\Cafeteria\FeastPlanStatus.cs" />
+    <Compile Include="Models\Cafeteria\FeastDishCategory.cs" />
+    <Compile Include="Models\ViewModels\EventFeastPlanViewModels.cs" />
     <Compile Include="Services\StudentHouseService.cs" />
     <Compile Include="Models\Cafeteria\IngredientInventoryModels.cs" />
     <Compile Include="Models\Cafeteria\CafeteriaInventorySeed.cs" />
@@ -788,6 +784,20 @@
     <Content Include="Views\Shared\_OrderStatusBadge.cshtml" />
     <Content Include="Views\Event\FeastPlan.cshtml" />
     <Content Include="Views\Event\Queue.cshtml" />
+    <Content Include="Views\FeastPlan\Index.cshtml" />
+    <Content Include="Views\FeastPlan\Rsvps.cshtml" />
+    <Content Include="Views\FeastPlan\EventDetails.cshtml" />
+    <Content Include="Views\FeastPlan\Calculate.cshtml" />
+    <Content Include="Views\FeastPlan\Review.cshtml" />
+    <Content Include="Views\FeastPlan\Decision.cshtml" />
+    <Content Include="Views\FeastPlan\Edit.cshtml" />
+    <Content Include="Views\FeastPlan\Approved.cshtml" />
+    <Content Include="Views\FeastPlan\_Steps.cshtml" />
+    <Content Include="Views\FeastPlan\_Counts.cshtml" />
+    <Content Include="Views\FeastPlan\_Items.cshtml" />
+    <Content Include="Views\FeastPlan\_Check.cshtml" />
+    <Content Include="Views\FeastPlan\_PlanHeader.cshtml" />
+    <Content Include="Views\FeastPlan\_History.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
@@ -972,21 +982,6 @@
     <Folder Include="Views\SquadApi\" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
-    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.CodeFixes.dll" />
-    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
-    <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\202609302215028_Cafeteria.resx">
-      <DependentUpon>202609302215028_Cafeteria.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610011032558_EventAndRSPV.resx">
-      <DependentUpon>202610011032558_EventAndRSPV.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610011347521_CafInventory.resx">
-      <DependentUpon>202610011347521_CafInventory.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -166,6 +166,11 @@ namespace Michaelhouse.Models
         public DbSet<EventRsvp> EventRsvps { get; set; }
         public DbSet<EventRsvpGuest> EventRsvpGuests { get; set; }
 
+        // ─── UC19 Generate Feast Plan ───
+        public DbSet<EventFeastPlan> EventFeastPlans { get; set; }
+        public DbSet<EventFeastPlanItem> EventFeastPlanItems { get; set; }
+        public DbSet<EventFeastPlanHistory> EventFeastPlanHistories { get; set; }
+
         public DbSet<StudentSportStatus> StudentSportStatuses { get; set; }
 
         public DbSet<SportPriority> SportPriorities { get; set; }
