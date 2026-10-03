@@ -286,6 +286,7 @@
     <Compile Include="ApiControllers\FeastPlanApiController.cs" />
     <Compile Include="ApiControllers\MealCollectionController.cs" />
     <Compile Include="ApiControllers\MealPlanApiController.cs" />
+    <Compile Include="ApiControllers\MyEventsApiController.cs" />
     <Compile Include="ApiControllers\PingApiController.cs" />
     <Compile Include="ApiControllers\ProductionApiController.cs" />
     <Compile Include="ApiControllers\RsvpApiController.cs" />
