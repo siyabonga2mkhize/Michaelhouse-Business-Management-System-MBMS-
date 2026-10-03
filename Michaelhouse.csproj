@@ -282,6 +282,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiControllers\AuthApiController.cs" />
     <Compile Include="ApiControllers\FeastPlanApiController.cs" />
     <Compile Include="ApiControllers\MealCollectionController.cs" />
     <Compile Include="ApiControllers\MealPlanApiController.cs" />
