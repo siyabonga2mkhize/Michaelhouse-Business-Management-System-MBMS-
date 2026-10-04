@@ -222,6 +222,58 @@ namespace MhmsMobileApp.Models
         public bool AcknowledgeConflict { get; set; }
     }
 
+    // ============================================================
+    // Request Visitor Access — api/visitor-requests (MVC, Student)
+    // ============================================================
+    public class VisitorFormDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public string? BoardingHouse { get; set; }
+        public List<OptionValueDto> Zones { get; set; } = new List<OptionValueDto>();
+        public string DefaultDate { get; set; } = "";
+        public string DefaultStart { get; set; } = "14:00";
+        public string DefaultEnd { get; set; } = "16:00";
+        public List<VisitSummaryDto> MyVisits { get; set; } = new List<VisitSummaryDto>();
+    }
+
+    public class OptionValueDto
+    {
+        public string Value { get; set; } = "";
+        public string Label { get; set; } = "";
+    }
+
+    public class VisitSummaryDto
+    {
+        public int Id { get; set; }
+        public string Visitor { get; set; } = "";
+        public string? Relationship { get; set; }
+        public string Date { get; set; } = "";
+        public string Time { get; set; } = "";
+        public string Zone { get; set; } = "";
+        public string? Purpose { get; set; }
+        public string Status { get; set; } = "";
+        public string StatusLabel { get; set; } = "";
+        public string? Remarks { get; set; }
+        public string? PolicyFlag { get; set; }
+        public string? GatePass { get; set; }
+    }
+
+    public class VisitorRequestDto
+    {
+        public string VisitorFullName { get; set; } = "";
+        public string VisitorPhone { get; set; } = "";
+        public string? VisitorIdOrPassport { get; set; }
+        public string RelationshipToStudent { get; set; } = "";
+        public bool IsParentOrGuardian { get; set; }
+        public string VisitorEmail { get; set; } = "";
+        public DateTime VisitDate { get; set; }
+        public string StartTime { get; set; } = "";
+        public string EndTime { get; set; } = "";
+        public string RequestedZone { get; set; } = "";
+        public string PurposeOfVisit { get; set; } = "";
+    }
+
     // Reply to a submit: Error is all problems in one line, Errors one each
     public class SubmitResultDto
     {

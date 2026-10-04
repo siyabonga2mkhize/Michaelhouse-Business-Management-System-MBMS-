@@ -17,6 +17,7 @@ namespace MhmsMobileApp.Views
             root.Children.Add(Ui.PageHeader("Requests", "Ask for permission, or report something broken."));
 
             root.Children.Add(Item("🧳", "Request Leave", "Ask permission to leave the residence. Your parent, then your house master, approve it.", () => new LeaveRequestPage()));
+            root.Children.Add(Item("👋", "Request a Visitor", "Ask for someone to visit you. Your house master approves it, then they get a gate pass.", () => new VisitorRequestPage()));
             root.Children.Add(Item("🛠", "Report a Fault", "Something broken in your residence or around school.", () => new ReportFaultPage()));
 
             Content = new ScrollView { Content = root };

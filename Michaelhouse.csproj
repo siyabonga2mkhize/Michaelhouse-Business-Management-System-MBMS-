@@ -318,6 +318,7 @@
     <Compile Include="ApiControllers\ResidenceScanApiController.cs" />
     <Compile Include="ApiControllers\RsvpApiController.cs" />
     <Compile Include="ApiControllers\SquadApiController.cs" />
+    <Compile Include="ApiControllers\VisitorRequestApiController.cs" />
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />

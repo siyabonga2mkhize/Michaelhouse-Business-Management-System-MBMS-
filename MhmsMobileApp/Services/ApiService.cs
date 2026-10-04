@@ -437,6 +437,18 @@ namespace MhmsMobileApp.Services
             PostAsync("api/leave-requests", data, error => new SubmitResultDto { Ok = false, Error = error });
 
         // ============================================================
+        // Request Visitor Access (Student; the web's VisitorAccess/Create
+        // rules, always reviewed by the house master)
+        //   GET  /api/visitor-requests/form
+        //   POST /api/visitor-requests
+        // ============================================================
+        public Task<VisitorFormDto> GetVisitorFormAsync() =>
+            GetAsync("api/visitor-requests/form", error => new VisitorFormDto { Ok = false, Error = error });
+
+        public Task<SubmitResultDto> SubmitVisitorRequestAsync(VisitorRequestDto data) =>
+            PostAsync("api/visitor-requests", data, error => new SubmitResultDto { Ok = false, Error = error });
+
+        // ============================================================
         // Squad (not shown in the app for now)
         // ============================================================
         public Task<SquadListDto> GetSquadAsync() =>
