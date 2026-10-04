@@ -47,6 +47,8 @@ namespace MhmsMobileApp
                     return Tab("Requests", "RequestsPage", () => new RequestsPage());
                 case AppScreen.ReportFault:
                     return Tab("Report Fault", "ReportFaultPage", () => new ReportFaultPage());
+                case AppScreen.JobCards:
+                    return Tab("Job Cards", "JobCardsPage", () => new JobCardsPage());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(screen));
             }

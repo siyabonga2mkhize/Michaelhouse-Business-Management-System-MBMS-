@@ -274,6 +274,73 @@ namespace MhmsMobileApp.Models
         public string PurposeOfVisit { get; set; } = "";
     }
 
+    // ============================================================
+    // Complete Job Card — api/worker-jobs (MVC, Maintenance Worker)
+    // ============================================================
+    public class WorkerJobsDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public string? Worker { get; set; }
+        public string? Skill { get; set; }
+        public string? CurrentStatus { get; set; }
+        public List<JobSummaryDto> OpenJobs { get; set; } = new List<JobSummaryDto>();
+        public List<JobSummaryDto> CompletedJobs { get; set; } = new List<JobSummaryDto>();
+    }
+
+    public class JobSummaryDto
+    {
+        public int Id { get; set; }
+        public string JobReference { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string? Asset { get; set; }
+        public string Priority { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string? Due { get; set; }
+        public bool Overdue { get; set; }
+        public string? Reported { get; set; }
+        public string? Completed { get; set; }
+        public string? FinalCondition { get; set; }
+        public decimal? TotalCost { get; set; }
+    }
+
+    public class JobDetailDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public JobSummaryDto Job { get; set; } = new JobSummaryDto();
+        public string? Description { get; set; }
+        public string? Location { get; set; }
+        public string? PhotoBeforeBase64 { get; set; }
+        public List<string> FinalConditions { get; set; } = new List<string>();
+        public List<InventoryItemDto> Inventory { get; set; } = new List<InventoryItemDto>();
+    }
+
+    public class InventoryItemDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string? Category { get; set; }
+        public int Stock { get; set; }
+        public string? Unit { get; set; }
+        public decimal UnitCost { get; set; }
+    }
+
+    public class CompleteJobRequestDto
+    {
+        public string? CompletionNotes { get; set; }
+        public string FinalCondition { get; set; } = "";
+        public string PhotoAfterBase64 { get; set; } = "";
+        public List<PartUsedDto> Parts { get; set; } = new List<PartUsedDto>();
+        public decimal LabourCost { get; set; }
+    }
+
+    public class PartUsedDto
+    {
+        public int InventoryId { get; set; }
+        public int Quantity { get; set; }
+    }
+
     // Reply to a submit: Error is all problems in one line, Errors one each
     public class SubmitResultDto
     {

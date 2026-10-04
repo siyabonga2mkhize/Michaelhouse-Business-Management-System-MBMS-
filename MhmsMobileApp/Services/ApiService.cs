@@ -449,6 +449,22 @@ namespace MhmsMobileApp.Services
             PostAsync("api/visitor-requests", data, error => new SubmitResultDto { Ok = false, Error = error });
 
         // ============================================================
+        // Complete Job Card (Maintenance Worker; same steps as the web's
+        // Worker/JobDetail + Worker/CompleteJob)
+        //   GET  /api/worker-jobs
+        //   GET  /api/worker-jobs/{id}
+        //   POST /api/worker-jobs/{id}/complete
+        // ============================================================
+        public Task<WorkerJobsDto> GetWorkerJobsAsync() =>
+            GetAsync("api/worker-jobs", error => new WorkerJobsDto { Ok = false, Error = error });
+
+        public Task<JobDetailDto> GetWorkerJobAsync(int id) =>
+            GetAsync($"api/worker-jobs/{id}", error => new JobDetailDto { Ok = false, Error = error });
+
+        public Task<SubmitResultDto> CompleteJobAsync(int id, CompleteJobRequestDto data) =>
+            PostAsync($"api/worker-jobs/{id}/complete", data, error => new SubmitResultDto { Ok = false, Error = error });
+
+        // ============================================================
         // Squad (not shown in the app for now)
         // ============================================================
         public Task<SquadListDto> GetSquadAsync() =>

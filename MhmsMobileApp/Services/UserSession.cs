@@ -19,7 +19,8 @@ namespace MhmsMobileApp.Services
         MyQr,                 // student: residence QR identity
         ResidenceScan,        // house master: QR sign in / sign out
         Requests,             // student: report a fault, leave, visitor
-        ReportFault           // everyone else: report an asset failure
+        ReportFault,          // everyone else: report an asset failure
+        JobCards              // maintenance worker: complete job cards
     }
 
     // ============================================================
@@ -64,6 +65,9 @@ namespace MhmsMobileApp.Services
 
             if (Is(role, "HouseMaster") || Is(role, "Housemaster"))
                 return new[] { AppScreen.Events, AppScreen.HouseMasterEmergency, AppScreen.ResidenceScan, AppScreen.ReportFault };
+
+            if (Is(role, "MaintenanceWorker"))
+                return new[] { AppScreen.JobCards, AppScreen.Events, AppScreen.ReportFault };
 
             if (Is(role, "Parent") || StaffRoles.Any(r => Is(role, r)))
                 return new[] { AppScreen.Events, AppScreen.ReportFault };
