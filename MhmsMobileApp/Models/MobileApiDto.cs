@@ -167,6 +167,71 @@ namespace MhmsMobileApp.Models
         public string? Message { get; set; }
     }
 
+    // ============================================================
+    // Request Permission to Leave — api/leave-requests (MVC, Student)
+    // ============================================================
+    public class LeaveFormDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public bool CanRequest { get; set; }
+        public string? CannotRequestReason { get; set; }
+        public string? Residence { get; set; }
+        public string? HouseMaster { get; set; }
+        public List<LeaveSummaryDto> MyRequests { get; set; } = new List<LeaveSummaryDto>();
+    }
+
+    public class LeaveSummaryDto
+    {
+        public int Id { get; set; }
+        public string Destination { get; set; } = "";
+        public string Departure { get; set; } = "";
+        public string ExpectedReturn { get; set; } = "";
+        public string Reason { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusLabel { get; set; } = "";
+        public string? ParentComments { get; set; }
+        public string? HouseMasterComments { get; set; }
+        public bool HasCalendarConflict { get; set; }
+        public string Submitted { get; set; } = "";
+    }
+
+    public class LeaveConflictsDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public bool HasConflict { get; set; }
+        public string? Message { get; set; }
+        public List<LeaveConflictDto> Conflicts { get; set; } = new List<LeaveConflictDto>();
+    }
+
+    public class LeaveConflictDto
+    {
+        public string Title { get; set; } = "";
+        public string Start { get; set; } = "";
+        public string End { get; set; } = "";
+        public string? Category { get; set; }
+    }
+
+    public class LeaveRequestDto
+    {
+        public string Destination { get; set; } = "";
+        public DateTime DepartureDateTime { get; set; }
+        public DateTime ExpectedReturnDateTime { get; set; }
+        public string Reason { get; set; } = "";
+        public bool AcknowledgeConflict { get; set; }
+    }
+
+    // Reply to a submit: Error is all problems in one line, Errors one each
+    public class SubmitResultDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
+        public string? Message { get; set; }
+        public bool HasConflict { get; set; }
+    }
+
     // POST ... { success = true }
     public class SuccessDto
     {

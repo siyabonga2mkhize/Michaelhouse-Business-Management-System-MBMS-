@@ -419,6 +419,24 @@ namespace MhmsMobileApp.Services
             PostAsync("api/fault-reports", data, error => new FaultReportResultDto { Ok = false, Error = error });
 
         // ============================================================
+        // Request Permission to Leave (Student; same rules as the web's
+        // LeaveRequest/Create)
+        //   GET  /api/leave-requests/form
+        //   GET  /api/leave-requests/conflicts?start=…&end=…
+        //   POST /api/leave-requests
+        // ============================================================
+        public Task<LeaveFormDto> GetLeaveFormAsync() =>
+            GetAsync("api/leave-requests/form", error => new LeaveFormDto { Ok = false, Error = error });
+
+        public Task<LeaveConflictsDto> CheckLeaveConflictsAsync(DateTime start, DateTime end) =>
+            GetAsync("api/leave-requests/conflicts?start=" + Uri.EscapeDataString(start.ToString("yyyy-MM-ddTHH:mm"))
+                     + "&end=" + Uri.EscapeDataString(end.ToString("yyyy-MM-ddTHH:mm")),
+                error => new LeaveConflictsDto { Ok = false, Error = error });
+
+        public Task<SubmitResultDto> SubmitLeaveRequestAsync(LeaveRequestDto data) =>
+            PostAsync("api/leave-requests", data, error => new SubmitResultDto { Ok = false, Error = error });
+
+        // ============================================================
         // Squad (not shown in the app for now)
         // ============================================================
         public Task<SquadListDto> GetSquadAsync() =>

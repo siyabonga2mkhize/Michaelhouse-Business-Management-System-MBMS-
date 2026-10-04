@@ -16,6 +16,7 @@ namespace MhmsMobileApp.Views
             var root = new VerticalStackLayout { Padding = new Thickness(16, 20, 16, 24), Spacing = 14 };
             root.Children.Add(Ui.PageHeader("Requests", "Ask for permission, or report something broken."));
 
+            root.Children.Add(Item("🧳", "Request Leave", "Ask permission to leave the residence. Your parent, then your house master, approve it.", () => new LeaveRequestPage()));
             root.Children.Add(Item("🛠", "Report a Fault", "Something broken in your residence or around school.", () => new ReportFaultPage()));
 
             Content = new ScrollView { Content = root };
