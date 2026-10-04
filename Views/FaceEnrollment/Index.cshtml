@@ -1,0 +1,284 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Face Enrollment";
+
+    bool isEnrolled = ViewBag.IsEnrolled == true;
+    string enrolledAt = ViewBag.EnrolledAt as string;
+}
+
+<style>
+    .fe-shell {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .fe-header {
+        text-align: center;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .fe-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .5rem 0;
+        }
+
+        .fe-header p {
+            color: #6b7280;
+            font-size: .88rem;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+    .fe-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .fe-video-wrap {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 1rem auto;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #111;
+        position: relative;
+        aspect-ratio: 4/3;
+    }
+
+        .fe-video-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .fe-video-wrap .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: .85rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+    .fe-actions {
+        display: flex;
+        justify-content: center;
+        gap: .75rem;
+        margin-top: 1rem;
+    }
+
+    .fe-status {
+        margin-top: 1rem;
+        font-size: .85rem;
+        padding: .65rem 1rem;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+        .fe-status.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .fe-status.err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .fe-status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+    .fe-info-box {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        font-size: .82rem;
+        color: #1e40af;
+        text-align: left;
+    }
+
+        .fe-info-box strong {
+            display: block;
+            margin-bottom: .35rem;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="fe-shell">
+
+        <div class="fe-header">
+            <h1>Face Enrollment</h1>
+            <p>
+                Enroll once so the cafeteria can verify you at meal collection.
+                Your photo is never stored — only a mathematical signature is kept.
+            </p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+    <div class="fe-card">
+
+        @if (isEnrolled)
+        {
+            <div class="fe-status ok">Already enrolled on @enrolledAt</div>
+
+            <div class="fe-video-wrap" style="margin-top:1.5rem;">
+                <div class="placeholder">You are enrolled. Use "Re-enroll" below if you need to update your face signature.</div>
+            </div>
+
+            <div class="fe-actions">
+                <button type="button" class="btn btn-outline-primary" onclick="startCamera()">
+                    Re-enroll
+                </button>
+
+                <form action="@Url.Action("Revoke", "FaceEnrollment")" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('Remove your face signature?');">
+                        Remove Enrollment
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+
+            @Html.AntiForgeryToken()
+
+            <div class="fe-video-wrap">
+                <video id="video" autoplay playsinline></video>
+                <div id="placeholder" class="placeholder">
+                    Click "Start Camera" to begin.
+                </div>
+            </div>
+
+            <div class="fe-actions">
+                <button type="button" id="startBtn" class="btn btn-primary" onclick="startCamera()">
+                    Start Camera
+                </button>
+                <button type="button" id="captureBtn" class="btn btn-success" style="display:none;" onclick="capturePhoto()">
+                    Capture &amp; Enroll
+                </button>
+            </div>
+            <div id="status" style="display:none;"></div>
+
+            <div id="status" style="display:none;"></div>
+        }
+
+        <div class="fe-info-box">
+            <strong>How your privacy is protected</strong>
+            We capture an image only long enough to produce a 128-number signature.
+            The photo is discarded immediately. The signature cannot be reverse-engineered
+            back into a picture. You can revoke it at any time with the button above.
+        </div>
+    </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    var video = document.getElementById('video');
+    var placeholder = document.getElementById('placeholder');
+    var startBtn = document.getElementById('startBtn');
+    var captureBtn = document.getElementById('captureBtn');
+    var status = document.getElementById('status');
+        var stream = null;
+
+        function setStatus(msg, cls) {
+            var el = document.getElementById('status') || status;
+            if (!el) {
+                console.log('[FaceEnrollment] ' + msg);
+                return;
+            }
+            el.className = 'fe-status ' + (cls || 'info');
+            el.textContent = msg;
+            el.style.display = 'inline-block';
+        }
+   
+    function startCamera() {
+        if (video == null) {
+            // Re-enroll path — reload the page and let the student start fresh
+            window.location.href = '@Url.Action("Index", "FaceEnrollment")';
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+            .then(function (s) {
+                stream = s;
+                video.srcObject = s;
+                if (placeholder) placeholder.style.display = 'none';
+                if (startBtn) startBtn.style.display = 'none';
+                if (captureBtn) captureBtn.style.display = 'inline-block';
+                setStatus('Camera ready. Position your face and click Capture.', 'info');
+            })
+            .catch(function (err) {
+                setStatus('Camera error: ' + err.message, 'err');
+            });
+    }
+
+    function capturePhoto() {
+        if (!video || !video.videoWidth) {
+            setStatus('Camera not ready.', 'err');
+            return;
+        }
+
+        var canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+        setStatus('Sending to server…', 'info');
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch('@Url.Action("Capture", "FaceEnrollment")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: '__RequestVerificationToken=' + encodeURIComponent(token)
+                + '&imageBase64=' + encodeURIComponent(dataUrl)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                setStatus('Enrolled successfully. Redirecting…', 'ok');
+                if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+                setTimeout(function () {
+                    window.location.href = '@Url.Action("Index", "FaceEnrollment")';
+                }, 1000);
+            } else {
+                setStatus(data.message || 'Enrollment failed.', 'err');
+            }
+        })
+        .catch(function (err) {
+            setStatus('Server error: ' + err.message, 'err');
+        });
+    }
+    </script>
+}

@@ -1,0 +1,92 @@
+﻿@using Michaelhouse.Services
+@model List<IngredientStockLine>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Ingredient Stock";
+    string filter = ViewBag.Filter as string ?? "all";
+    bool isManager = ViewBag.IsManager == true;
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>Ingredient Stock</h1>
+                <div class="inv-meta">Available = farm produce + bought-in stock. Quantities in kg / litres.</div>
+            </div>
+            <a href="@Url.Action("Index", "CafeteriaInventory")" class="btn btn-outline-secondary">← Inventory</a>
+        </div>
+
+        <div class="inv-tabs">
+            <a class="@(filter == "all" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory")">All</a>
+            <a class="@(filter == "low" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "low" })">Low &amp; out</a>
+            <a class="@(filter == "out" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "out" })">Out of stock</a>
+            <a class="@(filter == "inactive" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "inactive" })">Inactive</a>
+        </div>
+
+        <form method="get" action="@Url.Action("Create", "IngredientOrder")">
+            <div class="inv-card" style="padding:0;">
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                @if (isManager)
+                                {
+                                    <th style="width:30px;"></th>
+                                }
+                                <th>Ingredient</th>
+                                <th class="num">Available</th>
+                                <th class="num inv-hide-sm">Farm</th>
+                                <th class="num inv-hide-sm">Bought-in</th>
+                                <th class="num">Reorder</th>
+                                <th class="num inv-hide-sm">On order</th>
+                                <th>Status</th>
+                                <th class="inv-hide-sm">Supplier</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Count == 0)
+                            {
+                                <tr><td colspan="9" class="inv-muted">Nothing to show.</td></tr>
+                            }
+                            @foreach (var l in Model)
+                            {
+                                string css = l.Status == "In stock" ? "ok" : l.Status == "Low stock" ? "low" : l.Status == "Out of stock" ? "bad" : "muted";
+                                <tr>
+                                    @if (isManager)
+                                    {
+                                        <td>
+                                            @if (l.Ingredient.IsActive)
+                                            {
+                                                <input type="checkbox" name="ingredientIds" value="@l.Ingredient.Id" @(l.IsLowStock || l.IsOutOfStock ? "checked" : "") aria-label="Order @l.Ingredient.Name" />
+                                            }
+                                        </td>
+                                    }
+                                    <td><a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.Ingredient.Id })">@l.Ingredient.Name</a></td>
+                                    <td class="num"><strong>@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</strong></td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.Farm, l.Ingredient.Unit)</td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.External, l.Ingredient.Unit)</td>
+                                    <td class="num">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
+                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
+                                    <td><span class="inv-badge @css">@l.Status</span></td>
+                                    <td class="inv-hide-sm">@(l.PreferredSupplier ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @if (isManager && Model.Count > 0)
+            {
+                <div class="inv-actions">
+                    <button type="submit" class="btn btn-primary">Order ticked ingredients</button>
+                    <span class="inv-help">Low and out-of-stock ingredients are ticked for you.</span>
+                </div>
+            }
+        </form>
+
+    </div>
+</div>

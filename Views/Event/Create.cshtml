@@ -1,0 +1,712 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model CafeteriaEvent
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool isEdit = ViewBag.IsEdit == true;
+    bool rsvpStarted = ViewBag.RsvpStarted == true;
+    ViewBag.Title = isEdit ? "Edit Event" : "Schedule Event";
+
+    var venues = ViewBag.Venues as List<EventVenue> ?? new List<EventVenue>();
+    var templates = ViewBag.Templates as List<EventMenuTemplate> ?? new List<EventMenuTemplate>();
+    var templateItems = ViewBag.TemplateItems as Dictionary<int, List<EventMenuTemplateItem>> ?? new Dictionary<int, List<EventMenuTemplateItem>>();
+    var eventTypes = ViewBag.EventTypes as List<SelectListItem> ?? new List<SelectListItem>();
+    var houses = ViewBag.Houses as List<Michaelhouse.Models.Residence> ?? new List<Michaelhouse.Models.Residence>();
+    var meals = ViewBag.Meals as List<BuffetMealOption> ?? new List<BuffetMealOption>();
+    var selectedMeals = ViewBag.SelectedMeals as Dictionary<int, decimal> ?? new Dictionary<int, decimal>();
+    var parentHouseIds = ViewBag.ParentHouseIds as List<int> ?? new List<int>();
+    var studentHouseIds = ViewBag.StudentHouseIds as List<int> ?? new List<int>();
+
+    // Template → [{ id, qty }] for "Pre-fill from template"
+    var templateJson = templateItems.ToDictionary(
+        kv => kv.Key.ToString(),
+        kv => kv.Value.Select(t => new { id = t.MenuItemId, qty = t.QuantityPerGuest.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) }).ToList());
+}
+
+<style>
+    .sce-shell {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .sce-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .sce-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .sce-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .sce-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .sce-section {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin: 0 0 1rem 0;
+        padding-bottom: .5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .sce-row {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .sce-2col {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sce-3col {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    @@media (max-width: 700px) {
+        .sce-2col, .sce-3col {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .sce-label {
+        display: block;
+        font-size: .75rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: .35rem;
+    }
+
+        .sce-label .req {
+            color: #C21E2E;
+        }
+
+    .sce-input {
+        width: 100%;
+        padding: .5rem .7rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: .88rem;
+    }
+
+        .sce-input:focus {
+            border-color: #C21E2E;
+            outline: none;
+        }
+
+        .sce-input:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+        }
+
+    .sce-help {
+        font-size: .72rem;
+        color: #9ca3af;
+        margin-top: .25rem;
+    }
+
+    .sce-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .sce-check {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        font-size: .88rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: .35rem;
+    }
+
+    .sce-houses {
+        margin: 0 0 1rem 1.6rem;
+        font-size: .82rem;
+    }
+
+        .sce-houses label {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            margin: 0 1rem .35rem 0;
+            cursor: pointer;
+        }
+
+    /* Buffet meals */
+    .sce-meal-tools {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: .75rem;
+    }
+
+    .sce-meal-list {
+        max-height: 420px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+    }
+
+    .sce-meal {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: .65rem;
+        align-items: center;
+        padding: .6rem .8rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .sce-meal:last-child {
+            border-bottom: none;
+        }
+
+        .sce-meal.selected {
+            background: #fef2f2;
+        }
+
+    .sce-meal-name {
+        font-weight: 600;
+        font-size: .88rem;
+    }
+
+    .sce-meal-meta {
+        font-size: .72rem;
+        color: #6b7280;
+    }
+
+    .sce-tag {
+        display: inline-block;
+        font-size: .65rem;
+        font-weight: 700;
+        padding: .1rem .4rem;
+        border-radius: 4px;
+        margin-right: .25rem;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .sce-portions {
+        width: 80px;
+    }
+
+    @@media (max-width: 700px) {
+        .sce-meal {
+            grid-template-columns: auto 1fr;
+        }
+
+        .sce-portions-wrap {
+            grid-column: 2;
+        }
+    }
+
+    /* Coverage */
+    .sce-coverage-basis {
+        font-size: .8rem;
+        color: #4b5563;
+        margin-bottom: .75rem;
+    }
+
+    .sce-warning {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        border-radius: 6px;
+        padding: .55rem .8rem;
+        font-size: .82rem;
+        margin-bottom: .4rem;
+    }
+
+    .sce-ok {
+        background: #d1fae5;
+        color: #065f46;
+        border-radius: 6px;
+        padding: .55rem .8rem;
+        font-size: .82rem;
+        margin-bottom: .75rem;
+    }
+
+    .sce-groups {
+        width: 100%;
+        font-size: .8rem;
+        border-collapse: collapse;
+        margin-top: .5rem;
+    }
+
+        .sce-groups th {
+            text-align: left;
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #6b7280;
+            padding: .35rem .5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .sce-groups td {
+            padding: .4rem .5rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .sce-groups .none {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="sce-shell">
+
+        <div class="sce-header">
+            <h1>@(isEdit ? "Edit Event" : "Schedule Event")</h1>
+            <div class="sce-meta">
+                Event details, when RSVPs open, who's invited and the buffet. The buffet is checked against
+                the dietary needs of the students invited.
+            </div>
+        </div>
+
+        @using (Html.BeginForm(isEdit ? "Edit" : "Create", "Event", isEdit ? new { id = Model.Id } : null, FormMethod.Post, new { id = "eventForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+            {
+                <div class="alert alert-danger">
+                    @Html.ValidationSummary(false, "Please fix the errors below:")
+                </div>
+            }
+
+            <!-- EVENT DETAILS -->
+            <div class="sce-card">
+                <div class="sce-section">Event Details</div>
+
+                <div class="sce-row sce-2col">
+                    <div>
+                        <label class="sce-label">Event Name <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EventName, new { @class = "sce-input", placeholder = "e.g. Sports Day Buffet", maxlength = "150", required = "required" })
+                    </div>
+                    <div>
+                        <label class="sce-label">Event Type <span class="req">*</span></label>
+                        <select name="EventType" class="sce-input" required>
+                            @foreach (var t in eventTypes)
+                            {
+                                var selected = Model != null && ((int)Model.EventType).ToString() == t.Value;
+                                <option value="@t.Value" @(selected ? "selected" : "")>@t.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Description</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "sce-input", rows = "2", maxlength = "1000", placeholder = "What the event is, who it's for" })
+                    </div>
+                </div>
+
+                <div class="sce-row sce-3col">
+                    <div>
+                        <label class="sce-label">Event Date <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}",
+                            new { @class = "sce-input", type = "date", required = "required" })
+                    </div>
+                    <div>
+                        <label class="sce-label">Start Time <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.StartTime, "{0:hh\\:mm}",
+                            new { @class = "sce-input", type = "time", required = "required" })
+                    </div>
+                    <div>
+                        <label class="sce-label">End Time <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.EndTime, "{0:hh\\:mm}",
+                            new { @class = "sce-input", type = "time", required = "required" })
+                    </div>
+                </div>
+
+                <div class="sce-row sce-2col">
+                    <div>
+                        <label class="sce-label">Location</label>
+                        <select name="VenueId" class="sce-input">
+                            <option value="">— No specific venue —</option>
+                            @foreach (var v in venues)
+                            {
+                                var selected = Model != null && Model.VenueId == v.Id;
+                                <option value="@v.Id" @(selected ? "selected" : "")>
+                                    @v.Name (seats @v.Capacity)
+                                </option>
+                            }
+                        </select>
+                        <div class="sce-help">Optional. A venue can't be double-booked.</div>
+                    </div>
+                    <div>
+                        <label class="sce-label">Expected Headcount <span class="req">*</span></label>
+                        @Html.TextBoxFor(m => m.ExpectedHeadcount,
+                            new { @class = "sce-input", type = "number", min = "1", required = "required" })
+                        <div class="sce-help">Rough estimate — RSVPs refine this later.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RSVP -->
+            <div class="sce-card">
+                <div class="sce-section">RSVP</div>
+
+                <div class="sce-row sce-2col">
+                    <div>
+                        <label class="sce-label">RSVP Opens</label>
+                        @if (rsvpStarted)
+                        {
+                            <input type="text" class="sce-input" disabled
+                                   value="@(Model.RsvpOpenedAt.HasValue ? "Opened " + SchoolClock.FromUtc(Model.RsvpOpenedAt.Value).ToString("dd MMM yyyy HH:mm") : "Opened")" />
+                            <div class="sce-help">RSVPs have already opened for this event.</div>
+                        }
+                        else
+                        {
+                            <input type="datetime-local" name="RsvpOpensAt" class="sce-input"
+                                   value="@(Model.RsvpOpensAt.HasValue ? Model.RsvpOpensAt.Value.ToString("yyyy-MM-dd'T'HH:mm") : "")" />
+                            <div class="sce-help">
+                                RSVPs open automatically at this date and time. Leave empty to open them yourself
+                                from the event page. You can always open them earlier.
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <label class="sce-label">RSVP Deadline</label>
+                        <input type="date" name="RsvpDeadline" class="sce-input"
+                               value="@(Model.RsvpDeadline.HasValue ? Model.RsvpDeadline.Value.ToString("yyyy-MM-dd") : "")" />
+                        <div class="sce-help">Last day to respond. After it, the form stops taking responses.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WHO'S INVITED -->
+            <div class="sce-card">
+                <div class="sce-section">Who's invited?</div>
+
+                <label class="sce-check">
+                    <input type="checkbox" name="InviteStudents" value="true" id="inviteStudents" @(Model.InviteStudents ? "checked" : "") />
+                    Students
+                </label>
+                <div class="sce-houses" id="studentHouses">
+                    <div class="sce-help" style="margin:0 0 .35rem 0;">
+                        Leave all unticked to invite every registered student, or tick houses to invite only the students living in them.
+                    </div>
+                    @foreach (var h in houses)
+                    {
+                        <label>
+                            <input type="checkbox" name="InviteStudentHouses" value="@h.ResidenceId" @(studentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
+                            @h.Name
+                        </label>
+                    }
+                </div>
+
+                <label class="sce-check">
+                    <input type="checkbox" name="InviteParents" value="true" id="inviteParents" @(Model.InviteParents ? "checked" : "") />
+                    Parents
+                </label>
+                <div class="sce-houses" id="parentHouses">
+                    <div class="sce-help" style="margin:0 0 .35rem 0;">
+                        Leave all unticked to invite every parent, or tick houses to invite only parents of students in them.
+                    </div>
+                    @foreach (var h in houses)
+                    {
+                        <label>
+                            <input type="checkbox" name="InviteHouses" value="@h.ResidenceId" @(parentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
+                            @h.Name
+                        </label>
+                    }
+                </div>
+
+                <label class="sce-check">
+                    <input type="checkbox" name="InviteStaff" value="true" @(Model.InviteStaff ? "checked" : "") />
+                    All Staff
+                </label>
+
+                <div style="border-top:1px solid #f3f4f6; margin-top:.75rem; padding-top:.75rem;">
+                    <label class="sce-check">
+                        <input type="checkbox" name="AllowGuests" value="true" id="allowGuests" @(Model.AllowGuests ? "checked" : "") />
+                        Parents and staff may bring guests
+                    </label>
+                    <div class="sce-houses" id="guestLimit">
+                        <label style="gap:.5rem;">
+                            Up to
+                            <input type="number" name="MaxGuestsPerInvitee" class="sce-input" style="width:80px;" min="1" max="10"
+                                   value="@(Model.MaxGuestsPerInvitee > 0 ? Model.MaxGuestsPerInvitee : 2)" />
+                            guests each
+                        </label>
+                        <div class="sce-help" style="margin:0;">Students RSVP for themselves only.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUFFET MEALS -->
+            <div class="sce-card">
+                <div class="sce-section">Buffet Meals</div>
+
+                <div class="sce-meal-tools">
+                    <div style="flex:1; min-width:200px;">
+                        <label class="sce-label">Menu Template</label>
+                        <select name="MenuTemplateId" id="templateSelect" class="sce-input">
+                            <option value="">— None —</option>
+                            @foreach (var t in templates)
+                            {
+                                var selected = Model != null && Model.MenuTemplateId == t.Id;
+                                <option value="@t.Id" @(selected ? "selected" : "")>
+                                    @t.Name (@t.DefaultHeadcount guests)
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="prefillBtn">Pre-fill from template</button>
+                    <div style="flex:1; min-width:180px;">
+                        <label class="sce-label">Find a meal</label>
+                        <input type="search" id="mealFilter" class="sce-input" placeholder="Type to filter…" />
+                    </div>
+                </div>
+
+                <label class="sce-check" style="margin-bottom:.6rem;">
+                    <input type="checkbox" name="OffersMealChoice" value="true" @(Model.OffersMealChoice ? "checked" : "") />
+                    Attendees choose their meal when they RSVP
+                </label>
+                <div class="sce-help" style="margin:-.35rem 0 .75rem 1.6rem;">
+                    They can only choose from the meals ticked below, and meals that don't suit their dietary needs
+                    are blocked. The kitchen then prepares what people chose. Leave unticked for a self-service buffet.
+                </div>
+
+                <div class="sce-help" style="margin:0 0 .6rem 0;">
+                    Meals from the Dietitian's meal library. Tick every meal the buffet will offer — different meals can
+                    cater for different groups. Portions per guest guide the feast plan quantities.
+                </div>
+
+                @if (meals.Count == 0)
+                {
+                    <div class="sce-warning">There are no active meals in the meal library yet.</div>
+                }
+                else
+                {
+                    <div class="sce-meal-list" id="mealList">
+                        @foreach (var m in meals)
+                        {
+                            bool isSelected = selectedMeals.ContainsKey(m.MenuItemId);
+                            string portions = (isSelected ? selectedMeals[m.MenuItemId] : 1m).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+                            <div class="sce-meal @(isSelected ? "selected" : "")" data-name="@m.Name.ToLowerInvariant()">
+                                <input type="checkbox" name="BuffetMeals" value="@m.MenuItemId" id="meal_@m.MenuItemId" @(isSelected ? "checked" : "") />
+                                <label for="meal_@m.MenuItemId" style="cursor:pointer; margin:0;">
+                                    <div class="sce-meal-name">@m.Name</div>
+                                    <div class="sce-meal-meta">
+                                        @foreach (var tag in m.SuitableFor)
+                                        {
+                                            <span class="sce-tag">@tag</span>
+                                        }
+                                        @(string.IsNullOrEmpty(m.Allergens) ? "No listed allergens" : "Contains: " + m.Allergens)
+                                    </div>
+                                </label>
+                                <div class="sce-portions-wrap">
+                                    <input type="number" name="Portions_@m.MenuItemId" class="sce-input sce-portions" min="0.1" max="5" step="0.1"
+                                           value="@portions" title="Portions per guest" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="sce-help"><span id="mealCount">@selectedMeals.Count</span> meal(s) selected.</div>
+                }
+            </div>
+
+            <!-- DIETARY COVERAGE -->
+            <div class="sce-card">
+                <div class="sce-section">Dietary Coverage</div>
+                <div id="coverage">
+                    <div class="sce-help">Select buffet meals and who's invited to check dietary coverage.</div>
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div class="sce-card">
+                <div class="sce-section">Notes</div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Special Instructions</label>
+                        @Html.TextAreaFor(m => m.SpecialInstructions,
+                            new { @class = "sce-input", rows = "3", maxlength = "1000", placeholder = "e.g. Serve the halal dishes from a separate table" })
+                        <div class="sce-help">Visible to chef and kitchen staff.</div>
+                    </div>
+                </div>
+
+                <div class="sce-row">
+                    <div>
+                        <label class="sce-label">Internal Notes</label>
+                        @Html.TextAreaFor(m => m.InternalNotes,
+                            new { @class = "sce-input", rows = "2", maxlength = "1000", placeholder = "Coordinator-only notes" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="sce-actions">
+                <a href="@(isEdit ? Url.Action("Details", "Event", new { id = Model.Id }) : Url.Action("Index", "Event"))" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    @(isEdit ? "Save Changes" : "Schedule Event")
+                </button>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        var form = document.getElementById("eventForm");
+        var coverage = document.getElementById("coverage");
+        var templates = @Html.Raw(System.Web.Helpers.Json.Encode(templateJson));
+        var checkUrl = '@Url.Action("CheckBuffet", "Event")';
+        var eventId = @(isEdit ? Model.Id.ToString() : "null");
+
+        // ── House lists only matter when that audience is invited ──
+        function toggleHouses(checkboxId, boxId) {
+            var cb = document.getElementById(checkboxId);
+            var box = document.getElementById(boxId);
+            function sync() { box.style.display = cb.checked ? "" : "none"; }
+            cb.addEventListener("change", sync);
+            sync();
+        }
+        toggleHouses("inviteStudents", "studentHouses");
+        toggleHouses("inviteParents", "parentHouses");
+        toggleHouses("allowGuests", "guestLimit");
+
+        // ── Meal rows ──
+        var mealRows = Array.prototype.slice.call(document.querySelectorAll(".sce-meal"));
+        function syncRow(row) {
+            var cb = row.querySelector("input[type=checkbox]");
+            row.classList.toggle("selected", cb.checked);
+        }
+        function updateCount() {
+            var el = document.getElementById("mealCount");
+            if (el) el.textContent = document.querySelectorAll("input[name=BuffetMeals]:checked").length;
+        }
+        mealRows.forEach(function (row) {
+            row.querySelector("input[type=checkbox]").addEventListener("change", function () {
+                syncRow(row); updateCount(); scheduleCheck();
+            });
+        });
+
+        var filter = document.getElementById("mealFilter");
+        filter.addEventListener("input", function () {
+            var q = filter.value.trim().toLowerCase();
+            mealRows.forEach(function (row) {
+                row.style.display = !q || row.getAttribute("data-name").indexOf(q) >= 0 ? "" : "none";
+            });
+        });
+
+        // ── Template pre-fill: ticks the template's meals ──
+        document.getElementById("prefillBtn").addEventListener("click", function () {
+            var id = document.getElementById("templateSelect").value;
+            var items = templates[id];
+            if (!items) { alert("Choose a template first."); return; }
+
+            items.forEach(function (item) {
+                var cb = document.getElementById("meal_" + item.id);
+                if (!cb) return;
+                cb.checked = true;
+                var qty = form.querySelector("input[name='Portions_" + item.id + "']");
+                if (qty) qty.value = item.qty;
+                syncRow(cb.closest(".sce-meal"));
+            });
+            updateCount();
+            scheduleCheck();
+        });
+
+        // ── Live dietary coverage (same check as on save) ──
+        var timer = null;
+        function scheduleCheck() {
+            clearTimeout(timer);
+            timer = setTimeout(runCheck, 300);
+        }
+
+        function runCheck() {
+            var data = new FormData();
+            data.append("__RequestVerificationToken", form.querySelector("input[name=__RequestVerificationToken]").value);
+            if (eventId !== null) data.append("eventId", eventId);
+            data.append("inviteStudents", document.getElementById("inviteStudents").checked ? "true" : "false");
+            form.querySelectorAll("input[name=InviteStudentHouses]:checked").forEach(function (cb) { data.append("InviteStudentHouses", cb.value); });
+            form.querySelectorAll("input[name=BuffetMeals]:checked").forEach(function (cb) {
+                data.append("BuffetMeals", cb.value);
+            });
+
+            fetch(checkUrl, { method: "POST", body: data, credentials: "same-origin" })
+                .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                .then(render)
+                .catch(function () {
+                    coverage.textContent = "Could not check dietary coverage right now.";
+                });
+        }
+
+        function el(tag, cls, text) {
+            var e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function render(data) {
+            coverage.textContent = "";
+
+            coverage.appendChild(el("div", "sce-coverage-basis",
+                "Checked against: " + data.basis + (data.studentCount ? " (" + data.studentCount + " " + (data.noun || "student") + (data.studentCount === 1 ? "" : "s") + ")" : "")));
+
+            if (data.warnings.length === 0) {
+                coverage.appendChild(el("div", "sce-ok",
+                    data.groups.length ? "✓ Every dietary group has at least one suitable buffet meal." : "✓ No student dietary groups to check."));
+            }
+            data.warnings.forEach(function (w) { coverage.appendChild(el("div", "sce-warning", "⚠ " + w)); });
+
+            if (data.groups.length === 0) return;
+
+            var table = el("table", "sce-groups");
+            var head = el("tr");
+            ["Dietary group", "Students", "Suitable buffet meals"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+            var thead = el("thead"); thead.appendChild(head); table.appendChild(thead);
+
+            var body = el("tbody");
+            data.groups.forEach(function (g) {
+                var tr = el("tr");
+                tr.appendChild(el("td", null, g.label));
+                tr.appendChild(el("td", null, String(g.students)));
+                tr.appendChild(g.covered ? el("td", null, g.meals.join(", ")) : el("td", "none", "None"));
+                body.appendChild(tr);
+            });
+            table.appendChild(body);
+            coverage.appendChild(table);
+        }
+
+        ["inviteStudents"].forEach(function (id) { document.getElementById(id).addEventListener("change", scheduleCheck); });
+        form.querySelectorAll("input[name=InviteStudentHouses]").forEach(function (cb) { cb.addEventListener("change", scheduleCheck); });
+
+        runCheck();
+    })();
+    </script>
+}

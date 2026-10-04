@@ -1,0 +1,266 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@model Michaelhouse.Models.ViewModels.MealDetailsViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.Name;
+
+    bool canEdit = ViewBag.CanEdit == true;
+    bool categorySet = Enum.IsDefined(typeof(NutritionCategory), Model.NutritionCategory);
+}
+
+<style>
+    .md-shell {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    .md-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .md-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+        .md-header .meta {
+            color: #6b7280;
+            font-size: .88rem;
+        }
+
+    .md-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+        .md-card h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 .85rem 0;
+        }
+
+    .md-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: .75rem;
+    }
+
+        .md-stats div {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: .75rem;
+        }
+
+        .md-stats .label {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+        }
+
+        .md-stats .value {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+    .md-row {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: .4rem;
+        font-size: .9rem;
+    }
+
+        .md-row .label {
+            min-width: 170px;
+            color: #6b7280;
+        }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="md-shell">
+
+        <div class="md-header">
+            <div>
+                <h1>
+                    @Model.Name
+                    @if (!Model.IsActive)
+                    {
+                        <span class="badge bg-secondary fs-6 align-middle">Inactive</span>
+                    }
+                </h1>
+                <div class="meta">@Model.MealSlots</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MealLibrary")">Back to meals</a>
+                @if (canEdit)
+                {
+                    <a class="btn btn-primary" href="@Url.Action("Edit", "MealLibrary", new { id = Model.Id })">Edit</a>
+
+                    if (Model.IsActive)
+                    {
+                        <form action="@Url.Action("Deactivate", "MealLibrary", new { id = Model.Id })" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger"
+                                    onclick="return confirm('Deactivate this meal? It will no longer be offered in new menus or meal plans. History is kept.');">
+                                Deactivate
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form action="@Url.Action("Reactivate", "MealLibrary", new { id = Model.Id })" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-success">Reactivate</button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning">@TempData["Warning"]</div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.UsageSummary))
+        {
+            <div class="alert alert-info small">@Model.UsageSummary</div>
+        }
+
+        <!-- BASIC -->
+        <div class="md-card">
+            <h2>Basic meal information</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="mb-2">@Model.Description</p>
+            }
+            <div class="md-row"><span class="label">Meal type</span><span>@(string.IsNullOrEmpty(Model.MealSlots) ? "Not set" : Model.MealSlots)</span></div>
+            <div class="md-row"><span class="label">Farm-grown produce</span><span>@(Model.IsFarmGrownProduce ? "Yes" : "No")</span></div>
+        </div>
+
+        <!-- DIETARY -->
+        <div class="md-card">
+            <h2>Dietary information</h2>
+            <div class="md-row"><span class="label">Classification</span><span><strong>@Model.DietaryClassification</strong></span></div>
+            <div class="md-row">
+                <span class="label">Halal</span>
+                <span>
+                    @if (Model.IsHalal)
+                    {
+                        <span class="badge bg-success">Halal</span>
+                    }
+                    else
+                    {
+                        <span>Not halal — @Model.HalalProblem</span>
+                    }
+                    <span class="text-muted small ms-1">(from ingredients)</span>
+                </span>
+            </div>
+            <div class="md-row">
+                <span class="label">Allergens</span>
+                <span>
+                    @if (Model.Allergens.Any())
+                    {
+                        foreach (var a in Model.Allergens)
+                        {
+                            <span class="badge bg-warning text-dark me-1">@a</span>
+                        }
+                    }
+                    else
+                    {
+                        <span>None recorded</span>
+                    }
+                    <span class="text-muted small ms-1">(from ingredients)</span>
+                </span>
+            </div>
+            @if (Model.StrictestAllowedClassification != Model.DietaryClassification)
+            {
+                <div class="text-muted small mt-2">
+                    The ingredients would allow this meal to be marked <strong>@Model.StrictestAllowedClassification</strong>.
+                </div>
+            }
+        </div>
+
+        <!-- NUTRITION -->
+        <div class="md-card">
+            <h2>Nutrition <span class="text-muted fw-normal small">per portion, calculated from ingredients</span></h2>
+            <div class="md-stats mb-3">
+                <div><div class="label">Energy</div><div class="value">@Model.CaloriesPerPortion.ToString("0") <small class="fs-6 fw-normal">kcal</small></div></div>
+                <div><div class="label">Protein</div><div class="value">@Model.ProteinGramsPerPortion.ToString("0.#") <small class="fs-6 fw-normal">g</small></div></div>
+                <div><div class="label">Carbohydrate</div><div class="value">@Model.CarbohydrateGramsPerPortion.ToString("0.#") <small class="fs-6 fw-normal">g</small></div></div>
+                <div><div class="label">Fat</div><div class="value">@Model.FatGramsPerPortion.ToString("0.#") <small class="fs-6 fw-normal">g</small></div></div>
+            </div>
+            <div class="md-row">
+                <span class="label">Nutrition category</span>
+                <span><strong>@(categorySet ? Model.NutritionCategory.ToString() : "Not set")</strong>
+                    <span class="text-muted small ms-1">(suggested: @Model.SuggestedNutritionCategory)</span></span>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.NutritionCategoryWarning))
+            {
+                <div class="alert alert-warning small mt-2 mb-0">@Model.NutritionCategoryWarning</div>
+            }
+        </div>
+
+        <!-- INGREDIENTS -->
+        <div class="md-card">
+            <h2>Ingredients <span class="text-muted fw-normal small">recipe makes @Model.PortionsPerBatch portion(s)</span></h2>
+            @if (!Model.Ingredients.Any())
+            {
+                <div class="text-muted">No ingredients recorded.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ingredient</th>
+                                <th class="text-end">Per portion</th>
+                                <th class="text-end">Per batch</th>
+                                <th>Allergens</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in Model.Ingredients)
+                            {
+                                <tr>
+                                    <td>@i.Name</td>
+                                    <td class="text-end">@i.QuantityPerPortion.ToString("0.###") @i.Unit</td>
+                                    <td class="text-end">@i.QuantityPerBatch.ToString("0.###") @i.Unit</td>
+                                    <td>@i.Allergens</td>
+                                    <td class="text-muted small">@i.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- PREPARATION -->
+        <div class="md-card">
+            <h2>Preparation</h2>
+            <div class="md-row"><span class="label">Preparation time</span><span>@Model.PrepTimeMinutes min</span></div>
+            <div class="md-row"><span class="label">Cooking time</span><span>@Model.CookTimeMinutes min</span></div>
+            <div class="md-row"><span class="label">Kitchen station</span><span>@(string.IsNullOrEmpty(Model.Station) ? "Line (default)" : Model.Station)</span></div>
+            @if (!string.IsNullOrWhiteSpace(Model.Instructions))
+            {
+                <div class="mt-2" style="white-space:pre-line; font-size:.9rem;">@Model.Instructions</div>
+            }
+        </div>
+
+    </div>
+</div>

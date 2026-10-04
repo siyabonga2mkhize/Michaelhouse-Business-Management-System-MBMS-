@@ -36,6 +36,9 @@ namespace Michaelhouse.Models
         public string LeadershipRoles { get; set; }
         public string CulturalActivities { get; set; }
 
+        // Food allergies. Comma-separated. Written as free text by the
+        // parent application wizard and as a normalised list by the
+        // student's dietary profile (see DietaryProfileService).
         public string Allergies { get; set; }
         public string Disabilities { get; set; }
         public string MedicalConditions { get; set; }
@@ -47,6 +50,30 @@ namespace Michaelhouse.Models
 
         public bool MedicalAccommodationRequired { get; set; }
         public string MedicalAccommodationNotes { get; set; }
+
+        // ── Dietary profile (cafeteria) ──────────────────────────
+        // Food allergies live in Allergies above. These fields hold
+        // the rest of what affects what the student can safely eat.
+        // Codes are defined in DietaryProfileService.
+
+        // "None", "Vegetarian", "Vegan", "Halal" or "Other"
+        [StringLength(30)]
+        public string DietaryPreference { get; set; }
+
+        [StringLength(200)]
+        public string DietaryPreferenceOther { get; set; }
+
+        // Comma-separated codes, e.g. "LactoseIntolerance,Coeliac"
+        [StringLength(500)]
+        public string MedicalDietaryRestrictions { get; set; }
+
+        [StringLength(200)]
+        public string MedicalDietaryRestrictionOther { get; set; }
+
+        [StringLength(1000)]
+        public string DietaryNotes { get; set; }
+
+        public DateTime? DietaryProfileUpdatedAt { get; set; }
 
         public int? PreviousResidenceId { get; set; }
         public int? PreviousRoomId { get; set; }

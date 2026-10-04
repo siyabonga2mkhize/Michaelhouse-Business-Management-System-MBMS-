@@ -1,0 +1,14 @@
+﻿@model Michaelhouse.Models.Cafeteria.IngredientOrderStatus
+@{
+    string css = "muted", text = Model.ToString();
+    switch (Model)
+    {
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.Draft: css = "muted"; break;
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.Pending: css = "info"; text = "Pending (sent)"; break;
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.Confirmed: css = "info"; break;
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.PartiallyFulfilled: css = "low"; text = "Partially fulfilled"; break;
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.Fulfilled: css = "ok"; break;
+        case Michaelhouse.Models.Cafeteria.IngredientOrderStatus.Cancelled: css = "bad"; break;
+    }
+}
+<span class="inv-badge @css">@text</span>

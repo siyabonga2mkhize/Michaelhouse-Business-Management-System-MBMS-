@@ -1,0 +1,246 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Squad Status";
+
+    var sports = ViewBag.Sports as System.Collections.Generic.IEnumerable<System.Linq.IGrouping<string, StudentSportStatus>>;
+}
+
+<style>
+    .sq-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .sq-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+        .sq-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .sq-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .sq-sport {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+    }
+
+    .sq-sport-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sq-sport-name {
+        font-weight: 700;
+        font-size: .95rem;
+    }
+
+    .sq-sport-count {
+        font-size: .8rem;
+        color: #6b7280;
+    }
+
+    .sq-row {
+        display: grid;
+        grid-template-columns: 1fr 180px 200px 200px;
+        gap: 1rem;
+        padding: .85rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+        align-items: center;
+        font-size: .88rem;
+    }
+
+        .sq-row:last-child {
+            border-bottom: none;
+        }
+
+    .sq-player {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .sq-number {
+        font-size: .75rem;
+        color: #9ca3af;
+    }
+
+    .sq-badge {
+        font-size: .72rem;
+        padding: .2rem .6rem;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+        .sq-badge.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .sq-badge.out {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .sq-reason {
+        font-size: .75rem;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    .sq-btn {
+        font-size: .78rem;
+        padding: .3rem .7rem;
+        border-radius: 4px;
+        border: 1px solid;
+        cursor: pointer;
+        background: #fff;
+        font-weight: 600;
+    }
+
+        .sq-btn.mark-out {
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+            .sq-btn.mark-out:hover {
+                background: #fef2f2;
+            }
+
+        .sq-btn.mark-in {
+            border-color: #86efac;
+            color: #065f46;
+        }
+
+            .sq-btn.mark-in:hover {
+                background: #f0fdf4;
+            }
+
+    .sq-empty {
+        padding: 2rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="sq-shell">
+
+        <div class="sq-header">
+            <div>
+                <h1>Squad Status</h1>
+                <div class="sq-meta">Mark players unavailable (injury, leave, suspension). Unavailable players are excluded from meal portions.</div>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (sports == null || !sports.Any())
+        {
+            <div class="sq-sport sq-empty">
+                No students are currently registered to any sport.
+            </div>
+        }
+        else
+        {
+            foreach (var sportGroup in sports)
+            {
+                var activeCount = sportGroup.Count(x => x.IsActive);
+
+                <div class="sq-sport">
+                    <div class="sq-sport-header">
+                        <span class="sq-sport-name">@sportGroup.Key</span>
+                        <span class="sq-sport-count">@activeCount of @sportGroup.Count() active</span>
+                    </div>
+
+                    @foreach (var entry in sportGroup.OrderBy(x => x.Student.LastName))
+                    {
+                        <div class="sq-row">
+                            <div>
+                                <div class="sq-player">@entry.Student.FirstName @entry.Student.LastName</div>
+                                <div class="sq-number">@entry.Student.StudentNumber</div>
+                            </div>
+
+                            <div>
+                                @if (entry.IsActive)
+                                {
+                                    <span class="sq-badge ok">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="sq-badge out">Unavailable</span>
+                                }
+                            </div>
+
+                            <div class="sq-reason">
+                                @if (!string.IsNullOrEmpty(entry.StatusReason))
+                                {
+                                    <span>@entry.StatusReason</span>
+                                    if (entry.UnavailableUntil.HasValue)
+                                    {
+                                        <span> · until @entry.UnavailableUntil.Value.ToString("dd MMM")</span>
+                                    }
+                                }
+                            </div>
+
+                            <div class="text-end">
+                                @if (entry.IsActive)
+                                {
+                                    <form action="@Url.Action("MarkUnavailable", "CoachSquad")" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@entry.Id" />
+
+                                        <input type="text"
+                                               name="reason"
+                                               placeholder="Reason (e.g. Injured)"
+                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:130px;"
+                                               required />
+
+                                        <input type="date"
+                                               name="until"
+                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:120px;" />
+
+                                        <button type="submit" class="sq-btn mark-out">Mark Unavailable</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form action="@Url.Action("MarkAvailable", "CoachSquad", new { id = entry.Id })" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="sq-btn mark-in">Mark Available</button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+    </div>
+</div>

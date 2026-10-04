@@ -1,0 +1,571 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model Michaelhouse.Models.ViewModels.ProposedMenuViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Chef Review";
+
+    var substitutesByItem =
+        ViewBag.SubstitutesByItem as Dictionary<int, List<Michaelhouse.Models.ViewModels.SubstituteOption>>
+        ?? new Dictionary<int, List<Michaelhouse.Models.ViewModels.SubstituteOption>>();
+
+    var allItems = Model.ScheduleItems != null
+        ? Model.ScheduleItems
+            .OrderBy(x => x.Date)
+            .ThenBy(x =>
+                x.MealSlot == "Breakfast" ? 1 :
+                x.MealSlot == "Lunch" ? 2 :
+                x.MealSlot == "Dinner" ? 3 : 4)
+            .ToList()
+        : new List<Michaelhouse.Models.ViewModels.MenuScheduleItemDisplay>();
+
+    var flaggedItems = allItems
+        .Where(x => x.ItemTagStatus == ItemTagStatus.NeedsSubstitution)
+        .ToList();
+
+    var canSignOff = flaggedItems.Count == 0 && !Model.ChefChallengeRequested;
+
+    var portions = allItems.Any() ? allItems.First().CalculatedPortions : 0;
+
+    var showActions = Model.MenuStatus == MenuStatus.PendingReview
+                      && !Model.ChefChallengeRequested;
+}
+
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1">Kitchen Review</h1>
+            <p class="text-muted mb-0">
+                @Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")
+                &nbsp;&middot;&nbsp;
+                <strong>@portions</strong> portions per meal
+            </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            @if (Model.IsKitchenReady)
+            {
+                <span class="badge bg-success fs-6">Kitchen Ready</span>
+            }
+            @if (Model.ChefChallengeRequested)
+            {
+                <span class="badge bg-warning text-dark fs-6">Changes Requested</span>
+            }
+            @if (Model.MenuStatus == MenuStatus.PendingReview && !Model.ChefChallengeRequested && !Model.IsKitchenReady)
+            {
+                <span class="badge bg-primary fs-6">Pending Review</span>
+            }
+            @if (Model.MenuStatus == MenuStatus.Accepted)
+            {
+                <span class="badge bg-success fs-6">Accepted</span>
+            }
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <!-- SPECIAL EVENT CONTEXT -->
+    @if (!string.IsNullOrWhiteSpace(Model.SpecialEventNotes))
+    {
+        <div class="alert alert-info">
+            <strong>Special events this week:</strong>
+            <div class="mt-1">@Model.SpecialEventNotes</div>
+        </div>
+    }
+
+    <!-- CHEF CHALLENGE BANNER -->
+    @if (Model.ChefChallengeRequested)
+    {
+        <div class="alert alert-warning">
+            <strong>
+                Change request sent
+                @if (Model.ChefChallengeDate.HasValue)
+                {
+                    <text>on @Model.ChefChallengeDate.Value.ToString("dd MMM yyyy HH:mm")</text>
+                }
+            </strong>
+            <div class="mt-2">@Model.ChefChallengeReason</div>
+            <div class="small text-muted mt-2">
+                Waiting for the Meal Coordinator to respond. You can still resolve
+                individual flagged items below if you want.
+            </div>
+        </div>
+    }
+
+    <!-- KITCHEN READY BANNER -->
+    @if (Model.IsKitchenReady)
+    {
+        <div class="alert alert-success">
+            <strong>Kitchen Ready.</strong>
+            The Meal Coordinator can now accept this menu.
+        </div>
+    }
+
+    <!-- SUMMARY -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Flagged Items</div>
+                    <div class="display-6 @(flaggedItems.Count > 0 ? "text-warning" : "text-success")">
+                        @flaggedItems.Count
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Total Meals</div>
+                    <div class="display-6">@allItems.Count</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-muted text-uppercase">Menu options</div>
+                    <div class="display-6">@(Model.ScheduleItems != null ? Model.ScheduleItems.Count : 0)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="flagged-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#flagged"
+                    type="button"
+                    role="tab">
+                Flagged Items (@flaggedItems.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="menu-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#menu"
+                    type="button"
+                    role="tab">
+                Full Menu (@allItems.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="bom-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#bom"
+                    type="button"
+                    role="tab">
+                Kitchen Requirements
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- TAB 1: FLAGGED ITEMS -->
+        <div class="tab-pane fade show active" id="flagged" role="tabpanel">
+
+            @if (flaggedItems.Count == 0)
+            {
+                <div class="alert alert-success">
+                    <strong>All clear.</strong>
+                    Every meal in this proposal can be cooked with current stock.
+                </div>
+            }
+            else
+            {
+                foreach (var item in flaggedItems)
+                {
+                    var options = substitutesByItem.ContainsKey(item.Id)
+                        ? substitutesByItem[item.Id]
+                        : new List<Michaelhouse.Models.ViewModels.SubstituteOption>();
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="small text-uppercase text-muted">
+                                        @item.Date.ToString("ddd dd MMM yyyy") &middot; @item.MealSlot
+                                    </div>
+                                    <h5 class="mb-1">@item.MenuItemName</h5>
+                                    <span class="badge bg-warning text-dark">Needs Substitution</span>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    @item.CaloriesPerPortion.ToString("0") kcal &middot;
+                                    @item.ProteinGramsPerPortion.ToString("0.0") g protein
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning small mb-3">
+                                @item.TagReason
+                            </div>
+
+                            <form action="@Url.Action("ConfirmSubstitution", "Cafeteria")" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="scheduleItemId" value="@item.Id" />
+
+                                <div class="mb-3">
+                                    <label class="form-label small text-uppercase text-muted">
+                                        Chef's Replacement
+                                    </label>
+
+                                    <select name="newMenuItemId" class="form-select" required>
+                                        <option value="">Select a substitute...</option>
+
+                                        @foreach (var opt in options)
+                                        {
+                                            if (opt.IsValid)
+                                            {
+                                                <option value="@opt.MenuItemId">
+                                                    [OK] @opt.Name - @opt.Reason
+                                                </option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@opt.MenuItemId" disabled>
+                                                    [X] @opt.Name - @opt.Reason
+                                                </option>
+                                            }
+                                        }
+
+                                    </select>
+
+                                    <div class="form-text">
+                                        Only options marked [OK] will be accepted. The system
+                                        pre-validated each against stock and cooldown.
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Confirm Swap
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                }
+            }
+
+        </div>
+
+        <!-- TAB 2: FULL MENU -->
+        <div class="tab-pane fade" id="menu" role="tabpanel">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <strong>The week's proposed menu</strong>
+                    <span class="text-muted small ms-2">
+                        What the kitchen will actually cook
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 130px;">Date</th>
+                                    <th style="width: 110px;">Meal</th>
+                                    <th>Item</th>
+                                    <th style="width: 100px;" class="text-end">Portions</th>
+                                    <th style="width: 180px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in allItems)
+                                {
+                                    var mealBorder = "";
+                                    if (item.MealSlot == "Breakfast") { mealBorder = "border-start border-4 border-info"; }
+                                    if (item.MealSlot == "Lunch") { mealBorder = "border-start border-4 border-primary"; }
+                                    if (item.MealSlot == "Dinner") { mealBorder = "border-start border-4 border-warning"; }
+
+                                    var isMatch = (item.TagReason ?? "").Contains("Match-day")
+                                               || (item.TagReason ?? "").Contains("Pre-match");
+
+                                    <tr class="@mealBorder">
+                                        <td>
+                                            <div class="fw-bold">@item.Date.ToString("ddd")</div>
+                                            <div class="small text-muted">@item.Date.ToString("dd MMM")</div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-uppercase small">@item.MealSlot</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold">@item.MenuItemName</div>
+                                            <div class="small text-muted">@item.DietaryClassification</div>
+                                        </td>
+                                        <td class="text-end">
+                                            @item.CalculatedPortions
+                                        </td>
+                                        <td>
+                                            @if (item.StatusText != "Confirmed")
+                                            {
+                                                <span class="badge @item.StatusCssClass">@item.StatusText</span>
+                                            }
+                                            @if (isMatch)
+                                            {
+                                                <span class="badge bg-info text-dark ms-1">Match context</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 3: KITCHEN REQUIREMENTS -->
+        <div class="tab-pane fade" id="bom" role="tabpanel">
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="mb-2"><strong>Kitchen requirements come from students' choices.</strong></p>
+                    <p class="text-muted mb-0">
+                        Ingredients are calculated only once this menu is published and students have submitted
+                        their meal plans — then each dish is prepared for the number of students who chose it.
+                    </p>
+                    <a class="btn btn-outline-primary btn-sm mt-3" href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = Model.Id })">Kitchen Requirements</a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    @if (showActions)
+    {
+        <div class="card shadow-sm mt-4">
+            <div class="card-body">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        @if (canSignOff)
+                        {
+                            <form action="@Url.Action("MarkKitchenReady", "Cafeteria", new { id = Model.Id })" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-success w-100 btn-lg"
+                                        onclick="return confirm('Mark this menu Kitchen Ready?');">
+                                    Mark Kitchen Ready
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-secondary w-100 btn-lg"
+                                    disabled
+                                    title="Resolve flagged items first">
+                                Mark Kitchen Ready (resolve flags first)
+                            </button>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <button type="button"
+                                class="btn btn-warning w-100 btn-lg"
+                                onclick="openUc12Modal('challengeModal')">
+                            Request Changes
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="small text-muted mt-3">
+                    <strong>Mark Kitchen Ready</strong> signs off — the Coordinator can then Accept.
+                    <br />
+                    <strong>Request Changes</strong> sends the menu back to the Coordinator with a reason.
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.MenuStatus == MenuStatus.Accepted)
+    {
+        <div class="alert alert-success mt-4">
+            <strong>This menu has been accepted.</strong>
+            The kitchen can prepare from the requirements list above.
+        </div>
+    }
+
+</div>
+
+<!-- REQUEST CHANGES MODAL -->
+@if (showActions)
+{
+    <div class="uc12-modal" id="challengeModal" aria-hidden="true">
+        <div class="uc12-modal-dialog">
+            <div class="uc12-modal-content">
+
+                <div class="uc12-modal-header">
+                    <h5 class="uc12-modal-title">Request Changes</h5>
+                    <button type="button"
+                            class="uc12-modal-close"
+                            onclick="closeUc12Modal('challengeModal')"
+                            aria-label="Close">
+                        x
+                    </button>
+                </div>
+
+                <form action="@Url.Action("RequestChanges", "Cafeteria")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="uc12-modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">What needs to change?</label>
+                            <textarea name="reason"
+                                      class="form-control"
+                                      rows="5"
+                                      required
+                                      maxlength="2000"
+                                      placeholder="Explain what the kitchen can't deliver and why..."></textarea>
+                        </div>
+
+                        <div class="alert alert-light border small mb-0">
+                            The menu stays in the Coordinator's queue. They will see your
+                            note and can regenerate, edit the affected items, or respond
+                            with a justification.
+                        </div>
+                    </div>
+
+                    <div class="uc12-modal-footer">
+                        <button type="button"
+                                class="btn btn-secondary"
+                                onclick="closeUc12Modal('challengeModal')">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            Send Change Request
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL JAVASCRIPT -->
+<script>
+    function openUc12Modal(id) {
+        var m = document.getElementById(id);
+        if (!m) return;
+        m.classList.add("uc12-modal-open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeUc12Modal(id) {
+        var m = document.getElementById(id);
+        if (!m) return;
+        m.classList.remove("uc12-modal-open");
+        document.body.style.overflow = "";
+    }
+
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("uc12-modal")) closeUc12Modal(e.target.id);
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            var m = document.querySelector(".uc12-modal.uc12-modal-open");
+            if (m) closeUc12Modal(m.id);
+        }
+    });
+</script>
+
+<style>
+    .uc12-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        background: rgba(0,0,0,0.55);
+        padding: 40px 15px;
+    }
+
+        .uc12-modal.uc12-modal-open {
+            display: block;
+        }
+
+    .uc12-modal-dialog {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .uc12-modal-content {
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.35);
+    }
+
+    .uc12-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .uc12-modal-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .uc12-modal-close {
+        border: 0;
+        background: transparent;
+        font-size: 1.5rem;
+        line-height: 1;
+        padding: 0.25rem 0.5rem;
+        opacity: 0.6;
+        cursor: pointer;
+    }
+
+        .uc12-modal-close:hover {
+            opacity: 1;
+        }
+
+    .uc12-modal-body {
+        padding: 1rem;
+    }
+
+    .uc12-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .table-hover tbody tr:hover {
+        background: #f8f9fa;
+    }
+</style>

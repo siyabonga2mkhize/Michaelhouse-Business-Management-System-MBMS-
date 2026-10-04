@@ -1,0 +1,61 @@
+﻿@model Michaelhouse.Models.Supplier
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool isNew = Model.SupplierId == 0;
+    ViewBag.Title = isNew ? "Add Supplier" : "Edit Supplier";
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell" style="max-width:640px;">
+
+        <div class="inv-header">
+            <div>
+                <h1>@(isNew ? "Add Supplier" : Model.Name)</h1>
+                <div class="inv-meta">@(isNew ? "A new cafeteria supplier." : "Shared with the Store if it also uses this supplier.")</div>
+            </div>
+            <a href="@Url.Action("Suppliers", "CafeteriaInventory")" class="btn btn-outline-secondary">← Suppliers</a>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="inv-note bad">@Html.ValidationSummary(false)</div>
+        }
+
+        <form class="inv-card inv-form" method="post" action="@Url.Action("SupplierEdit", "CafeteriaInventory", isNew ? null : new { id = Model.SupplierId })">
+            @Html.AntiForgeryToken()
+            <div style="margin-bottom:.75rem;">
+                <label>Name *</label>
+                <input name="name" class="inv-input" maxlength="200" required value="@Model.Name" />
+            </div>
+            <div class="inv-row">
+                <div>
+                    <label>Contact person</label>
+                    <input name="contactPerson" class="inv-input" maxlength="100" value="@Model.ContactPerson" />
+                </div>
+                <div>
+                    <label>Phone</label>
+                    <input name="phone" class="inv-input" maxlength="20" value="@Model.Phone" />
+                </div>
+            </div>
+            <div style="margin-bottom:.75rem;">
+                <label>Email</label>
+                <input name="email" type="email" class="inv-input" maxlength="200" value="@Model.Email" />
+                <div class="inv-help">Purchase orders are emailed here when sent.</div>
+            </div>
+            <div style="margin-bottom:.75rem;">
+                <label>Address</label>
+                <textarea name="address" class="inv-input" rows="2" maxlength="500">@Model.Address</textarea>
+            </div>
+            @if (!isNew)
+            {
+                <label style="display:flex; gap:.4rem; align-items:center; font-weight:400; margin-bottom:.75rem;">
+                    <input type="checkbox" name="isActive" value="true" @(Model.IsActive ? "checked" : "") /> Active
+                </label>
+            }
+            <button class="btn btn-primary">Save supplier</button>
+        </form>
+
+    </div>
+</div>

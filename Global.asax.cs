@@ -1,14 +1,20 @@
-﻿using Stripe;
+﻿using Michaelhouse.Models;
+using Stripe;
 using System;
+using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.Http;
+using System.Web.Security;
+using System.Linq;
 
 namespace Michaelhouse
 {
     public class MvcApplication : System.Web.HttpApplication
     {
+    
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();
@@ -16,7 +22,11 @@ namespace Michaelhouse
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             GlobalConfiguration.Configure(WebApiConfig.Register);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-
+            // UC18: RSVP is a public form. Anti-forgery tokens must not
+            // be bound to the current user identity, otherwise a token
+            // generated while logged out becomes invalid the moment the
+            // same browser is logged in (and vice versa).
+            System.Web.Helpers.AntiForgeryConfig.SuppressIdentityHeuristicChecks = true;
             try
             {
                 var stripeKey = System.Configuration.ConfigurationManager.AppSettings["StripeApiKey"];
@@ -34,11 +44,66 @@ namespace Michaelhouse
                 System.Diagnostics.Trace.TraceError("Stripe initialization failed: " + ex);
             }
 
+            // UC18: opens scheduled event RSVPs on time
+            Michaelhouse.Services.EventRsvpScheduler.Start();
+
             // 🌱 SEED THE DATABASE ONCE WHEN THE APP STARTS
             //SeedDrivers();
             //SeedMichaelhouseSystem();
         }
+        protected void Application_End()
+        {
+            Michaelhouse.Services.EventRsvpScheduler.Stop();
+        }
 
+        protected void Application_AuthenticateRequest(object sender, EventArgs e)
+        {
+            HttpApplication app = (HttpApplication)sender;
+
+            HttpCookie authCookie = app.Context.Request.Cookies[FormsAuthentication.FormsCookieName];
+
+            if (authCookie == null)
+            {
+                return;
+            }
+
+            FormsAuthenticationTicket ticket;
+
+            try
+            {
+                ticket = FormsAuthentication.Decrypt(authCookie.Value);
+            }
+            catch
+            {
+                return;
+            }
+
+            if (ticket == null || string.IsNullOrWhiteSpace(ticket.Name))
+            {
+                return;
+            }
+
+            using (var db = new DBContextClass())
+            {
+                var user = db.Users.FirstOrDefault(u => u.Email == ticket.Name);
+
+                if (user == null || string.IsNullOrWhiteSpace(user.Role))
+                {
+                    return;
+                }
+
+                var identity = new FormsIdentity(ticket);
+
+                var principal = new GenericPrincipal(
+                    identity,
+                    new[] { user.Role }
+                );
+
+                app.Context.User = principal;
+            }
+        }
+
+    
         // --- YOUR EXISTING DRIVER SEEDING ---
         //private void SeedDrivers()
         //{

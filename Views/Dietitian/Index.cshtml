@@ -1,0 +1,214 @@
+﻿
+@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Dietitian Review Queue";
+
+    var submitted = ViewBag.SubmittedPlans as List<MealPlan> ?? new List<MealPlan>();
+    var recent = ViewBag.RecentPlans as List<MealPlan> ?? new List<MealPlan>();
+}
+
+<style>
+    .dt-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .dt-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .dt-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+        .dt-header .meta {
+            color: #888;
+            font-size: .82rem;
+        }
+
+    .dt-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .dt-card-header {
+        padding: 1rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .dt-card-header .title {
+            font-weight: 700;
+        }
+
+    .dt-table {
+        width: 100%;
+        font-size: .88rem;
+    }
+
+        .dt-table th {
+            text-align: left;
+            padding: .75rem 1.25rem;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #6b7280;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .dt-table td {
+            padding: .85rem 1.25rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .dt-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .dt-empty {
+        padding: 2.5rem 1.25rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="dt-shell">
+
+        <div class="dt-header">
+            <h1>Dietitian Review Queue</h1>
+            <p class="meta">Review submitted meal plans, approve or send back with feedback.</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <!-- SUBMITTED -->
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <span class="title">Awaiting Review</span>
+                <span class="badge bg-warning text-dark">@submitted.Count</span>
+            </div>
+
+            @if (submitted.Count == 0)
+            {
+                <div class="dt-empty">No plans awaiting review.</div>
+            }
+            else
+            {
+                <table class="dt-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Week</th>
+                            <th>Submitted</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var plan in submitted)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="font-weight:600;">
+                                        @(plan.Student != null ? plan.Student.FirstName + " " + plan.Student.LastName : "Unknown")
+                                    </div>
+                                </td>
+                                <td>@plan.WeekStartDate.ToString("dd MMM") – @plan.WeekEndDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-muted small">
+                                    @(plan.SubmittedAt.HasValue ? plan.SubmittedAt.Value.ToString("dd MMM HH:mm") : "-")
+                                </td>
+                                <td class="text-end">
+                                    <a href="@Url.Action("Review", "Dietitian", new { id = plan.Id })"
+                                       class="btn btn-sm btn-primary">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- RECENT -->
+        <div class="dt-card">
+            <div class="dt-card-header">
+                <span class="title">Recently Reviewed</span>
+            </div>
+
+            @if (recent.Count == 0)
+            {
+                <div class="dt-empty">No reviewed plans yet.</div>
+            }
+            else
+            {
+                <table class="dt-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Week</th>
+                            <th>Status</th>
+                            <th>Reviewed</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var plan in recent)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="font-weight:600;">
+                                        @(plan.Student != null ? plan.Student.FirstName + " " + plan.Student.LastName : "Unknown")
+                                    </div>
+                                </td>
+                                <td>@plan.WeekStartDate.ToString("dd MMM") – @plan.WeekEndDate.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    @if (plan.Status == MealPlanStatus.Approved)
+                                    {
+                                        <span class="badge bg-success">Approved</span>
+                                    }
+                                    else if (plan.Status == MealPlanStatus.SentBack)
+                                    {
+                                        <span class="badge bg-danger">Sent Back</span>
+                                    }
+                                </td>
+                                <td class="text-muted small">
+                                    @(plan.ReviewedAt.HasValue ? plan.ReviewedAt.Value.ToString("dd MMM HH:mm") : "-")
+                                </td>
+                                <td class="text-end">
+                                    <a href="@Url.Action("Review", "Dietitian", new { id = plan.Id })"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,94 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model IngredientDelivery
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Delivery #" + Model.Id;
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell" style="max-width:860px;">
+
+        <div class="inv-header">
+            <div>
+                <h1>Delivery #@Model.Id</h1>
+                <div class="inv-meta">
+                    @(Model.Supplier != null ? Model.Supplier.Name : "") · received @SchoolClock.FromUtc(Model.ReceivedAt).ToString("dddd dd MMM yyyy HH:mm")
+                    @if (!string.IsNullOrEmpty(ViewBag.ReceivedBy as string))
+                    {
+                        <text> by @ViewBag.ReceivedBy</text>
+                    }
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "IngredientDelivery")" class="btn btn-outline-secondary">← Deliveries</a>
+        </div>
+
+        <div class="inv-card">
+            <div class="inv-row">
+                <div>
+                    <div class="inv-help">Purchase order</div>
+                    @if (Model.PurchaseOrder != null)
+                    {
+                        <a href="@Url.Action("Details", "IngredientOrder", new { id = Model.PurchaseOrderId })"><strong>@Model.PurchaseOrder.PoNumber</strong></a>
+                    }
+                    else
+                    {
+                        <strong>No order</strong>
+                    }
+                </div>
+                <div>
+                    <div class="inv-help">Invoice</div>
+                    <strong>@(Model.InvoiceNumber ?? "—")</strong>
+                    @if (Model.InvoiceDate.HasValue)
+                    {
+                        <span class="inv-muted"> · @Model.InvoiceDate.Value.ToString("dd MMM yyyy")</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.InvoiceFilePath))
+                    {
+                        <div><a href="@Url.Action("Invoice", "IngredientDelivery", new { id = Model.Id })" target="_blank">📎 View invoice</a></div>
+                    }
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="inv-note info" style="margin:0;">@Model.Notes</div>
+            }
+        </div>
+
+        <div class="inv-card" style="padding:0;">
+            <div class="inv-table-wrap">
+                <table class="inv-table">
+                    <thead>
+                        <tr><th>Ingredient</th><th class="num">Received</th><th class="inv-hide-sm">On invoice as</th><th>Note</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in Model.Lines.OrderBy(x => x.Ingredient.Name))
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.IngredientId })">@l.Ingredient.Name</a>
+                                    @if (!l.PurchaseOrderLineId.HasValue && Model.PurchaseOrderId.HasValue)
+                                    {
+                                        <span class="inv-badge low">Not on order</span>
+                                    }
+                                </td>
+                                <td class="num">
+                                    @IngredientUnits.Format(l.QuantityReceived, l.Ingredient.Unit)
+                                    @if (l.ExtraQuantity > 0m && l.PurchaseOrderLineId.HasValue)
+                                    {
+                                        <div class="inv-help">incl. @IngredientUnits.Format(l.ExtraQuantity, l.Ingredient.Unit) extra</div>
+                                    }
+                                </td>
+                                <td class="inv-hide-sm inv-muted">@(l.InvoiceDescription == null ? "—" : l.InvoiceDescription + (l.InvoiceQuantity.HasValue ? " — " + l.InvoiceQuantity.Value.ToString("0.###") + " " + l.InvoiceUnit : ""))</td>
+                                <td class="inv-muted">@l.Note</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

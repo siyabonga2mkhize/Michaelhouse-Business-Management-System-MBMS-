@@ -1,0 +1,76 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@model List<IngredientPurchaseOrder>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Purchase Orders";
+    string status = ViewBag.Status as string ?? "open";
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>Purchase Orders</h1>
+                <div class="inv-meta">Cafeteria ingredient orders.</div>
+            </div>
+            <a href="@Url.Action("Create", "IngredientOrder")" class="btn btn-primary">Place Stock Order</a>
+        </div>
+
+        <div class="inv-tabs">
+            <a class="@(status == "open" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder")">Open</a>
+            <a class="@(status == "draft" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "draft" })">Drafts</a>
+            <a class="@(status == "done" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "done" })">Completed / cancelled</a>
+            <a class="@(status == "all" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "all" })">All</a>
+        </div>
+
+        <div class="inv-card" style="padding:0;">
+            <div class="inv-table-wrap">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Supplier</th>
+                            <th class="inv-hide-sm">Order date</th>
+                            <th class="inv-hide-sm">Expected</th>
+                            <th class="num inv-hide-sm">Items</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr><td colspan="6" class="inv-muted">No orders.</td></tr>
+                        }
+                        @foreach (var o in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })"><strong>@o.PoNumber</strong></a>
+                                    @if (o.ShortfallOfOrderId.HasValue)
+                                    {
+                                        <div class="inv-help">shortfall re-order</div>
+                                    }
+                                </td>
+                                <td>@(o.Supplier != null ? o.Supplier.Name : "")</td>
+                                <td class="inv-hide-sm">@o.OrderDate.ToString("dd MMM yyyy")</td>
+                                <td class="inv-hide-sm">@(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd dd MMM") : "—")</td>
+                                <td class="num inv-hide-sm">@o.Lines.Count</td>
+                                <td>
+                                    @Html.Partial("_OrderStatusBadge", o.Status)
+                                    @if (o.Lines.Any(l => l.Shortfall > 0m && l.ShortfallAction == ShortfallAction.None))
+                                    {
+                                        <span class="inv-badge bad">Shortfall</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

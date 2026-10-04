@@ -47,6 +47,9 @@ namespace Michaelhouse.Models
 
         public bool IsActive { get; set; } = true;
 
+        // Also supplies cafeteria ingredients (shown in Cafeteria Inventory)
+        public bool SuppliesCafeteria { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation

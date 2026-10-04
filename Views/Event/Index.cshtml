@@ -1,0 +1,308 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Events";
+
+    var upcoming = ViewBag.Upcoming as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+    var past = ViewBag.Past as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+    var rsvpStatuses = ViewBag.RsvpStatuses as Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>
+        ?? new Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>();
+}
+
+<style>
+    .ev-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .ev-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .ev-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .ev-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+    .ev-section {
+        margin-bottom: 2rem;
+    }
+
+    .ev-section-title {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .75rem;
+    }
+
+    .ev-table {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        .ev-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+        }
+
+        .ev-table th {
+            text-align: left;
+            padding: .65rem 1rem;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #6b7280;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .ev-table td {
+            padding: .8rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .ev-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ev-table tr:hover {
+            background: #fafafa;
+        }
+
+    .ev-name {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .ev-type {
+        display: inline-block;
+        padding: .15rem .5rem;
+        border-radius: 4px;
+        font-size: .7rem;
+        font-weight: 600;
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .ev-status {
+        display: inline-block;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+        .ev-status.draft {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .ev-status.confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .ev-status.rsvp-open {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ev-status.rsvp-closed {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .ev-status.plan-done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .ev-status.completed {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .ev-status.cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    .ev-empty {
+        padding: 2.5rem 1rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="ev-shell">
+
+        <div class="ev-header">
+            <div>
+                <h1>Events</h1>
+                <div class="ev-meta">
+                    Schedule and manage all catering events — dinners, teas, braais, Founders' Day.
+                </div>
+            </div>
+            <a href="@Url.Action("Create", "Event")" class="btn btn-primary">
+                + Schedule Event
+            </a>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <div class="ev-section">
+            <div class="ev-section-title">Upcoming (@upcoming.Count)</div>
+
+            <div class="ev-table">
+                @if (upcoming.Count == 0)
+                {
+                    <div class="ev-empty">
+                        No upcoming events. Click <strong>Schedule Event</strong> to add one.
+                    </div>
+                }
+                else
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:110px;">Date</th>
+                                <th>Event</th>
+                                <th style="width:150px;">Venue</th>
+                                <th style="width:110px;">Headcount</th>
+                                <th style="width:130px;">Status</th>
+                                <th style="width:90px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var evt in upcoming)
+                            {
+                                string statusClass = "draft";
+                                string statusText = evt.Status.ToString();
+
+                                switch (evt.Status)
+                                {
+                                    case EventStatus.Confirmed: statusClass = "confirmed"; statusText = "Confirmed"; break;
+                                    case EventStatus.RsvpOpen: statusClass = "rsvp-open"; statusText = "RSVP Open"; break;
+                                    case EventStatus.RsvpClosed: statusClass = "rsvp-closed"; statusText = "RSVP Closed"; break;
+                                    case EventStatus.FeastPlanGenerated: statusClass = "plan-done"; statusText = "Plan Generated"; break;
+                                    case EventStatus.InProgress: statusClass = "confirmed"; statusText = "In Progress"; break;
+                                    case EventStatus.Completed: statusClass = "completed"; statusText = "Completed"; break;
+                                    case EventStatus.Cancelled: statusClass = "cancelled"; statusText = "Cancelled"; break;
+                                }
+
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@evt.EventDate.ToString("ddd dd MMM")</div>
+                                        <div class="small text-muted">
+                                            @evt.StartTime.ToString(@"hh\:mm")–@evt.EndTime.ToString(@"hh\:mm")
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="ev-name">@evt.EventName</div>
+                                        <span class="ev-type">@evt.EventType</span>
+                                    </td>
+                                    <td>@(evt.Venue != null ? evt.Venue.Name : "—")</td>
+                                    <td>
+                                        ~@evt.ExpectedHeadcount
+                                        @if (evt.GuaranteedHeadcount.HasValue)
+                                        {
+                                            <div class="small text-muted">
+                                                confirmed @evt.GuaranteedHeadcount
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="ev-status @statusClass">@statusText</span>
+                                        @if (rsvpStatuses.ContainsKey(evt.Id))
+                                        {
+                                            <div class="small text-muted" style="margin-top:.25rem;" title="@rsvpStatuses[evt.Id].Detail">
+                                                RSVP: @rsvpStatuses[evt.Id].Label
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("Details", "Event", new { id = evt.Id })"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Open
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @if (past.Count > 0)
+        {
+            <div class="ev-section">
+                <div class="ev-section-title">Past</div>
+                <div class="ev-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:110px;">Date</th>
+                                <th>Event</th>
+                                <th style="width:150px;">Venue</th>
+                                <th style="width:130px;">Status</th>
+                                <th style="width:90px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var evt in past)
+                            {
+                                <tr>
+                                    <td>@evt.EventDate.ToString("dd MMM yyyy")</td>
+                                    <td><div class="ev-name">@evt.EventName</div></td>
+                                    <td>@(evt.Venue != null ? evt.Venue.Name : "—")</td>
+                                    <td>
+                                        @if (evt.Status == EventStatus.Cancelled)
+                                        {
+                                            <span class="ev-status cancelled">Cancelled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ev-status completed">Completed</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("Details", "Event", new { id = evt.Id })"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Open
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>

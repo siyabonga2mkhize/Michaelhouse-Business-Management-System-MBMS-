@@ -1,0 +1,84 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model List<IngredientDelivery>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Deliveries";
+    var open = ViewBag.OpenOrders as List<IngredientPurchaseOrder> ?? new List<IngredientPurchaseOrder>();
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell">
+
+        <div class="inv-header">
+            <div>
+                <h1>Deliveries</h1>
+                <div class="inv-meta">Record what arrives; stock goes up when a delivery is confirmed.</div>
+            </div>
+            <a href="@Url.Action("Record", "IngredientDelivery")" class="btn btn-primary">Record Delivery</a>
+        </div>
+
+        <div class="inv-card">
+            <h2>Awaiting delivery</h2>
+            @if (open.Count == 0)
+            {
+                <div class="inv-muted" style="font-size:.85rem;">No orders are waiting for a delivery.</div>
+            }
+            else
+            {
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr><th>Order</th><th>Supplier</th><th class="inv-hide-sm">Expected</th><th>Status</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in open)
+                            {
+                                <tr>
+                                    <td><a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })">@o.PoNumber</a></td>
+                                    <td>@(o.Supplier != null ? o.Supplier.Name : "")</td>
+                                    <td class="inv-hide-sm">@(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd dd MMM") : "—")</td>
+                                    <td>@Html.Partial("_OrderStatusBadge", o.Status)</td>
+                                    <td class="num"><a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="btn btn-sm btn-primary">Receive</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="inv-card">
+            <h2>Recent deliveries</h2>
+            @if (Model.Count == 0)
+            {
+                <div class="inv-muted" style="font-size:.85rem;">No deliveries recorded yet.</div>
+            }
+            else
+            {
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr><th>Received</th><th>Supplier</th><th class="inv-hide-sm">Order</th><th class="inv-hide-sm">Invoice</th><th class="num">Items</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model)
+                            {
+                                <tr>
+                                    <td><a href="@Url.Action("Details", "IngredientDelivery", new { id = d.Id })">@SchoolClock.FromUtc(d.ReceivedAt).ToString("ddd dd MMM HH:mm")</a></td>
+                                    <td>@(d.Supplier != null ? d.Supplier.Name : "")</td>
+                                    <td class="inv-hide-sm">@(d.PurchaseOrder != null ? d.PurchaseOrder.PoNumber : "No order")</td>
+                                    <td class="inv-hide-sm">@(d.InvoiceNumber ?? "—")</td>
+                                    <td class="num">@d.Lines.Count</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

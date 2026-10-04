@@ -1,0 +1,613 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Collection Terminal";
+
+    int todayCount = ViewBag.TodayCount != null ? (int)ViewBag.TodayCount : 0;
+    string currentSlot = ViewBag.CurrentSlot as string;
+    string currentSlotHours = ViewBag.CurrentSlotHours as string;
+    string collectionHours = ViewBag.CollectionHours as string;
+    bool isManualOpening = ViewBag.IsManualOpening == true;
+    bool canOpenCollection = ViewBag.CanOpenCollection == true;
+    int[] durationOptions = ViewBag.DurationOptions as int[] ?? new int[0];
+}
+
+<style>
+    .mc-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .mc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .mc-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .mc-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .mc-meta strong {
+            color: #333;
+        }
+
+    .mc-slot-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .5rem;
+        padding: .85rem 1.1rem;
+        border: 1.5px solid #C21E2E;
+        border-radius: 8px;
+        background: #fef2f2;
+        margin-bottom: 1.25rem;
+    }
+
+        .mc-slot-banner .slot {
+            font-size: .95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #C21E2E;
+        }
+
+        .mc-slot-banner .hours {
+            font-size: .8rem;
+            color: #6b7280;
+        }
+
+        .mc-slot-banner.manual {
+            border-color: #d97706;
+            background: #fffbeb;
+        }
+
+            .mc-slot-banner.manual .slot {
+                color: #b45309;
+            }
+
+        .mc-slot-banner.closed {
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+
+            .mc-slot-banner.closed .slot {
+                color: #6b7280;
+            }
+
+    .mc-opening {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .5rem;
+        padding: .75rem 1.1rem;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+        font-size: .85rem;
+    }
+
+        .mc-opening .label {
+            font-weight: 600;
+            color: #374151;
+            margin-right: .25rem;
+        }
+
+        .mc-opening .hint {
+            flex-basis: 100%;
+            color: #6b7280;
+            font-size: .75rem;
+        }
+
+        .mc-opening select {
+            width: auto;
+        }
+
+    .mc-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @@media (max-width: 800px) {
+        .mc-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .mc-camera-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem;
+    }
+
+    .mc-camera-wrap {
+        position: relative;
+        background: #111;
+        aspect-ratio: 4/3;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+        .mc-camera-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mc-camera-wrap .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: .9rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+    .mc-controls {
+        display: flex;
+        gap: .65rem;
+    }
+
+    .mc-status {
+        margin-top: 1rem;
+        font-size: .85rem;
+        padding: .65rem 1rem;
+        border-radius: 6px;
+        display: block;
+    }
+
+        .mc-status.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .mc-status.err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .mc-status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+    .mc-result-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        display: none;
+    }
+
+        .mc-result-card.visible {
+            display: block;
+        }
+
+        .mc-result-card.ok {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+        }
+
+        .mc-result-card.warn {
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+
+        .mc-result-card.err {
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+
+    .mc-result-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .35rem;
+    }
+
+    .mc-result-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: .25rem;
+    }
+
+    .mc-result-meta {
+        font-size: .82rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .mc-result-message {
+        font-size: .9rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
+    .mc-result-meal {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mc-result-meal-name {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .mc-result-meal-slot {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: #9ca3af;
+        margin-bottom: .35rem;
+    }
+
+    .mc-warning {
+        padding: .75rem 1rem;
+        border-radius: 6px;
+        font-size: .85rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .mc-actions {
+        display: flex;
+        gap: .65rem;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mc-shell" id="mc-root">
+        @Html.AntiForgeryToken()
+
+        <div class="mc-header">
+            <div>
+                <h1>Collection Terminal</h1>
+                <div class="mc-meta">
+                    Kitchen staff only · <strong id="todayCount">@todayCount</strong> meals collected today
+                </div>
+            </div>
+        </div>
+
+        <!-- MEAL BEING SERVED (decided by the server from school time) -->
+        @if (currentSlot != null)
+        {
+            <div class="mc-slot-banner @(isManualOpening ? "manual" : "")">
+                <span class="slot">Now serving: @currentSlot</span>
+                <span class="hours">@currentSlotHours</span>
+            </div>
+        }
+        else
+        {
+            <div class="mc-slot-banner closed">
+                <span class="slot">No meal is being served right now</span>
+                <span class="hours">@collectionHours</span>
+            </div>
+        }
+
+        <!-- MANUAL OPENING (Cafeteria Manager) -->
+        @if (canOpenCollection)
+        {
+            if (isManualOpening)
+            {
+                using (Html.BeginForm("CloseCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <span class="label">@currentSlot collection is open manually.</span>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Close now</button>
+                    <span class="hint">Normal hours: @collectionHours</span>
+                }
+            }
+            else
+            {
+                using (Html.BeginForm("OpenCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <span class="label">Open collection for today's</span>
+                    <select name="slot" class="form-select form-select-sm">
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch" selected>Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                    </select>
+                    <span class="label">for</span>
+                    <select name="minutes" class="form-select form-select-sm">
+                        @foreach (var m in durationOptions)
+                        {
+                            <option value="@m" @(m == 60 ? "selected" : "")>@(m < 60 ? m + " minutes" : (m / 60) + (m == 60 ? " hour" : " hours"))</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Open collection</button>
+                    <span class="hint">For testing and demonstrations. Overrides the normal hours (@collectionHours) until it ends or is closed. All other checks still apply, and collections are noted as made during a manual opening.</span>
+                }
+            }
+        }
+
+        <div class="mc-grid">
+
+            <!-- CAMERA -->
+            <div class="mc-camera-card">
+                <div class="mc-camera-wrap">
+                    <video id="video" autoplay playsinline></video>
+                    <div id="placeholder" class="placeholder">
+                        Click "Start Camera" to begin
+                    </div>
+                </div>
+
+                <div class="mc-controls">
+                    <button type="button" id="startBtn" class="btn btn-primary flex-fill">
+                        Start Camera
+                    </button>
+                    <button type="button" id="captureBtn" class="btn btn-success flex-fill" style="display:none;">
+                        Capture &amp; Verify
+                    </button>
+                </div>
+
+                <div id="status" class="mc-status info" style="display:none;"></div>
+            </div>
+
+            <!-- RESULT -->
+            <div id="resultCard" class="mc-result-card">
+                <div id="resultLabel" class="mc-result-label"></div>
+                <div id="resultName" class="mc-result-name"></div>
+                <div id="resultMeta" class="mc-result-meta"></div>
+                <div id="resultMessage" class="mc-result-message"></div>
+
+                <div id="warningBox" class="mc-warning" style="display:none;"></div>
+
+                <div id="mealBox" class="mc-result-meal">
+                    <div class="mc-result-meal-slot" id="mealSlotLabel"></div>
+                    <div class="mc-result-meal-name" id="mealName"></div>
+                    <div id="allergenInfo" style="font-size:.75rem; color:#6b7280; margin-top:.5rem;"></div>
+                </div>
+
+                <div class="mc-actions">
+                    <button type="button" id="confirmBtn" class="btn btn-success flex-fill">
+                        Confirm Collection
+                    </button>
+                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary flex-fill">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        // ── State ──────────────────────────────────────────────────
+        // The browser only ever sends a photo (Verify) and the one-time
+        // token the server returned (Record). Who the student is, which
+        // meal and slot, and whether they may collect are all decided
+        // on the server.
+        var stream = null;
+        var pendingToken = null;
+        var video = document.getElementById("video");
+        var placeholder = document.getElementById("placeholder");
+        var startBtn = document.getElementById("startBtn");
+        var captureBtn = document.getElementById("captureBtn");
+        var statusBox = document.getElementById("status");
+        var resultCard = document.getElementById("resultCard");
+        var resultLabel = document.getElementById("resultLabel");
+        var resultName = document.getElementById("resultName");
+        var resultMeta = document.getElementById("resultMeta");
+        var resultMessage = document.getElementById("resultMessage");
+        var warningBox = document.getElementById("warningBox");
+        var mealBox = document.getElementById("mealBox");
+        var mealSlotLabel = document.getElementById("mealSlotLabel");
+        var mealName = document.getElementById("mealName");
+        var allergenInfo = document.getElementById("allergenInfo");
+        var confirmBtn = document.getElementById("confirmBtn");
+        var cancelBtn = document.getElementById("cancelBtn");
+
+        var tokenInput = document.querySelector('#mc-root input[name="__RequestVerificationToken"]');
+        var antiForgery = tokenInput ? tokenInput.value : "";
+
+        // ── Camera ─────────────────────────────────────────────────
+        startBtn.addEventListener("click", function () {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showStatus("This browser does not support camera access.", "err");
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(function (s) {
+                    stream = s;
+                    video.srcObject = s;
+                    video.play();
+                    placeholder.style.display = "none";
+                    startBtn.style.display = "none";
+                    captureBtn.style.display = "inline-block";
+                    showStatus("Camera ready. Position the student's face in the frame.", "info");
+                })
+                .catch(function (err) {
+                    showStatus("Could not start camera: " + err.message, "err");
+                });
+        });
+
+        // ── Capture & Verify ───────────────────────────────────────
+        captureBtn.addEventListener("click", function () {
+            if (!stream) {
+                showStatus("Camera not started.", "err");
+                return;
+            }
+
+            var canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            showStatus("Verifying…", "info");
+            captureBtn.disabled = true;
+            hideResult();
+
+            post('@Url.Action("Verify", "MealCollection")', { imageBase64: canvas.toDataURL("image/jpeg", 0.85) })
+                .then(function (data) {
+                    captureBtn.disabled = false;
+
+                    if (data.success) {
+                        pendingToken = data.token;
+                        showStatus("Check the meal, then confirm to record the collection.", "ok");
+                    } else {
+                        showStatus(data.title + ".", "err");
+                    }
+
+                    showResult(data);
+                })
+                .catch(function (err) {
+                    captureBtn.disabled = false;
+                    showStatus("Error: " + err.message, "err");
+                });
+        });
+
+        // ── Confirm collection ─────────────────────────────────────
+        confirmBtn.addEventListener("click", function () {
+            if (!pendingToken) return;
+
+            confirmBtn.disabled = true;
+
+            post('@Url.Action("Record", "MealCollection")', { token: pendingToken })
+                .then(function (data) {
+                    confirmBtn.disabled = false;
+                    pendingToken = null;
+
+                    showResult(data);
+
+                    if (!data.success) {
+                        showStatus("Not recorded: " + data.title + ".", "err");
+                        return;
+                    }
+
+                    showStatus("✓ " + data.studentName + " collected " + data.mealSlot + " at " + data.collectedAt + ".", "ok");
+
+                    var counter = document.getElementById("todayCount");
+                    if (counter) counter.textContent = ((parseInt(counter.textContent, 10) || 0) + 1).toString();
+                })
+                .catch(function (err) {
+                    confirmBtn.disabled = false;
+                    showStatus("Error: " + err.message, "err");
+                });
+        });
+
+        // ── Cancel ─────────────────────────────────────────────────
+        cancelBtn.addEventListener("click", function () {
+            hideResult();
+            showStatus("Ready. Position the next student.", "info");
+        });
+
+        // ── Result card ────────────────────────────────────────────
+        // outcome: ReadyForCollection → green with Confirm
+        //          Collected          → green, done
+        //          anything else      → red with the reason
+        function showResult(data) {
+            var ready = data.outcome === "ReadyForCollection";
+            var collected = data.outcome === "Collected";
+
+            resultCard.classList.remove("ok", "warn", "err");
+            resultCard.classList.add("visible", (ready || collected) ? "ok" : "err");
+
+            resultLabel.textContent = data.title || "";
+            resultName.textContent = data.studentName || "";
+            resultName.style.display = data.studentName ? "block" : "none";
+            resultMeta.textContent = data.studentNumber ? "Student no. " + data.studentNumber : "";
+            resultMessage.textContent = ready ? "Ready for collection." : (data.message || "");
+
+            // The meal (when the server found one)
+            mealBox.style.display = data.mealName ? "block" : "none";
+            mealSlotLabel.textContent = data.mealDate || data.mealSlot || "";
+            mealName.textContent = data.mealName || "";
+
+            allergenInfo.textContent = "";
+            addInfoLine("Contains", data.allergens);
+            addInfoLine("Student allergies", data.studentAllergies);
+            addInfoLine("Dietary preference", data.dietaryPreference);
+            addInfoLine("Medical dietary", data.medicalDietaryRestrictions);
+            addInfoLine("Dietary notes", data.dietaryNotes);
+
+            // Dietary warnings — shown, staff decide
+            warningBox.style.display = "none";
+            warningBox.textContent = "";
+            if (data.hasDietaryConflict) {
+                var heading = document.createElement("div");
+                heading.style.fontWeight = "700";
+                heading.textContent = "⚠ Dietary conflict — please review before confirming.";
+                warningBox.appendChild(heading);
+
+                (data.dietaryConflicts || []).forEach(function (msg) {
+                    var line = document.createElement("div");
+                    line.textContent = "• " + msg;
+                    warningBox.appendChild(line);
+                });
+
+                warningBox.style.display = "block";
+                if (ready) resultCard.classList.replace("ok", "warn");
+            }
+
+            confirmBtn.style.display = ready ? "" : "none";
+            cancelBtn.textContent = ready ? "Cancel" : "Next student";
+        }
+
+        function addInfoLine(label, value) {
+            if (!value) return;
+            var line = document.createElement("div");
+            var strong = document.createElement("strong");
+            strong.textContent = label + ": ";
+            line.appendChild(strong);
+            line.appendChild(document.createTextNode(value));
+            allergenInfo.appendChild(line);
+        }
+
+        function hideResult() {
+            resultCard.classList.remove("visible");
+            pendingToken = null;
+        }
+
+        function showStatus(msg, kind) {
+            statusBox.textContent = msg;
+            statusBox.className = "mc-status " + (kind || "info");
+            statusBox.style.display = "block";
+        }
+
+        function post(url, fields) {
+            var form = new FormData();
+            form.append("__RequestVerificationToken", antiForgery);
+            Object.keys(fields).forEach(function (k) { form.append(k, fields[k]); });
+
+            return fetch(url, { method: "POST", body: form, credentials: "same-origin" })
+                .then(function (r) {
+                    if (!r.ok) throw new Error("server returned " + r.status);
+                    return r.json();
+                });
+        }
+
+    })();
+    </script>
+}

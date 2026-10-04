@@ -1,0 +1,711 @@
+﻿@using System.Linq
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model Michaelhouse.Models.ViewModels.MealFormViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool isEdit = Model.Id.HasValue;
+    ViewBag.Title = isEdit ? "Edit Meal" : "Create Meal";
+
+    var stations = ViewBag.Stations as System.Collections.Generic.List<string> ?? new System.Collections.Generic.List<string>();
+
+    var jsonSettings = new Newtonsoft.Json.JsonSerializerSettings
+    {
+        StringEscapeHandling = Newtonsoft.Json.StringEscapeHandling.EscapeHtml
+    };
+    var initialLinesJson = Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.Ingredients ?? new System.Collections.Generic.List<Michaelhouse.Models.ViewModels.MealIngredientLineViewModel>(),
+        jsonSettings);
+
+    var categories = Enum.GetValues(typeof(NutritionCategory)).Cast<NutritionCategory>().ToList();
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+<style>
+    .mf-shell {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .mf-header {
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .mf-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+        .mf-header p {
+            color: #6b7280;
+            font-size: .88rem;
+            margin: 0;
+        }
+
+    .mf-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+        .mf-card h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 .2rem 0;
+        }
+
+            .mf-card h2 .step {
+                color: #C21E2E;
+                margin-right: .35rem;
+            }
+
+        .mf-card .mf-help {
+            color: #6b7280;
+            font-size: .8rem;
+            margin-bottom: .85rem;
+        }
+
+    .mf-derived {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: .75rem 1rem;
+        font-size: .88rem;
+    }
+
+    .mf-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: .75rem;
+    }
+
+        .mf-stats div {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: .65rem .75rem;
+        }
+
+        .mf-stats .label {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6b7280;
+        }
+
+        .mf-stats .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+    .mf-ing-table td, .mf-ing-table th {
+        vertical-align: middle;
+    }
+
+    .mf-ing-table th {
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #6b7280;
+    }
+
+    .mf-new-ing {
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: .75rem;
+        display: none;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mf-shell">
+
+        <div class="mf-header">
+            <h1>@(isEdit ? "Edit Meal" : "Create Meal")</h1>
+            <p>Allergens, halal status and nutrition are worked out from the ingredients, so they always match the recipe.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.UsageWarning))
+        {
+            <div class="alert alert-warning small">@Model.UsageWarning</div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
+        }
+
+        <form action="@Url.Action(isEdit ? "Edit" : "Create", "MealLibrary")" method="post" id="mealForm">
+            @Html.AntiForgeryToken()
+            @if (isEdit)
+            {
+                <input type="hidden" name="Id" value="@Model.Id" />
+            }
+
+            <!-- 1. BASIC -->
+            <div class="mf-card">
+                <h2><span class="step">1</span>Basic meal information</h2>
+                <div class="mf-help">What the meal is and when it can be served.</div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="Name">Meal name</label>
+                    <input type="text" class="form-control" id="Name" name="Name" maxlength="200" required value="@Model.Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="Description">Description <span class="text-muted small">(shown to students)</span></label>
+                    <textarea class="form-control" id="Description" name="Description" rows="2" maxlength="500">@Model.Description</textarea>
+                </div>
+
+                <label class="form-label d-block">Meal type</label>
+                <div class="d-flex flex-wrap gap-3 mb-2">
+                    <div class="form-check">
+                        @Html.CheckBoxFor(m => m.IsBreakfastItem, new { @class = "form-check-input" })
+                        <label class="form-check-label" for="IsBreakfastItem">Breakfast</label>
+                    </div>
+                    <div class="form-check">
+                        @Html.CheckBoxFor(m => m.IsLunchItem, new { @class = "form-check-input" })
+                        <label class="form-check-label" for="IsLunchItem">Lunch</label>
+                    </div>
+                    <div class="form-check">
+                        @Html.CheckBoxFor(m => m.IsDinnerItem, new { @class = "form-check-input" })
+                        <label class="form-check-label" for="IsDinnerItem">Dinner</label>
+                    </div>
+                </div>
+
+                <div class="form-check">
+                    @Html.CheckBoxFor(m => m.IsFarmGrownProduce, new { @class = "form-check-input" })
+                    <label class="form-check-label" for="IsFarmGrownProduce">Uses farm-grown produce</label>
+                </div>
+            </div>
+
+            <!-- 2. DIETARY -->
+            <div class="mf-card">
+                <h2><span class="step">2</span>Dietary information</h2>
+                <div class="mf-help">
+                    The classification is your choice, but it can't claim more than the ingredients allow.
+                    Halal and allergens are calculated — change an ingredient to change them.
+                </div>
+
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    @foreach (var option in MealLibraryService.ClassificationOptions)
+                    {
+                        var id = "class_" + option.Code;
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="DietaryClassification" id="@id" value="@option.Code"
+                                   @(string.Equals(Model.DietaryClassification, option.Code, StringComparison.OrdinalIgnoreCase) ? "checked" : "") />
+                            <label class="form-check-label" for="@id">@option.Label</label>
+                        </div>
+                    }
+                </div>
+
+                <div class="mf-derived">
+                    <div><strong>Allergens:</strong> <span id="derivedAllergens">—</span></div>
+                    <div><strong>Halal:</strong> <span id="derivedHalal">—</span></div>
+                    <div class="text-muted small mt-1" id="derivedClassification"></div>
+                    <div class="text-danger small mt-1" id="classificationWarning"></div>
+                </div>
+            </div>
+
+            <!-- 3. NUTRITION -->
+            <div class="mf-card">
+                <h2><span class="step">3</span>Nutrition</h2>
+                <div class="mf-help">Per portion, calculated from the ingredients below. The nutrition category is how the scheduler uses the meal on match days.</div>
+
+                <div class="mf-stats mb-3">
+                    <div><div class="label">Energy</div><div class="value"><span id="nutKcal">0</span> <small class="fs-6 fw-normal">kcal</small></div></div>
+                    <div><div class="label">Protein</div><div class="value"><span id="nutProtein">0</span> <small class="fs-6 fw-normal">g</small></div></div>
+                    <div><div class="label">Carbohydrate</div><div class="value"><span id="nutCarbs">0</span> <small class="fs-6 fw-normal">g</small></div></div>
+                    <div><div class="label">Fat</div><div class="value"><span id="nutFat">0</span> <small class="fs-6 fw-normal">g</small></div></div>
+                </div>
+
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" for="NutritionCategory">Nutrition category</label>
+                        <select class="form-select" id="NutritionCategory" name="NutritionCategory">
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c" @(Model.NutritionCategory == c ? "selected" : "")>@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-7 small text-muted">
+                        Suggested: <strong id="suggestedCategory">—</strong>
+                        <button type="button" class="btn btn-link btn-sm p-0 ms-1" id="useSuggestion">use</button>
+                        <div>
+                            High protein ≥ @MealLibraryService.HighProteinGrams.ToString("0", inv) g ·
+                            High carb ≥ @MealLibraryService.HighCarbGrams.ToString("0", inv) g ·
+                            Light &lt; @MealLibraryService.LightCalories.ToString("0", inv) kcal
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-warning small mt-2 mb-0" id="categoryWarning" style="display:none;"></div>
+            </div>
+
+            <!-- 4. INGREDIENTS -->
+            <div class="mf-card">
+                <h2><span class="step">4</span>Ingredients</h2>
+                <div class="mf-help">Enter the quantity for the whole batch. The system stores the amount per portion, which production planning and ingredient requirements use.</div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-5 col-md-4">
+                        <label class="form-label" for="PortionsPerBatch">Portions this recipe makes</label>
+                        <input type="number" class="form-control" id="PortionsPerBatch" name="PortionsPerBatch" min="1" max="100000" step="1"
+                               value="@Model.PortionsPerBatch" />
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm mf-ing-table mb-2">
+                        <thead>
+                            <tr>
+                                <th style="min-width:200px;">Ingredient</th>
+                                <th style="width:120px;">Quantity</th>
+                                <th style="width:90px;">Unit</th>
+                                <th style="width:120px;">Per portion</th>
+                                <th>Notes</th>
+                                <th style="width:40px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingredientRows"></tbody>
+                    </table>
+                </div>
+                <div id="noIngredients" class="text-muted small mb-2">No ingredients yet.</div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="addRow"><i class="bi bi-plus-lg"></i> Add ingredient</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleNewIngredient">Ingredient not listed?</button>
+                </div>
+
+                <!-- New ingredient (fields have no name attributes, so they
+                     are never posted with the meal form) -->
+                <div class="mf-new-ing" id="newIngredientPanel">
+                    <div class="fw-bold mb-2">New ingredient</div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small" for="niName">Name</label>
+                            <input type="text" class="form-control form-control-sm" id="niName" maxlength="200" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small" for="niUnit">Measured in</label>
+                            <select class="form-select form-select-sm" id="niUnit">
+                                <option value="g">grams (g)</option>
+                                <option value="ml">millilitres (ml)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mt-1">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small" for="niKcal">kcal per 100</label>
+                            <input type="text" inputmode="decimal" class="form-control form-control-sm" id="niKcal" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small" for="niProtein">Protein g per 100</label>
+                            <input type="text" inputmode="decimal" class="form-control form-control-sm" id="niProtein" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small" for="niCarbs">Carbs g per 100</label>
+                            <input type="text" inputmode="decimal" class="form-control form-control-sm" id="niCarbs" />
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small" for="niFat">Fat g per 100</label>
+                            <input type="text" inputmode="decimal" class="form-control form-control-sm" id="niFat" />
+                        </div>
+                    </div>
+
+                    <div class="mt-2 small fw-bold">Allergens it contains</div>
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach (var option in DietaryProfileService.AllergyOptions.Where(o => o.Code != DietaryProfileService.OtherCode))
+                        {
+                            var id = "niAllergen_" + option.Code.Replace(" ", "");
+                            <div class="form-check">
+                                <input class="form-check-input ni-allergen" type="checkbox" id="@id" value="@option.Code" />
+                                <label class="form-check-label small" for="@id">@option.Label</label>
+                            </div>
+                        }
+                    </div>
+                    <input type="text" class="form-control form-control-sm mt-1" id="niOtherAllergens" placeholder="Other allergens, separated by commas" maxlength="150" />
+
+                    <div class="mt-2 small fw-bold">Dietary tags <span class="fw-normal text-muted">(fish, eggs and dairy come from allergens)</span></div>
+                    <div class="d-flex flex-wrap gap-3">
+                        @foreach (var option in DietaryProfileService.IngredientTagOptions)
+                        {
+                            var id = "niTag_" + option.Code;
+                            <div class="form-check">
+                                <input class="form-check-input ni-tag" type="checkbox" id="@id" value="@option.Code" />
+                                <label class="form-check-label small" for="@id">@option.Label</label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="text-danger small mt-2" id="niError"></div>
+                    <div class="mt-2 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-success" id="niSave">Save ingredient</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="niCancel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. PREPARATION -->
+            <div class="mf-card">
+                <h2><span class="step">5</span>Preparation information</h2>
+                <div class="mf-help">Used by the kitchen production plan.</div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="PrepTimeMinutes">Prep time (min)</label>
+                        <input type="number" class="form-control" id="PrepTimeMinutes" name="PrepTimeMinutes" min="0" max="1440" step="1" value="@Model.PrepTimeMinutes" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="CookTimeMinutes">Cooking time (min)</label>
+                        <input type="number" class="form-control" id="CookTimeMinutes" name="CookTimeMinutes" min="0" max="1440" step="1" value="@Model.CookTimeMinutes" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="Station">Kitchen station</label>
+                        <input type="text" class="form-control" id="Station" name="Station" maxlength="50" list="stationList" value="@Model.Station" />
+                        <datalist id="stationList">
+                            @foreach (var s in stations)
+                            {
+                                <option value="@s"></option>
+                            }
+                        </datalist>
+                    </div>
+                </div>
+
+                <label class="form-label" for="Instructions">Recipe / instructions</label>
+                <textarea class="form-control" id="Instructions" name="Instructions" rows="4" maxlength="1000">@Model.Instructions</textarea>
+            </div>
+
+            <!-- 6. SAVE -->
+            <div class="d-flex justify-content-end gap-2 mb-4">
+                <a class="btn btn-outline-secondary"
+                   href="@(isEdit ? Url.Action("Details", "MealLibrary", new { id = Model.Id }) : Url.Action("Index", "MealLibrary"))">Cancel</a>
+                <button type="submit" class="btn btn-success">Save Meal</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    (function () {
+        // ── Data from the server ──────────────────────────────────
+        var ingredients = @Html.Raw(ViewBag.IngredientOptionsJson ?? "[]");
+        var initialLines = @Html.Raw(initialLinesJson);
+
+        var HIGH_PROTEIN = @MealLibraryService.HighProteinGrams.ToString(inv);
+        var HIGH_CARB = @MealLibraryService.HighCarbGrams.ToString(inv);
+        var LIGHT_KCAL = @MealLibraryService.LightCalories.ToString(inv);
+
+        var rowsBody = document.getElementById("ingredientRows");
+        var batchInput = document.getElementById("PortionsPerBatch");
+        var form = document.getElementById("mealForm");
+        var token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+        var nextIndex = 0;
+
+        function byId(id) {
+            for (var i = 0; i < ingredients.length; i++) {
+                if (ingredients[i].Id === id) return ingredients[i];
+            }
+            return null;
+        }
+
+        function parseNumber(text) {
+            if (text === null || text === undefined) return NaN;
+            return parseFloat(String(text).trim().replace(",", "."));
+        }
+
+        function unitsFor(baseUnit) {
+            if (baseUnit === "g") return ["g", "kg"];
+            if (baseUnit === "ml") return ["ml", "l"];
+            return [baseUnit];
+        }
+
+        function toBase(quantity, unit, baseUnit) {
+            if (unit === baseUnit) return quantity;
+            if ((baseUnit === "g" && unit === "kg") || (baseUnit === "ml" && unit === "l")) return quantity * 1000;
+            return NaN;
+        }
+
+        function batchSize() {
+            var n = parseInt(batchInput.value, 10);
+            return n > 0 ? n : 1;
+        }
+
+        // ── Rows ──────────────────────────────────────────────────
+        function fillIngredientSelect(select, selectedId) {
+            select.innerHTML = "";
+            var blank = document.createElement("option");
+            blank.value = "0";
+            blank.textContent = "Choose an ingredient…";
+            select.appendChild(blank);
+
+            ingredients.forEach(function (ing) {
+                var opt = document.createElement("option");
+                opt.value = ing.Id;
+                opt.textContent = ing.Name + " (" + ing.Unit + ")";
+                if (ing.Id === selectedId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function fillUnitSelect(select, baseUnit, selectedUnit) {
+            select.innerHTML = "";
+            unitsFor(baseUnit || "g").forEach(function (u) {
+                var opt = document.createElement("option");
+                opt.value = u;
+                opt.textContent = u;
+                if (u === selectedUnit) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function addRow(line) {
+            line = line || { IngredientId: 0, Quantity: "", Unit: "", Notes: "" };
+            var k = nextIndex++;
+            var tr = document.createElement("tr");
+
+            var tdIng = document.createElement("td");
+            var hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "Ingredients.Index";
+            hidden.value = k;
+            var ingSelect = document.createElement("select");
+            ingSelect.className = "form-select form-select-sm";
+            ingSelect.name = "Ingredients[" + k + "].IngredientId";
+            fillIngredientSelect(ingSelect, line.IngredientId);
+            tdIng.appendChild(hidden);
+            tdIng.appendChild(ingSelect);
+
+            var tdQty = document.createElement("td");
+            var qty = document.createElement("input");
+            qty.type = "text";
+            qty.inputMode = "decimal";
+            qty.className = "form-control form-control-sm";
+            qty.name = "Ingredients[" + k + "].Quantity";
+            qty.value = line.Quantity || "";
+            tdQty.appendChild(qty);
+
+            var tdUnit = document.createElement("td");
+            var unitSelect = document.createElement("select");
+            unitSelect.className = "form-select form-select-sm";
+            unitSelect.name = "Ingredients[" + k + "].Unit";
+            var current = byId(line.IngredientId);
+            fillUnitSelect(unitSelect, current ? current.Unit : "g", line.Unit || (current ? current.Unit : "g"));
+            tdUnit.appendChild(unitSelect);
+
+            var tdPer = document.createElement("td");
+            tdPer.className = "small text-muted row-per-portion";
+
+            var tdNotes = document.createElement("td");
+            var notes = document.createElement("input");
+            notes.type = "text";
+            notes.className = "form-control form-control-sm";
+            notes.name = "Ingredients[" + k + "].Notes";
+            notes.maxLength = 500;
+            notes.placeholder = "e.g. diced";
+            notes.value = line.Notes || "";
+            tdNotes.appendChild(notes);
+
+            var tdRemove = document.createElement("td");
+            var remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "btn btn-sm btn-outline-danger";
+            remove.title = "Remove ingredient";
+            remove.innerHTML = "&times;";
+            remove.addEventListener("click", function () {
+                tr.parentNode.removeChild(tr);
+                refresh();
+            });
+            tdRemove.appendChild(remove);
+
+            ingSelect.addEventListener("change", function () {
+                var ing = byId(parseInt(ingSelect.value, 10));
+                fillUnitSelect(unitSelect, ing ? ing.Unit : "g", ing ? ing.Unit : "g");
+                refresh();
+            });
+            qty.addEventListener("input", refresh);
+            unitSelect.addEventListener("change", refresh);
+
+            [tdIng, tdQty, tdUnit, tdPer, tdNotes, tdRemove].forEach(function (td) { tr.appendChild(td); });
+            rowsBody.appendChild(tr);
+            refresh();
+            return tr;
+        }
+
+        // ── Live preview (the server recalculates on save) ────────
+        function refresh() {
+            var rows = rowsBody.querySelectorAll("tr");
+            var batch = batchSize();
+            var totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+            var allergens = [];
+            var nonVeg = [], nonVegan = [], halalProblems = [];
+            var seen = {}, duplicates = [];
+            var used = 0;
+
+            document.getElementById("noIngredients").style.display = rows.length ? "none" : "block";
+
+            rows.forEach(function (tr) {
+                var ing = byId(parseInt(tr.querySelector("select").value, 10));
+                var qty = parseNumber(tr.querySelector('input[type="text"]').value);
+                var unit = tr.querySelectorAll("select")[1].value;
+                var perCell = tr.querySelector(".row-per-portion");
+
+                if (!ing) { perCell.textContent = ""; return; }
+
+                if (seen[ing.Id]) duplicates.push(ing.Name);
+                seen[ing.Id] = true;
+
+                ing.Allergens.forEach(function (a) { if (allergens.indexOf(a) < 0) allergens.push(a); });
+                if (ing.IsNonVegetarian) nonVeg.push(ing.Name);
+                if (ing.IsNonVegan) nonVegan.push(ing.Name);
+                if (ing.HalalProblem) halalProblems.push(ing.HalalProblem);
+                used++;
+
+                var base = toBase(qty, unit, ing.Unit);
+                if (!(base > 0)) { perCell.textContent = "—"; return; }
+
+                var perPortion = base / batch;
+                perCell.textContent = (Math.round(perPortion * 1000) / 1000) + " " + ing.Unit;
+
+                totals.kcal += ing.CaloriesPerUnit * perPortion;
+                totals.protein += ing.ProteinGramsPerUnit * perPortion;
+                totals.carbs += ing.CarbohydrateGramsPerUnit * perPortion;
+                totals.fat += ing.FatGramsPerUnit * perPortion;
+            });
+
+            document.getElementById("nutKcal").textContent = Math.round(totals.kcal);
+            document.getElementById("nutProtein").textContent = totals.protein.toFixed(1);
+            document.getElementById("nutCarbs").textContent = totals.carbs.toFixed(1);
+            document.getElementById("nutFat").textContent = totals.fat.toFixed(1);
+
+            // Allergens + halal
+            document.getElementById("derivedAllergens").textContent = allergens.length ? allergens.join(", ") : (used ? "None" : "—");
+            document.getElementById("derivedHalal").textContent = !used ? "—"
+                : (halalProblems.length ? "No — " + halalProblems.join("; ") : "Yes");
+
+            // Classification
+            var strictest = nonVegan.length === 0 ? "Vegan" : (nonVeg.length === 0 ? "Vegetarian" : "Standard");
+            document.getElementById("derivedClassification").textContent = used
+                ? "Ingredients allow this meal to be marked up to: " + strictest + "."
+                : "";
+
+            var chosen = (form.querySelector('input[name="DietaryClassification"]:checked') || {}).value;
+            var warn = "";
+            if (chosen === "Vegan" && nonVegan.length) warn = "Can't be Vegan — contains " + nonVegan.join(", ") + ".";
+            else if (chosen === "Vegetarian" && nonVeg.length) warn = "Can't be Vegetarian — contains " + nonVeg.join(", ") + ".";
+            if (duplicates.length) warn += (warn ? " " : "") + duplicates.join(", ") + " is listed more than once.";
+            document.getElementById("classificationWarning").textContent = warn;
+
+            // Nutrition category suggestion + warning
+            var suggestion = totals.protein >= HIGH_PROTEIN ? "HighProtein"
+                : totals.carbs >= HIGH_CARB ? "HighCarb"
+                : (used && totals.kcal < LIGHT_KCAL) ? "Light" : "Standard";
+            document.getElementById("suggestedCategory").textContent = used ? suggestion : "—";
+
+            var category = document.getElementById("NutritionCategory").value;
+            var catWarn = "";
+            if (used && category === "HighProtein" && totals.protein < HIGH_PROTEIN)
+                catWarn = "Marked High protein, but it has " + totals.protein.toFixed(1) + " g protein per portion.";
+            else if (used && category === "HighCarb" && totals.carbs < HIGH_CARB)
+                catWarn = "Marked High carb, but it has " + totals.carbs.toFixed(1) + " g carbohydrate per portion.";
+            else if (used && category === "Light" && totals.kcal >= LIGHT_KCAL)
+                catWarn = "Marked Light, but it has " + Math.round(totals.kcal) + " kcal per portion.";
+
+            var catBox = document.getElementById("categoryWarning");
+            catBox.textContent = catWarn;
+            catBox.style.display = catWarn ? "block" : "none";
+        }
+
+        document.getElementById("addRow").addEventListener("click", function () { addRow(); });
+        batchInput.addEventListener("input", refresh);
+        document.getElementById("NutritionCategory").addEventListener("change", refresh);
+        form.querySelectorAll('input[name="DietaryClassification"]').forEach(function (r) { r.addEventListener("change", refresh); });
+
+        document.getElementById("useSuggestion").addEventListener("click", function () {
+            var s = document.getElementById("suggestedCategory").textContent;
+            if (s && s !== "—") {
+                document.getElementById("NutritionCategory").value = s;
+                refresh();
+            }
+        });
+
+        // ── New ingredient panel ──────────────────────────────────
+        var panel = document.getElementById("newIngredientPanel");
+        var niError = document.getElementById("niError");
+
+        document.getElementById("toggleNewIngredient").addEventListener("click", function () {
+            panel.style.display = panel.style.display === "block" ? "none" : "block";
+        });
+        document.getElementById("niCancel").addEventListener("click", function () {
+            panel.style.display = "none";
+            niError.textContent = "";
+        });
+
+        // Enter inside the panel must not submit the meal form
+        panel.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") e.preventDefault();
+        });
+
+        document.getElementById("niSave").addEventListener("click", function () {
+            var data = new FormData();
+            data.append("__RequestVerificationToken", token);
+            data.append("Name", document.getElementById("niName").value);
+            data.append("Unit", document.getElementById("niUnit").value);
+            data.append("CaloriesPer100", document.getElementById("niKcal").value);
+            data.append("ProteinPer100", document.getElementById("niProtein").value);
+            data.append("CarbohydratePer100", document.getElementById("niCarbs").value);
+            data.append("FatPer100", document.getElementById("niFat").value);
+            data.append("OtherAllergens", document.getElementById("niOtherAllergens").value);
+            panel.querySelectorAll(".ni-allergen:checked").forEach(function (c) { data.append("Allergens", c.value); });
+            panel.querySelectorAll(".ni-tag:checked").forEach(function (c) { data.append("DietaryTags", c.value); });
+
+            niError.textContent = "";
+
+            fetch('@Url.Action("CreateIngredient", "MealLibrary")', {
+                method: "POST",
+                body: data,
+                credentials: "same-origin"
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
+                if (!result.success) {
+                    niError.textContent = result.message || "The ingredient could not be saved.";
+                    return;
+                }
+
+                ingredients.push(result.ingredient);
+                ingredients.sort(function (a, b) { return a.Name.localeCompare(b.Name); });
+
+                // Refresh every ingredient dropdown, keeping selections
+                rowsBody.querySelectorAll("tr").forEach(function (tr) {
+                    var select = tr.querySelector("select");
+                    fillIngredientSelect(select, parseInt(select.value, 10));
+                });
+
+                addRow({ IngredientId: result.ingredient.Id, Quantity: "", Unit: result.ingredient.Unit, Notes: "" });
+
+                panel.querySelectorAll("input[type=text]").forEach(function (i) { i.value = ""; });
+                panel.querySelectorAll("input[type=checkbox]").forEach(function (i) { i.checked = false; });
+                panel.style.display = "none";
+            })
+            .catch(function (err) {
+                niError.textContent = "Error: " + err.message;
+            });
+        });
+
+        // ── Start ─────────────────────────────────────────────────
+        if (initialLines.length) {
+            initialLines.forEach(function (line) { addRow(line); });
+        } else {
+            addRow();
+        }
+        refresh();
+    })();
+</script>

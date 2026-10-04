@@ -1,0 +1,307 @@
+﻿
+@using System.Linq
+@using Michaelhouse.Models.ViewModels
+@model ProductionPlanViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Kitchen Production Plan";
+}
+
+<style>
+    .pp-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .pp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .pp-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .pp-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .pp-meta strong {
+            color: #333;
+        }
+
+    .pp-day {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+    }
+
+    .pp-day-header {
+        padding: .85rem 1.25rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 700;
+        font-size: .95rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+        .pp-day-header .count {
+            font-size: .78rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+    .pp-slot {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .pp-slot:last-child {
+            border-bottom: none;
+        }
+
+    .pp-slot-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .85rem;
+    }
+
+    .pp-slot-name {
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+    }
+
+    .pp-serve {
+        font-size: .8rem;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+        .pp-serve strong {
+            color: #C21E2E;
+        }
+
+    .pp-task {
+        display: grid;
+        grid-template-columns: 100px 80px 1fr 90px 90px 90px;
+        gap: .75rem;
+        align-items: center;
+        padding: .75rem .9rem;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #f3f4f6;
+        font-size: .82rem;
+    }
+
+    .pp-time-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #111827;
+    }
+
+        .pp-time-cell small {
+            display: block;
+            font-size: .65rem;
+            color: #9ca3af;
+            font-weight: 500;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+    .pp-station {
+        display: inline-block;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+        .pp-station.gr {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .pp-station.st {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .pp-station.ov {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .pp-station.cp {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .pp-station.ln {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+    .pp-actions {
+        position: sticky;
+        bottom: 0;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+        margin: 2rem -1.5rem -1.5rem -1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .pp-actions .info {
+            font-size: .82rem;
+            color: #6b7280;
+        }
+
+            .pp-actions .info strong {
+                color: #111827;
+            }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="pp-shell">
+
+        <div class="pp-header">
+            <div>
+                <h1>Kitchen Production Plan</h1>
+                <div class="pp-meta">
+                    @Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")
+                    &nbsp;·&nbsp;
+                    <strong>@Model.TotalMeals</strong> meals to produce
+                </div>
+            </div>
+            <div>
+                @if (Model.IsProductionConfirmed)
+                {
+                    <span class="badge bg-success fs-6">Production Confirmed</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark fs-6">Awaiting Chef Sign-Off</span>
+                }
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+
+        @foreach (var day in Model.Days)
+        {
+            <div class="pp-day">
+                <div class="pp-day-header">
+                    <span>@day.Date.ToString("dddd, dd MMMM yyyy")</span>
+                    <span class="count">@day.Slots.Count service@(day.Slots.Count == 1 ? "" : "s")</span>
+                </div>
+
+                @foreach (var slot in day.Slots)
+                {
+                    <div class="pp-slot">
+                        <div class="pp-slot-header">
+                            <span class="pp-slot-name">@slot.MealSlot</span>
+                            <span class="pp-serve">Serve at <strong>@slot.ServeTime.ToString(@"hh\:mm")</strong> · @slot.Portions portions</span>
+                        </div>
+
+                        @foreach (var task in slot.Tasks)
+                        {
+                            var stClass = "ln";
+                            if (task.Station == "Grill") { stClass = "gr"; }
+                            else if (task.Station == "Stove") { stClass = "st"; }
+                            else if (task.Station == "Oven") { stClass = "ov"; }
+                            else if (task.Station == "Cold Prep") { stClass = "cp"; }
+
+                            <div class="pp-task">
+                                <div class="pp-time-cell">
+                                    @task.StartTime.ToString(@"hh\:mm")
+                                    <small>Start</small>
+                                </div>
+                                <div class="pp-time-cell">
+                                    @task.ReadyTime.ToString(@"hh\:mm")
+                                    <small>Ready</small>
+                                </div>
+                                <div>
+                                    <div style="font-weight:600;">@task.DishName</div>
+                                    <div style="font-size:.75rem; color:#9ca3af;">
+                                        @task.PrepMinutes min prep + @task.CookMinutes min cook · @task.Portions portions
+                                    </div>
+                                </div>
+                                <div><span class="pp-station @stClass">@task.Station</span></div>
+                                <div style="text-align:right; font-weight:600; color:#4b5563;">
+                                    @task.PrepMinutes min
+                                    <small style="display:block; font-size:.65rem; color:#9ca3af; font-weight:500;">PREP</small>
+                                </div>
+                                <div style="text-align:right; font-weight:600; color:#4b5563;">
+                                    @task.CookMinutes min
+                                    <small style="display:block; font-size:.65rem; color:#9ca3af; font-weight:500;">COOK</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!Model.IsProductionConfirmed)
+        {
+            <div class="pp-actions">
+                <div class="info">
+                    <strong>Chef sign-off required.</strong>
+                    Review the plan. Adjust timings in the kitchen if needed, then confirm.
+                </div>
+                <form action="@Url.Action("ConfirmProduction", "Cafeteria", new { id = Model.MenuId })" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="btn btn-success btn-lg"
+                            onclick="return confirm('Confirm the production plan for this week?');">
+                        Confirm Production Plan
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success mt-4">
+                <strong>Production confirmed</strong>
+                @if (Model.ConfirmedAt.HasValue)
+                {
+                    <text>on @Model.ConfirmedAt.Value.ToString("dd MMM yyyy HH:mm")</text>
+                }
+                — the kitchen can prepare to schedule.
+            </div>
+        }
+
+        <div class="mt-4">
+            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="btn btn-outline-secondary">
+                ← Back to Kitchen Review Queue
+            </a>
+        </div>
+
+    </div>
+</div>

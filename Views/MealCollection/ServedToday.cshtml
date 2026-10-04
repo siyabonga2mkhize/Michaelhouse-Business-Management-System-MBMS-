@@ -1,0 +1,290 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Served Today";
+
+    int breakfastExpected = ViewBag.BreakfastExpected ?? 0;
+    int breakfastServed = ViewBag.BreakfastServed ?? 0;
+    int lunchExpected = ViewBag.LunchExpected ?? 0;
+    int lunchServed = ViewBag.LunchServed ?? 0;
+    int dinnerExpected = ViewBag.DinnerExpected ?? 0;
+    int dinnerServed = ViewBag.DinnerServed ?? 0;
+    int totalExpected = ViewBag.TotalExpected ?? 0;
+    int totalServed = ViewBag.TotalServed ?? 0;
+
+    var recent = ViewBag.RecentCollections as System.Collections.Generic.List<Michaelhouse.Models.Cafeteria.MealCollection>
+                 ?? new System.Collections.Generic.List<Michaelhouse.Models.Cafeteria.MealCollection>();
+}
+
+<style>
+    .st-shell {
+        max-width: 1100px;,
+        margin: 0 auto;
+    }
+
+    .st-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+
+        .st-header h1 {
+            font-size: 1.9rem;
+            margin: 0 0 .35rem 0;
+        }
+
+    .st-meta {
+        color: #888;
+        font-size: .82rem;
+    }
+
+        .st-meta strong {
+            color: #333;
+        }
+
+    .st-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 800px) {
+        .st-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .st-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1.25rem;
+    }
+
+    .st-card-label {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: .35rem;
+    }
+
+    .st-card-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1;
+    }
+
+    .st-card-sub {
+        font-size: .78rem;
+        color: #9ca3af;
+        margin-top: .35rem;
+    }
+
+    .st-progress {
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: .65rem;
+    }
+
+    .st-progress-fill {
+        height: 100%;
+        background: #C21E2E;
+        transition: width .3s;
+    }
+
+    .st-table {
+        width: 100%;
+        font-size: .85rem;
+        border-collapse: collapse;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+        .st-table th {
+            text-align: left;
+            padding: .75rem 1.25rem;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: #6b7280;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .st-table td {
+            padding: .7rem 1.25rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .st-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .st-badge {
+        font-size: .72rem;
+        padding: .2rem .55rem;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+        .st-badge.face {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .st-badge.manual {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+    .st-empty {
+        padding: 2.5rem 1.25rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="st-shell">
+
+        <div class="st-header">
+            <div>
+                <h1>Served Today</h1>
+                <div class="st-meta">
+                    @DateTime.Today.ToString("dddd, dd MMMM yyyy")
+                </div>
+            </div>
+            <a href="@Url.Action("Index", "MealCollection")" class="btn btn-primary">
+                Open Collection Terminal
+            </a>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="st-summary">
+
+            <div class="st-card">
+                <div class="st-card-label">Breakfast</div>
+                <div class="st-card-value">@breakfastServed</div>
+                <div class="st-card-sub">of @breakfastExpected expected</div>
+                <div class="st-progress">
+                    @{
+                        int bPct = breakfastExpected > 0 ? (breakfastServed * 100 / breakfastExpected) : 0;
+                    }
+                    <div class="st-progress-fill" style="width:@bPct%;"></div>
+                </div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-label">Lunch</div>
+                <div class="st-card-value">@lunchServed</div>
+                <div class="st-card-sub">of @lunchExpected expected</div>
+                <div class="st-progress">
+                    @{
+                        int lPct = lunchExpected > 0 ? (lunchServed * 100 / lunchExpected) : 0;
+                    }
+                    <div class="st-progress-fill" style="width:@lPct%;"></div>
+                </div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-label">Dinner</div>
+                <div class="st-card-value">@dinnerServed</div>
+                <div class="st-card-sub">of @dinnerExpected expected</div>
+                <div class="st-progress">
+                    @{
+                        int dPct = dinnerExpected > 0 ? (dinnerServed * 100 / dinnerExpected) : 0;
+                    }
+                    <div class="st-progress-fill" style="width:@dPct%;"></div>
+                </div>
+            </div>
+
+            <div class="st-card">
+                <div class="st-card-label">Total Today</div>
+                <div class="st-card-value">@totalServed</div>
+                <div class="st-card-sub">of @totalExpected expected</div>
+                <div class="st-progress">
+                    @{
+                        int tPct = totalExpected > 0 ? (totalServed * 100 / totalExpected) : 0;
+                    }
+                    <div class="st-progress-fill" style="width:@tPct%;"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: baseline;">
+            <h2 style="font-size: 1.1rem; margin: 0;">Recent Collections</h2>
+            <span style="font-size: .82rem; color: #6b7280;">Last 20</span>
+        </div>
+
+        @if (recent.Count == 0)
+        {
+            <div class="st-card st-empty">
+                No meals collected yet today.
+            </div>
+        }
+        else
+        {
+            <table class="st-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Student</th>
+                        <th>Meal</th>
+                        <th>Method</th>
+                        <th style="text-align:right;">Confidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in recent)
+                    {
+                        <tr>
+                            <td style="font-family: 'Courier New', monospace; font-weight: 600;">
+                                @c.CollectedAt.ToLocalTime().ToString("HH:mm:ss")
+                            </td>
+                            <td>
+                                @(c.Student != null ? c.Student.FirstName + " " + c.Student.LastName : "(unknown)")
+                            </td>
+                            <td>@c.MealSlot</td>
+                            <td>
+                                @if (c.VerifiedByMethod == Michaelhouse.Models.Cafeteria.CollectionMethod.FaceMatch)
+                                {
+                                    <span class="st-badge face">Face match</span>
+                                }
+                                else
+                                {
+                                    <span class="st-badge manual">Manual override</span>
+                                }
+                            </td>
+                            <td style="text-align:right;">
+                                @if (c.MatchConfidence.HasValue)
+                                {
+                                    <span>@Math.Round(c.MatchConfidence.Value * 100)%</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#9ca3af;">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+    </div>
+</div>
+

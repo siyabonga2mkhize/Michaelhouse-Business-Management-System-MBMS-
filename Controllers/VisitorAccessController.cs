@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
@@ -18,99 +19,73 @@ namespace Michaelhouse.Controllers
         private static readonly string QrSecretSalt = "MH_Secure_GatePass_Salt_2026";
 
         // ============================================================
-        //  HELPER: Get the current logged-in student
-        // ============================================================
-        private Student GetCurrentStudent()
-        {
-            var userId = (int?)Session["UserId"];
-            if (!userId.HasValue) return null;
-            return db.Students.FirstOrDefault(s => s.UserId == userId.Value);
-        }
-
-        // ============================================================
-        // 📝 1. CREATE VISITOR REQUEST FORM
+        // 📝 1. PUBLIC VISITOR REQUEST FORM (Submitted by Visitor/Parent)
         // ============================================================
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult Create()
         {
-            var student = GetCurrentStudent();
-            if (student == null)
-                return RedirectToAction("Login", "Account");
-
-            string houseName = "Founders House";
-            if (student.ResidenceId.HasValue)
-            {
-                var residence = db.Residences.Find(student.ResidenceId.Value);
-                if (residence != null)
-                    houseName = residence.Name;
-            }
-
             var model = new VisitorAccessRequest
             {
-                StudentId = student.StudentId,
-                BoardingHouseName = houseName,
-                VisitDate = DateTime.Today
+                VisitDate = DateTime.Today.AddDays(1),
+                StartTime = new TimeSpan(14, 0, 0),
+                EndTime = new TimeSpan(16, 0, 0)
             };
             return View(model);
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(VisitorAccessRequest model)
+        public ActionResult Create(VisitorAccessRequest model, string studentSearch)
         {
-            var student = GetCurrentStudent();
+            ViewBag.StudentSearch = studentSearch;
+
+            if (string.IsNullOrWhiteSpace(studentSearch))
+            {
+                ModelState.AddModelError("", "Please enter the host student's name.");
+                return View(model);
+            }
+
+            // Locate Host Student strictly by name matching
+            string cleanName = studentSearch.Trim();
+            var student = db.Students.ToList().FirstOrDefault(s =>
+                $"{s.FirstName} {s.LastName}".Equals(cleanName, StringComparison.OrdinalIgnoreCase) ||
+                s.FirstName.Equals(cleanName, StringComparison.OrdinalIgnoreCase) ||
+                s.LastName.Equals(cleanName, StringComparison.OrdinalIgnoreCase) ||
+                (s.FirstName + " " + s.LastName).IndexOf(cleanName, StringComparison.OrdinalIgnoreCase) >= 0);
+
             if (student == null)
-                return RedirectToAction("Login", "Account");
+            {
+                ModelState.AddModelError("", $"Host student '{studentSearch}' could not be located in the Michaelhouse registry.");
+                return View(model);
+            }
 
             model.StudentId = student.StudentId;
 
-            if (!ModelState.IsValid)
+            // Ensure BoardingHouseName is set
+            if (string.IsNullOrWhiteSpace(model.BoardingHouseName))
             {
                 if (student.ResidenceId.HasValue)
                 {
                     var residence = db.Residences.Find(student.ResidenceId.Value);
-                    model.BoardingHouseName = residence?.Name ?? "Founders House";
+                    model.BoardingHouseName = residence?.Name ?? "Main Campus";
                 }
                 else
                 {
-                    model.BoardingHouseName = "Founders House";
+                    model.BoardingHouseName = "Main Campus";
                 }
-                return View(model);
             }
 
-            // Time sequence validation
+            // Schedule Validation
             if (model.StartTime >= model.EndTime)
             {
-                ModelState.AddModelError("", "Invalid Schedule: The Start Time must be before the End Time.");
+                ModelState.AddModelError("", "Invalid Schedule: Start Time must precede End Time.");
                 return View(model);
             }
 
-            // ============================================================
-            // ==== TEMPORARY FOR PRESENTATION – COMMENT OUT TIME RULES ====
-            // ============================================================
-            /*
-            // Visiting hours rules
-            TimeSpan weekdayStart = new TimeSpan(16, 0, 0);
-            TimeSpan weekdayEnd = new TimeSpan(19, 0, 0);
-            TimeSpan weekendStart = new TimeSpan(9, 0, 0);
-            TimeSpan weekendEnd = new TimeSpan(18, 0, 0);
-
-            bool isWeekend = (model.VisitDate.DayOfWeek == DayOfWeek.Saturday ||
-                              model.VisitDate.DayOfWeek == DayOfWeek.Sunday);
-
-            TimeSpan allowedStart = isWeekend ? weekendStart : weekdayStart;
-            TimeSpan allowedEnd = isWeekend ? weekendEnd : weekdayEnd;
-
-            if (model.StartTime < allowedStart || model.EndTime > allowedEnd)
-            {
-                string dayType = isWeekend ? "weekend (09:00 - 18:00)" : "weekday (16:00 - 19:00)";
-                ModelState.AddModelError("", $"Visits are only permitted during {dayType}.");
-                return View(model);
-            }
-            */
-
-            // Closed weekend check (keep this – it's a separate rule)
+            // Closed Weekend Policy Check (Auto-Reject Rule)
             bool isClosedWeekend = db.TermCalendars.Any(c =>
                 c.IsClosedWeekend &&
                 model.VisitDate >= c.StartDate &&
@@ -118,84 +93,117 @@ namespace Michaelhouse.Controllers
 
             if (isClosedWeekend)
             {
-                ModelState.AddModelError("", "The selected date falls on a Closed Weekend.");
+                ModelState.AddModelError("", "Access Denied: The requested date falls on an official Closed Weekend.");
                 return View(model);
             }
 
-            // Prep and curfew checks (keep these – they are safety rules)
-            TimeSpan prepStart = new TimeSpan(18, 30, 0);
-            TimeSpan prepEnd = new TimeSpan(20, 30, 0);
-            TimeSpan curfew = new TimeSpan(21, 0, 0);
+            // ============================================================
+            // 🏛️ DYNAMIC DATABASE RULE EVALUATION ENGINE
+            // ============================================================
+            var activeRules = db.CampusRules.Where(r => r.IsActive).ToList();
+            List<string> detectedConflicts = new List<string>();
 
-            bool overlapsWithPrep = !(model.StartTime >= prepEnd || model.EndTime <= prepStart);
-            if (overlapsWithPrep)
+            foreach (var rule in activeRules)
             {
-                ModelState.AddModelError("", "Visit window overlaps with Evening Prep (18:30 - 20:30).");
-                return View(model);
+                // Overlap calculation: Request starts before rule ends AND request ends after rule starts
+                bool overlaps = model.StartTime < rule.EndTime && model.EndTime > rule.StartTime;
+
+                if (overlaps)
+                {
+                    // Strict block rule (e.g., Night Curfew) -> Reject submission immediately
+                    if (rule.IsStrictBlock)
+                    {
+                        ModelState.AddModelError("", $"Access Denied: Requested window conflicts with {rule.RuleName} ({rule.StartTime:hh\\:mm} - {rule.EndTime:hh\\:mm}).");
+                        return View(model);
+                    }
+
+                    // Soft conflict rule -> Append flag for Housemaster consideration
+                    detectedConflicts.Add($"{rule.RuleName} ({rule.StartTime:hh\\:mm} - {rule.EndTime:hh\\:mm})");
+                }
             }
 
-            if (model.EndTime > curfew)
+            // Store policy evaluation status on the request model
+            if (detectedConflicts.Any())
             {
-                ModelState.AddModelError("", "The requested end time exceeds House Curfew (21:00).");
-                return View(model);
+                model.HasPolicyConflict = true;
+                model.PolicyFlagDetails = "Warning: Overlaps with " + string.Join(", ", detectedConflicts);
+            }
+            else
+            {
+                model.HasPolicyConflict = false;
+                model.PolicyFlagDetails = "Complies with all campus schedule rules.";
             }
 
-            // Safeguarding & Zone Enforcement
+            // Safeguarding & Zone Enforcement Rules
             model.FinalAssignedZone = model.RequestedZone;
             string zoneMessage = string.Empty;
 
             if (!model.IsParentOrGuardian && model.RequestedZone == VisitorAccessZone.HouseCommonRoom)
             {
                 model.FinalAssignedZone = VisitorAccessZone.PublicCampusGrounds;
-                zoneMessage = " (Reassigned to Public Campus Grounds for safeguarding compliance)";
+                zoneMessage = " (Zone adjusted to Public Campus Grounds per safeguarding policy)";
             }
 
-            // Smart Routing
             model.AccessGatePassCode = "MH-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
             model.CreatedAt = DateTime.Now;
 
+            // Decision Engine: Parent/Guardian Auto-Approval vs Housemaster Review Queue
             if (model.IsParentOrGuardian)
             {
                 model.Status = VisitorRequestStatus.AutoApprovedWeekend;
                 db.VisitorAccessRequests.Add(model);
                 db.SaveChanges();
+
                 SendVisitorPassEmail(model);
-                TempData["Success"] = $"✅ Auto-Approved! Visitor Pass emailed to {model.VisitorEmail}. {zoneMessage}";
-                return RedirectToAction("MyRequests");
+                NotifyStudent(student, model, "Your parent/guardian has registered a visit.");
+
+                TempData["Success"] = $"Request Approved automatically. Access Pass sent to {model.VisitorEmail}.{zoneMessage}";
+                return RedirectToAction("RequestConfirmation");
             }
             else
             {
                 model.Status = VisitorRequestStatus.PendingHousemaster;
                 db.VisitorAccessRequests.Add(model);
                 db.SaveChanges();
-                TempData["Success"] = $"📨 Sent to Housemaster for review.{zoneMessage}";
-                return RedirectToAction("MyRequests");
+
+                NotifyStudent(student, model, "A visitor request has been submitted for you and sent to your Housemaster for approval.");
+
+                TempData["Success"] = $"Request submitted successfully. Pending Housemaster review.{zoneMessage}";
+                return RedirectToAction("RequestConfirmation");
             }
         }
 
+        [AllowAnonymous]
+        public ActionResult RequestConfirmation()
+        {
+            return View();
+        }
+
         // ============================================================
-        // 📋 2. STUDENT DASHBOARD (My Requests)
+        // 📋 2. STUDENT DASHBOARD (Read-Only Incoming Visits)
         // ============================================================
 
         [HttpGet]
         public ActionResult MyRequests()
         {
-            var student = GetCurrentStudent();
-            if (student == null)
-                return RedirectToAction("Login", "Account");
+            var userId = (int?)Session["UserId"];
+            var student = db.Students.FirstOrDefault(s => s.UserId == userId);
+            if (student == null) return RedirectToAction("Login", "Account");
 
             var requests = db.VisitorAccessRequests
                 .Where(r => r.StudentId == student.StudentId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToList();
+
             return View(requests);
         }
 
         // ============================================================
-        // 🏫 3. HOUSEMASTER DASHBOARD
+        // 🏫 3. HOUSEMASTER DASHBOARD & REVIEW QUEUE
         // ============================================================
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult HousemasterQueue()
         {
             var pendingRequests = db.VisitorAccessRequests
@@ -203,60 +211,72 @@ namespace Michaelhouse.Controllers
                 .OrderBy(r => r.VisitDate)
                 .ThenBy(r => r.StartTime)
                 .ToList();
+
             return View(pendingRequests);
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public ActionResult ReviewRequest(int id, string action)
+        public ActionResult ReviewRequest(int id, string action, string remarks)
         {
             var request = db.VisitorAccessRequests.Find(id);
             if (request == null) return HttpNotFound();
+
+            var student = db.Students.Find(request.StudentId);
 
             if (string.Equals(action, "Approve", StringComparison.OrdinalIgnoreCase))
             {
                 request.Status = VisitorRequestStatus.Approved;
                 db.SaveChanges();
+
                 SendVisitorPassEmail(request);
-                TempData["StudentNotification"] = $"✅ Housemaster approved {request.VisitorFullName}'s visit!";
-                TempData["Success"] = $"✅ Approved! Visitor Pass emailed to {request.VisitorEmail}.";
+                if (student != null)
+                {
+                    NotifyStudent(student, request, $"Housemaster approved visit request for {request.VisitorFullName}.");
+                }
+                TempData["Success"] = $"Approved visit for {request.VisitorFullName}. Gate Pass issued.";
             }
             else if (string.Equals(action, "Reject", StringComparison.OrdinalIgnoreCase))
             {
                 request.Status = VisitorRequestStatus.RejectedPolicyViolation;
                 request.AccessGatePassCode = null;
-                TempData["StudentNotification"] = $"❌ Housemaster rejected {request.VisitorFullName}'s visit.";
-                TempData["Error"] = $"Rejected visit for {request.VisitorFullName}.";
+                db.SaveChanges();
+
+                if (student != null)
+                {
+                    NotifyStudent(student, request, $"Housemaster declined visit request for {request.VisitorFullName}.");
+                }
+                TempData["Error"] = $"Rejected visit request for {request.VisitorFullName}.";
             }
 
-            request.ActionedByHousemasterId = 999;
+            request.ActionedByHousemasterId = (int?)Session["UserId"] ?? 999;
             request.ActionedAt = DateTime.Now;
-            request.HousemasterRemarks = "Actioned via Housemaster Queue Dashboard.";
+            request.HousemasterRemarks = remarks ?? "Actioned via Housemaster Approval Queue.";
             db.SaveChanges();
 
             return RedirectToAction("HousemasterQueue");
         }
 
         // ============================================================
-        // 🎟️ 4. VISITOR PASS PAGE (Opened from email link)
+        // 🎟️ 4. DIGITAL GATE PASS & SECURITY SCANNING
         // ============================================================
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult VisitorPass(int id)
         {
             var request = db.VisitorAccessRequests.Find(id);
-            if (request == null) return HttpNotFound();
-            return View("VistorPass", request);
+            if (request == null || (request.Status != VisitorRequestStatus.Approved && request.Status != VisitorRequestStatus.AutoApprovedWeekend))
+                return HttpNotFound();
+
+            return View("VisitorPass", request);
         }
 
-        // ============================================================
-        // 🛡️ 5. DYNAMIC QR CODE GENERATION & SECURITY VALIDATION
-        // ============================================================
-
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult ScanGate() => View();
 
-        // Inner class for QR payload
         public class QrPayload
         {
             public int rid { get; set; }
@@ -265,6 +285,7 @@ namespace Michaelhouse.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult GenerateQrImage(int id)
         {
             var request = db.VisitorAccessRequests.Find(id);
@@ -281,112 +302,94 @@ namespace Michaelhouse.Controllers
             using (var data = generator.CreateQrCode(jsonPayload, QRCodeGenerator.ECCLevel.Q))
             {
                 var qrCode = new PngByteQRCode(data);
-                return File(qrCode.GetGraphic(20), "image/png");
+                return File(qrCode.GetGraphic(40), "image/png");
             }
         }
 
         [HttpGet]
-        public ActionResult GetQrTimestamp(int requestId)
-        {
-            var request = db.VisitorAccessRequests.Find(requestId);
-            if (request == null) return Json(new { success = false }, JsonRequestBehavior.AllowGet);
-            return Json(new { success = true, timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() }, JsonRequestBehavior.AllowGet);
-        }
-
-        [HttpGet]
+        [AllowAnonymous]
         public ActionResult ValidateGatePass(string data)
         {
             if (string.IsNullOrWhiteSpace(data))
-                return Json(new { success = false, message = "No QR scanner payload provided." }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "No payload detected." }, JsonRequestBehavior.AllowGet);
 
             try
             {
                 var payload = JsonConvert.DeserializeObject<QrPayload>(data);
                 if (payload == null || payload.rid <= 0 || string.IsNullOrEmpty(payload.sig))
-                    return Json(new { success = false, message = "Invalid QR code payload structure." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Invalid Pass Structure." }, JsonRequestBehavior.AllowGet);
 
+                // 1. DYNAMIC TOKEN TIMEOUT: Strict 5-Minute (300 seconds) Validity Window
                 var nowUtc = DateTime.UtcNow;
                 var qrTime = DateTimeOffset.FromUnixTimeSeconds(payload.ts).UtcDateTime;
                 var age = nowUtc - qrTime;
 
-                if (age < TimeSpan.FromSeconds(-30) || age > TimeSpan.FromSeconds(240))
-                    return Json(new { success = false, message = "QR code expired. Refresh screen for new token." }, JsonRequestBehavior.AllowGet);
+                if (age < TimeSpan.FromSeconds(-30) || age > TimeSpan.FromMinutes(5))
+                {
+                    return Json(new { success = false, message = "QR Pass Expired. Please refresh your gate pass page." }, JsonRequestBehavior.AllowGet);
+                }
 
                 var request = db.VisitorAccessRequests.FirstOrDefault(r => r.RequestId == payload.rid);
                 if (request == null || string.IsNullOrEmpty(request.AccessGatePassCode))
                     return Json(new { success = false, message = "Unrecognized Gate Pass." }, JsonRequestBehavior.AllowGet);
 
+                // 2. SIGNATURE SECURITY CHECK
                 string expectedSignature = GenerateHmacSignature(payload.rid, payload.ts, request.AccessGatePassCode);
                 if (!CryptographicEquals(payload.sig, expectedSignature))
-                    return Json(new { success = false, message = "Security Check Failed: Invalid signature detected." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Security Check Failed: Invalid Signature." }, JsonRequestBehavior.AllowGet);
 
+                // 3. APPROVAL STATUS CHECK
                 if (request.Status != VisitorRequestStatus.Approved && request.Status != VisitorRequestStatus.AutoApprovedWeekend)
                 {
                     LogScan(request, "Denied", $"Invalid status: {request.Status}", isEntry: false);
-                    return Json(new { success = false, message = $"Access Denied: Status is {request.Status}." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = $"Access Denied: Request status is {request.Status}." }, JsonRequestBehavior.AllowGet);
                 }
 
                 var nowLocal = DateTime.Now;
+
+                // 4. DATE VALIDATION
                 if (nowLocal.Date != request.VisitDate.Date)
                 {
-                    LogScan(request, "Denied", $"Wrong date: expected {request.VisitDate:dd MMM yyyy}, got {nowLocal:dd MMM yyyy}", isEntry: false);
-                    return Json(new { success = false, message = $"Pass active for date: {request.VisitDate:dd MMM yyyy}." }, JsonRequestBehavior.AllowGet);
+                    LogScan(request, "Denied", $"Invalid Date: expected {request.VisitDate:dd MMM yyyy}", isEntry: false);
+                    return Json(new { success = false, message = $"Pass valid for scheduled date: {request.VisitDate:dd MMM yyyy}." }, JsonRequestBehavior.AllowGet);
                 }
 
-                // ============================================================
-                // ==== TEMPORARY FOR PRESENTATION – COMMENT OUT TIME CHECK ====
-                // ============================================================
-                /*
-                var currentTime = nowLocal.TimeOfDay;
-                if (currentTime < request.StartTime || currentTime > request.EndTime)
-                {
-                    string startFormatted = request.StartTime.ToString(@"hh\:mm");
-                    string endFormatted = request.EndTime.ToString(@"hh\:mm");
-                    LogScan(request, "Denied", $"Outside time window: {startFormatted} - {endFormatted}", isEntry: false);
-                    return Json(new { success = false, message = $"Pass valid between {startFormatted} and {endFormatted}." }, JsonRequestBehavior.AllowGet);
-                }
-                */
-
-                // --- DETERMINE ENTRY / EXIT (fixed .Date issue) ---
+                // 5. SCAN STATE ENGINE (Prevent Double-Entry & Enforce Exit Flow)
                 var today = DateTime.Today;
                 var tomorrow = today.AddDays(1);
 
-                var existingEntry = db.VisitorScanLogs
-                    .FirstOrDefault(l => l.RequestId == request.RequestId
-                                         && l.Status == "Granted"
-                                         && l.IsEntry == true
-                                         && l.ScannedAt >= today
-                                         && l.ScannedAt < tomorrow);
+                var existingEntry = db.VisitorScanLogs.FirstOrDefault(l => l.RequestId == request.RequestId && l.Status == "Granted" && l.IsEntry == true && l.ScannedAt >= today && l.ScannedAt < tomorrow);
+                var existingExit = db.VisitorScanLogs.FirstOrDefault(l => l.RequestId == request.RequestId && l.Status == "Exit" && l.IsEntry == false && l.ScannedAt >= today && l.ScannedAt < tomorrow);
 
-                var existingExit = db.VisitorScanLogs
-                    .FirstOrDefault(l => l.RequestId == request.RequestId
-                                         && l.Status == "Exit"
-                                         && l.ScannedAt >= today
-                                         && l.ScannedAt < tomorrow);
-
+                // CASE A: Visitor has already entered and already exited today -> FULL LOCKOUT
                 if (existingExit != null)
                 {
-                    LogScan(request, "Denied", "Already checked out today", isEntry: false);
-                    return Json(new { success = false, message = "This pass has already been used for exit today." }, JsonRequestBehavior.AllowGet);
+                    LogScan(request, "Denied", "Attempted scan after complete checkout", isEntry: false);
+                    return Json(new { success = false, message = "Access Denied: This pass has already been used for entry and exit today." }, JsonRequestBehavior.AllowGet);
                 }
 
+                // CASE B: Visitor has ALREADY scanned for Entry -> FORCE EXIT FLOW
                 if (existingEntry != null)
                 {
-                    LogScan(request, "Exit", "Visitor checked out", isEntry: false);
-                    var duration = DateTime.Now - existingEntry.ScannedAt;
+                    LogScan(request, "Exit", "Visitor exited campus", isEntry: false);
+
+                    var duration = nowLocal - existingEntry.ScannedAt;
+                    string formattedDuration = $"{duration.Hours:D2}h {duration.Minutes:D2}m";
+
                     return Json(new
                     {
                         success = true,
                         isExit = true,
-                        message = $"Goodbye, {request.VisitorFullName}! Have a great day.",
+                        message = $"Departure logged for {request.VisitorFullName}. Have a safe journey!",
                         visitorName = request.VisitorFullName,
                         assignedZone = request.FinalAssignedZone.ToString(),
-                        visitDuration = duration.ToString(@"hh\:mm")
+                        visitDuration = formattedDuration
                     }, JsonRequestBehavior.AllowGet);
                 }
 
-                // No entry yet → ENTRY
-                LogScan(request, "Granted", "Access granted", isEntry: true);
+                // CASE C: First scan of the day -> ENTRY FLOW
+                LogScan(request, "Granted", "Access Granted", isEntry: true);
+
                 return Json(new
                 {
                     success = true,
@@ -399,13 +402,14 @@ namespace Michaelhouse.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Parsing error: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Validation Error: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
         // ============================================================
-        // 📊 HELPER: Log a visitor scan
+        // 📧 HELPER METHODS & NOTIFICATIONS
         // ============================================================
+
         private void LogScan(VisitorAccessRequest request, string status, string reason, bool isEntry = true)
         {
             try
@@ -415,7 +419,7 @@ namespace Michaelhouse.Controllers
                     RequestId = request.RequestId,
                     ScannedAt = DateTime.Now,
                     ScannerUserId = (int?)Session["UserId"],
-                    ScannerName = Session["UserName"]?.ToString() ?? "Gate Scanner",
+                    ScannerName = Session["UserName"]?.ToString() ?? "Security Gate",
                     Status = status,
                     Reason = reason,
                     Location = "Main Gate",
@@ -426,13 +430,15 @@ namespace Michaelhouse.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to log scan: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Log error: {ex.Message}");
             }
         }
 
-        // ============================================================
-        // 📧 EMAIL SENDING HELPER
-        // ============================================================
+        private void NotifyStudent(Student student, VisitorAccessRequest request, string message)
+        {
+            TempData["StudentNotification"] = message;
+            System.Diagnostics.Debug.WriteLine($"Notification sent to Student ID {student.StudentId}: {message}");
+        }
 
         private void SendVisitorPassEmail(VisitorAccessRequest request)
         {
@@ -445,31 +451,25 @@ namespace Michaelhouse.Controllers
                 var fromEmail = ConfigurationManager.AppSettings["Email:FromAddress"];
                 var fromName = ConfigurationManager.AppSettings["Email:FromName"] ?? "Michaelhouse Security";
 
-                if (string.IsNullOrEmpty(smtpHost))
+                if (string.IsNullOrWhiteSpace(smtpHost))
                 {
-                    System.Diagnostics.Debug.WriteLine("SMTP not configured. Email not sent.");
-                    return;
+                    throw new InvalidOperationException("SMTP Host key ('Email:SmtpHost') is missing or empty in web.config.");
                 }
 
                 string passLink = $"{Request.Url.Scheme}://{Request.Url.Authority}/VisitorAccess/VisitorPass/{request.RequestId}";
 
                 string body = $@"
                 <html>
-                <body style='font-family: Arial, sans-serif; color: #333;'>
-                    <h2 style='color: #C21E2E;'>Michaelhouse Visitor Pass</h2>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2 style='color: #C21E2E;'>Michaelhouse Digital Gate Pass</h2>
                     <p>Dear {request.VisitorFullName},</p>
-                    <p>Your visit to Michaelhouse has been approved.</p>
+                    <p>Your access request to Michaelhouse has been approved.</p>
                     <hr />
                     <p><strong>Date:</strong> {request.VisitDate:dd MMM yyyy}</p>
-                    <p><strong>Time:</strong> {request.StartTime} - {request.EndTime}</p>
-                    <p><strong>Zone:</strong> {request.FinalAssignedZone}</p>
+                    <p><strong>Time Window:</strong> {request.StartTime} - {request.EndTime}</p>
+                    <p><strong>Approved Zone:</strong> {request.FinalAssignedZone}</p>
                     <hr />
-                    <p><strong>To access your time-sensitive Gate Pass, click the button below:</strong></p>
-                    <a href='{passLink}' style='display: inline-block; padding: 12px 24px; background-color: #C21E2E; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>View Your Gate Pass</a>
-                    <br /><br />
-                    <p><small>Note: The QR code on this page is time-sensitive and automatically refreshes every 4 minutes for your security.</small></p>
-                    <hr />
-                    <p>Thank you,<br />Michaelhouse Security</p>
+                    <p><a href='{passLink}' style='padding: 12px 24px; background-color: #C21E2E; color: #fff; text-decoration: none; font-weight: bold;'>Open Gate Pass</a></p>
                 </body>
                 </html>";
 
@@ -481,7 +481,7 @@ namespace Michaelhouse.Controllers
                     var msg = new MailMessage
                     {
                         From = new MailAddress(fromEmail, fromName),
-                        Subject = "Your Visitor Pass for Michaelhouse",
+                        Subject = "Michaelhouse Visitor Gate Pass",
                         Body = body,
                         IsBodyHtml = true
                     };
@@ -491,13 +491,10 @@ namespace Michaelhouse.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Email send failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Email dispatch error: {ex.Message}");
+                throw new Exception($"Failed to dispatch visitor pass email: {ex.Message}", ex);
             }
         }
-
-        // ============================================================
-        // 🔒 HELPER METHODS
-        // ============================================================
 
         private string GenerateHmacSignature(int requestId, long timestamp, string passCode)
         {
@@ -523,8 +520,7 @@ namespace Michaelhouse.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing) db.Dispose();
-            base.Dispose(disposing);
+            if (disposing) db.Dispose(); base.Dispose(disposing);
         }
     }
 }

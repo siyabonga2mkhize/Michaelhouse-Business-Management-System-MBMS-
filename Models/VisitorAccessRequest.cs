@@ -26,6 +26,7 @@ namespace Michaelhouse.Models
         RestrictedHouseBounds
     }
 
+    
     public class VisitorAccessRequest
     {
         [Key]
@@ -38,7 +39,7 @@ namespace Michaelhouse.Models
         public virtual Student Student { get; set; }
 
         [Required, StringLength(50)]
-        public string BoardingHouseName { get; set; } // e.g., Founders, Tatham, Baines, Farfield
+        public string BoardingHouseName { get; set; }
 
         [Required, StringLength(100), Display(Name = "Visitor Full Name")]
         public string VisitorFullName { get; set; }
@@ -50,15 +51,13 @@ namespace Michaelhouse.Models
         public string VisitorIdOrPassport { get; set; }
 
         [Required, StringLength(50), Display(Name = "Relationship to Student")]
-        public string RelationshipToBoy { get; set; } // Parent, Guardian, Sister, Peer, Alumni
+        public string RelationshipToBoy { get; set; }
 
         [Display(Name = "Is this visitor a parent or guardian?")]
         public bool IsParentOrGuardian { get; set; }
 
-        // ===== NEW FIELD FOR EMAIL DELIVERY =====
         [Required, EmailAddress, StringLength(100), Display(Name = "Visitor Email Address")]
         public string VisitorEmail { get; set; }
-        // ========================================
 
         [Required, Display(Name = "Visit Date")]
         [DataType(DataType.Date)]
@@ -90,6 +89,10 @@ namespace Michaelhouse.Models
         [Display(Name = "Access Gate Pass Code")]
         public string AccessGatePassCode { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // System Policy Evaluation Properties
+        public bool HasPolicyConflict { get; set; } = false;
+        public string PolicyFlagDetails { get; set; }
     }
 
     public class TermCalendar
@@ -108,24 +111,22 @@ namespace Michaelhouse.Models
 
         public bool IsClosedWeekend { get; set; }
     }
+
     public class VisitorScanLog
     {
         [Key]
         public int ScanId { get; set; }
 
-        public int RequestId { get; set; }                     // FK to VisitorAccessRequest
+        public int RequestId { get; set; }
         [ForeignKey("RequestId")]
         public virtual VisitorAccessRequest Request { get; set; }
 
-        public DateTime ScannedAt { get; set; }               // When the scan occurred
-
-        public int? ScannerUserId { get; set; }               // If logged in, else null
-        public string ScannerName { get; set; }               // e.g., "Gate 1 - John"
-
-        public string Status { get; set; }                    // "Granted", "Denied", etc.
-        public string Reason { get; set; }                    // If denied, why
-
-        public string Location { get; set; }                  // e.g., "Main Gate"
-        public bool IsEntry { get; set; }                     // true for entry, maybe false for exit later
+        public DateTime ScannedAt { get; set; }
+        public int? ScannerUserId { get; set; }
+        public string ScannerName { get; set; }
+        public string Status { get; set; }
+        public string Reason { get; set; }
+        public string Location { get; set; }
+        public bool IsEntry { get; set; }
     }
 }
