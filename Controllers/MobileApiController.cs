@@ -152,7 +152,7 @@ namespace Michaelhouse.Controllers
             AppUser u; Student s;
             if (!CurrentStudent(out u, out s)) return Unauthorized();
             return Ok(db.Notifications.Where(x => x.UserId == u.UserId).OrderByDescending(x => x.CreatedAt).Take(50).ToList()
-                .Select(x => new { id = x.Id, message = x.Message, createdAt = x.CreatedAt, isRead = x.IsRead, type = x.Type }));
+                .Select(x => new { id = x.Id, message = x.Message, createdAt = x.CreatedAt, isRead = x.IsRead, type = x.Type, relatedEntityType = x.RelatedEntityType }));
         }
         [HttpGet, Route("student/emergency")]
         public IHttpActionResult StudentEmergency()

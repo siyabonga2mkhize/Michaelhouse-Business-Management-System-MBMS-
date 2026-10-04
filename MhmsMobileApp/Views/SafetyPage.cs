@@ -17,8 +17,9 @@ namespace MhmsMobileApp.Views
     //   • "I'm Safe" sends the student's GPS position; the server checks
     //     it against the safe zone and records the confirmation
     //     (POST api/mobile/student/emergency/confirm)
-    //   • the student's alerts (GET api/mobile/student/alerts); tap one
-    //     to mark it read
+    //   • the student's emergency alerts (GET api/mobile/student/alerts,
+    //     only the EmergencyAlert ones — event invitations belong in
+    //     My Events); tap one to mark it read
     // ============================================================
     public class SafetyPage : ContentPage
     {
@@ -36,7 +37,7 @@ namespace MhmsMobileApp.Views
 
             _root.Children.Add(Ui.PageHeader("Emergency Safety"));
             _root.Children.Add(_emergencyHost);
-            _root.Children.Add(new Label { Text = "My alerts", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 8, 0, 0) });
+            _root.Children.Add(new Label { Text = "Emergency alerts", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 8, 0, 0) });
             _root.Children.Add(_alerts);
 
             _emergencyHost.Content = new ActivityIndicator { IsRunning = true };
@@ -208,10 +209,13 @@ namespace MhmsMobileApp.Views
                 return;
             }
 
-            var alerts = result.Data ?? new System.Collections.Generic.List<StudentAlertDto>();
+            // Only emergency alerts here (invitations are in My Events)
+            var alerts = (result.Data ?? new System.Collections.Generic.List<StudentAlertDto>())
+                .Where(a => a.IsEmergency)
+                .ToList();
             if (alerts.Count == 0)
             {
-                _alerts.Children.Add(Ui.Text("You have no alerts.", "MutedText"));
+                _alerts.Children.Add(Ui.Text("You have no emergency alerts.", "MutedText"));
                 return;
             }
 

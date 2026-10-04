@@ -25,6 +25,12 @@ namespace MhmsMobileApp.Models
         public DateTime CreatedAt { get; set; }
         public bool IsRead { get; set; }
         public string? Type { get; set; }
+
+        // What the notification is about: "EmergencyAlert",
+        // "CafeteriaEvent", "Trip", …
+        public string? RelatedEntityType { get; set; }
+
+        public bool IsEmergency => RelatedEntityType == "EmergencyAlert";
     }
 
     // GET student/emergency (null when there's no active alert)
