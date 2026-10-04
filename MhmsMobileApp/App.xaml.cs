@@ -23,7 +23,7 @@ namespace MhmsMobileApp
         protected override Window CreateWindow(IActivationState? activationState)
         {
             // Always start at the login screen
-            return new Window(new LoginPage());
+            return new Window(new LoginPage()) { Title = "Michaelhouse" };
         }
 
         // After a successful login: tabs for the user's role

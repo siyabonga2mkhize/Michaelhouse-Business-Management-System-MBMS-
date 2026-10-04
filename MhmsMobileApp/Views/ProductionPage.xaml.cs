@@ -35,11 +35,13 @@ namespace MhmsMobileApp.Views
                 return;
             }
 
-            RenderPlan(plan);
+            // Show the page straight away and fill it in day by day, so the
+            // screen keeps responding while a big week is drawn
             ContentStack.IsVisible = true;
+            await RenderPlanAsync(plan);
         }
 
-        private void RenderPlan(ProductionPlanDto plan)
+        private async Task RenderPlanAsync(ProductionPlanDto plan)
         {
             WeekLabel.Text = plan.WeekLabel;
 
@@ -70,10 +72,12 @@ namespace MhmsMobileApp.Views
 
                 foreach (var slot in day.Slots)
                 {
-                    var slotFrame = new Frame
+                    // Border, not Frame: much cheaper to draw on Android
+                    var slotFrame = new Border
                     {
-                        BorderColor = Color.FromArgb("#e5e7eb"),
-                        CornerRadius = 8,
+                        Stroke = Color.FromArgb("#e5e7eb"),
+                        StrokeThickness = 1,
+                        StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
                         Padding = 12,
                         BackgroundColor = Colors.White
                     };
@@ -166,6 +170,9 @@ namespace MhmsMobileApp.Views
                 }
 
                 DaysContainer.Children.Add(dayStack);
+
+                // Let Android draw and handle taps before the next day
+                await Task.Delay(1);
             }
 
             IngredientsContainer.Children.Clear();
@@ -181,8 +188,11 @@ namespace MhmsMobileApp.Views
             }
             else
             {
+                int rows = 0;
                 foreach (var ing in plan.WeekIngredients)
                 {
+                    if (++rows % 20 == 0) await Task.Delay(1);
+
                     var row = new Grid
                     {
                         ColumnDefinitions = new ColumnDefinitionCollection

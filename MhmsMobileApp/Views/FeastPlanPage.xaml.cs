@@ -35,11 +35,13 @@ namespace MhmsMobileApp.Views
                 return;
             }
 
-            RenderPlan(plan);
+            // Show the page straight away and fill it in bit by bit, so the
+            // screen keeps responding while a big plan is drawn
             ContentStack.IsVisible = true;
+            await RenderPlanAsync(plan);
         }
 
-        private void RenderPlan(FeastPlanDto plan)
+        private async Task RenderPlanAsync(FeastPlanDto plan)
         {
             EventNameLabel.Text = plan.EventName;
             EventMetaLabel.Text = plan.EventDateLabel + "\n" +
@@ -84,10 +86,11 @@ namespace MhmsMobileApp.Views
             {
                 foreach (var day in plan.Timeline)
                 {
-                    var frame = new Frame
+                    var frame = new Border
                     {
-                        BorderColor = Color.FromArgb("#e5e7eb"),
-                        CornerRadius = 8,
+                        Stroke = Color.FromArgb("#e5e7eb"),
+                        StrokeThickness = 1,
+                        StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
                         Padding = 10,
                         BackgroundColor = Colors.White
                     };
@@ -137,6 +140,7 @@ namespace MhmsMobileApp.Views
 
                     frame.Content = stack;
                     TimelineContainer.Children.Add(frame);
+                    await Task.Delay(1);   // let Android draw and handle taps
                 }
             }
 
@@ -145,10 +149,11 @@ namespace MhmsMobileApp.Views
 
             foreach (var dish in plan.Dishes)
             {
-                var frame = new Frame
-                {
-                    BorderColor = Color.FromArgb("#e5e7eb"),
-                    CornerRadius = 8,
+                var frame = new Border
+                    {
+                        Stroke = Color.FromArgb("#e5e7eb"),
+                        StrokeThickness = 1,
+                        StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
                     Padding = 0,
                     BackgroundColor = Colors.White
                 };
@@ -295,6 +300,7 @@ namespace MhmsMobileApp.Views
 
                 frame.Content = outerStack;
                 DishesContainer.Children.Add(frame);
+                await Task.Delay(1);   // let Android draw and handle taps
             }
 
             // Total ingredients
@@ -349,6 +355,7 @@ namespace MhmsMobileApp.Views
                     row.Children.Add(amountLabel);
 
                     IngredientsContainer.Children.Add(row);
+                    if (IngredientsContainer.Children.Count % 20 == 0) await Task.Delay(1);
                 }
             }
         }
