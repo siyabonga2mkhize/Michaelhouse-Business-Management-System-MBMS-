@@ -292,6 +292,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="BoardingInterfaces\Services.cs" />
     <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
@@ -311,6 +312,8 @@
     <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\Leaverequestcontroller.cs" />
     <Compile Include="Controllers\MaintenanceController.cs" />
+    <Compile Include="Controllers\MobileApiController.cs" />
+    <Compile Include="Controllers\DevelopmentSeedController.cs" />
     <Compile Include="Controllers\MealCollectionController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
@@ -512,6 +515,7 @@
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\FaceRecognitionService.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MobileApiTokenService.cs" />
     <Compile Include="Services\MealPlanService.cs" />
     <Compile Include="Services\DietaryProfileService.cs" />
     <Compile Include="Services\MealLibraryService.cs" />

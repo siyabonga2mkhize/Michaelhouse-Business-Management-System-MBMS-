@@ -88,11 +88,17 @@ namespace Michaelhouse.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "StudentId,Name,DOB,ParentId")] Student student)
+        public ActionResult Edit([Bind(Include = "StudentId,FirstName,LastName,DOB,ParentId")] Student student)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(student).State = EntityState.Modified;
+                var existing = db.Students.Find(student.StudentId);
+                if (existing == null) return HttpNotFound();
+
+                existing.FirstName = student.FirstName;
+                existing.LastName = student.LastName;
+                existing.DOB = student.DOB;
+                existing.ParentId = student.ParentId;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }

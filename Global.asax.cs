@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Web.Http;
 using System.Web.Security;
 using System.Linq;
 
@@ -19,6 +20,7 @@ namespace Michaelhouse
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            GlobalConfiguration.Configure(WebApiConfig.Register);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             // UC18: RSVP is a public form. Anti-forgery tokens must not
             // be bound to the current user identity, otherwise a token
