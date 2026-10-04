@@ -29,6 +29,11 @@ namespace MhmsMobileApp.Services
         // (session timed out, or logged out elsewhere)
         public static event EventHandler? SessionExpired;
 
+        // Bearer token for the Web API (api/mobile/*), from the login reply
+        private static volatile string? _token;
+
+        public static void SetToken(string? token) => _token = token;
+
         private static readonly JsonSerializerOptions JsonOpts = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -99,6 +104,14 @@ namespace MhmsMobileApp.Services
 
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
+                // One login for both APIs: the session cookie (sent by the
+                // handler) and the Web API's Bearer token (api/mobile/*)
+                var token = _token;
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+
                 var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 var location = response.Headers.Location?.OriginalString ?? "";
@@ -154,6 +167,74 @@ namespace MhmsMobileApp.Services
                     return onError(ex.Message);
                 }
             });
+        }
+
+        // ============================================================
+        // Web API (api/mobile/*, MobileApiController). Its replies are the
+        // data itself (an object, a list, or null), and errors come as an
+        // HTTP status with {"message": "..."}; both become a MobileResult.
+        // ============================================================
+
+        private Task<MobileResult<T>> MobileGetAsync<T>(string path) =>
+            SendMobileAsync<T>(() => _http.GetAsync("api/mobile/" + path));
+
+        private Task<MobileResult<T>> MobilePostAsync<T>(string path, object? data) =>
+            SendMobileAsync<T>(() => _http.PostAsync("api/mobile/" + path, JsonBody(data ?? new { })));
+
+        private static Task<MobileResult<T>> SendMobileAsync<T>(Func<Task<HttpResponseMessage>> send)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    using (var response = await send().ConfigureAwait(false))
+                    {
+                        var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            return new MobileResult<T> { Ok = false, Error = ErrorMessage(body) ?? ("The server answered " + (int)response.StatusCode + ".") };
+                        }
+
+                        var data = string.IsNullOrWhiteSpace(body) || body.Trim() == "null"
+                            ? default
+                            : JsonSerializer.Deserialize<T>(body, JsonOpts);
+                        return new MobileResult<T> { Ok = true, Data = data };
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    return new MobileResult<T> { Ok = false, Error = "The server took too long to answer. Please try again." };
+                }
+                catch (Exception ex)
+                {
+                    return new MobileResult<T> { Ok = false, Error = ex.Message };
+                }
+            });
+        }
+
+        // {"message": "..."} (Web API) or {"error": "..."} (MVC endpoints)
+        private static string? ErrorMessage(string body)
+        {
+            try
+            {
+                using (var doc = JsonDocument.Parse(body))
+                {
+                    foreach (var name in new[] { "message", "Message", "error", "Error" })
+                    {
+                        if (doc.RootElement.ValueKind == JsonValueKind.Object
+                            && doc.RootElement.TryGetProperty(name, out var value)
+                            && value.ValueKind == JsonValueKind.String)
+                        {
+                            return value.GetString();
+                        }
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+            }
+            return null;
         }
 
         // ============================================================
@@ -270,6 +351,42 @@ namespace MhmsMobileApp.Services
 
         public Task<DeliveryResultDto> RecordDeliveryAsync(DeliveryRequestDto data) =>
             PostAsync("api/cafeteria-inventory/deliveries", data, error => new DeliveryResultDto { Ok = false, Error = error });
+
+        // ============================================================
+        // Emergency (Web API, api/mobile/*)
+        // ============================================================
+        public Task<MobileResult<List<StudentAlertDto>>> GetStudentAlertsAsync() =>
+            MobileGetAsync<List<StudentAlertDto>>("student/alerts");
+
+        public Task<MobileResult<SuccessDto>> MarkStudentAlertReadAsync(int id) =>
+            MobilePostAsync<SuccessDto>($"student/alerts/{id}/read", null);
+
+        public Task<MobileResult<EmergencyAlertDto>> GetActiveEmergencyAsync() =>
+            MobileGetAsync<EmergencyAlertDto>("student/emergency");
+
+        public Task<MobileResult<EmergencyConfirmationDto>> ConfirmSafetyAsync(double latitude, double longitude) =>
+            MobilePostAsync<EmergencyConfirmationDto>("student/emergency/confirm", new { latitude, longitude });
+
+        public Task<MobileResult<List<HouseMasterAlertDto>>> GetHouseMasterAlertsAsync() =>
+            MobileGetAsync<List<HouseMasterAlertDto>>("housemaster/alerts");
+
+        public Task<MobileResult<List<HouseMasterResidenceDto>>> GetHouseMasterResidencesAsync() =>
+            MobileGetAsync<List<HouseMasterResidenceDto>>("housemaster/residences");
+
+        public Task<MobileResult<List<RollCallStudentDto>>> GetRollCallAsync(int residenceId) =>
+            MobileGetAsync<List<RollCallStudentDto>>($"housemaster/residences/{residenceId}/rollcall");
+
+        public Task<MobileResult<SuccessDto>> MarkRollCallPresentAsync(int residenceId, int studentId) =>
+            MobilePostAsync<SuccessDto>($"housemaster/residences/{residenceId}/rollcall/{studentId}", null);
+
+        // ============================================================
+        // QR codes (Web API, api/mobile/*)
+        // ============================================================
+        public Task<MobileResult<StudentQrDto>> GetStudentQrAsync(int studentId) =>
+            MobileGetAsync<StudentQrDto>($"students/{studentId}/qr");
+
+        public Task<MobileResult<QrScanResultDto>> ScanQrAsync(string qrValue) =>
+            MobilePostAsync<QrScanResultDto>("qr/scan", new { qrValue });
 
         // ============================================================
         // Squad (not shown in the app for now)

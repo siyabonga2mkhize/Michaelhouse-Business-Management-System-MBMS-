@@ -19,5 +19,8 @@ namespace MhmsMobileApp.Models
         public int? ParentId { get; set; }
         public int? StudentId { get; set; }
         public bool MustConfirmSafety { get; set; }
+
+        // Bearer token for the Web API endpoints (api/mobile/*)
+        public string? Token { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Michaelhouse.Controllers;
 using Michaelhouse.Models;
+using Michaelhouse.Services;
 using Newtonsoft.Json;
 using System.Data.Entity;
 using System.IO;
@@ -124,7 +125,10 @@ namespace Michaelhouse.ApiControllers
                 role = user.Role,
                 parentId,
                 studentId,
-                mustConfirmSafety
+                mustConfirmSafety,
+                // Bearer token for the Web API endpoints (api/mobile/*,
+                // MobileApiController), so one login works for both
+                token = new MobileApiTokenService().Create(user.UserId, user.Role)
             };
         }
 

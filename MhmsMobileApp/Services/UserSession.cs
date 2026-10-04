@@ -27,9 +27,18 @@ namespace MhmsMobileApp.Services
 
         public static bool IsLoggedIn => CurrentUser != null;
 
-        public static void Start(CurrentUserDto user) => CurrentUser = user;
+        // The login cookie is kept by ApiService; the Web API token too
+        public static void Start(CurrentUserDto user)
+        {
+            CurrentUser = user;
+            ApiService.SetToken(user.Token);
+        }
 
-        public static void Clear() => CurrentUser = null;
+        public static void Clear()
+        {
+            CurrentUser = null;
+            ApiService.SetToken(null);
+        }
 
         // Same list as EventRsvpService.StaffRoles on the web app,
         // minus the cafeteria roles, which have their own screens below
