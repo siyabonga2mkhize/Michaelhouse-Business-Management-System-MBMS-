@@ -13,7 +13,9 @@ namespace MhmsMobileApp.Services
         MealCollection,
         RecordDelivery,
         KitchenPlan,
-        FeastPlan
+        FeastPlan,
+        Safety,               // student: emergency alert + "I'm safe" + alerts
+        HouseMasterEmergency  // house master: residence alerts + roll call
     }
 
     // ============================================================
@@ -54,7 +56,10 @@ namespace MhmsMobileApp.Services
             role = (role ?? "").Trim();
 
             if (Is(role, "Student"))
-                return new[] { AppScreen.MealPlan, AppScreen.Events };
+                return new[] { AppScreen.MealPlan, AppScreen.Events, AppScreen.Safety };
+
+            if (Is(role, "HouseMaster") || Is(role, "Housemaster"))
+                return new[] { AppScreen.Events, AppScreen.HouseMasterEmergency };
 
             if (Is(role, "Parent") || StaffRoles.Any(r => Is(role, r)))
                 return new[] { AppScreen.Events };

@@ -35,6 +35,10 @@ namespace MhmsMobileApp
                     return Tab("Kitchen Plan", "ProductionPage", () => new ProductionPage());
                 case AppScreen.FeastPlan:
                     return Tab("Feast Plan", "FeastPlanPage", () => new FeastPlanPage());
+                case AppScreen.Safety:
+                    return Tab("Safety", "SafetyPage", () => new SafetyPage());
+                case AppScreen.HouseMasterEmergency:
+                    return Tab("Emergency", "HouseMasterEmergencyPage", () => new HouseMasterEmergencyPage());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(screen));
             }

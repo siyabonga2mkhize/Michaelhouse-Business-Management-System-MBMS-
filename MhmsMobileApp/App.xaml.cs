@@ -27,9 +27,21 @@ namespace MhmsMobileApp
         }
 
         // After a successful login: tabs for the user's role
-        public static void ShowMainShell()
+        // openTab: route of a tab to open first, e.g. "SafetyPage" when a
+        // student still has to confirm they're safe
+        public static void ShowMainShell(string? openTab = null)
         {
-            SetRootPage(new AppShell());
+            var shell = new AppShell();
+            SetRootPage(shell);
+
+            if (!string.IsNullOrEmpty(openTab))
+            {
+                shell.Dispatcher.Dispatch(async () =>
+                {
+                    try { await shell.GoToAsync("//" + openTab); }
+                    catch (Exception) { /* the role has no such tab */ }
+                });
+            }
         }
 
         // Log out (or session expired): back to the login screen

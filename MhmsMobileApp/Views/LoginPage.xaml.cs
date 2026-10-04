@@ -139,7 +139,7 @@ namespace MhmsMobileApp.Views
             if (user.MustConfirmSafety)
             {
                 await DisplayAlert("Emergency alert",
-                    "There is an active emergency alert. Please confirm you are safe on the Michaelhouse website.",
+                    "There is an active emergency alert. Please confirm you are safe on the Safety tab.",
                     "OK");
             }
 
@@ -147,7 +147,7 @@ namespace MhmsMobileApp.Views
             PasswordEntry.Text = "";
             SetBusy(false);
 
-            App.ShowMainShell();
+            App.ShowMainShell(user.MustConfirmSafety ? "SafetyPage" : null);
         }
 
         private void ShowError(string message)

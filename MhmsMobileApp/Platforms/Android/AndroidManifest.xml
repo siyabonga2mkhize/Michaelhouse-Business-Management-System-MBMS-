@@ -6,6 +6,12 @@
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
 
+	<!-- Emergency "I'm safe" confirmation checks the student's GPS position -->
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-feature android:name="android.hardware.location" android:required="false" />
+	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
 	<!-- MediaPicker (camera) on older Android versions -->
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
