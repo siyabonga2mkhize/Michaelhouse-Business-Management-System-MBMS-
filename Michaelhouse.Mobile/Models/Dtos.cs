@@ -17,5 +17,7 @@ public sealed class DriverScanResultDto { public bool Success { get; set; } publ
 public sealed class HouseMasterAlertDto { public int Id { get; set; } public string Residence { get; set; } = ""; public string Title { get; set; } = ""; public string Message { get; set; } = ""; public DateTime CreatedAt { get; set; } }
 public sealed class HouseMasterResidenceDto { public int Id { get; set; } public string Name { get; set; } = ""; }
 public sealed class RollCallStudentDto { public int StudentId { get; set; } public string Name { get; set; } = ""; }
+public sealed class EmergencyAlertDto { public int Id { get; set; } public string Message { get; set; } = ""; public string AssemblyPoint { get; set; } = ""; public double Latitude { get; set; } public double Longitude { get; set; } public double RadiusMeters { get; set; } public bool SirenStopped { get; set; } }
+public sealed class EmergencyConfirmationDto { public bool Success { get; set; } public bool WithinGeofence { get; set; } public double Distance { get; set; } public string Message { get; set; } = ""; }
 public sealed class ResidenceDto { public int ResidenceId { get; set; } public string Name { get; set; } = ""; public int AvailableBeds { get; set; } }
 public sealed class AssignmentDto { public ResidenceDto? Residence { get; set; } public RoomDto? Room { get; set; } public BedDto? Bed { get; set; } } public sealed class RoomDto { public string RoomNumber { get; set; } = ""; } public sealed class BedDto { public string BedNumber { get; set; } = ""; }

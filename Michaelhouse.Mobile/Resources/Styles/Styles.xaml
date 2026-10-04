@@ -18,6 +18,21 @@
         <Setter Property="StrokeThickness" Value="1"/>
     </Style>
 
+    <Style TargetType="CollectionView">
+        <Setter Property="ItemsLayout">
+            <Setter.Value>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="SelectionMode" Value="Single" />
+    </Style>
+
+    <Style x:Key="CardLabel" TargetType="Label">
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
     <Style TargetType="BoxView">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
     </Style>

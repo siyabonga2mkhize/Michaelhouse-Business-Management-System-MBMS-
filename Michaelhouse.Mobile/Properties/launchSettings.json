@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "Windows Machine": {
+    "MichaelhouseAPI": {
       "commandName": "Project",
-      "nativeDebugging": false
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://0.0.0.0:65133",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }

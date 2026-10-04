@@ -154,6 +154,26 @@ namespace Michaelhouse.Controllers
             return Ok(db.Notifications.Where(x => x.UserId == u.UserId).OrderByDescending(x => x.CreatedAt).Take(50).ToList()
                 .Select(x => new { id = x.Id, message = x.Message, createdAt = x.CreatedAt, isRead = x.IsRead, type = x.Type }));
         }
+        [HttpGet, Route("student/emergency")]
+        public IHttpActionResult StudentEmergency()
+        {
+            AppUser u; Student student; if (!CurrentStudent(out u, out student)) return Unauthorized();
+            var alert = db.EmergencyAlerts.Where(x => x.Status == AlertStatus.Active).OrderByDescending(x => x.AlertTime).FirstOrDefault();
+            return Ok(alert == null ? null : new { id = alert.AlertId, message = alert.AlertMessage, assemblyPoint = alert.AssemblyPointName, latitude = alert.AssemblyLatitude, longitude = alert.AssemblyLongitude, radiusMeters = alert.GeofenceRadiusMeters, sirenStopped = alert.SirenStopped });
+        }
+        [HttpPost, Route("student/emergency/confirm")]
+        public IHttpActionResult ConfirmStudentSafety(EmergencySafetyRequest request)
+        {
+            AppUser u; Student student; if (!CurrentStudent(out u, out student) || request == null) return Unauthorized();
+            var alert = db.EmergencyAlerts.Where(x => x.Status == AlertStatus.Active).OrderByDescending(x => x.AlertTime).FirstOrDefault();
+            if (alert == null) return BadRequest("No active emergency alert.");
+            var confirmation = db.StudentSafetyConfirmations.FirstOrDefault(x => x.AlertId == alert.AlertId && x.StudentId == student.StudentId) ?? new StudentSafetyConfirmation { AlertId = alert.AlertId, StudentId = student.StudentId };
+            var assembly = new Helpers.GeofencingService.Location(alert.AssemblyLatitude, alert.AssemblyLongitude); var location = new Helpers.GeofencingService.Location(request.Latitude, request.Longitude);
+            var distance = Helpers.GeofencingService.CalculateDistance(assembly, location); var inside = Helpers.GeofencingService.IsWithinRadius(assembly, location, alert.GeofenceRadiusMeters);
+            confirmation.StudentLatitude = request.Latitude; confirmation.StudentLongitude = request.Longitude; confirmation.ConfirmationTime = DateTime.Now; confirmation.DistanceFromAssemblyPointMeters = distance; confirmation.WithinGeofence = inside; confirmation.Status = inside ? SafetyStatus.Confirmed : SafetyStatus.OutsideZone;
+            if (confirmation.ConfirmationId == 0) db.StudentSafetyConfirmations.Add(confirmation); if (inside) alert.SirenStopped = true; db.SaveChanges();
+            return Ok(new { success = true, withinGeofence = inside, distance = Math.Round(distance, 2), message = inside ? "Safety confirmed – you are accounted for." : "You are outside the designated safe zone. Move closer and try again." });
+        }
 
         [HttpPost, Route("student/alerts/{id:int}/read")]
         public IHttpActionResult MarkStudentAlertRead(int id)
@@ -270,18 +290,39 @@ namespace Michaelhouse.Controllers
         private bool CurrentStudent(out AppUser u, out Student student)
         {
             student = null;
+            u = null;
             if (!Current(out u) || !String.Equals(u.Role, "Student", StringComparison.OrdinalIgnoreCase)) return false;
-            student = db.Students.Include(x => x.Parent).FirstOrDefault(x => x.UserId == u.UserId);
+            var userId = u.UserId;
+            student = db.Students.Include(x => x.Parent).FirstOrDefault(x => x.UserId == userId);
             return student != null;
         }
         private bool CurrentTeacher(out AppUser u, out Teacher teacher)
         {
             teacher = null;
+            u = null;
             if (!Current(out u) || !String.Equals(u.Role, "Teacher", StringComparison.OrdinalIgnoreCase)) return false;
-            teacher = db.Teachers.FirstOrDefault(x => x.UserId == u.UserId); return teacher != null;
+            var userId = u.UserId;
+            teacher = db.Teachers.FirstOrDefault(x => x.UserId == userId);
+            return teacher != null;
         }
-        private bool CurrentDriver(out AppUser u, out Driver driver) { driver = null; if (!Current(out u) || !String.Equals(u.Role, "Driver", StringComparison.OrdinalIgnoreCase)) return false; driver = db.Drivers.FirstOrDefault(x => x.UserId == u.UserId && x.IsActive); return driver != null; }
-        private bool CurrentHouseMaster(out AppUser u, out HouseMaster master) { master = null; if (!Current(out u) || !String.Equals(u.Role, "HouseMaster", StringComparison.OrdinalIgnoreCase)) return false; master = db.HouseMasters.FirstOrDefault(x => x.ContactEmail == u.Email); return master != null; }
+        private bool CurrentDriver(out AppUser u, out Driver driver)
+        {
+            driver = null;
+            u = null;
+            if (!Current(out u) || !String.Equals(u.Role, "Driver", StringComparison.OrdinalIgnoreCase)) return false;
+            var userId = u.UserId;
+            driver = db.Drivers.FirstOrDefault(x => x.UserId == userId && x.IsActive);
+            return driver != null;
+        }
+        private bool CurrentHouseMaster(out AppUser u, out HouseMaster master)
+        {
+            master = null;
+            u = null;
+            if (!Current(out u) || !String.Equals(u.Role, "HouseMaster", StringComparison.OrdinalIgnoreCase)) return false;
+            var email = u.Email;
+            master = db.HouseMasters.FirstOrDefault(x => x.ContactEmail == email);
+            return master != null;
+        }
         private bool OwnsResidence(int masterId, int residenceId) { return db.Residences.Any(x => x.ResidenceId == residenceId && x.HouseMasterId == masterId && !x.IsArchived); }
         private bool TryDriverSchedule(int driverId, int scheduleId, out TripSchedule schedule) { schedule = db.TripSchedules.Include(x => x.TripRequest).Include(x => x.TripStudents.Select(y => y.Student)).FirstOrDefault(x => x.Id == scheduleId && (x.DriverId == driverId || x.VehicleAssignments.Any(y => y.DriverId == driverId))); return schedule != null; }
         private Student ResolveStudentQr(string value) { var direct = db.StudentQRCodes.Include(x => x.Student).FirstOrDefault(x => x.QRCodeValue == value && x.IsActive); if (direct != null) return direct.Student; try { var token = System.Web.HttpUtility.ParseQueryString(new Uri(value).Query).Get("token"); var attendance = db.StudentAttendanceTokens.FirstOrDefault(x => x.Token == token); return attendance == null ? null : db.Students.Find(attendance.StudentId); } catch { return null; } }
@@ -303,4 +344,5 @@ namespace Michaelhouse.Controllers
     public class TeacherAttendanceRequest { public DateTime Date { get; set; } public List<TeacherAttendanceEntry> Students { get; set; } }
     public class TeacherAttendanceEntry { public int StudentId { get; set; } public string Status { get; set; } }
     public class DriverScanRequest { public string QrValue { get; set; } public string Phase { get; set; } }
+    public class EmergencySafetyRequest { public double Latitude { get; set; } public double Longitude { get; set; } }
 }
