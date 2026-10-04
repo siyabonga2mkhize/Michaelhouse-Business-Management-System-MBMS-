@@ -87,6 +87,28 @@ namespace MhmsMobileApp.Models
         public string? Reason { get; set; }
     }
 
+    // POST api/residence-scan/lookup | check-in | check-out (MVC, House Master)
+    public class ResidenceScanDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public string? Message { get; set; }
+
+        public int StudentId { get; set; }
+        public string Name { get; set; } = "";
+        public string? StudentNumber { get; set; }
+        public string? Residence { get; set; }
+        public string? Room { get; set; }
+        public string? Bed { get; set; }
+        public bool HasAssignment { get; set; }
+        public string Status { get; set; } = "";        // Inside / Outside / OnHoliday / WeekendLeave / Suspended / Archived
+        public string StatusLabel { get; set; } = "";
+        public string? LastCheckIn { get; set; }
+        public string? LastCheckOut { get; set; }
+        public bool CanCheckIn { get; set; }
+        public bool CanCheckOut { get; set; }
+    }
+
     // POST ... { success = true }
     public class SuccessDto
     {

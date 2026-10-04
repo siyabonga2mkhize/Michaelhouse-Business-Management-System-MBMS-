@@ -389,6 +389,20 @@ namespace MhmsMobileApp.Services
             MobilePostAsync<QrScanResultDto>("qr/scan", new { qrValue });
 
         // ============================================================
+        // Residence sign in / sign out (House Master; same rules as the
+        // web page HouseMaster/ScanQRCode)
+        //   POST /api/residence-scan/lookup | check-in | check-out
+        // ============================================================
+        public Task<ResidenceScanDto> LookupResidenceQrAsync(string qrValue) =>
+            PostAsync("api/residence-scan/lookup", new { qrValue }, error => new ResidenceScanDto { Ok = false, Error = error });
+
+        public Task<ResidenceScanDto> CheckInAsync(int studentId) =>
+            PostAsync("api/residence-scan/check-in", new { studentId }, error => new ResidenceScanDto { Ok = false, Error = error });
+
+        public Task<ResidenceScanDto> CheckOutAsync(int studentId) =>
+            PostAsync("api/residence-scan/check-out", new { studentId }, error => new ResidenceScanDto { Ok = false, Error = error });
+
+        // ============================================================
         // Squad (not shown in the app for now)
         // ============================================================
         public Task<SquadListDto> GetSquadAsync() =>

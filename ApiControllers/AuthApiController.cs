@@ -90,6 +90,20 @@ namespace Michaelhouse.ApiControllers
                     Session["StudentId"] = student.StudentId;
                 }
             }
+            else if (user.Role == "HouseMaster" || user.Role == "Housemaster")
+            {
+                // Same lookup as Account/Login; BoardingAccessService uses it
+                // to limit a House Master to their own residence
+                var houseMaster = await _db.HouseMasters.FirstOrDefaultAsync(h =>
+                    h.ContactEmail == user.Email || h.FullName == user.Name);
+                if (houseMaster != null) Session["HouseMasterId"] = houseMaster.HouseMasterId;
+            }
+            else if (user.Role == "MaintenanceWorker")
+            {
+                // Same as Account/Login
+                var staff = await _db.MaintenanceStaff.FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                if (staff != null) Session["MaintenanceStaffId"] = staff.Id;
+            }
 
             return Json(ToJson(user, parentId, studentId, await HasUnconfirmedEmergencyAsync(user.Role, studentId)));
         }
