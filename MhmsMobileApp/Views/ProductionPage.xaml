@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MhmsMobileApp.Views.ProductionPage"
+             Title="Production">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <ActivityIndicator x:Name="LoadingSpinner"
+                           Grid.Row="0"
+                           IsRunning="True"
+                           IsVisible="True"
+                           Color="#C21E2E" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="14" IsVisible="False">
+
+                <Label x:Name="ErrorLabel"
+                       TextColor="Red"
+                       FontSize="14"
+                       IsVisible="False" />
+
+                <Label Text="Kitchen Production Plan"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="#111827" />
+
+                <Label x:Name="WeekLabel"
+                       FontSize="14"
+                       TextColor="#6b7280" />
+
+                <Label x:Name="StatusLabel"
+                       FontSize="13"
+                       FontAttributes="Bold" />
+
+                <BoxView HeightRequest="1" Color="#e5e7eb" Margin="0,4" />
+
+                <Label Text="DAILY SCHEDULE"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="#6b7280" />
+
+                <VerticalStackLayout x:Name="DaysContainer" Spacing="14" />
+
+                <Label Text="WEEK INGREDIENT TOTALS"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="#6b7280"
+                       Margin="0,16,0,0" />
+
+                <VerticalStackLayout x:Name="IngredientsContainer" Spacing="4" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

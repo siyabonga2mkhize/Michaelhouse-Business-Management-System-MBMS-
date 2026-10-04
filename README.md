@@ -188,6 +188,72 @@ If you see `A network-related or instance-specific error...`:
 
 ---
 
+## 📱 Mobile App (MhmsMobileApp)
+
+The `MhmsMobileApp` folder is a **.NET MAUI** app (Android + Windows) for the cafeteria. It talks to this website through the APIs in `ApiControllers` and uses the **same logins and rules** as the website. After login it shows only the screens for the person's role:
+
+| Role | Screens |
+|------|---------|
+| Student | My Meal Plan, My Events (RSVP) |
+| Parent / Staff | My Events (RSVP) |
+| Chef | Meal Collection (face scan), Kitchen Plan |
+| Cafeteria Manager / Admin | Meal Collection, Record Delivery, Kitchen Plan, Feast Plan |
+
+### What you need
+
+- **Visual Studio 2022** with the **.NET Multi-platform App UI (MAUI)** workload (.NET 9) and an **Android emulator** (Tools → Android → Android Device Manager).
+- The website running on `https://localhost:44321` (the app uses `https://10.0.2.2:44321` on the Android emulator, which is your PC's `localhost`).
+
+### 1. Database (LocalDB)
+
+The website uses LocalDB (`Web.config` → `MichaelHouse`). Only `Migrations/Configuration.cs` (the seed data) is in git — the migration files are not.
+
+1. If the website won't build because `Migrations\2026….cs` files are missing, remove those missing entries in Solution Explorer (they show a yellow warning ⚠) — don't commit that change.
+2. **Tools → NuGet Package Manager → Package Manager Console**, *Default project*: `Michaelhouse`, then run:
+   ```
+   Add-Migration InitialLocal
+   Update-Database
+   ```
+   `Update-Database` creates the database and runs the seed in `Migrations/Configuration.cs` (test accounts and sample data).
+
+### 2. Face recognition (once per computer)
+
+Meal Collection uses real face recognition (FaceRecognitionDotNet / dlib, runs locally). Its model files (~132 MB) are not in git:
+
+1. In the project folder, right-click **`Download-FaceModels.ps1`** → **Run with PowerShell** (downloads into `App_Data\FaceModels`).
+2. Restart IIS Express: system tray IIS Express icon → **Exit** (the project runs **64-bit IIS Express**, which face recognition needs).
+3. Students must **enrol their face** on the website (log in as the student → *Face Enrollment*). A face can only be enrolled for one student.
+4. Check: log in as Admin → `https://localhost:44321/DemoData/Index` should say **Face recognition: Ready**.
+
+### 3. Emulator camera (for face scans and invoice photos)
+
+Android Studio → **Device Manager** → your emulator → ✏️ **Edit** → **Show Advanced Settings** → **Camera**: set **Front** and **Back** to **Webcam0** → Finish, then restart the emulator.
+
+### 4. Run both projects
+
+1. Right-click the solution → **Configure Startup Projects…** → **Multiple startup projects** → set **Michaelhouse** and **MhmsMobileApp** to **Start**.
+2. In the toolbar, set MhmsMobileApp's target to **Android Emulators → (your emulator)** (or *Windows Machine*).
+3. Press **F5**. The app's login screen says "Connecting to the Michaelhouse server…" until the website has started.
+
+### Test accounts for the app
+
+Passwords are set in `Migrations/Configuration.cs` (seed) and `Controllers/AccountController.cs` (`SeedAdmin`).
+
+| Role | Email |
+|------|-------|
+| Student | `amina.khan@michaelhouse.co.za` (also `thabo.ntuli@…`, `lindiwe.mthembu@…`) |
+| Staff (Teacher) | `teacher@michaelhouse.co.za` |
+| Chef | `chef@michaelhouse.co.za` |
+| Cafeteria Manager | `cafeteria@michaelhouse.co.za` |
+| Admin | `admin@michaelhouse.co.za` — create it once at `https://localhost:44321/Account/SeedAdmin` |
+| Parent | register one at `https://localhost:44321/Account/Register` |
+
+### Demo data (Admin only)
+
+`https://localhost:44321/DemoData/Index` — see and remove face enrollments, and give a student a **submitted meal plan for today and the next few days** (from the published menu) so a meal can be collected at any time. Run it again before each demo.
+
+---
+
 ## 📄 License
 
 This project is proprietary to Michaelhouse and is intended for internal use only.
