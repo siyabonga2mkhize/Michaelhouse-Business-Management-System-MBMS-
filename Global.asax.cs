@@ -19,8 +19,11 @@ namespace Michaelhouse
         {
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            // Web API (api/mobile/*) first: the MVC "{controller}/{action}/{id}"
+            // route would otherwise catch three-part addresses such as
+            // api/mobile/students and return 404
             GlobalConfiguration.Configure(WebApiConfig.Register);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             // UC18: RSVP is a public form. Anti-forgery tokens must not
             // be bound to the current user identity, otherwise a token
