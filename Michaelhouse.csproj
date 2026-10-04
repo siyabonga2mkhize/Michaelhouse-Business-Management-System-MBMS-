@@ -257,6 +257,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AIController.cs" />
     <Compile Include="Controllers\AttendancesController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
@@ -267,6 +268,7 @@
     <Compile Include="Controllers\HouseMasterController.cs" />
     <Compile Include="Controllers\Leaverequestcontroller.cs" />
     <Compile Include="Controllers\MaintenanceController.cs" />
+    <Compile Include="Controllers\MobileApiController.cs" />
     <Compile Include="Controllers\NotificationController.cs" />
     <Compile Include="Controllers\InventoryController.cs" />
     <Compile Include="Controllers\PurchaseorderController.cs" />
@@ -421,6 +423,7 @@
     <Compile Include="Services\CompatibilityScoringService.cs" />
     <Compile Include="Services\ExplanationGenerator.cs" />
     <Compile Include="Services\IEmergencyService.cs" />
+    <Compile Include="Services\MobileApiTokenService.cs" />
     <Compile Include="Services\MichaelhouseRulesEngine.cs" />
     <Compile Include="Services\ResidenceAllocationEngine.cs" />
     <Compile Include="Services\ResidenceAvailabilityService.cs" />

@@ -1,0 +1,6 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+namespace Michaelhouse.Mobile.Services;
+public sealed class MobileApiClient { readonly HttpClient h; readonly JsonSerializerOptions j = new() { PropertyNameCaseInsensitive = true }; public MobileApiClient(HttpClient h) => this.h = h; public void SetToken(string? t) => h.DefaultRequestHeaders.Authorization = String.IsNullOrEmpty(t) ? null : new AuthenticationHeaderValue("Bearer", t); public async Task<T?> GetAsync<T>(string p) { var r = await h.GetAsync(p); if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await r.Content.ReadAsStringAsync()); return await r.Content.ReadFromJsonAsync<T>(j); } public async Task<T?> PostAsync<T>(string p, object? b) { var r = await h.PostAsJsonAsync(p, b, j); if (!r.IsSuccessStatusCode) throw new InvalidOperationException(await r.Content.ReadAsStringAsync()); return await r.Content.ReadFromJsonAsync<T>(j); } }
+public sealed class SessionService { const string Key = "mobile_token"; public string? Token { get; private set; } public async Task SaveAsync(string t) { Token = t; await SecureStorage.Default.SetAsync(Key, t); } public void Clear() { Token = null; SecureStorage.Default.Remove(Key); } }
