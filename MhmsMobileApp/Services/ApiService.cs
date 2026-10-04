@@ -403,6 +403,22 @@ namespace MhmsMobileApp.Services
             PostAsync("api/residence-scan/check-out", new { studentId }, error => new ResidenceScanDto { Ok = false, Error = error });
 
         // ============================================================
+        // Report Asset Failure (any user; same job card as the web's
+        // Reporter/SubmitFault)
+        //   GET  /api/fault-reports/form
+        //   GET  /api/fault-reports/asset?code=...
+        //   POST /api/fault-reports
+        // ============================================================
+        public Task<FaultFormDto> GetFaultFormAsync() =>
+            GetAsync("api/fault-reports/form", error => new FaultFormDto { Ok = false, Error = error });
+
+        public Task<AssetDto> GetAssetByQrAsync(string code) =>
+            GetAsync("api/fault-reports/asset?code=" + Uri.EscapeDataString(code), error => new AssetDto { Ok = false, Error = error });
+
+        public Task<FaultReportResultDto> SubmitFaultReportAsync(FaultReportRequestDto data) =>
+            PostAsync("api/fault-reports", data, error => new FaultReportResultDto { Ok = false, Error = error });
+
+        // ============================================================
         // Squad (not shown in the app for now)
         // ============================================================
         public Task<SquadListDto> GetSquadAsync() =>

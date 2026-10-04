@@ -43,6 +43,10 @@ namespace MhmsMobileApp
                     return Tab("My QR", "StudentQrPage", () => new StudentQrPage());
                 case AppScreen.ResidenceScan:
                     return Tab("Scan QR", "ResidenceScanPage", () => new ResidenceScanPage());
+                case AppScreen.Requests:
+                    return Tab("Requests", "RequestsPage", () => new RequestsPage());
+                case AppScreen.ReportFault:
+                    return Tab("Report Fault", "ReportFaultPage", () => new ReportFaultPage());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(screen));
             }

@@ -109,6 +109,64 @@ namespace MhmsMobileApp.Models
         public bool CanCheckOut { get; set; }
     }
 
+    // ============================================================
+    // Report Asset Failure — api/fault-reports (MVC, any user)
+    // ============================================================
+    public class FaultFormDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public List<string> Priorities { get; set; } = new List<string>();
+        public List<string> Categories { get; set; } = new List<string>();
+        public List<AssetDto> Assets { get; set; } = new List<AssetDto>();
+        public List<FaultReportSummaryDto> MyReports { get; set; } = new List<FaultReportSummaryDto>();
+    }
+
+    public class AssetDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string? Building { get; set; }
+        public string? Room { get; set; }
+        public string? Category { get; set; }
+
+        public string Label => Name + (string.IsNullOrEmpty(Building) ? "" : " · " + Building) + (string.IsNullOrEmpty(Room) ? "" : ", " + Room);
+    }
+
+    public class FaultReportSummaryDto
+    {
+        public string JobReference { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string? Asset { get; set; }
+        public string Priority { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string Reported { get; set; } = "";
+        public string? AssignedTo { get; set; }
+    }
+
+    public class FaultReportRequestDto
+    {
+        public int? AssetId { get; set; }
+        public string? ManualAssetName { get; set; }
+        public string? ManualAssetLocation { get; set; }
+        public string? ManualCategory { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public string? PhotoBase64 { get; set; }
+    }
+
+    public class FaultReportResultDto
+    {
+        public bool Ok { get; set; }
+        public string? Error { get; set; }
+        public string? JobReference { get; set; }
+        public string? Status { get; set; }
+        public string? Message { get; set; }
+    }
+
     // POST ... { success = true }
     public class SuccessDto
     {

@@ -17,7 +17,9 @@ namespace MhmsMobileApp.Services
         Safety,               // student: emergency alert + "I'm safe" + alerts
         HouseMasterEmergency, // house master: residence alerts + roll call
         MyQr,                 // student: residence QR identity
-        ResidenceScan         // house master: QR sign in / sign out
+        ResidenceScan,        // house master: QR sign in / sign out
+        Requests,             // student: report a fault, leave, visitor
+        ReportFault           // everyone else: report an asset failure
     }
 
     // ============================================================
@@ -58,19 +60,23 @@ namespace MhmsMobileApp.Services
             role = (role ?? "").Trim();
 
             if (Is(role, "Student"))
-                return new[] { AppScreen.MealPlan, AppScreen.Events, AppScreen.Safety, AppScreen.MyQr };
+                return new[] { AppScreen.MealPlan, AppScreen.Events, AppScreen.Safety, AppScreen.MyQr, AppScreen.Requests };
 
             if (Is(role, "HouseMaster") || Is(role, "Housemaster"))
-                return new[] { AppScreen.Events, AppScreen.HouseMasterEmergency, AppScreen.ResidenceScan };
+                return new[] { AppScreen.Events, AppScreen.HouseMasterEmergency, AppScreen.ResidenceScan, AppScreen.ReportFault };
 
             if (Is(role, "Parent") || StaffRoles.Any(r => Is(role, r)))
-                return new[] { AppScreen.Events };
+                return new[] { AppScreen.Events, AppScreen.ReportFault };
 
             if (Is(role, "Chef"))
-                return new[] { AppScreen.MealCollection, AppScreen.KitchenPlan };
+                return new[] { AppScreen.MealCollection, AppScreen.KitchenPlan, AppScreen.ReportFault };
 
             if (Is(role, "CafeteriaManager") || Is(role, "Admin"))
-                return new[] { AppScreen.MealCollection, AppScreen.RecordDelivery, AppScreen.KitchenPlan, AppScreen.FeastPlan };
+                return new[] { AppScreen.MealCollection, AppScreen.RecordDelivery, AppScreen.KitchenPlan, AppScreen.FeastPlan, AppScreen.ReportFault };
+
+            // Any other logged-in user can still report a fault
+            if (role.Length > 0)
+                return new[] { AppScreen.ReportFault };
 
             return Array.Empty<AppScreen>();
         }

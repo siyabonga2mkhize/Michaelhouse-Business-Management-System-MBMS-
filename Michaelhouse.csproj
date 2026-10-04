@@ -307,6 +307,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiControllers\AuthApiController.cs" />
+    <Compile Include="ApiControllers\FaultReportApiController.cs" />
     <Compile Include="ApiControllers\FeastPlanApiController.cs" />
     <Compile Include="ApiControllers\MealCollectionController.cs" />
     <Compile Include="ApiControllers\MealPlanApiController.cs" />
