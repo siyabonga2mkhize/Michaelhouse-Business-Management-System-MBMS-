@@ -190,14 +190,23 @@ If you see `A network-related or instance-specific error...`:
 
 ## 📱 Mobile App (MhmsMobileApp)
 
-The `MhmsMobileApp` folder is a **.NET MAUI** app (Android + Windows) for the cafeteria. It talks to this website through the APIs in `ApiControllers` and uses the **same logins and rules** as the website. After login it shows only the screens for the person's role:
+**`MhmsMobileApp` is the one Michaelhouse mobile app** (.NET MAUI, .NET 9, Android + Windows). It covers the Increment 1 and 2 use cases: cafeteria, events, emergency safety, residence QR sign in/out, fault reports, leave and visitor requests, and maintenance job cards.
+
+> The earlier separate app `Michaelhouse.Mobile` (.NET 10) has been merged into `MhmsMobileApp` and removed from the solution and the repository. It is still in the git history if anyone needs to look back at it.
+
+The app talks to this website through the APIs in `ApiControllers` (MVC endpoints with the login session) and `Controllers/MobileApiController.cs` (Web API, `api/mobile/*`, with a token). One login gives the app both. It uses the **same logins and rules** as the website, and after login it shows only the screens for the person's role:
 
 | Role | Screens |
 |------|---------|
-| Student | My Meal Plan, My Events (RSVP) |
-| Parent / Staff | My Events (RSVP) |
-| Chef | Meal Collection (face scan), Kitchen Plan |
-| Cafeteria Manager / Admin | Meal Collection, Record Delivery, Kitchen Plan, Feast Plan |
+| Student | My Meal Plan, My Events (RSVP), Safety (emergency + "I'm safe" with GPS, alerts), My QR, Requests (Request Leave, Request a Visitor, Report a Fault) |
+| House Master | My Events, Emergency (residence alerts, roll call), Scan QR (residence sign in / out), Report Fault |
+| Maintenance Worker | Job Cards (complete with photo, parts and costs), My Events, Report Fault |
+| Parent / other staff | My Events (RSVP), Report Fault |
+| Chef | Meal Collection (face scan), Kitchen Plan, Report Fault |
+| Cafeteria Manager / Admin | Meal Collection, Record Delivery, Kitchen Plan, Feast Plan, Report Fault |
+| Any other role | Report Fault |
+
+Requests made on the app (leave, visitors) are approved on the website, as before.
 
 ### What you need
 
@@ -225,9 +234,11 @@ Meal Collection uses real face recognition (FaceRecognitionDotNet / dlib, runs l
 3. Students must **enrol their face** on the website (log in as the student → *Face Enrollment*). A face can only be enrolled for one student.
 4. Check: log in as Admin → `https://localhost:44321/DemoData/Index` should say **Face recognition: Ready**.
 
-### 3. Emulator camera (for face scans and invoice photos)
+### 3. Emulator camera and location (face scans, QR codes, photos, "I'm safe")
 
 Android Studio → **Device Manager** → your emulator → ✏️ **Edit** → **Show Advanced Settings** → **Camera**: set **Front** and **Back** to **Webcam0** → Finish, then restart the emulator.
+
+For the emergency "I'm safe" check, set the emulator's position: **⋯ (Extended controls) → Location**, enter the assembly point's coordinates, then **Set location**.
 
 ### 4. Run both projects
 
@@ -243,6 +254,8 @@ Passwords are set in `Migrations/Configuration.cs` (seed) and `Controllers/Accou
 |------|-------|
 | Student | `amina.khan@michaelhouse.co.za` (also `thabo.ntuli@…`, `lindiwe.mthembu@…`) |
 | Staff (Teacher) | `teacher@michaelhouse.co.za` |
+| House Master | `founders.hm@michaelhouse.co.za` (Founders House) |
+| Maintenance Worker | `s.dlamini@michaelhouse.org` |
 | Chef | `chef@michaelhouse.co.za` |
 | Cafeteria Manager | `cafeteria@michaelhouse.co.za` |
 | Admin | `admin@michaelhouse.co.za` — create it once at `https://localhost:44321/Account/SeedAdmin` |
