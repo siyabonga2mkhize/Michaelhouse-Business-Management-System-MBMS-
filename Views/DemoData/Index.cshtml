@@ -1,0 +1,176 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@{
+    ViewBag.Title = "Demo Data";
+    var enrollments = ViewBag.Enrollments as List<StudentFaceSignature> ?? new List<StudentFaceSignature>();
+    var students = ViewBag.Students as List<SelectListItem> ?? new List<SelectListItem>();
+    var todayMenu = ViewBag.TodayMenu as MealMenu;
+    DateTime today = ViewBag.Today;
+    string faceEngineStatus = ViewBag.FaceEngineStatus as string;
+    var picks = (TempData["Picks"] as string ?? "").Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+    var problems = (TempData["Problems"] as string ?? "").Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+}
+
+<style>
+    .dd-shell { max-width: 900px; margin: 0 auto; }
+    .dd-shell h1 { color: #1a1a1a; font-weight: 700; }
+    .dd-accent { width: 40px; height: 3px; background: #C21E2E; margin: .5rem 0 1rem; }
+    .dd-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .dd-card h2 { font-size: 1.3rem; margin-bottom: .25rem; }
+    .dd-help { color: #6b7280; font-size: .9rem; }
+    .dd-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #9ca3af; }
+    .btn-mh { background: #C21E2E; color: #fff; font-weight: 700; }
+    .btn-mh:hover { background: #a01826; color: #fff; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="dd-shell">
+
+        <h1>Demo Data</h1>
+        <div class="dd-accent"></div>
+        <p class="dd-help">Admin only. Use this to get ready for a presentation of face meal collection.</p>
+
+        <!-- ── 1. Face enrollments ── -->
+        <div class="dd-card">
+            <h2>1. Face enrollments</h2>
+            <p class="dd-help">
+                Each student has one enrollment, and a face can be enrolled for only one student (enrollment refuses a
+                face that's already enrolled for someone else). Enrollments made before real face recognition was added
+                show "Needs re-enrolling": that student logs in → <strong>Face Enrollment</strong> and enrols again.
+            </p>
+
+            @if (faceEngineStatus == "Ready")
+            {
+                <div class="alert alert-success">Face recognition: <strong>Ready</strong></div>
+            }
+            else
+            {
+                <div class="alert alert-danger">@faceEngineStatus</div>
+            }
+
+            @if (enrollments.Count == 0)
+            {
+                <div class="alert alert-secondary mb-0">No students are enrolled.</div>
+            }
+            else
+            {
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr><th>Student</th><th>Student no.</th><th>Enrolled (UTC)</th><th>Active</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in enrollments)
+                        {
+                            <tr>
+                                <td>@(f.Student != null ? f.Student.FirstName + " " + f.Student.LastName : "Student " + f.StudentId)</td>
+                                <td>@(f.Student != null ? f.Student.StudentNumber : "")</td>
+                                <td>@f.EnrolledAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    @(f.IsActive ? "Yes" : "No")
+                                    @if (!Michaelhouse.Services.DlibFaceRecognitionService.IsUsableEncoding(f.FaceEncoding))
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1">Needs re-enrolling</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @using (Html.BeginForm("RemoveFace", "DemoData", FormMethod.Post, new { onsubmit = "return confirm('Remove this face enrollment?');" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@f.StudentId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Remove</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                using (Html.BeginForm("RemoveAllFaces", "DemoData", FormMethod.Post, new { onsubmit = "return confirm('Remove EVERY face enrollment? Students will need to enrol again.');" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger">Remove all face enrollments</button>
+                }
+            }
+        </div>
+
+        <!-- ── 2. Demo meal plan ── -->
+        <div class="dd-card">
+            <h2>2. Demo meal plan</h2>
+            <p class="dd-help">
+                Gives a student a <strong>submitted</strong> meal plan with breakfast, lunch and dinner chosen for today
+                and the next few days, so they can collect a meal at any time. Meals come from the published menu and
+                suit the student's dietary profile. Safe to run again before each presentation.
+            </p>
+
+            @if (todayMenu != null)
+            {
+                <div class="alert alert-success">
+                    Published menu for today (@today.ToString("ddd dd MMM")):
+                    <strong>@todayMenu.StartDate.ToString("dd MMM") – @todayMenu.EndDate.ToString("dd MMM yyyy")</strong>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    No published menu covers today (@today.ToString("ddd dd MMM")). Publish a menu that includes today first
+                    (Meal Coordinator / Cafeteria Manager), then come back.
+                </div>
+            }
+
+            @if (picks.Length > 0)
+            {
+                <div class="alert alert-light border">
+                    <div class="dd-label mb-1">Meals chosen</div>
+                    <ul class="mb-0">
+                        @foreach (var p in picks)
+                        {
+                            <li>@p</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (problems.Length > 0)
+            {
+                <div class="alert alert-warning">
+                    <div class="dd-label mb-1">Couldn't set up</div>
+                    <ul class="mb-0">
+                        @foreach (var p in problems)
+                        {
+                            <li>@p</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @using (Html.BeginForm("CreateMealPlan", "DemoData", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="dd-label d-block mb-1">Student</label>
+                    @Html.DropDownList("studentId", students, new { @class = "form-select" })
+                </div>
+
+                <div class="mb-3">
+                    <label class="dd-label d-block mb-1">Days (starting today)</label>
+                    <select name="days" class="form-select" style="max-width:160px;">
+                        @for (int d = 1; d <= 7; d++)
+                        {
+                            <option value="@d" @(d == 4 ? "selected" : "")>@d</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="clearCollections" value="true" id="clearCollections" checked />
+                    <label class="form-check-label" for="clearCollections">
+                        Remove this student's meal collections for these days, so they can collect again
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-mh">Create demo meal plan</button>
+            }
+        </div>
+
+    </div>
+</div>

@@ -3,6 +3,7 @@ using Michaelhouse.Services;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace Michaelhouse.ApiControllers
@@ -10,6 +11,8 @@ namespace Michaelhouse.ApiControllers
     // ============================================================
     // UC16 Mobile — Face Meal Collection
     //
+    //   GET  /api/mealcollection/status
+    //        → the meal being served now (same banner as the terminal)
     //   POST /api/mealcollection/verify  { imageBase64 }
     //        → identify the student and check they may collect
     //          the meal being served now; returns a one-time token
@@ -37,6 +40,36 @@ namespace Michaelhouse.ApiControllers
         {
             if (disposing) _db.Dispose();
             base.Dispose(disposing);
+        }
+
+        // ============================================================
+        // GET /api/mealcollection/status
+        // The meal being served now — the same banner as the web
+        // terminal (MealCollectionController.Index)
+        // ============================================================
+
+        [HttpGet]
+        [Route("status")]
+        public JsonResult Status()
+        {
+            var now = SchoolClock.Now;
+            var today = now.Date;
+            var opening = CollectionOpening.Current(now);
+            var slot = CollectionOpening.ServingSlot(now);
+
+            return Json(new
+            {
+                ok = true,
+                currentSlot = slot.HasValue ? slot.Value.ToString() : null,
+                currentSlotHours = opening != null
+                    ? string.Format("Opened manually by {0} until {1:HH:mm}", opening.OpenedBy, opening.OpenUntil)
+                    : slot.HasValue
+                        ? string.Format("Collection {0:hh\\:mm}–{1:hh\\:mm}", MealTimes.CollectionOpens(slot.Value), MealTimes.CollectionCloses(slot.Value))
+                        : null,
+                isManualOpening = opening != null,
+                collectionHours = MealTimes.CollectionHours(),
+                todayCount = _db.MealCollections.Count(c => c.Date == today)
+            }, JsonRequestBehavior.AllowGet);
         }
 
         // ============================================================
@@ -91,6 +124,9 @@ namespace Michaelhouse.ApiControllers
                 token = r.Token,
                 allergens = r.MealAllergens,
                 studentAllergies = r.StudentAllergies,
+                dietaryPreference = r.DietaryPreference,
+                medicalDietaryRestrictions = r.MedicalDietaryRestrictions,
+                dietaryNotes = r.DietaryNotes,
                 hasDietaryConflict = r.DietaryWarnings.Count > 0,
                 dietaryConflicts = r.DietaryWarnings
             };

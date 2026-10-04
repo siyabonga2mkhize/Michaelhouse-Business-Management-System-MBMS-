@@ -45,6 +45,10 @@ namespace Michaelhouse
             // UC18: opens scheduled event RSVPs on time
             Michaelhouse.Services.EventRsvpScheduler.Start();
 
+            // UC16: load the face recognition models in the background,
+            // so the first face scan doesn't wait for them
+            System.Threading.Tasks.Task.Run(() => Michaelhouse.Services.DlibFaceRecognitionService.Warmup());
+
             // 🌱 SEED THE DATABASE ONCE WHEN THE APP STARTS
             //SeedDrivers();
             //SeedMichaelhouseSystem();
