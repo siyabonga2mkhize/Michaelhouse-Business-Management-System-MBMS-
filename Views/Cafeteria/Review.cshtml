@@ -58,154 +58,184 @@
     int totalSlots = coverage != null ? coverage.Slots.Count : 0;
 }
 
-<div class="container-fluid py-4">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
         <div>
-            <h1 class="h3 mb-1">Proposed Menu</h1>
-            <p class="text-muted mb-0">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Coordinator</h5>
+            </div>
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Proposed Menu</h2>
+                <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 bg-blue-50 text-blue-700 border-blue-200">
+                    @Model.MenuStatus
+                </span>
+            </div>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-3 mb-0">
                 @Model.StartDate.ToString("dd MMM yyyy") - @Model.EndDate.ToString("dd MMM yyyy")
-                · <strong>@optionsLabel</strong> options per meal
-                · <strong>@portionsLabel</strong> portions per meal
-                · <strong>@Model.StaffMeals</strong> staff meals
+                <span class="mx-2 text-gray-300">|</span> <strong>@optionsLabel</strong> options/meal
+                <span class="mx-2 text-gray-300">|</span> <strong>@portionsLabel</strong> portions/meal
+                <span class="mx-2 text-gray-300">|</span> <strong>@Model.StaffMeals</strong> staff meals
             </p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary fs-6">@Model.MenuStatus</span>
+        <div class="flex gap-3">
+            <button onclick="window.history.back();" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Go Back
+            </button>
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(Model.RejectionReason))
-    {
-        <div class="alert alert-warning">
-            <strong>Rejection reason:</strong> @Model.RejectionReason
-        </div>
-    }
-    @if (!string.IsNullOrWhiteSpace(Model.SpecialEventNotes))
-    {
-        <div class="alert alert-info">
-            <strong><i class="bi bi-info-circle me-1"></i>Special event notes:</strong>
-            @Model.SpecialEventNotes
-        </div>
-    }
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
 
-    <div class="alert alert-light border small">
-        This menu lists the <strong>options</strong> for each meal. Students choose one option per meal in their meal plan,
-        and only see the options that suit their dietary profile. Portions per option are an estimate until meal plans are in.
-    </div>
+        @* --- SYSTEM ALERTS --- *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["SuccessMessage"]</span>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
+                <i class="bi bi-x-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["ErrorMessage"]</span>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.RejectionReason))
+        {
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 shadow-sm flex items-start">
+                <i class="bi bi-exclamation-octagon-fill text-[#C21E2E] me-3 text-xl mt-0.5"></i>
+                <div>
+                    <strong class="text-sm font-serif text-[#C21E2E] block mb-1">Rejection reason:</strong>
+                    <span class="text-xs font-mono text-red-900 uppercase tracking-widest">@Model.RejectionReason</span>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.SpecialEventNotes))
+        {
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 shadow-sm flex items-start">
+                <i class="bi bi-info-circle-fill text-blue-500 me-3 text-xl mt-0.5"></i>
+                <div>
+                    <strong class="text-sm font-serif text-blue-900 block mb-1">Special event notes:</strong>
+                    <span class="text-xs font-mono text-blue-800 uppercase tracking-widest">@Model.SpecialEventNotes</span>
+                </div>
+            </div>
+        }
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Options / meal</div>
-                    <div class="display-6">@optionsLabel</div>
-                </div>
-            </div>
+        <div class="bg-gray-50 border border-gray-200 p-4 shadow-inner text-xs font-mono text-gray-600 uppercase tracking-widest leading-relaxed">
+            <i class="bi bi-lightbulb me-2 text-gray-400 text-sm align-middle"></i>
+            This menu lists the <strong>options</strong> for each meal. Students choose one option per meal in their meal plan, and only see the options that suit their dietary profile. Portions per option are an estimate until meal plans are in.
         </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Portions / meal</div>
-                    <div class="display-6">@portionsLabel</div>
-                    <div class="small text-muted mt-1">incl. @Model.StaffMeals staff</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Students</div>
-                    <div class="display-6">@(coverage != null ? coverage.TotalStudents : 0)</div>
-                    <div class="small text-muted mt-1">@(coverage != null ? coverage.Groups.Count(g => !g.IsUnrestricted) : 0) dietary group(s)</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Dietary coverage</div>
-                    <div class="display-6 @(slotsWithWarnings > 0 ? "text-warning" : "text-success")">
-                        @(totalSlots - slotsWithWarnings)/@totalSlots
-                    </div>
-                    <div class="small text-muted mt-1">meals where every group has a choice</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    @if (coverage != null && coverage.Groups.Any(g => !g.IsUnrestricted))
-    {
-        <div class="card shadow-sm mb-3">
-            <div class="card-body py-2 small">
-                <strong>Student dietary groups:</strong>
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Options / Meal</h6>
+                <h3 class="font-mono text-4xl font-bold text-gray-900 mb-0">@optionsLabel</h3>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Portions / Meal</h6>
+                <h3 class="font-mono text-4xl font-bold text-gray-900 mb-0">@portionsLabel</h3>
+                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">incl. @Model.StaffMeals staff</span>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Students</h6>
+                <h3 class="font-mono text-4xl font-bold text-gray-900 mb-0">@(coverage != null ? coverage.TotalStudents : 0)</h3>
+                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">@(coverage != null ? coverage.Groups.Count(g => !g.IsUnrestricted) : 0) dietary group(s)</span>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 @(slotsWithWarnings > 0 ? "border-b-yellow-500" : "border-b-[#10b981]")">
+                <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Dietary Coverage</h6>
+                <h3 class="font-mono text-4xl font-bold mb-0 @(slotsWithWarnings > 0 ? "text-yellow-600" : "text-[#10b981]")">
+                    @(totalSlots - slotsWithWarnings)/@totalSlots
+                </h3>
+                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">meals where every group has a choice</span>
+            </div>
+        </div>
+
+        @if (coverage != null && coverage.Groups.Any(g => !g.IsUnrestricted))
+        {
+            <div class="bg-white shadow-sm border border-gray-100 p-4 flex flex-wrap items-center gap-2">
+                <strong class="text-[10px] uppercase tracking-[2px] font-bold text-gray-500 me-2">Student dietary groups:</strong>
                 @foreach (var g in coverage.Groups)
                 {
-                    <span class="badge @(g.IsUnrestricted ? "bg-light text-dark border" : "bg-secondary") me-1">@g.Label: @g.StudentCount</span>
+                    <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2 py-1 shadow-sm @(g.IsUnrestricted ? "bg-gray-50 text-gray-700 border border-gray-200" : "bg-gray-200 text-gray-800 border border-gray-300")">
+                        @g.Label: @g.StudentCount
+                    </span>
                 }
             </div>
-        </div>
-    }
+        }
 
-    @if (slotsWithWarnings > 0)
-    {
-        <div class="alert alert-warning">
-            <strong><i class="bi bi-exclamation-triangle me-1"></i>@slotsWithWarnings meal(s) don't give every dietary group a suitable option.</strong>
-            Review the warnings below and modify options as needed.
-            <details class="mt-2">
-                <summary class="small">Show all warnings</summary>
-                <ul class="small mb-0 mt-1">
-                    @foreach (var slot in coverage.Slots.Where(s => s.Warnings.Any()))
-                    {
-                        foreach (var w in slot.Warnings)
+        @if (slotsWithWarnings > 0)
+        {
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 shadow-sm flex flex-col gap-2">
+                <div class="flex items-center text-yellow-800">
+                    <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                    <strong class="text-sm font-serif">@slotsWithWarnings meal(s) don't give every dietary group a suitable option.</strong>
+                </div>
+                <p class="text-xs font-mono text-yellow-700 uppercase tracking-widest mb-0 ms-8">Review the warnings below and modify options as needed.</p>
+
+                <details class="mt-3 ms-8 group/details">
+                    <summary class="text-[10px] font-bold uppercase tracking-[2px] text-yellow-800 cursor-pointer hover:text-yellow-900 transition-colors list-none flex items-center">
+                        <i class="bi bi-chevron-right me-2 transition-transform group-open/details:rotate-90"></i> Show all warnings
+                    </summary>
+                    <ul class="mt-3 mb-0 flex flex-col gap-2 ps-0 list-none">
+                        @foreach (var slot in coverage.Slots.Where(s => s.Warnings.Any()))
                         {
-                            <li>Warning: @w</li>
+                            foreach (var w in slot.Warnings)
+                            {
+                                <li class="text-[10px] font-mono text-yellow-900 bg-yellow-100/50 p-2 border border-yellow-200/50 uppercase tracking-widest">
+                                    <i class="bi bi-dot me-1"></i> Warning: @w
+                                </li>
+                            }
                         }
-                    }
-                </ul>
-            </details>
-        </div>
-    }
-    else if (coverage != null && totalSlots > 0)
-    {
-        <div class="alert alert-success">
-            <i class="bi bi-check-circle me-1"></i>Every meal gives every dietary group at least one suitable option.
-        </div>
-    }
+                    </ul>
+                </details>
+            </div>
+        }
+        else if (coverage != null && totalSlots > 0)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-800 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-sm font-serif font-bold">Every meal gives every dietary group at least one suitable option.</span>
+            </div>
+        }
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <strong>Menu Options</strong>
-            <span class="text-muted small ms-2">@allItems.Count option(s)</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 200px;">Option</th>
-                            <th>Suitable for</th>
-                            <th style="width: 110px;">Est. portions</th>
-                            <th style="width: 200px;">Nutrition</th>
+        @* --- MENU OPTIONS LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group flex-grow">
+            <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-card-list me-2 text-gray-500"></i> Menu Options</h5>
+                <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">@allItems.Count option(s)</span>
+            </div>
+
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                <table class="table align-middle mb-0 w-full">
+                    <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm shadow-sm">
+                        <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b border-gray-200">
+                            <th class="ps-6 py-4" style="width: 250px;">Option</th>
+                            <th class="border-l border-gray-100 ps-4">Suitable for</th>
+                            <th class="border-l border-gray-100 ps-4 text-center" style="width: 130px;">Est. Portions</th>
+                            <th class="border-l border-gray-100 ps-4" style="width: 220px;">Nutrition</th>
                             @if (showCoordinatorActions)
                             {
-                                <th style="width: 90px;"></th>
+                                <th class="border-l border-gray-100 text-end pe-6" style="width: 100px;">Action</th>
                             }
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="text-gray-700">
                         @foreach (var day in days)
                         {
-                            <tr class="table-secondary">
-                                <td colspan="@(showCoordinatorActions ? 5 : 4)" class="fw-bold">@day.Key.ToString("dddd dd MMM")</td>
+                            <tr class="bg-gray-100 border-y border-gray-200">
+                                <td colspan="@(showCoordinatorActions ? 5 : 4)" class="ps-6 py-3 font-serif font-bold text-sm text-gray-900 uppercase tracking-widest">
+                                    <i class="bi bi-calendar-day me-2 text-gray-500"></i> @day.Key.ToString("dddd, dd MMM yyyy")
+                                </td>
                             </tr>
 
                             foreach (var slotGroup in day.GroupBy(x => x.MealSlot).OrderBy(g => slotOrder(g.Key)))
@@ -213,74 +243,108 @@
                                 MealSlot slotEnum;
                                 Enum.TryParse(slotGroup.Key, out slotEnum);
                                 var slotCoverage = coverage != null ? coverage.For(day.Key, slotEnum) : null;
-                                var accent = slotGroup.Key == "Breakfast" ? "#0dcaf0" : slotGroup.Key == "Lunch" ? "#0d6efd" : "#ffc107";
 
-                                <tr>
-                                    <td colspan="@(showCoordinatorActions ? 5 : 4)" class="pb-1" style="border-left: 4px solid @accent;">
-                                        <span class="fw-bold text-uppercase small">@slotGroup.Key</span>
-                                        <span class="text-muted small ms-2">@slotGroup.Count() option(s) · @slotGroup.Sum(x => x.CalculatedPortions) portions</span>
-                                        @if (slotCoverage != null)
-                                        {
-                                            if (slotCoverage.Warnings.Any())
+                                // Institutional Color Coding for Slots
+                                var accent = slotGroup.Key == "Breakfast" ? "#0ea5e9" : slotGroup.Key == "Lunch" ? "#3b82f6" : "#f59e0b";
+                                var accentBg = slotGroup.Key == "Breakfast" ? "bg-sky-50" : slotGroup.Key == "Lunch" ? "bg-blue-50" : "bg-amber-50";
+
+                                <tr class="@accentBg border-y border-gray-100">
+                                    <td colspan="@(showCoordinatorActions ? 5 : 4)" class="ps-6 py-2" style="border-left: 4px solid @accent;">
+                                        <div class="flex flex-wrap items-center gap-3">
+                                            <span class="font-bold text-[10px] uppercase tracking-[3px] text-gray-800">@slotGroup.Key</span>
+                                            <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">@slotGroup.Count() option(s) · @slotGroup.Sum(x => x.CalculatedPortions) portions</span>
+
+                                            @if (slotCoverage != null)
                                             {
-                                                <span class="badge bg-warning text-dark ms-2">@slotCoverage.StudentsWithOption of @slotCoverage.TotalStudents students have a choice</span>
-                                                foreach (var w in slotCoverage.Warnings)
+                                                if (slotCoverage.Warnings.Any())
                                                 {
-                                                    <div class="small text-danger mt-1"><i class="bi bi-exclamation-triangle me-1"></i>Warning: @w</div>
+                                                    <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-2 py-0.5 border border-yellow-200 shadow-sm">
+                                                        @slotCoverage.StudentsWithOption of @slotCoverage.TotalStudents students covered
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-100 text-green-800 px-2 py-0.5 border border-green-200 shadow-sm">
+                                                        All groups covered
+                                                    </span>
                                                 }
                                             }
-                                            else
-                                            {
-                                                <span class="badge bg-success ms-2">All dietary groups covered</span>
-                                            }
+                                        </div>
+                                        @if (slotCoverage != null && slotCoverage.Warnings.Any())
+                                        {
+                                            <div class="mt-2 flex flex-col gap-1">
+                                                @foreach (var w in slotCoverage.Warnings)
+                                                {
+                                                    <div class="text-[9px] font-mono text-[#C21E2E] uppercase tracking-widest"><i class="bi bi-exclamation-triangle me-1"></i> Warning: @w</div>
+                                                }
+                                            </div>
                                         }
                                     </td>
                                 </tr>
 
                                 foreach (var item in slotGroup.OrderBy(x => x.Id))
                                 {
-                                    var optionCoverage = slotCoverage != null
-                                        ? slotCoverage.Options.FirstOrDefault(o => o.ScheduleItemId == item.Id)
-                                        : null;
+                                    var optionCoverage = slotCoverage != null ? slotCoverage.Options.FirstOrDefault(o => o.ScheduleItemId == item.Id) : null;
                                     var reason = item.TagReason ?? "";
                                     var isMatchContext = reason.StartsWith("Match-day") || reason.StartsWith("Pre-match");
 
-                                    <tr>
-                                        <td style="border-left: 4px solid @accent;">
-                                            <div class="fw-bold">@item.MenuItemName</div>
-                                            <div class="small text-muted">@item.DietaryClassification</div>
+                                    <tr class="hover:bg-white transition-colors border-b border-gray-50 bg-gray-50/30">
+                                        <td class="ps-6 py-4" style="border-left: 4px solid @accent;">
+                                            <div class="font-serif font-bold text-sm text-gray-900 mb-1">@item.MenuItemName</div>
+                                            <div class="text-[9px] font-mono uppercase tracking-[2px] text-gray-500">@item.DietaryClassification</div>
                                         </td>
-                                        <td class="small">
-                                            @if (optionCoverage != null)
-                                            {
-                                                foreach (var label in optionCoverage.SuitableFor)
+
+                                        <td class="border-l border-gray-50 ps-4 py-4">
+                                            <div class="flex flex-col gap-2">
+                                                @if (optionCoverage != null)
                                                 {
-                                                    <span class="badge bg-success-subtle text-success-emphasis border me-1">@label</span>
+                                                    <div class="flex flex-wrap gap-1">
+                                                        @foreach (var label in optionCoverage.SuitableFor)
+                                                        {
+                                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 px-2 py-0.5 border border-green-200 shadow-sm">@label</span>
+                                                        }
+                                                    </div>
+                                                    <div class="text-[9px] font-mono text-gray-400 uppercase tracking-widest">
+                                                        @optionCoverage.StudentsSuited of @(slotCoverage.TotalStudents) students
+                                                    </div>
                                                 }
-                                                <span class="text-muted">@optionCoverage.StudentsSuited of @(slotCoverage.TotalStudents) students</span>
-                                            }
-                                            @if (isMatchContext)
-                                            {
-                                                <span class="badge bg-info text-dark ms-1">Match context</span>
-                                            }
-                                            <div class="text-muted fst-italic mt-1">@reason</div>
+                                                @if (isMatchContext)
+                                                {
+                                                    <div>
+                                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-indigo-50 text-indigo-700 px-2 py-0.5 border border-indigo-200 shadow-sm">
+                                                            <i class="bi bi-trophy me-1"></i> Match context
+                                                        </span>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(reason))
+                                                {
+                                                    <div class="text-[9px] font-serif italic text-gray-600 mt-1 border-l-2 border-gray-200 pl-2">@reason</div>
+                                                }
+                                            </div>
                                         </td>
-                                        <td><span class="fw-bold">@item.CalculatedPortions</span></td>
-                                        <td class="small text-muted">
-                                            @item.CaloriesPerPortion.ToString("0") kcal,
-                                            @item.ProteinGramsPerPortion.ToString("0.0") g protein
-                                            @if (item.NutritionCategory != NutritionCategory.Standard && Enum.IsDefined(typeof(NutritionCategory), item.NutritionCategory))
-                                            {
-                                                <div><span class="badge bg-light text-dark border">@item.NutritionCategory</span></div>
-                                            }
+
+                                        <td class="border-l border-gray-50 ps-4 text-center">
+                                            <span class="font-mono text-lg font-bold text-gray-900">@item.CalculatedPortions</span>
                                         </td>
+
+                                        <td class="border-l border-gray-50 ps-4">
+                                            <div class="flex flex-col gap-1">
+                                                <span class="font-mono text-xs font-bold text-gray-700">@item.CaloriesPerPortion.ToString("0") <span class="text-[9px] font-normal text-gray-400 uppercase tracking-widest">kcal</span></span>
+                                                <span class="font-mono text-xs font-bold text-blue-700">@item.ProteinGramsPerPortion.ToString("0.0") <span class="text-[9px] font-normal text-gray-400 uppercase tracking-widest">g protein</span></span>
+                                                @if (item.NutritionCategory != NutritionCategory.Standard && Enum.IsDefined(typeof(NutritionCategory), item.NutritionCategory))
+                                                {
+                                                    <div class="mt-1">
+                                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-gray-100 text-gray-700 px-2 py-0.5 border border-gray-200 shadow-sm">@item.NutritionCategory</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </td>
+
                                         @if (showCoordinatorActions)
                                         {
-                                            <td class="text-end">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-primary"
-                                                        onclick="openUc12Modal('modifyModal-@item.Id')">
-                                                    Modify
+                                            <td class="pe-6 border-l border-gray-50 text-end">
+                                                <button type="button" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-800 hover:bg-gray-50 transition-colors shadow-sm w-full" onclick="openUc12Modal('modifyModal-@item.Id')">
+                                                    <i class="bi bi-pencil-square me-1"></i> Modify
                                                 </button>
                                             </td>
                                         }
@@ -292,61 +356,46 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    @if (showCoordinatorActions)
-    {
-        <div class="card shadow-sm mt-4">
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <form action="@Url.Action("Accept", "Cafeteria")" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.Id" />
-                            <button type="submit"
-                                    class="btn btn-success w-100"
-                                    disabled="@(!canAccept)"
-                                    onclick="return confirm('@(slotsWithWarnings > 0 ? "Some meals do not give every dietary group a suitable option. Accept anyway?" : "Accept this menu?")');">
-                                Accept Menu
-                            </button>
-                        </form>
-                    </div>
-                    <div class="col-md-6">
-                        <button type="button"
-                                class="btn btn-danger w-100"
-                                onclick="openUc12Modal('rejectModal')">
-                            Reject and Regenerate
-                        </button>
-                    </div>
-                </div>
+        @* --- BOTTOM ACTION PANELS --- *@
+        @if (showCoordinatorActions)
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                <form action="@Url.Action("Accept", "Cafeteria")" method="post" class="m-0 h-full">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="w-full h-full bg-[#10b981] text-white px-8 py-5 text-[11px] font-bold uppercase tracking-[3px] hover:bg-green-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled="@(!canAccept)" onclick="return confirm('@(slotsWithWarnings > 0 ? "Some meals do not give every dietary group a suitable option. Accept anyway?" : "Accept this menu?")');">
+                        <i class="bi bi-check-circle me-2 text-lg align-middle"></i> Accept Menu
+                    </button>
+                </form>
+
+                <button type="button" class="w-full h-full bg-transparent border-2 border-[#C21E2E] text-[#C21E2E] px-8 py-5 text-[11px] font-bold uppercase tracking-[3px] hover:bg-red-50 hover:shadow-sm transition-all duration-300" onclick="openUc12Modal('rejectModal')">
+                    <i class="bi bi-x-octagon me-2 text-lg align-middle"></i> Reject & Regenerate
+                </button>
             </div>
-        </div>
-    }
+        }
 
-    @if (isChef)
-    {
-        <div class="card shadow-sm mt-4">
-            <div class="card-body d-flex justify-content-between align-items-center">
+        @if (isChef)
+        {
+            <div class="bg-white shadow-sm border border-gray-100 p-6 flex justify-between items-center mt-2">
                 <div>
-                    <strong>Chef workspace</strong>
-                    <div class="small text-muted">Kitchen review is optional at this stage.</div>
+                    <strong class="font-serif text-lg text-gray-900 block mb-1">Chef Workspace</strong>
+                    <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Kitchen review is optional at this stage.</span>
                 </div>
-                <a href="@Url.Action("ChefReview", "Cafeteria", new { id = Model.Id })"
-                   class="btn btn-primary">
-                    Open Kitchen Review
+                <a href="@Url.Action("ChefReview", "Cafeteria", new { id = Model.Id })" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                    <i class="bi bi-journal-text me-2 text-sm align-middle"></i> Open Kitchen Review
                 </a>
             </div>
-        </div>
-    }
+        }
 
+    </div>
 </div>
 
+@* --- MODALS --- *@
 @if (showCoordinatorActions)
 {
     foreach (var item in allItems)
     {
-        // Replacement must suit the same meal slot (the server checks this too)
-        // and must not already be an option on the same day.
         var sameDayIds = allItems.Where(x => x.Date.Date == item.Date.Date && x.Id != item.Id).Select(x => x.MenuItemId).ToList();
         var slotItems = menuItems
             .Where(mi => (item.MealSlot == "Breakfast" && mi.IsBreakfastItem)
@@ -358,103 +407,171 @@
         <div class="uc12-modal" id="modifyModal-@item.Id" aria-hidden="true">
             <div class="uc12-modal-dialog">
                 <div class="uc12-modal-content">
-                    <div class="uc12-modal-header">
-                        <h5 class="uc12-modal-title">Change @item.MealSlot option — @item.Date.ToString("ddd dd MMM")</h5>
-                        <button type="button"
-                                class="uc12-modal-close"
-                                onclick="closeUc12Modal('modifyModal-@item.Id')"
-                                aria-label="Close">
-                            x
+                    <div class="uc12-modal-header bg-[#1a1a1a] text-white border-b-0">
+                        <h5 class="uc12-modal-title text-[10px] uppercase tracking-[3px] font-bold m-0 py-2">
+                            <i class="bi bi-pencil-square me-2 text-gray-400"></i> Modify @item.MealSlot Option — @item.Date.ToString("ddd dd MMM")
+                        </h5>
+                        <button type="button" class="uc12-modal-close text-gray-400 hover:text-white transition-colors" onclick="closeUc12Modal('modifyModal-@item.Id')" aria-label="Close">
+                            <i class="bi bi-x-lg text-sm"></i>
                         </button>
                     </div>
-                    <form action="@Url.Action("ModifyItem", "Cafeteria")" method="post">
+
+                    <form action="@Url.Action("ModifyItem", "Cafeteria")" method="post" class="m-0">
                         @Html.AntiForgeryToken()
-                        <div class="uc12-modal-body">
+                        <div class="uc12-modal-body p-6 bg-gray-50 flex flex-col gap-5">
                             <input type="hidden" name="scheduleItemId" value="@item.Id" />
-                            <div class="mb-2 small text-muted">Currently: <strong>@item.MenuItemName</strong></div>
-                            <div class="mb-3">
-                                <label class="form-label">Replacement @item.MealSlot.ToLower() option</label>
-                                <select name="newMenuItemId" class="form-select" required>
-                                    <option value="">Select dish...</option>
+
+                            <div class="bg-white border border-gray-200 p-4 shadow-sm text-center">
+                                <span class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 block mb-1">Currently Selected</span>
+                                <strong class="font-serif text-lg text-[#C21E2E]">@item.MenuItemName</strong>
+                            </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Replacement @item.MealSlot.ToLower() Option</label>
+                                <select name="newMenuItemId" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-white shadow-sm" required>
+                                    <option value="">Select new dish...</option>
                                     @foreach (var mi in slotItems)
                                     {
                                         <option value="@mi.Id" @(mi.Id == item.MenuItemId ? "selected" : "")>@mi.Name (@mi.DietaryClassification)</option>
                                     }
                                 </select>
-                                <div class="form-text">Only @item.MealSlot.ToLower() dishes that aren't already on this day are listed.</div>
+                                <p class="text-[9px] font-mono text-gray-400 mt-2 uppercase tracking-widest"><i class="bi bi-info-circle me-1"></i> Only dishes not already scheduled today are listed.</p>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Estimated portions</label>
-                                <input type="number"
-                                       name="newPortions"
-                                       value="@item.CalculatedPortions"
-                                       min="1"
-                                       class="form-control"
-                                       required />
-                                <div class="form-text">
-                                    An estimate for planning; actual numbers come from students' meal plans.
-                                </div>
+
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Estimated Portions</label>
+                                <input type="number" name="newPortions" value="@item.CalculatedPortions" min="1" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-mono text-lg font-bold text-gray-900 transition-colors bg-white shadow-sm" required />
+                                <p class="text-[9px] font-mono text-gray-400 mt-2 uppercase tracking-widest"><i class="bi bi-calculator me-1"></i> An estimate for planning; actual numbers come from student meal plans.</p>
                             </div>
                         </div>
-                        <div class="uc12-modal-footer">
-                            <button type="button"
-                                    class="btn btn-secondary"
-                                    onclick="closeUc12Modal('modifyModal-@item.Id')">
+
+                        <div class="uc12-modal-footer bg-white border-t border-gray-200 p-4">
+                            <button type="button" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm" onclick="closeUc12Modal('modifyModal-@item.Id')">
                                 Cancel
                             </button>
-                            <button type="submit" class="btn btn-primary">Save Change</button>
+                            <button type="submit" class="bg-[#1a1a1a] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                                <i class="bi bi-save me-1"></i> Save Change
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     }
-}
 
-@if (showCoordinatorActions)
-{
     <div class="uc12-modal" id="rejectModal" aria-hidden="true">
         <div class="uc12-modal-dialog">
-            <div class="uc12-modal-content">
-                <div class="uc12-modal-header">
-                    <h5 class="uc12-modal-title">Reject Menu</h5>
-                    <button type="button"
-                            class="uc12-modal-close"
-                            onclick="closeUc12Modal('rejectModal')"
-                            aria-label="Close">
-                        x
+            <div class="uc12-modal-content border-t-4 border-t-[#C21E2E]">
+                <div class="uc12-modal-header bg-white border-b border-gray-100">
+                    <h5 class="uc12-modal-title text-sm font-serif font-bold text-gray-900 m-0 py-2">
+                        <i class="bi bi-x-octagon text-[#C21E2E] me-2"></i> Reject & Regenerate Menu
+                    </h5>
+                    <button type="button" class="uc12-modal-close text-gray-400 hover:text-[#C21E2E] transition-colors" onclick="closeUc12Modal('rejectModal')" aria-label="Close">
+                        <i class="bi bi-x-lg text-sm"></i>
                     </button>
                 </div>
-                <form action="@Url.Action("Reject", "Cafeteria")" method="post">
+                <form action="@Url.Action("Reject", "Cafeteria")" method="post" class="m-0">
                     @Html.AntiForgeryToken()
-                    <div class="uc12-modal-body">
+                    <div class="uc12-modal-body p-6 bg-gray-50 flex flex-col gap-4">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <div class="mb-3">
-                            <label class="form-label">Reason for rejection</label>
-                            <textarea name="reason"
-                                      class="form-control"
-                                      rows="5"
-                                      required
-                                      maxlength="2000"
-                                      placeholder="Explain what needs to change..."></textarea>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Reason for rejection *</label>
+                            <textarea name="reason" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-white resize-y shadow-sm" rows="5" required maxlength="2000" placeholder="Explain what needs to change..."></textarea>
                         </div>
-                        <div class="alert alert-warning mb-0">
-                            Rejecting preserves the rejected proposal and generates a new one for the same period.
+
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 mt-2 shadow-sm">
+                            <span class="text-[10px] font-mono text-yellow-800 uppercase tracking-widest leading-relaxed">
+                                <i class="bi bi-exclamation-triangle-fill text-yellow-600 me-1"></i> Rejecting preserves the rejected proposal in the archive and generates a new one for the exact same period.
+                            </span>
                         </div>
                     </div>
-                    <div class="uc12-modal-footer">
-                        <button type="button"
-                                class="btn btn-secondary"
-                                onclick="closeUc12Modal('rejectModal')">
+                    <div class="uc12-modal-footer bg-white border-t border-gray-200 p-4">
+                        <button type="button" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm" onclick="closeUc12Modal('rejectModal')">
                             Cancel
                         </button>
-                        <button type="submit" class="btn btn-danger">Reject and Regenerate</button>
+                        <button type="submit" class="bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-all shadow-sm">
+                            Reject & Regenerate
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 }
+
+<style>
+    .font-serif { font-family: 'Playfair Display', serif !important; }
+    .font-mono { font-family: 'Source Code Pro', monospace !important; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C21E2E; }
+
+    /* Custom high-end modal overrides */
+    .uc12-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        padding: 40px 15px;
+    }
+
+    .uc12-modal.uc12-modal-open {
+        display: block;
+        animation: modalFadeIn 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    }
+
+    .uc12-modal-dialog {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+        transform: translateY(20px);
+        animation: modalSlideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    }
+
+    .uc12-modal-content {
+        background: #fff;
+        border-radius: 0; /* Sharp corners */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Deep shadow */
+        overflow: hidden;
+    }
+
+    .uc12-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+    }
+
+    .uc12-modal-close {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .uc12-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    keyframes modalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    keyframes modalSlideUp {
+        from { transform: translateY(20px); }
+        to { transform: translateY(0); }
+    }
+</style>
 
 <script>
     function openUc12Modal(id) {
@@ -479,75 +596,3 @@
         }
     });
 </script>
-
-<style>
-    .uc12-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        display: none;
-        width: 100%;
-        height: 100%;
-        overflow-y: auto;
-        background: rgba(0,0,0,0.55);
-        padding: 40px 15px;
-    }
-
-        .uc12-modal.uc12-modal-open {
-            display: block;
-        }
-
-    .uc12-modal-dialog {
-        position: relative;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .uc12-modal-content {
-        background: #fff;
-        border-radius: 0.5rem;
-        box-shadow: 0 1rem 3rem rgba(0,0,0,0.35);
-    }
-
-    .uc12-modal-header {
-        display: flex;
-        justify-content: space-between;
-        padding: 1rem;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .uc12-modal-title {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 500;
-    }
-
-    .uc12-modal-close {
-        border: 0;
-        background: transparent;
-        font-size: 1.5rem;
-        padding: 0.25rem 0.5rem;
-        cursor: pointer;
-        opacity: 0.6;
-    }
-
-        .uc12-modal-close:hover {
-            opacity: 1;
-        }
-
-    .uc12-modal-body {
-        padding: 1rem;
-    }
-
-    .uc12-modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border-top: 1px solid #dee2e6;
-    }
-
-    .table-hover tbody tr:hover {
-        background: #f8f9fa;
-    }
-</style>

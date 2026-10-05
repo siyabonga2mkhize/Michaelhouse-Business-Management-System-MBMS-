@@ -1,233 +1,296 @@
-﻿@using System.Linq
-@using Michaelhouse.Models.Cafeteria
-@model List<CafeteriaEvent>
+﻿@using Michaelhouse.Models.Cafeteria
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Event Queue";
+    ViewBag.Title = "Events";
+
+    var upcoming = ViewBag.Upcoming as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+    var past = ViewBag.Past as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+    var rsvpStatuses = ViewBag.RsvpStatuses as Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>
+        ?? new Dictionary<int, Michaelhouse.Services.RsvpStatusInfo>();
+
+    int rsvpOpenCount = upcoming.Count(e => e.Status == EventStatus.RsvpOpen);
 }
 
-<style>
-    .eq-shell {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .eq-header {
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Hospitality & Catering</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Events Registry</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Institutional catering schedules, banquets, feasts, and RSVP management.
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Create", "Event")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Schedule Event
+            </a>
+        </div>
+    </div>
 
-        .eq-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-            font-family: 'Playfair Display', serif;
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-16 pt-2 flex flex-col gap-8">
+
+        @* --- SYSTEM ALERTS --- *@
+        @if (TempData["Success"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
+            </div>
         }
 
-        .eq-header .eq-meta {
-            color: #888;
-            font-size: .85rem;
-        }
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-calendar-check absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Upcoming Events</h6>
+                    <h3 class="font-serif text-4xl font-bold text-gray-900 mb-0">@upcoming.Count</h3>
+                </div>
+            </div>
 
-    .eq-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all .15s;
-    }
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-envelope-open absolute -right-4 -bottom-4 text-7xl text-amber-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-amber-700 mb-2">RSVP Window Active</h6>
+                    <h3 class="font-serif text-4xl font-bold text-amber-600 mb-0">@rsvpOpenCount</h3>
+                </div>
+            </div>
 
-        .eq-card:hover {
-            border-color: #C21E2E;
-            box-shadow: 0 4px 16px rgba(194, 30, 46, 0.06);
-        }
-
-    .eq-card-left {
-        display: flex;
-        gap: 1.25rem;
-        align-items: flex-start;
-    }
-
-    .eq-date-badge {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: .6rem .85rem;
-        text-align: center;
-        min-width: 70px;
-    }
-
-    .eq-date-day {
-        font-family: 'Courier New', monospace;
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #111827;
-        line-height: 1;
-    }
-
-    .eq-date-month {
-        font-size: .65rem;
-        text-transform: uppercase;
-        letter-spacing: .1em;
-        color: #6b7280;
-        margin-top: .2rem;
-    }
-
-    .eq-info h3 {
-        font-size: 1.15rem;
-        font-weight: 600;
-        color: #111827;
-        margin: 0 0 .35rem 0;
-    }
-
-    .eq-info-meta {
-        font-size: .82rem;
-        color: #6b7280;
-        line-height: 1.7;
-    }
-
-        .eq-info-meta strong {
-            color: #374151;
-            font-weight: 600;
-        }
-
-    .eq-info-tags {
-        margin-top: .5rem;
-        display: flex;
-        gap: .4rem;
-        flex-wrap: wrap;
-    }
-
-    .eq-tag {
-        display: inline-block;
-        padding: .15rem .55rem;
-        border-radius: 4px;
-        font-size: .68rem;
-        font-weight: 600;
-        background: #f3f4f6;
-        color: #4b5563;
-    }
-
-        .eq-tag.green {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .eq-tag.amber {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-    .eq-card-right {
-        flex-shrink: 0;
-    }
-
-    .eq-empty {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 3rem 1rem;
-        text-align: center;
-        color: #9ca3af;
-    }
-
-        .eq-empty i {
-            font-size: 2rem;
-            display: block;
-            margin-bottom: .75rem;
-            color: #d1d5db;
-        }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="eq-shell">
-
-        <div class="eq-header">
-            <h1>Event Queue</h1>
-            <div class="eq-meta">
-                Upcoming catering events with feast plans ready.
-                <strong>@Model.Count</strong> event@(Model.Count == 1 ? "" : "s") in the queue.
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-archive absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Archived Feasts</h6>
+                    <h3 class="font-serif text-4xl font-bold text-gray-900 mb-0">@past.Count</h3>
+                </div>
             </div>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
+        @* --- UPCOMING EVENTS LEDGER --- *@
+        <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+            <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                    <i class="bi bi-calendar-event me-2 text-[#C21E2E]"></i> Scheduled Events (@upcoming.Count)
+                </span>
+                <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Upcoming Pipeline</span>
+            </div>
 
-        @if (Model.Count == 0)
+            <div class="table-responsive flex-grow">
+                @if (upcoming.Count == 0)
+                {
+                    <div class="p-16 text-center text-muted">
+                        <i class="bi bi-calendar-x text-gray-300 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-500 uppercase tracking-[2px] mb-1">No Upcoming Events</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+                            No catering events currently on schedule. Use the button above to schedule one.
+                        </span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-white border-b-2 border-gray-100">
+                            <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500">
+                                <th class="ps-6 py-4" style="width: 170px;">Date & Time</th>
+                                <th>Event Identity</th>
+                                <th class="border-l border-gray-100 ps-4">Venue</th>
+                                <th class="border-l border-gray-100 ps-4 text-center">Headcount</th>
+                                <th class="border-l border-gray-100 ps-4 text-center">Lifecycle Status</th>
+                                <th class="pe-6 border-l border-gray-100 text-end" style="width: 110px;">Record</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var evt in upcoming)
+                            {
+                                string badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                                string statusText = evt.Status.ToString();
+
+                                switch (evt.Status)
+                                {
+                                    case EventStatus.Confirmed:
+                                        badgeClass = "bg-blue-50 text-blue-800 border-blue-200";
+                                        statusText = "Confirmed";
+                                        break;
+                                    case EventStatus.RsvpOpen:
+                                        badgeClass = "bg-amber-50 text-amber-800 border-amber-200";
+                                        statusText = "RSVP Open";
+                                        break;
+                                    case EventStatus.RsvpClosed:
+                                        badgeClass = "bg-purple-50 text-purple-800 border-purple-200";
+                                        statusText = "RSVP Closed";
+                                        break;
+                                    case EventStatus.FeastPlanGenerated:
+                                        badgeClass = "bg-emerald-50 text-emerald-800 border-emerald-200";
+                                        statusText = "Plan Generated";
+                                        break;
+                                    case EventStatus.InProgress:
+                                        badgeClass = "bg-blue-50 text-blue-800 border-blue-200";
+                                        statusText = "In Progress";
+                                        break;
+                                    case EventStatus.Completed:
+                                        badgeClass = "bg-gray-100 text-gray-700 border-gray-300";
+                                        statusText = "Completed";
+                                        break;
+                                    case EventStatus.Cancelled:
+                                        badgeClass = "bg-red-50 text-[#C21E2E] border-red-200";
+                                        statusText = "Cancelled";
+                                        break;
+                                }
+
+                                <tr class="hover:bg-gray-50/60 transition-colors border-b border-gray-100 last:border-0">
+                                    <td class="ps-6 py-4">
+                                        <div class="font-serif font-bold text-sm text-gray-900">@evt.EventDate.ToString("ddd dd MMM yyyy")</div>
+                                        <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
+                                            @evt.StartTime.ToString(@"hh\:mm") – @evt.EndTime.ToString(@"hh\:mm")
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="font-serif font-bold text-base text-gray-900 mb-1">@evt.EventName</div>
+                                        <span class="inline-flex items-center text-[8px] font-mono font-bold uppercase tracking-widest bg-gray-100 text-gray-700 px-2 py-0.5 border border-gray-200">
+                                            @evt.EventType
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-serif text-sm text-gray-800">
+                                            @(evt.Venue != null ? evt.Venue.Name : "—")
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-center">
+                                        <div class="font-mono text-sm font-bold text-gray-900">~@evt.ExpectedHeadcount</div>
+                                        @if (evt.GuaranteedHeadcount.HasValue)
+                                        {
+                                            <span class="block text-[8px] font-mono uppercase tracking-widest text-emerald-700 font-bold mt-0.5">
+                                                Locked: @evt.GuaranteedHeadcount
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-center">
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2.5 py-1 border shadow-xs @badgeClass">
+                                            @statusText
+                                        </span>
+                                        @if (rsvpStatuses.ContainsKey(evt.Id))
+                                        {
+                                            <div class="text-[9px] font-mono text-gray-500 uppercase tracking-wider mt-1.5" title="@rsvpStatuses[evt.Id].Detail">
+                                                RSVP: <strong class="text-gray-800">@rsvpStatuses[evt.Id].Label</strong>
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        <a href="@Url.Action("Details", "Event", new { id = evt.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:border-gray-900 hover:text-gray-900 transition-colors shadow-xs">
+                                            Open File
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @* --- PAST EVENTS ARCHIVE --- *@
+        @if (past.Count > 0)
         {
-            <div class="eq-empty">
-                <i class="bi bi-calendar-check"></i>
-                <div style="font-size:1rem; font-weight:600; color:#6b7280; margin-bottom:.35rem;">
-                    No events in the queue
+            <div class="bg-white border border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+                <div class="p-4 bg-gray-100 flex justify-between items-center border-b border-gray-200">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-700">
+                        <i class="bi bi-clock-history me-2 text-gray-500"></i> Past Feasts Archive (@past.Count)
+                    </span>
+                    <span class="text-[8px] font-mono uppercase tracking-widest text-gray-400">Historical Records</span>
                 </div>
-                <div style="font-size:.85rem;">
-                    When the Cafeteria Manager generates a feast plan, it will appear here.
+
+                <div class="table-responsive flex-grow">
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr class="text-[8px] uppercase tracking-[3px] font-bold text-gray-400">
+                                <th class="ps-6 py-3" style="width: 170px;">Date</th>
+                                <th>Event Identity</th>
+                                <th class="border-l border-gray-100 ps-4">Venue</th>
+                                <th class="border-l border-gray-100 ps-4 text-center">Outcome Status</th>
+                                <th class="pe-6 border-l border-gray-100 text-end" style="width: 110px;">Record</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm">
+                            @foreach (var evt in past)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-100 last:border-0">
+                                    <td class="ps-6 py-3 font-mono text-xs text-gray-600">
+                                        @evt.EventDate.ToString("dd MMM yyyy")
+                                    </td>
+
+                                    <td>
+                                        <div class="font-serif font-bold text-gray-900">@evt.EventName</div>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-serif text-xs text-gray-600">
+                                        @(evt.Venue != null ? evt.Venue.Name : "—")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-center">
+                                        @if (evt.Status == EventStatus.Cancelled)
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-red-50 text-[#C21E2E] border border-red-200">
+                                                Cancelled
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 bg-gray-100 text-gray-700 border border-gray-200">
+                                                Completed
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        <a href="@Url.Action("Details", "Event", new { id = evt.Id })" class="inline-flex items-center justify-center bg-gray-50 border border-gray-200 text-gray-600 px-3 py-1.5 text-[8px] font-bold uppercase tracking-[1px] hover:bg-gray-100 transition-colors shadow-2xs">
+                                            Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        }
-        else
-        {
-            foreach (var evt in Model)
-            {
-                <div class="eq-card">
-
-                    <div class="eq-card-left">
-
-                        <div class="eq-date-badge">
-                            <div class="eq-date-day">@evt.EventDate.ToString("dd")</div>
-                            <div class="eq-date-month">@evt.EventDate.ToString("MMM")</div>
-                        </div>
-
-                        <div class="eq-info">
-                            <h3>@evt.EventName</h3>
-
-                            <div class="eq-info-meta">
-                                @evt.StartTime.ToString(@"hh\:mm") – @evt.EndTime.ToString(@"hh\:mm")
-                                @if (evt.Venue != null)
-                                {
-                                    <text> &nbsp;·&nbsp; </text>@evt.Venue.Name
-                                }
-                                @if (evt.MenuTemplate != null)
-                                {
-                                    <text><br />Menu: <strong>@evt.MenuTemplate.Name</strong></text>
-                                }
-                            </div>
-
-                            <div class="eq-info-tags">
-                                @if (evt.GuaranteedHeadcount.HasValue)
-                                {
-                                    <span class="eq-tag green">
-                                        @evt.GuaranteedHeadcount guests confirmed
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="eq-tag amber">
-                                        ~@evt.ExpectedHeadcount expected
-                                    </span>
-                                }
-                                <span class="eq-tag">@evt.EventType</span>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="eq-card-right">
-                        <a href="@Url.Action("FeastPlan", "Event", new { id = evt.Id })"
-                           class="btn btn-danger">
-                            🍽 Open Feast Plan
-                        </a>
-                    </div>
-
-                </div>
-            }
         }
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

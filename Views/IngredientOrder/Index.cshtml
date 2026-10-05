@@ -6,71 +6,201 @@
     string status = ViewBag.Status as string ?? "open";
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>Purchase Orders</h1>
-                <div class="inv-meta">Cafeteria ingredient orders.</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply Division</h5>
             </div>
-            <a href="@Url.Action("Create", "IngredientOrder")" class="btn btn-primary">Place Stock Order</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Purchase Orders</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Cafeteria ingredient orders.</p>
         </div>
 
-        <div class="inv-tabs">
-            <a class="@(status == "open" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder")">Open</a>
-            <a class="@(status == "draft" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "draft" })">Drafts</a>
-            <a class="@(status == "done" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "done" })">Completed / cancelled</a>
-            <a class="@(status == "all" ? "active" : "")" href="@Url.Action("Index", "IngredientOrder", new { status = "all" })">All</a>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Create", "IngredientOrder")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Create New Order
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
+
+        @* --- STATUS FILTER CARDS (Acting as Navigation Tabs) --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <a href="@Url.Action("Index", "IngredientOrder", new { status = "draft" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(status == "draft" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-file-earmark absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(status == "draft" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-4 @(status == "draft" ? "text-gray-400" : "text-gray-400")">Drafts</h6>
+                    <h3 class="font-serif text-3xl font-bold mb-0 @(status == "draft" ? "text-white" : "text-gray-900")">
+                        @(status == "draft" ? Model.Count.ToString() : "—")
+                    </h3>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Index", "IngredientOrder")" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(status == "open" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-send absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(status == "open" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-4 @(status == "open" ? "text-gray-400" : "text-gray-400")">Open / Sent</h6>
+                    <h3 class="font-serif text-3xl font-bold mb-0 @(status == "open" ? "text-white" : "text-gray-900")">
+                        @(status == "open" ? Model.Count.ToString() : "—")
+                    </h3>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Index", "IngredientOrder", new { status = "done" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(status == "done" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-journal-check absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(status == "done" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-4 @(status == "done" ? "text-gray-400" : "text-gray-400")">Completed / Cancelled</h6>
+                    <h3 class="font-serif text-3xl font-bold mb-0 @(status == "done" ? "text-white" : "text-gray-900")">
+                        @(status == "done" ? Model.Count.ToString() : "—")
+                    </h3>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Index", "IngredientOrder", new { status = "all" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(status == "all" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-collection absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(status == "all" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-4 @(status == "all" ? "text-gray-400" : "text-gray-400")">All Records</h6>
+                    <h3 class="font-serif text-3xl font-bold mb-0 @(status == "all" ? "text-white" : "text-gray-900")">
+                        @(status == "all" ? Model.Count.ToString() : "—")
+                    </h3>
+                </div>
+            </a>
+
         </div>
 
-        <div class="inv-card" style="padding:0;">
-            <div class="inv-table-wrap">
-                <table class="inv-table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Supplier</th>
-                            <th class="inv-hide-sm">Order date</th>
-                            <th class="inv-hide-sm">Expected</th>
-                            <th class="num inv-hide-sm">Items</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Count == 0)
-                        {
-                            <tr><td colspan="6" class="inv-muted">No orders.</td></tr>
-                        }
-                        @foreach (var o in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })"><strong>@o.PoNumber</strong></a>
-                                    @if (o.ShortfallOfOrderId.HasValue)
-                                    {
-                                        <div class="inv-help">shortfall re-order</div>
-                                    }
-                                </td>
-                                <td>@(o.Supplier != null ? o.Supplier.Name : "")</td>
-                                <td class="inv-hide-sm">@o.OrderDate.ToString("dd MMM yyyy")</td>
-                                <td class="inv-hide-sm">@(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd dd MMM") : "—")</td>
-                                <td class="num inv-hide-sm">@o.Lines.Count</td>
-                                <td>
-                                    @Html.Partial("_OrderStatusBadge", o.Status)
-                                    @if (o.Lines.Any(l => l.Shortfall > 0m && l.ShortfallAction == ShortfallAction.None))
-                                    {
-                                        <span class="inv-badge bad">Shortfall</span>
-                                    }
-                                </td>
+        @* --- AUTHORIZATION REGISTRY LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group flex-grow">
+
+            @* Header & Search Bar *@
+            <div class="p-5 border-b border-gray-100 bg-white flex justify-between items-center relative z-10">
+                <div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Authorization Registry</h5>
+                </div>
+                <div class="relative">
+                    <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Search records..." class="pl-9 pr-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-[2px] text-gray-700 outline-none focus:border-[#C21E2E] transition-colors w-64 bg-gray-50/50" />
+                </div>
+            </div>
+
+            @* Table Data *@
+            <div class="table-responsive flex-grow">
+                @if (Model.Count == 0)
+                {
+                    <div class="p-20 text-center text-muted">
+                        <i class="bi bi-folder-x text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Records Found</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">There are no orders matching this status.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-white">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-900 border-b-2 border-gray-100">
+                                <th class="ps-6 py-4">Order Reference</th>
+                                <th>Vendor Identity</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Line Items</th>
+                                <th class="text-center">Origination Date</th>
+                                <th class="text-center">Expected Dispatch</th>
+                                <th class="pe-6 text-end">Record</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var o in Model)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 h-20">
+                                    <td class="ps-6">
+                                        <div class="font-mono text-xs font-bold text-gray-900">@o.PoNumber</div>
+                                        @if (o.ShortfallOfOrderId.HasValue)
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-yellow-50 text-yellow-700 px-2 py-0.5 border border-yellow-200 shadow-sm mt-1">
+                                                Shortfall Re-order
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="font-serif font-bold text-sm text-gray-900 uppercase tracking-widest">
+                                            @(o.Supplier != null ? o.Supplier.Name : "UNASSIGNED VENDOR")
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <div class="flex flex-col items-center justify-center gap-1">
+                                            @* Using the partial view, assuming it generates your hollow-style badges based on the screenshot *@
+                                            @Html.Partial("_OrderStatusBadge", o.Status)
+
+                                            @if (o.Lines.Any(l => l.Shortfall > 0m && l.ShortfallAction == ShortfallAction.None))
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-red-50 text-[#C21E2E] px-2 py-0.5 border border-[#C21E2E] shadow-sm">
+                                                    Shortfall
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center font-mono text-sm font-bold text-gray-900">
+                                        @o.Lines.Count
+                                    </td>
+
+                                    <td class="text-center font-serif italic text-sm text-gray-700">
+                                        @o.OrderDate.ToString("dd MMM yyyy")
+                                    </td>
+
+                                    <td class="text-center font-mono text-xs text-gray-500">
+                                        @if (o.RequestedDeliveryDate.HasValue)
+                                        {
+                                            @o.RequestedDeliveryDate.Value.ToString("dd MMM yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-300">—</span>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 text-end">
+                                        <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })" class="inline-flex items-center justify-center bg-gray-50 border border-gray-200 text-gray-500 px-6 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-100 hover:border-gray-300 hover:text-gray-900 transition-colors shadow-sm">
+                                            Open File
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
             </div>
         </div>
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

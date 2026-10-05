@@ -9,194 +9,288 @@
     var upcoming = ViewBag.Upcoming as List<UpcomingRequirement> ?? new List<UpcomingRequirement>();
     var orders = ViewBag.Orders as List<IngredientPurchaseOrder> ?? new List<IngredientPurchaseOrder>();
     bool isManager = ViewBag.IsManager == true;
+
+    int criticalCount = summary.LowStock + summary.OutOfStock;
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>Cafeteria Inventory</h1>
-                <div class="inv-meta">Ingredient stock, upcoming kitchen needs and purchase orders.</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Coordinator</h5>
             </div>
-            @if (isManager)
-            {
-                <div class="inv-actions">
-                    <a href="@Url.Action("Create", "IngredientOrder")" class="btn btn-primary">Place Stock Order</a>
-                    <a href="@Url.Action("Record", "IngredientDelivery")" class="btn btn-outline-secondary">Record Delivery</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Inventory</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Ingredient stock, upcoming kitchen needs and purchase orders.</p>
+        </div>
+
+        @if (isManager)
+        {
+            <div class="flex gap-3">
+                <a href="@Url.Action("Record", "IngredientDelivery")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-900 transition-all duration-300 shadow-sm">
+                    <i class="bi bi-truck me-2 text-sm align-middle"></i> Record Delivery
+                </a>
+                <a href="@Url.Action("Create", "IngredientOrder")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                    <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Place Stock Order
+                </a>
+            </div>
+        }
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
+
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <a href="@Url.Action("Stock", "CafeteriaInventory")" class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group hover:border-gray-400 transition-colors duration-300 block text-decoration-none">
+                <i class="bi bi-boxes absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Total Ingredients</h6>
+                    <h3 class="font-serif text-4xl font-bold text-gray-900 mb-0">@summary.TotalIngredients</h3>
                 </div>
-            }
-        </div>
+            </a>
 
-        <!-- SUMMARY -->
-        <div class="inv-stats">
-            <a class="inv-stat" href="@Url.Action("Stock", "CafeteriaInventory")">
-                <div class="label">Ingredients</div>
-                <div class="value">@summary.TotalIngredients</div>
+            <a href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "low" })" class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group hover:border-[#C21E2E] transition-colors duration-300 block text-decoration-none">
+                <i class="bi bi-exclamation-triangle absolute -right-4 -bottom-4 text-7xl text-red-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-[#C21E2E] mb-2">Critical Stock</h6>
+                    <h3 class="font-serif text-4xl font-bold text-[#C21E2E] mb-0">@criticalCount</h3>
+                </div>
             </a>
-            <a class="inv-stat @(summary.LowStock > 0 ? "warn" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "low" })">
-                <div class="label">Low stock</div>
-                <div class="value">@summary.LowStock</div>
+
+            <a href="#upcoming" class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group hover:border-green-500 transition-colors duration-300 block text-decoration-none">
+                <i class="bi bi-calendar-x absolute -right-4 -bottom-4 text-7xl @(summary.UpcomingShortages > 0 ? "text-red-50" : "text-green-50") opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Upcoming Shortages</h6>
+                    <h3 class="font-serif text-4xl font-bold @(summary.UpcomingShortages > 0 ? "text-[#C21E2E]" : "text-[#10b981]") mb-0">@summary.UpcomingShortages</h3>
+                </div>
             </a>
-            <a class="inv-stat @(summary.OutOfStock > 0 ? "bad" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "out" })">
-                <div class="label">Out of stock</div>
-                <div class="value">@summary.OutOfStock</div>
-            </a>
-            <a class="inv-stat @(summary.UpcomingShortages > 0 ? "bad" : "")" href="#upcoming">
-                <div class="label">Upcoming shortages</div>
-                <div class="value">@summary.UpcomingShortages</div>
-            </a>
-            <a class="inv-stat" href="@Url.Action("Index", "IngredientOrder")">
-                <div class="label">Open orders</div>
-                <div class="value">@summary.PendingOrders</div>
-            </a>
-            <a class="inv-stat" href="@Url.Action("Index", "IngredientDelivery")">
-                <div class="label">Expected deliveries</div>
-                <div class="value">@summary.ExpectedDeliveries</div>
+
+            <a href="@Url.Action("Index", "IngredientOrder")" class="bg-[#1a1a1a] border border-[#1a1a1a] shadow-sm p-6 relative overflow-hidden group hover:bg-black transition-colors duration-300 block text-decoration-none">
+                <i class="bi bi-file-earmark-text absolute -right-4 -bottom-4 text-7xl text-gray-800 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Open Orders</h6>
+                    <h3 class="font-serif text-4xl font-bold text-white mb-0">@summary.PendingOrders</h3>
+                </div>
             </a>
         </div>
 
-        <!-- UPCOMING KITCHEN SHORTAGES -->
-        <div class="inv-card" id="upcoming">
-            <h2>Upcoming kitchen shortages (next 14 days)</h2>
-            <div class="inv-help" style="margin:-.4rem 0 .75rem 0;">
-                From kitchen plans built on students' meal choices and closed event RSVPs, not yet issued — compared with what's in stock now.
-                This is separate from low stock: an ingredient can be above its reorder level and still not cover what's planned.
+        @* --- RED ALERT SECTION: UPCOMING SHORTAGES --- *@
+        <div id="upcoming" class="bg-white shadow-sm border border-[#C21E2E] flex flex-col relative overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center relative z-10">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E] mb-0">Stock Depletion Alerts (Next 14 Days)</h5>
+                @if (isManager && upcoming.Count > 0)
+                {
+                    <a href="@Url.Action("Create", "IngredientOrder")" class="bg-[#C21E2E] text-white px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-colors shadow-sm">
+                        <i class="bi bi-magic me-1"></i> Auto-Generate POs
+                    </a>
+                }
             </div>
-            @if (upcoming.Count == 0)
-            {
-                <div class="inv-note ok">✓ Stock covers every upcoming kitchen plan.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>Ingredient</th>
-                                <th class="num">Required</th>
-                                <th class="num">Available</th>
-                                <th class="num">Shortfall</th>
-                                <th class="num inv-hide-sm">On order</th>
-                                <th class="inv-hide-sm">Needed for</th>
+
+            <div class="p-6 border-b border-gray-50 bg-red-50/30">
+                <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-0 leading-relaxed">
+                    <i class="bi bi-info-circle me-1"></i> Derived from planned menus & RSVPs compared with on-hand stock. Distinct from standard reorder thresholds.
+                </p>
+            </div>
+
+            <div class="table-responsive">
+                @if (upcoming.Count == 0)
+                {
+                    <div class="p-10 text-center">
+                        <i class="bi bi-shield-check text-[#10b981] text-4xl d-block mb-3"></i>
+                        <h4 class="font-serif text-gray-800 text-lg mb-1">Kitchen Secured</h4>
+                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Current stock covers all upcoming meal plans.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-white">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-900 border-b-2 border-gray-100">
+                                <th class="ps-6 py-4">Item Identity</th>
+                                <th class="text-end">Required</th>
+                                <th class="text-end">Available</th>
+                                <th class="text-end">Shortfall</th>
+                                <th class="text-end">On Order</th>
+                                <th class="pe-6 ps-4">Logistics Needed For</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             @foreach (var u in upcoming)
                             {
-                                <tr>
-                                    <td><a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = u.Ingredient.Id })">@u.Ingredient.Name</a></td>
-                                    <td class="num">@IngredientUnits.Format(u.Required, u.Ingredient.Unit)</td>
-                                    <td class="num">@IngredientUnits.Format(u.Available, u.Ingredient.Unit)</td>
-                                    <td class="num"><span class="inv-badge bad">@IngredientUnits.Format(u.Shortfall, u.Ingredient.Unit)</span></td>
-                                    <td class="num inv-hide-sm">
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                    <td class="ps-6 py-4">
+                                        <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = u.Ingredient.Id })" class="font-serif font-bold text-lg text-gray-900 hover:text-[#C21E2E] text-decoration-none transition-colors block">@u.Ingredient.Name</a>
+                                        <span class="font-serif italic text-sm text-gray-500">u.Ingredient.Category</span>
+                                    </td>
+                                    <td class="text-end font-mono text-sm text-gray-600">@IngredientUnits.Format(u.Required, u.Ingredient.Unit)</td>
+                                    <td class="text-end font-mono text-sm text-gray-600">@IngredientUnits.Format(u.Available, u.Ingredient.Unit)</td>
+                                    <td class="text-end">
+                                        <span class="inline-flex items-center border border-[#C21E2E] text-[#C21E2E] px-3 py-1 text-[10px] uppercase tracking-widest font-bold">
+                                            @IngredientUnits.Format(u.Shortfall, u.Ingredient.Unit)
+                                        </span>
+                                    </td>
+                                    <td class="text-end font-mono text-sm text-gray-600">
                                         @IngredientUnits.Format(u.OnOrder, u.Ingredient.Unit)
                                         @if (u.OnOrder > 0m && u.ShortfallAfterOrders <= 0m)
                                         {
-                                            <div class="inv-help">covered once delivered</div>
+                                            <span class="block text-[8px] uppercase tracking-[1px] text-[#10b981] mt-1 font-bold">Covered on delivery</span>
                                         }
                                     </td>
-                                    <td class="inv-hide-sm inv-muted" style="font-size:.78rem;">@string.Join(", ", u.NeededFor)</td>
+                                    <td class="pe-6 ps-4 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+                                        @string.Join(", ", u.NeededFor)
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-            }
+                }
+            </div>
         </div>
 
-        <!-- LOW STOCK -->
-        <div class="inv-card">
-            <h2>Low stock (at or below reorder level)</h2>
-            @if (low.Count == 0)
-            {
-                <div class="inv-note ok">✓ No ingredient is at or below its reorder level.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>Ingredient</th>
-                                <th class="num">Current</th>
-                                <th class="num">Reorder level</th>
-                                <th>Status</th>
-                                <th class="num inv-hide-sm">On order</th>
-                                <th class="inv-hide-sm">Supplier</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var l in low)
-                            {
-                                <tr>
-                                    <td><a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.Ingredient.Id })">@l.Ingredient.Name</a></td>
-                                    <td class="num">@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</td>
-                                    <td class="num">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
-                                    <td><span class="inv-badge @(l.IsOutOfStock ? "bad" : "low")">@l.Status</span></td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
-                                    <td class="inv-hide-sm">@(l.PreferredSupplier ?? "—")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+        @* --- STANDARD SECTIONS GRID --- *@
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-4">
+
+            @* Low Stock Ledger *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Low Stock Registry</h5>
                 </div>
-                if (isManager)
+
+                <div class="table-responsive flex-grow">
+                    @if (low.Count == 0)
+                    {
+                        <div class="p-10 text-center text-muted">
+                            <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No ingredients at or below reorder level.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table align-middle mb-0 w-full">
+                            <thead class="bg-white">
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b border-gray-100">
+                                    <th class="ps-6 py-4">Item Identity</th>
+                                    <th class="text-end">Current</th>
+                                    <th class="text-end">Threshold</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="pe-6 text-end">On Order</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var l in low)
+                                {
+                                    <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                        <td class="ps-6 py-3">
+                                            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.Ingredient.Id })" class="font-serif font-bold text-sm text-gray-900 hover:text-[#C21E2E] text-decoration-none">@l.Ingredient.Name</a>
+                                        </td>
+                                        <td class="text-end font-mono text-xs text-gray-600">@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</td>
+                                        <td class="text-end font-mono text-xs text-gray-400">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
+                                        <td class="text-center">
+                                            @if (l.IsOutOfStock)
+                                            {
+                                                <span class="inline-flex items-center bg-red-50 border border-red-200 text-[#C21E2E] px-2 py-0.5 text-[8px] uppercase tracking-widest font-bold">Out of Stock</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center bg-yellow-50 border border-yellow-200 text-yellow-700 px-2 py-0.5 text-[8px] uppercase tracking-widest font-bold">Low</span>
+                                            }
+                                        </td>
+                                        <td class="pe-6 text-end font-mono text-xs text-gray-600">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                @if (isManager && low.Count > 0)
                 {
-                    <div class="inv-actions" style="margin-top:.75rem;">
-                        <a href="@Url.Action("Create", "IngredientOrder")" class="btn btn-sm btn-primary">Order these</a>
+                    <div class="p-4 border-t border-gray-100 bg-gray-50">
+                        <a href="@Url.Action("Create", "IngredientOrder")" class="btn btn-sm bg-white border border-gray-300 text-[9px] font-bold uppercase tracking-[2px] text-gray-700 hover:bg-gray-100 w-full text-center">Batch Order Low Stock</a>
                     </div>
                 }
-            }
-        </div>
+            </div>
 
-        <!-- PURCHASE ORDERS -->
-        <div class="inv-card">
-            <h2>Open purchase orders</h2>
-            @if (orders.Count == 0)
-            {
-                <div class="inv-muted" style="font-size:.85rem;">No open orders.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>Order</th>
-                                <th>Supplier</th>
-                                <th class="inv-hide-sm">Order date</th>
-                                <th>Status</th>
-                                <th>Expected</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var o in orders)
-                            {
-                                <tr>
-                                    <td>
-                                        @if (isManager)
-                                        {
-                                            <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })">@o.PoNumber</a>
-                                        }
-                                        else
-                                        {
-                                            @o.PoNumber
-                                        }
-                                    </td>
-                                    <td>@(o.Supplier != null ? o.Supplier.Name : "")</td>
-                                    <td class="inv-hide-sm">@o.OrderDate.ToString("dd MMM yyyy")</td>
-                                    <td>@Html.Partial("_OrderStatusBadge", o.Status)</td>
-                                    <td>@(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd dd MMM") : "—")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+            @* Purchase Orders Ledger *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-[#1a1a1a]">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Open Purchase Orders</h5>
                 </div>
-            }
-        </div>
 
+                <div class="table-responsive flex-grow">
+                    @if (orders.Count == 0)
+                    {
+                        <div class="p-10 text-center text-muted">
+                            <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No active purchase orders.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table align-middle mb-0 w-full">
+                            <thead class="bg-white">
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b border-gray-100">
+                                    <th class="ps-6 py-4">Reference</th>
+                                    <th>Vendor</th>
+                                    <th>Status</th>
+                                    <th class="pe-6 text-end">Expected</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var o in orders)
+                                {
+                                    <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                        <td class="ps-6 py-3 font-mono text-xs font-bold">
+                                            @if (isManager)
+                                            {
+                                                <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })" class="text-[#C21E2E] hover:underline">@o.PoNumber</a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray-900">@o.PoNumber</span>
+                                            }
+                                        </td>
+                                        <td class="font-serif text-sm text-gray-800">@(o.Supplier != null ? o.Supplier.Name : "—")</td>
+                                        <td>
+                                            @* Using your existing partial, ensuring it sits well in the grid *@
+                                            @Html.Partial("_OrderStatusBadge", o.Status)
+                                        </td>
+                                        <td class="pe-6 text-end font-mono text-xs text-gray-600">
+                                            @(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd, dd MMM") : "—")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -5,884 +5,475 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Kitchen Plan";
-}
 
-<style>
-    .pp-shell {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .pp-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .pp-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-    .pp-meta {
-        color: #888;
-        font-size: .82rem;
-    }
-
-        .pp-meta strong {
-            color: #333;
-        }
-
-    .pp-day {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        margin-bottom: 1.25rem;
-        overflow: hidden;
-    }
-
-    .pp-day-header {
-        padding: .85rem 1.25rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-        font-weight: 700;
-        font-size: .95rem;
-        display: flex;
-        justify-content: space-between;
-    }
-
-        .pp-day-header .count {
-            font-size: .78rem;
-            color: #6b7280;
-            font-weight: 500;
-        }
-
-    .pp-slot {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-        .pp-slot:last-child {
-            border-bottom: none;
-        }
-
-    .pp-slot-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: .85rem;
-    }
-
-    .pp-slot-name {
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #6b7280;
-    }
-
-    .pp-serve {
-        font-size: .8rem;
-        color: #4b5563;
-        font-weight: 600;
-    }
-
-        .pp-serve strong {
-            color: #C21E2E;
-        }
-
-    .pp-task {
-        background: #fafafa;
-        border: 1px solid #f3f4f6;
-        border-radius: 8px;
-        padding: .85rem .95rem;
-        margin-bottom: .5rem;
-    }
-
-    .pp-task-top {
-        display: grid;
-        grid-template-columns: 100px 80px 1fr 100px 80px 80px;
-        gap: .75rem;
-        align-items: center;
-        margin-bottom: .55rem;
-    }
-
-    .pp-time-cell {
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        color: #111827;
-        font-size: .85rem;
-    }
-
-        .pp-time-cell small {
-            display: block;
-            font-size: .62rem;
-            color: #9ca3af;
-            font-weight: 500;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-        }
-
-    .pp-dish {
-        font-weight: 600;
-        font-size: .92rem;
-        color: #111827;
-    }
-
-    .pp-dish-meta {
-        font-size: .72rem;
-        color: #9ca3af;
-        margin-top: 2px;
-    }
-
-    .pp-station {
-        display: inline-block;
-        padding: .2rem .55rem;
-        border-radius: 4px;
-        font-size: .68rem;
-        font-weight: 700;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-    }
-
-        .pp-station.gr {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .pp-station.st {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .pp-station.ov {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .pp-station.cp {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .pp-station.ln {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-
-    .pp-bom-toggle {
-        font-size: .72rem;
-        color: #C21E2E;
-        font-weight: 600;
-        cursor: pointer;
-        user-select: none;
-        display: inline-block;
-    }
-
-        .pp-bom-toggle:hover {
-            text-decoration: underline;
-        }
-
-    .pp-bom {
-        margin-top: .6rem;
-        padding-top: .6rem;
-        border-top: 1px dashed #e5e7eb;
-    }
-
-        .pp-bom table {
-            width: 100%;
-            font-size: .78rem;
-            border-collapse: collapse;
-        }
-
-        .pp-bom th {
-            text-align: left;
-            font-size: .65rem;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: #9ca3af;
-            padding: .35rem 0;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .pp-bom td {
-            padding: .4rem 0;
-            border-bottom: 1px solid #f3f4f6;
-            color: #4b5563;
-        }
-
-            .pp-bom td.num {
-                text-align: right;
-                font-weight: 600;
-                color: #111827;
-            }
-
-            .pp-bom td.unit {
-                color: #9ca3af;
-                padding-left: .35rem;
-            }
-
-        .pp-bom tr:last-child td {
-            border-bottom: none;
-        }
-
-    .stock-ok {
-        color: #065f46;
-        font-weight: 700;
-    }
-
-    .stock-low {
-        color: #991b1b;
-        font-weight: 700;
-    }
-
-    /* ── UC12: per-house breakdown ───────────────────────────── */
-    .pp-houses {
-        margin-top: .65rem;
-        padding-top: .65rem;
-        border-top: 1px dashed #e5e7eb;
-    }
-
-    .pp-houses-title {
-        font-size: .7rem;
-        font-weight: 700;
-        letter-spacing: .06em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: .5rem;
-    }
-
-    .pp-events {
-        color: #C21E2E;
-        text-transform: none;
-        letter-spacing: 0;
-        font-weight: 600;
-        margin-left: .4rem;
-    }
-
-    .pp-house-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: .5rem;
-    }
-
-    .pp-house {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: .5rem .65rem;
-    }
-
-    .pp-house-name {
-        font-size: .75rem;
-        font-weight: 600;
-        color: #374151;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .pp-house-count {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #C21E2E;
-        line-height: 1.1;
-        margin: .15rem 0;
-    }
-
-    .pp-house-detail {
-        font-size: .65rem;
-        color: #9ca3af;
-    }
-
-    .pp-day-total {
-        margin-top: .75rem;
-        padding: .75rem 1rem;
-        background: #f9fafb;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .pp-day-total-title {
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .06em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: .35rem;
-    }
-
-    .pp-day-total table {
-        width: 100%;
-        font-size: .78rem;
-    }
-
-    .pp-day-total td {
-        padding: .3rem 0;
-        color: #4b5563;
-    }
-
-        .pp-day-total td.num {
-            text-align: right;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .pp-day-total td.unit {
-            color: #9ca3af;
-            padding-left: .35rem;
-        }
-
-    .pp-week-total {
-        margin-top: 2rem;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .pp-week-total-header {
-        padding: .85rem 1.25rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-        font-weight: 700;
-    }
-
-    .pp-week-total-table {
-        width: 100%;
-        font-size: .85rem;
-        border-collapse: collapse;
-    }
-
-        .pp-week-total-table th {
-            text-align: left;
-            padding: .65rem 1.25rem;
-            font-size: .68rem;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: #6b7280;
-            background: #f9fafb;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .pp-week-total-table td {
-            padding: .55rem 1.25rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-            .pp-week-total-table td.num {
-                text-align: right;
-                font-weight: 600;
-            }
-
-        .pp-week-total-table tr:last-child td {
-            border-bottom: none;
-        }
-
-    .pp-actions {
-        position: sticky;
-        bottom: 0;
-        background: rgba(255,255,255,0.96);
-        backdrop-filter: blur(8px);
-        border-top: 1px solid #e5e7eb;
-        padding: 1rem 1.25rem;
-        margin: 2rem -1.5rem -1.5rem -1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-        .pp-actions .info {
-            font-size: .82rem;
-            color: #6b7280;
-        }
-
-            .pp-actions .info strong {
-                color: #111827;
-            }
-
-    /* ── Kitchen plan: availability ─────────────────────────── */
-    .av {
-        display: inline-block;
-        font-size: .68rem;
-        font-weight: 700;
-        padding: .15rem .5rem;
-        border-radius: 999px;
-        white-space: nowrap;
-    }
-
-        .av.ok {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .av.short {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .av.none {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-    .pp-check {
-        width: 100%;
-        font-size: .8rem;
-        border-collapse: collapse;
-        margin-top: .5rem;
-    }
-
-        .pp-check th {
-            text-align: left;
-            font-size: .66rem;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: #6b7280;
-            padding: .35rem .5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .pp-check td {
-            padding: .35rem .5rem;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: top;
-        }
-
-        .pp-check .num {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .pp-check .meals {
-            color: #6b7280;
-            font-size: .72rem;
-        }
-
-    .pp-warnings {
-        border-radius: 10px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 1.25rem;
-    }
-
-        .pp-warnings.bad {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-        }
-
-        .pp-warnings.good {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-        }
-
-        .pp-warnings ul {
-            margin: .5rem 0 0 0;
-            padding-left: 1.1rem;
-            font-size: .85rem;
-        }
-
-        .pp-warnings li {
-            margin-bottom: .35rem;
-        }
-
-        .pp-warnings .when {
-            font-weight: 700;
-        }
-
-        .pp-warnings .affects {
-            display: block;
-            color: #6b7280;
-            font-size: .76rem;
-        }
-
-    .pp-instructions {
-        font-size: .76rem;
-        color: #374151;
-        background: #f9fafb;
-        border-radius: 6px;
-        padding: .4rem .6rem;
-        margin: .25rem 0 .35rem 0;
-        white-space: pre-line;
-    }
-
-    .pp-not-chosen {
-        font-size: .76rem;
-        color: #6b7280;
-        margin-top: .35rem;
-    }
-
-    .pp-final {
-        font-size: .72rem;
-        font-weight: 600;
-    }
-</style>
-
-@helper Availability(IngredientLineViewModel line)
-{
-    if (line.Status == IngredientAvailability.Available)
-    {
-        <span class="av ok">Available</span>
-    }
-    else if (line.Status == IngredientAvailability.Insufficient)
-    {
-        <span class="av short">Insufficient</span>
-    }
-    else
-    {
-        <span class="av none">Not available</span>
-    }
-}
-
-@helper CheckTable(IEnumerable<IngredientLineViewModel> lines, bool showMeals)
-{
-    <table class="pp-check">
-        <thead>
-            <tr>
-                <th>Ingredient</th>
-                <th class="num">Required</th>
-                <th class="num">Available</th>
-                <th>Status</th>
-                @if (showMeals)
-                {
-                    <th>Needed for</th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var line in lines)
-            {
-                <tr>
-                    <td>@line.IngredientName</td>
-                    <td class="num">@KitchenQuantity.Format(line.TotalRequired, line.Unit)</td>
-                    <td class="num">@KitchenQuantity.Format(line.StockAvailable, line.Unit)</td>
-                    <td>
-                        @Availability(line)
-                        @if (line.Status == IngredientAvailability.Insufficient)
-                        {
-                            <span class="stock-low" style="font-size:.7rem;">short @KitchenQuantity.Format(line.Shortfall, line.Unit)</span>
-                        }
-                    </td>
-                    @if (showMeals)
-                    {
-                        <td class="meals">@string.Join(", ", line.AffectedMeals)</td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-@{
     var problems = Model.Warnings.Where(w => w.Severity != KitchenWarningSeverity.Info)
         .OrderByDescending(w => w.Severity)
         .ToList();
     var notes = Model.Warnings.Where(w => w.Severity == KitchenWarningSeverity.Info).ToList();
 }
 
-<div class="container-fluid py-4">
-    <div class="pp-shell">
+@helper Availability(IngredientLineViewModel line)
+{
+    if (line.Status == IngredientAvailability.Available)
+    {
+        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 px-2 py-0.5 border border-green-200 shadow-sm">Available</span>
+    }
+    else if (line.Status == IngredientAvailability.Insufficient)
+    {
+        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-yellow-50 text-yellow-700 px-2 py-0.5 border border-yellow-200 shadow-sm">Insufficient</span>
+    }
+    else
+    {
+        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-red-50 text-[#C21E2E] px-2 py-0.5 border border-red-200 shadow-sm">Not Available</span>
+    }
+}
 
-        <div class="pp-header">
-            <div>
-                <h1>Kitchen Plan</h1>
-                <div class="pp-meta">
-                    @Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")
-                    &nbsp;·&nbsp;
-                    <strong>@Model.TotalMeals</strong> portions to prepare
-                    &nbsp;·&nbsp;
-                    from <strong>@Model.SubmittedPlanCount</strong> of <strong>@Model.StudentCount</strong> students' submitted meal plans
-                </div>
+@helper CheckTable(IEnumerable<IngredientLineViewModel> lines, bool showMeals)
+{
+    <div class="overflow-x-auto bg-white border border-gray-200">
+        <table class="table align-middle mb-0 w-full">
+            <thead class="bg-gray-100">
+                <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-200">
+                    <th class="ps-4 py-2.5">Ingredient</th>
+                    <th class="text-end border-l border-gray-200 ps-4">Required</th>
+                    <th class="text-end border-l border-gray-200 ps-4">Available</th>
+                    <th class="border-l border-gray-200 ps-4">Status</th>
+                    @if (showMeals)
+                    {
+                        <th class="border-l border-gray-200 pe-4 ps-4">Needed for</th>
+                    }
+                </tr>
+            </thead>
+            <tbody class="text-gray-700 text-xs">
+                @foreach (var line in lines)
+                {
+                    <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50/80 transition-colors">
+                        <td class="ps-4 py-2 font-serif font-bold text-gray-900">@line.IngredientName</td>
+                        <td class="text-end border-l border-gray-100 ps-4 font-mono font-bold text-gray-900">@KitchenQuantity.Format(line.TotalRequired, line.Unit)</td>
+                        <td class="text-end border-l border-gray-100 ps-4 font-mono text-gray-500">@KitchenQuantity.Format(line.StockAvailable, line.Unit)</td>
+                        <td class="border-l border-gray-100 ps-4">
+                            <div class="flex items-center gap-2">
+                                @Availability(line)
+                                @if (line.Status == IngredientAvailability.Insufficient)
+                                {
+                                    <span class="text-[9px] font-mono text-[#C21E2E] font-bold uppercase tracking-wider">Short @KitchenQuantity.Format(line.Shortfall, line.Unit)</span>
+                                }
+                            </div>
+                        </td>
+                        @if (showMeals)
+                        {
+                            <td class="border-l border-gray-100 pe-4 ps-4 text-[10px] font-mono text-gray-500 uppercase tracking-wider">
+                                @string.Join(", ", line.AffectedMeals)
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-100/60">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Culinary Operations</h5>
             </div>
-            <div class="d-flex gap-2 align-items-center">
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Kitchen Plan</h2>
                 @if (Model.HasIngredientProblems)
                 {
-                    <span class="badge bg-danger fs-6">@problems.Count ingredient problem(s)</span>
+                    <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 bg-red-50 text-[#C21E2E] border-red-200">
+                        @problems.Count Ingredient Problem(s)
+                    </span>
                 }
                 else if (Model.TotalMeals > 0)
                 {
-                    <span class="badge bg-success fs-6">Ingredients available</span>
+                    <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 bg-green-50 text-green-700 border-green-200">
+                        Ingredients Available
+                    </span>
                 }
                 @if (Model.IsProductionConfirmed)
                 {
-                    <span class="badge bg-success fs-6">Confirmed</span>
+                    <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 bg-green-100 text-green-800 border-green-300">
+                        <i class="bi bi-shield-check me-1.5"></i> Confirmed
+                    </span>
                 }
             </div>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-3 mb-0">
+                @Model.WeekStart.ToString("dd MMM") – @Model.WeekEnd.ToString("dd MMM yyyy")
+                <span class="mx-2 text-gray-300">|</span> <strong>@Model.TotalMeals</strong> portions to prepare
+                <span class="mx-2 text-gray-300">|</span> <strong>@Model.SubmittedPlanCount</strong> of <strong>@Model.StudentCount</strong> plans submitted
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Kitchen
+            </a>
+        </div>
+    </div>
 
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-32 pt-2 flex flex-col gap-10 relative">
+
+        @* --- SYSTEM ALERTS --- *@
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
+                <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["SuccessMessage"]</span>
+            </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
+                <i class="bi bi-x-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-bold uppercase tracking-widest">@TempData["ErrorMessage"]</span>
+            </div>
         }
 
         @if (!Model.IsMenuPublished)
         {
-            <div class="alert alert-warning">
-                This menu hasn't been published, so students can't choose from it yet. The kitchen plan fills in as students submit meal plans.
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-800 shadow-sm flex items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <span class="text-xs font-mono uppercase tracking-widest">
+                    This menu hasn't been published yet. The kitchen plan fills in as students submit meal plans.
+                </span>
             </div>
         }
         else if (Model.SubmittedPlanCount == 0)
         {
-            <div class="alert alert-info">
-                No student has submitted a meal plan for this week yet, so there is nothing to prepare.
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm flex items-center">
+                <i class="bi bi-info-circle-fill me-3 text-xl"></i>
+                <span class="text-xs font-mono uppercase tracking-widest">
+                    No student has submitted a meal plan for this week yet, so there is nothing to prepare.
+                </span>
             </div>
         }
 
-        <div class="alert alert-light border small">
-            Portions are the number of students who chose each meal in their <strong>submitted</strong> meal plans.
+        <div class="bg-white border-l-4 border-l-gray-900 border border-gray-200 p-4 shadow-sm text-xs font-mono text-gray-600 uppercase tracking-widest leading-relaxed">
+            <i class="bi bi-info-circle me-2 text-gray-500"></i>
+            Portions represent confirmed students in <strong>submitted</strong> plans.
             @if (Model.StaffMeals > 0)
             {
-                <span>The menu's <strong>@Model.StaffMeals</strong> staff meals per meal are added to that meal's most chosen dish.</span>
+                <span class="ms-1">Includes <strong>@Model.StaffMeals</strong> staff meals mapped to the top-chosen dish.</span>
             }
             @if (Model.UnsubmittedPlansWithPicks > 0)
             {
-                <span><strong>@Model.UnsubmittedPlansWithPicks</strong> student(s) have chosen meals but not submitted — they aren't counted.</span>
+                <span class="ms-1 font-bold text-gray-800">(@Model.UnsubmittedPlansWithPicks unsubmitted plans excluded).</span>
             }
-            Availability compares what's required with the ingredient stock on record; nothing is reserved or deducted.
         </div>
 
-        @* ── Readiness ─────────────────────────────────────────── *@
+        @* --- CRITICAL WARNINGS OVERVIEW --- *@
         @if (problems.Any())
         {
-            <div class="pp-warnings bad">
-                <strong><i class="bi bi-exclamation-triangle me-1"></i>Not ready: some ingredients may stop meals being prepared.</strong>
-                <ul>
+            <div class="bg-red-50 border border-red-200 p-5 shadow-sm">
+                <div class="flex items-center text-[#C21E2E] mb-3">
+                    <i class="bi bi-exclamation-octagon-fill text-xl me-2"></i>
+                    <strong class="font-serif text-base">Not ready: Ingredient shortfalls may prevent meal production.</strong>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 ps-7">
                     @foreach (var w in problems)
                     {
-                        <li>
-                            <span class="when">@w.When:</span> @w.Message
-                            <span class="affects">Affects: @string.Join(", ", w.AffectedMeals)</span>
-                        </li>
+                        <div class="bg-white border border-red-200 p-3 shadow-xs">
+                            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-[#C21E2E] block mb-1">@w.When</span>
+                            <div class="text-xs font-serif text-gray-900 mb-1">@w.Message</div>
+                            <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest block">Affects: @string.Join(", ", w.AffectedMeals)</span>
+                        </div>
                     }
-                </ul>
+                </div>
             </div>
         }
         else if (Model.TotalMeals > 0)
         {
-            <div class="pp-warnings good">
-                <strong><i class="bi bi-check-circle me-1"></i>All ingredients for the chosen meals are available.</strong>
+            <div class="bg-green-50 border border-green-200 p-4 shadow-sm flex items-center text-green-900">
+                <i class="bi bi-check-circle-fill text-xl text-[#10b981] me-3"></i>
+                <strong class="font-serif text-sm">All ingredients for the chosen meals are fully stocked and available.</strong>
             </div>
         }
 
         @if (notes.Any())
         {
-            <div class="alert alert-secondary small">
+            <div class="bg-white border border-gray-200 p-4 shadow-xs flex flex-col gap-1.5">
                 @foreach (var n in notes)
                 {
-                    <div><strong>@n.When:</strong> @n.Message</div>
+                    <div class="text-[10px] font-mono text-gray-700 uppercase tracking-widest">
+                        <strong class="text-gray-900">@n.When:</strong> @n.Message
+                    </div>
                 }
             </div>
         }
 
+        @* --- DAY BLOCKS --- *@
         @foreach (var day in Model.Days)
         {
-            <div class="pp-day">
-                <div class="pp-day-header">
-                    <span>@day.Date.ToString("dddd, dd MMMM yyyy")</span>
-                    @if (day.SelectionsFinal)
+            <div class="bg-white border-2 border-gray-200 shadow-md flex flex-col relative overflow-hidden">
+
+                @* Day Header Container (Command Style) *@
+                <div class="p-5 bg-[#1a1a1a] text-white flex justify-between items-center relative z-10 flex-wrap gap-3 border-b-2 border-b-[#C21E2E]">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white/10 p-2.5 text-center min-w-[50px] border border-white/20">
+                            <span class="block text-[9px] font-mono uppercase tracking-widest text-gray-300">@day.Date.ToString("ddd")</span>
+                            <span class="block font-mono font-bold text-xl leading-none text-white mt-0.5">@day.Date.ToString("dd")</span>
+                        </div>
+                        <div>
+                            <span class="text-2xl font-serif font-bold text-white tracking-wide block">@day.Date.ToString("dddd, dd MMMM yyyy")</span>
+                            <span class="text-[9px] font-mono uppercase tracking-[2px] text-gray-400">Daily Kitchen Operations Ledger</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        @if (day.SelectionsFinal)
+                        {
+                            <span class="text-[9px] font-mono font-bold uppercase tracking-widest text-emerald-300 bg-emerald-950/80 px-3 py-1.5 border border-emerald-700 shadow-xs">
+                                <i class="bi bi-lock me-1"></i> Selections Final
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-300 bg-amber-950/80 px-3 py-1.5 border border-amber-700 shadow-xs">
+                                Open until end of @day.SelectionCutoff.AddDays(-1).ToString("ddd dd MMM")
+                            </span>
+                        }
+
+                        @if (day.IsIssued)
+                        {
+                            <a class="text-[9px] font-mono font-bold uppercase tracking-widest text-green-300 bg-emerald-950 border border-green-600 px-3 py-1.5 text-decoration-none shadow-xs hover:bg-emerald-900 transition-colors" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
+                                <i class="bi bi-box-seam me-1"></i> Ingredients Issued@(day.IssuedAt.HasValue ? " " + Michaelhouse.Services.SchoolClock.FromUtc(day.IssuedAt.Value).ToString("ddd HH:mm") : "")@(day.IssuedBy != null ? " by " + day.IssuedBy : "")
+                            </a>
+                        }
+                        else if (day.Slots.Any(s => s.Tasks.Any()))
+                        {
+                            <a class="inline-flex items-center justify-center bg-white text-gray-900 px-4 py-1.5 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors shadow-xs text-decoration-none" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
+                                <i class="bi bi-box-seam me-1.5"></i> Issue Ingredients
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                @* Meal Slots Grid / Stack *@
+                <div class="p-6 bg-gray-50/70 flex flex-col gap-6">
+                    @foreach (var slot in day.Slots)
                     {
-                        <span class="pp-final text-success"><i class="bi bi-lock"></i> Selections final</span>
-                    }
-                    else
-                    {
-                        <span class="pp-final text-warning">Students can change these meals until the end of @day.SelectionCutoff.AddDays(-1).ToString("ddd dd MMM")</span>
-                    }
-                    @if (day.IsIssued)
-                    {
-                        <a class="pp-final text-success" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
-                            <i class="bi bi-box-seam"></i> Ingredients issued@(day.IssuedAt.HasValue ? " " + Michaelhouse.Services.SchoolClock.FromUtc(day.IssuedAt.Value).ToString("ddd HH:mm") : "")@(day.IssuedBy != null ? " by " + day.IssuedBy : "")
-                        </a>
-                    }
-                    else if (day.Slots.Any(s => s.Tasks.Any()))
-                    {
-                        <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("IssueIngredients", "Cafeteria", new { id = Model.MenuId, date = day.Date.ToString("yyyy-MM-dd") })">
-                            <i class="bi bi-box-seam"></i> Issue ingredients
-                        </a>
+                        var slotAccent = slot.MealSlot == "Breakfast" ? "#0ea5e9" : slot.MealSlot == "Lunch" ? "#2563eb" : "#d97706";
+                        var slotBg = slot.MealSlot == "Breakfast" ? "bg-sky-50/40" : slot.MealSlot == "Lunch" ? "bg-blue-50/40" : "bg-amber-50/40";
+                        var slotBorder = slot.MealSlot == "Breakfast" ? "border-sky-200" : slot.MealSlot == "Lunch" ? "border-blue-200" : "border-amber-200";
+
+                        <div class="bg-white border @slotBorder shadow-sm relative overflow-hidden" style="border-left: 6px solid @slotAccent;">
+
+                            @* Meal Slot Sub-Header *@
+                            <div class="p-4 border-b border-gray-100 @slotBg flex justify-between items-center flex-wrap gap-2">
+                                <div class="flex items-center gap-3">
+                                    <span class="font-serif font-bold text-base text-gray-900 uppercase tracking-wider">@slot.MealSlot</span>
+                                    <span class="inline-flex items-center text-[9px] font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 bg-white border border-gray-200 text-gray-700 shadow-2xs">
+                                        Serve: @slot.ServeTime.ToString(@"hh\:mm")
+                                    </span>
+                                </div>
+                                <div class="font-mono text-xs uppercase tracking-wider text-gray-600">
+                                    Demand: <strong class="text-[#C21E2E] font-bold text-sm">@slot.Portions</strong> portions
+                                </div>
+                            </div>
+
+                            @* Slot Content *@
+                            <div class="p-5 flex flex-col gap-4">
+                                @if (!slot.Tasks.Any())
+                                {
+                                    <div class="p-4 bg-gray-50 border border-dashed border-gray-200 text-center text-[10px] font-mono text-gray-400 uppercase tracking-widest italic">
+                                        No student selections recorded for this meal slot.
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="grid grid-cols-1 gap-3">
+                                        @foreach (var task in slot.Tasks)
+                                        {
+                                            var stClass = "bg-gray-100 text-gray-700 border-gray-200";
+                                            if (task.Station == "Grill") { stClass = "bg-red-50 text-red-800 border-red-200"; }
+                                            else if (task.Station == "Stove") { stClass = "bg-blue-50 text-blue-800 border-blue-200"; }
+                                            else if (task.Station == "Oven") { stClass = "bg-amber-50 text-amber-800 border-amber-200"; }
+                                            else if (task.Station == "Cold Prep") { stClass = "bg-emerald-50 text-emerald-800 border-emerald-200"; }
+
+                                            var problemCount = task.Ingredients.Count(i => i.Status != IngredientAvailability.Available);
+
+                                            <div class="bg-white border border-gray-200 p-4 shadow-xs hover:border-gray-300 transition-colors">
+                                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+
+                                                    @* Monospace Timeline *@
+                                                    <div class="md:col-span-3 flex items-center gap-3 bg-gray-50 p-2.5 border border-gray-200">
+                                                        <div class="font-mono text-xs font-bold text-gray-900">
+                                                            @task.StartTime.ToString(@"hh\:mm")
+                                                            <span class="block text-[8px] uppercase tracking-widest text-gray-400 font-normal">Start</span>
+                                                        </div>
+                                                        <i class="bi bi-arrow-right text-gray-400 text-xs mx-auto"></i>
+                                                        <div class="font-mono text-xs font-bold text-gray-900 text-right">
+                                                            @task.ReadyTime.ToString(@"hh\:mm")
+                                                            <span class="block text-[8px] uppercase tracking-widest text-gray-400 font-normal">Ready</span>
+                                                        </div>
+                                                    </div>
+
+                                                    @* Dish Identity *@
+                                                    <div class="md:col-span-4">
+                                                        <div class="font-serif font-bold text-sm text-gray-900">@task.DishName</div>
+                                                        <div class="text-[9px] font-mono text-gray-400 uppercase tracking-wider mt-0.5">
+                                                            @task.PrepMinutes min prep + @task.CookMinutes min cook
+                                                        </div>
+                                                    </div>
+
+                                                    @* Station Badge *@
+                                                    <div class="md:col-span-2">
+                                                        <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 border @stClass">
+                                                            @task.Station
+                                                        </span>
+                                                    </div>
+
+                                                    @* Portion Counter *@
+                                                    <div class="md:col-span-1 text-right">
+                                                        <div class="font-mono font-bold text-base text-gray-900 leading-none">@task.Portions</div>
+                                                        <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Total</span>
+                                                        @if (task.StaffPortions > 0)
+                                                        {
+                                                            <span class="block text-[8px] font-mono text-gray-500">(@task.StudentPortions + @task.StaffPortions)</span>
+                                                        }
+                                                    </div>
+
+                                                    @* Status Indicator *@
+                                                    <div class="md:col-span-2 text-right">
+                                                        @if (!task.HasRecipe)
+                                                        {
+                                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-yellow-50 text-yellow-800 border border-yellow-200 px-2.5 py-1">No Recipe</span>
+                                                        }
+                                                        else if (problemCount > 0)
+                                                        {
+                                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-red-50 text-[#C21E2E] border border-red-200 px-2.5 py-1">@problemCount Problem(s)</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 px-2.5 py-1">Ready</span>
+                                                        }
+                                                    </div>
+                                                </div>
+
+                                                @if (!string.IsNullOrWhiteSpace(task.Instructions))
+                                                {
+                                                    <div class="mt-3 p-3 bg-gray-50 border-l-2 border-l-gray-400 border border-gray-200 text-xs font-serif text-gray-700 whitespace-pre-line">
+                                                        @task.Instructions
+                                                    </div>
+                                                }
+
+                                                @if (task.Ingredients.Any())
+                                                {
+                                                    <div class="mt-3 pt-2.5 border-t border-dashed border-gray-200">
+                                                        <button type="button" class="text-[9px] font-mono font-bold uppercase tracking-widest text-[#C21E2E] hover:underline cursor-pointer bg-transparent border-0 p-0" onclick="toggleBom(this)">
+                                                            ▸ Show Ingredients (@task.Ingredients.Count)
+                                                        </button>
+
+                                                        <div class="pp-bom hidden mt-2.5">
+                                                            <table class="table table-sm align-middle mb-0 w-full text-xs border border-gray-200">
+                                                                <thead class="bg-gray-100">
+                                                                    <tr class="text-[8px] uppercase tracking-widest font-bold text-gray-500 border-b border-gray-200">
+                                                                        <th class="ps-3 py-1.5">Ingredient</th>
+                                                                        <th class="text-end">Per Portion</th>
+                                                                        <th class="text-end">For @task.Portions</th>
+                                                                        <th class="text-end">Available</th>
+                                                                        <th class="pe-3 text-end">Status</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody class="text-gray-700">
+                                                                    @foreach (var ing in task.Ingredients)
+                                                                    {
+                                                                        <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
+                                                                            <td class="ps-3 py-1 font-serif">@ing.IngredientName</td>
+                                                                            <td class="text-end font-mono text-gray-500">@KitchenQuantity.Format(ing.QuantityPerPortion, ing.Unit)</td>
+                                                                            <td class="text-end font-mono font-bold text-gray-900">@KitchenQuantity.Format(ing.TotalRequired, ing.Unit)</td>
+                                                                            <td class="text-end font-mono text-gray-500">@KitchenQuantity.Format(ing.StockAvailable, ing.Unit)</td>
+                                                                            <td class="pe-3 text-end">@Availability(ing)</td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                @if (slot.NotSelectedOptions.Any())
+                                {
+                                    <div class="text-[9px] font-mono text-gray-400 uppercase tracking-widest mt-1">
+                                        Not chosen by students: @string.Join(", ", slot.NotSelectedOptions)
+                                    </div>
+                                }
+                                @if (slot.StudentsWithoutPick > 0)
+                                {
+                                    <div class="text-[9px] font-mono text-amber-700 uppercase tracking-widest mt-0.5">
+                                        @slot.StudentsWithoutPick student(s) with submitted plans omitted selections here.
+                                    </div>
+                                }
+
+                                @if (slot.Ingredients.Any())
+                                {
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-2">@slot.MealSlot Ingredient Totals</h6>
+                                        @CheckTable(slot.Ingredients, true)
+                                    </div>
+                                }
+                            </div>
+                        </div>
                     }
                 </div>
 
-                @foreach (var slot in day.Slots)
-                {
-                    <div class="pp-slot">
-                        <div class="pp-slot-header">
-                            <span class="pp-slot-name">@slot.MealSlot</span>
-                            <span class="pp-serve">
-                                Serve at <strong>@slot.ServeTime.ToString(@"hh\:mm")</strong>
-                                · <strong>@slot.Portions</strong> portions
-                            </span>
-                        </div>
-
-                        @if (!slot.Tasks.Any())
-                        {
-                            <div class="text-muted small">No student has chosen a meal here yet — nothing to prepare.</div>
-                        }
-
-                        @foreach (var task in slot.Tasks)
-                        {
-                            var stClass = "ln";
-                            if (task.Station == "Grill") { stClass = "gr"; }
-                            else if (task.Station == "Stove") { stClass = "st"; }
-                            else if (task.Station == "Oven") { stClass = "ov"; }
-                            else if (task.Station == "Cold Prep") { stClass = "cp"; }
-
-                            var problemCount = task.Ingredients.Count(i => i.Status != IngredientAvailability.Available);
-
-                            <div class="pp-task">
-                                <div class="pp-task-top">
-                                    <div class="pp-time-cell">
-                                        @task.StartTime.ToString(@"hh\:mm")
-                                        <small>Start</small>
-                                    </div>
-                                    <div class="pp-time-cell">
-                                        @task.ReadyTime.ToString(@"hh\:mm")
-                                        <small>Ready</small>
-                                    </div>
-                                    <div>
-                                        <div class="pp-dish">@task.DishName</div>
-                                        <div class="pp-dish-meta">
-                                            @task.PrepMinutes min prep + @task.CookMinutes min cook
-                                        </div>
-                                    </div>
-                                    <div><span class="pp-station @stClass">@task.Station</span></div>
-                                    <div style="text-align:right; font-size:.9rem; font-weight:700;">
-                                        @task.Portions
-                                        <small style="display:block; font-size:.62rem; color:#9ca3af; text-transform:uppercase; letter-spacing:.04em; font-weight:400;">portions</small>
-                                        @if (task.StaffPortions > 0)
-                                        {
-                                            <small style="display:block; font-size:.62rem; color:#6b7280; font-weight:400;">@task.StudentPortions students + @task.StaffPortions staff</small>
-                                        }
-                                    </div>
-                                    <div style="text-align:right; font-size:.75rem;">
-                                        @if (!task.HasRecipe)
-                                        {
-                                            <span class="av short">No recipe</span>
-                                        }
-                                        else if (problemCount > 0)
-                                        {
-                                            <span class="av none">@problemCount problem(s)</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="av ok">Ready</span>
-                                        }
-                                    </div>
-                                </div>
-
-                                @if (!string.IsNullOrWhiteSpace(task.Instructions))
-                                {
-                                    <div class="pp-instructions">@task.Instructions</div>
-                                }
-
-                                @if (task.Ingredients.Any())
-                                {
-                                    <span class="pp-bom-toggle" onclick="toggleBom(this)">▸ Show ingredients (@task.Ingredients.Count)</span>
-
-                                    <div class="pp-bom" style="display:none;">
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th>Ingredient</th>
-                                                    <th style="text-align:right;">Per portion</th>
-                                                    <th style="text-align:right;">For @task.Portions portions</th>
-                                                    <th style="text-align:right;">Available</th>
-                                                    <th style="text-align:right;">Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach (var ing in task.Ingredients)
-                                                {
-                                                    <tr>
-                                                        <td>@ing.IngredientName</td>
-                                                        <td class="num">@KitchenQuantity.Format(ing.QuantityPerPortion, ing.Unit)</td>
-                                                        <td class="num">@KitchenQuantity.Format(ing.TotalRequired, ing.Unit)</td>
-                                                        <td class="num">@KitchenQuantity.Format(ing.StockAvailable, ing.Unit)</td>
-                                                        <td class="num">@Availability(ing)</td>
-                                                    </tr>
-                                                }
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                }
-                            </div>
-                        }
-
-                        @if (slot.NotSelectedOptions.Any())
-                        {
-                            <div class="pp-not-chosen">
-                                Not chosen by anyone — nothing to prepare: @string.Join(", ", slot.NotSelectedOptions)
-                            </div>
-                        }
-                        @if (slot.StudentsWithoutPick > 0)
-                        {
-                            <div class="pp-not-chosen">
-                                @slot.StudentsWithoutPick student(s) with a submitted plan didn't choose a meal here.
-                            </div>
-                        }
-
-                        @if (slot.Ingredients.Any())
-                        {
-                            <div class="mt-2">
-                                <div style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#374151;">
-                                    @slot.MealSlot ingredients — total for this meal
-                                </div>
-                                @CheckTable(slot.Ingredients, true)
-                            </div>
-                        }
-                    </div>
-                }
-
+                @* Day Totals Footer *@
                 @if (day.DayTotalIngredients.Any())
                 {
-                    <div class="pp-slot" style="background:#fcfcfc;">
-                        <div class="pp-day-total">
-                            <div class="pp-day-total-title">Day total — @day.Date.ToString("dddd")</div>
-                            @CheckTable(day.DayTotalIngredients, true)
-                        </div>
+                    <div class="p-6 bg-gray-100 border-t-2 border-gray-200">
+                        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-800 mb-3">Day Total Ingredients — @day.Date.ToString("dddd")</h6>
+                        @CheckTable(day.DayTotalIngredients, true)
                     </div>
                 }
             </div>
         }
 
+        @* --- FULL WEEK AGGREGATE LEDGER --- *@
         @if (Model.WeekTotalIngredients.Any())
         {
-            <div class="pp-week-total">
-                <div class="pp-week-total-header">
-                    Week total — all ingredients
-                    <span class="text-muted small ms-2">Every chosen meal this week together, compared with current stock.</span>
+            <div class="bg-white border-2 border-gray-200 shadow-md flex flex-col relative overflow-hidden">
+                <div class="p-5 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Week Aggregate — All Ingredients</h5>
+                        <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest mt-0.5 block">Sum total of every planned meal versus current stock</span>
+                    </div>
                 </div>
-                <div style="padding: 0 1.25rem 1rem 1.25rem;">
+                <div class="p-6 bg-gray-50">
                     @CheckTable(Model.WeekTotalIngredients, false)
                 </div>
             </div>
         }
 
+        @* --- STICKY CHEF CONFIRMATION ACTION BAR --- *@
         @if (!Model.IsProductionConfirmed)
         {
-            <div class="pp-actions">
-                <div class="info">
-                    <strong>Chef confirmation.</strong>
+            <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4 md:px-8 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex flex-col md:flex-row justify-between items-center gap-4 transition-all">
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                    <strong class="text-gray-900 text-xs">Chef Authorization.</strong>
                     @if (problems.Any())
                     {
-                        <span class="text-danger">@problems.Count ingredient problem(s) still open.</span>
+                        <span class="text-[#C21E2E] font-bold block md:inline md:ms-2">@problems.Count ingredient problem(s) still open.</span>
                     }
                     else
                     {
-                        <span>Review the plan, then confirm.</span>
+                        <span class="block md:inline md:ms-2">Review requirements before finalizing execution.</span>
                     }
                 </div>
-                <form action="@Url.Action("ConfirmProduction", "Cafeteria", new { id = Model.MenuId })" method="post">
+
+                <form action="@Url.Action("ConfirmProduction", "Cafeteria", new { id = Model.MenuId })" method="post" class="m-0 w-full md:w-auto">
                     @Html.AntiForgeryToken()
-                    <button type="submit"
-                            class="btn @(problems.Any() ? "btn-outline-danger" : "btn-success") btn-lg"
-                            onclick="return confirm('@(problems.Any() ? "Some ingredients are insufficient or not available. Confirm the kitchen plan anyway?" : "Confirm the kitchen plan for this week?")');">
+                    <button type="submit" class="w-full md:w-auto bg-[#10b981] border-2 border-[#10b981] text-white px-8 py-3.5 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:border-green-600 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all shadow-sm" onclick="return confirm('@(problems.Any() ? "Some ingredients are insufficient or not available. Confirm the kitchen plan anyway?" : "Confirm the kitchen plan for this week?")');">
                         Confirm Kitchen Plan
                     </button>
                 </form>
@@ -890,38 +481,67 @@
         }
         else
         {
-            <div class="alert @(problems.Any() ? "alert-warning" : "alert-success") mt-4">
-                <strong>Kitchen plan confirmed</strong>
-                @if (Model.ConfirmedAt.HasValue)
-                {
-                    <text>on @Michaelhouse.Services.SchoolClock.FromUtc(Model.ConfirmedAt.Value).ToString("dd MMM yyyy HH:mm")</text>
-                }
-                @if (problems.Any())
-                {
-                    <text> — but @problems.Count ingredient problem(s) are still open.</text>
-                }
+            <div class="fixed bottom-0 left-0 right-0 bg-gray-100 border-t border-gray-200 p-4 md:px-8 z-50 text-center">
+                <span class="text-[10px] font-mono uppercase tracking-widest text-gray-700 font-bold">
+                    <i class="bi bi-shield-check me-1 text-[#10b981]"></i> Kitchen Plan Confirmed
+                    @if (Model.ConfirmedAt.HasValue)
+                    {
+                        <text>on @Michaelhouse.Services.SchoolClock.FromUtc(Model.ConfirmedAt.Value).ToString("dd MMM yyyy HH:mm")</text>
+                    }
+                    @if (problems.Any())
+                    {
+                        <span class="text-[#C21E2E] ms-2">(@problems.Count open ingredient problems remaining)</span>
+                    }
+                </span>
             </div>
         }
-
-        <div class="mt-4">
-            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="btn btn-outline-secondary">
-                ← Back to Kitchen
-            </a>
-        </div>
 
     </div>
 </div>
 
-<script>
-    function toggleBom(el) {
-        var bom = el.parentElement.querySelector('.pp-bom');
-        if (!bom) return;
-
-        var isOpen = bom.style.display !== 'none';
-        bom.style.display = isOpen ? 'none' : 'block';
-
-        var count = el.textContent.match(/\d+/);
-        var n = count ? count[0] : '';
-        el.textContent = (isOpen ? '▸' : '▾') + ' ' + (isOpen ? 'Show' : 'Hide') + ' ingredients (' + n + ')';
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
     }
-</script>
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        function toggleBom(el) {
+            var bom = el.parentElement.querySelector('.pp-bom');
+            if (!bom) return;
+
+            var isHidden = bom.classList.contains('hidden');
+            if (isHidden) {
+                bom.classList.remove('hidden');
+            } else {
+                bom.classList.add('hidden');
+            }
+
+            var count = el.textContent.match(/\d+/);
+            var n = count ? count[0] : '';
+            el.textContent = (isHidden ? '▾ Hide' : '▸ Show') + ' Ingredients (' + n + ')';
+        }
+    </script>
+}
