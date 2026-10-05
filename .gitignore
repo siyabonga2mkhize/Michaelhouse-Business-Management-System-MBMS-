@@ -23,3 +23,9 @@ Migrations/
 *.log
 /Models/VisitorAccessRequest.cs.txt
 /Views/ScanGate.cshtml
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
