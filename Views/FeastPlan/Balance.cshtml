@@ -1,0 +1,125 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Colour and Texture Balance";
+    var result = ViewBag.Result as BalanceResult ?? new BalanceResult();
+    bool canEdit = ViewBag.CanEdit == true;
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 6)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="mb-3">
+        <h2 class="h4 mb-1">Step 6 — Visual and textural balance</h2>
+        <p class="text-muted mb-0">
+            Each buffet section is checked using the meals' colour and texture tags. If <strong>more than @FeastRules.BalanceMaxShared dishes</strong>
+            share a colour or a texture, the system suggests a swap that keeps every dietary group covered.
+            An accepted swap recalculates the plan.
+        </p>
+    </div>
+
+    @if (result.Untagged.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <strong>These dishes have no colour and texture tag, so they can't be checked:</strong>
+            @string.Join(", ", result.Untagged.Select(u => u.DishName)).
+            <a href="@Url.Action("Tags", "FeastPlan")">Tag the meals</a>
+        </div>
+    }
+
+    @if (result.FindingCount == 0 && result.Untagged.Count == 0)
+    {
+        <div class="alert alert-success">Every buffet section is balanced.</div>
+    }
+    else if (result.FindingCount > 0)
+    {
+        <div class="alert alert-warning">
+            <strong>@result.FindingCount imbalance@(result.FindingCount == 1 ? "" : "s") found.</strong> Accept a suggestion, or keep the section as it is.
+        </div>
+    }
+
+    @foreach (var sec in result.Sections)
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold">@sec.Section</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    @foreach (var d in sec.Dishes)
+                    {
+                        MenuItemBuffetTag tag;
+                        bool tagged = d.MenuItemId.HasValue && result.Tags.TryGetValue(d.MenuItemId.Value, out tag);
+                        <span class="border rounded px-2 py-1 small">
+                            @d.DishName
+                            @if (tagged)
+                            {
+                                var t = result.Tags[d.MenuItemId.Value];
+                                <span class="badge bg-light text-dark border">@t.Colour</span>
+                                <span class="badge bg-light text-dark border">@t.Texture</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">untagged</span>
+                            }
+                        </span>
+                    }
+                </div>
+
+                @foreach (var f in sec.Findings)
+                {
+                    <div class="alert alert-warning mb-2">
+                        <strong>@f.Dishes.Count dishes share the @f.Attribute.ToLowerInvariant() "@f.Value":</strong>
+                        @string.Join(", ", f.Dishes.Select(x => x.DishName)).
+                        @if (f.Replace == null)
+                        {
+                            <div class="small">They are all cultural favourites, which aren't swapped.</div>
+                        }
+                        else if (f.Suggestion == null)
+                        {
+                            <div class="small">No suitable replacement was found for @f.Replace.DishName in the meal library.</div>
+                        }
+                        else
+                        {
+                            <div class="mt-1">
+                                Swap <strong>@f.Replace.DishName</strong> for <strong>@f.Suggestion.Meal.Name</strong>
+                                <span class="small text-muted">(@f.Suggestion.Colour, @f.Suggestion.Texture · fatigue score @f.Suggestion.Fatigue.Score)</span>
+                            </div>
+                            if (canEdit)
+                            {
+                                using (Html.BeginForm("AcceptSwap", "FeastPlan", FormMethod.Post, new { @class = "mt-1" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="itemId" value="@f.Replace.Id" />
+                                    <input type="hidden" name="menuItemId" value="@f.Suggestion.Meal.Id" />
+                                    <input type="hidden" name="kind" value="Balance" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Accept swap and recalculate</button>
+                                }
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Fatigue", "FeastPlan", new { id = Model.Id })">
+            <i class="bi bi-arrow-left"></i> Back to step 5
+        </a>
+        @if (canEdit)
+        {
+            using (Html.BeginForm("Advance", "FeastPlan", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="fromStep" value="6" />
+                <button type="submit" class="btn btn-primary">Next: consumption and waste <i class="bi bi-arrow-right"></i></button>
+            }
+        }
+    </div>
+</div>

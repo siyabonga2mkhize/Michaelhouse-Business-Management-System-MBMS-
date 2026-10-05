@@ -1,0 +1,28 @@
+@using Michaelhouse.Services
+@model FeastPlanCheck
+@*
+    UC19 coverage check. Problems block sending the plan for approval.
+*@
+@if (Model != null && Model.Problems.Count > 0)
+{
+    <div class="alert alert-warning">
+        <strong><i class="bi bi-exclamation-triangle me-1"></i>Needs fixing before the plan can be sent for approval:</strong>
+        <ul class="mb-0 mt-1">
+            @foreach (var p in Model.Problems)
+            {
+                <li>@p</li>
+            }
+        </ul>
+    </div>
+}
+@if (Model != null && Model.Notes.Count > 0)
+{
+    <div class="alert alert-light border small">
+        <ul class="mb-0">
+            @foreach (var n in Model.Notes)
+            {
+                <li>@n</li>
+            }
+        </ul>
+    </div>
+}

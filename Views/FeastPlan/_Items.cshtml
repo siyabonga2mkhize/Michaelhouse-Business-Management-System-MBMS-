@@ -1,0 +1,63 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model IEnumerable<EventFeastPlanItem>
+@*
+    UC19 dish quantities: guests covered, base, buffer and total.
+*@
+@{
+    var items = FeastPlanService.InOrder(Model);
+}
+@if (items.Count == 0)
+{
+    <div class="alert alert-warning">There are no dishes on this plan.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Dish</th>
+                    <th>Section</th>
+                    <th>For</th>
+                    <th class="text-end">Guests</th>
+                    <th class="text-end">Base portions</th>
+                    <th class="text-end">Buffer</th>
+                    <th class="text-end">Total to prepare</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td class="fw-semibold">
+                            @item.DishName
+                            @if (!string.IsNullOrEmpty(item.Source) && item.Source != "Buffet")
+                            {
+                                <span class="badge bg-light text-dark border fw-normal">@item.Source</span>
+                            }
+                            @if (item.OptimisedForWaste)
+                            {
+                                <span class="badge bg-success fw-normal" title="Trimmed using @item.LeftoverRatePercent.ToString("0.#")% leftover history">waste-optimised</span>
+                            }
+                        </td>
+                        <td>@item.Section</td>
+                        <td>@FeastPlanService.CategoryLabel(item.Category)</td>
+                        <td class="text-end">@item.GuestsCovered</td>
+                        <td class="text-end">@item.BaseQuantity</td>
+                        <td class="text-end">+@item.BufferQuantity</td>
+                        <td class="text-end fw-bold">@item.TotalQuantity</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <th colspan="4">Total portions</th>
+                    <th class="text-end">@items.Sum(i => i.BaseQuantity)</th>
+                    <th class="text-end">+@items.Sum(i => i.BufferQuantity)</th>
+                    <th class="text-end">@items.Sum(i => i.TotalQuantity)</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}

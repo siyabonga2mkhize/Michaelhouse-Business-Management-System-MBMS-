@@ -135,6 +135,9 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="QRCoder, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c4ed5b9ae8358a28, processorArchitecture=MSIL">
@@ -178,6 +181,9 @@
       <HintPath>packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
       <Private>True</Private>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Client.6.0.0\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -240,6 +246,12 @@
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.Core.5.3.0\lib\net45\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.WebApi.WebHost.5.3.0\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
@@ -526,6 +538,18 @@
     <Compile Include="Services\CollectionOpening.cs" />
     <Compile Include="Services\EventRsvpService.cs" />
     <Compile Include="Services\EventBuffetService.cs" />
+    <Compile Include="Services\FeastPlanService.cs" />
+    <Compile Include="Controllers\FeastPlanController.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlan.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlanItem.cs" />
+    <Compile Include="Models\Cafeteria\EventFeastPlanHistory.cs" />
+    <Compile Include="Models\Cafeteria\FeastPlanStatus.cs" />
+    <Compile Include="Models\Cafeteria\FeastDishCategory.cs" />
+    <Compile Include="Models\ViewModels\EventFeastPlanViewModels.cs" />
+    <Compile Include="Models\Cafeteria\MenuItemBuffetTag.cs" />
+    <Compile Include="Models\Cafeteria\EventDishLeftover.cs" />
+    <Compile Include="Services\FeastAnalysisService.cs" />
+    <Compile Include="Services\FeastPlanService.Steps.cs" />
     <Compile Include="Services\StudentHouseService.cs" />
     <Compile Include="Models\Cafeteria\IngredientInventoryModels.cs" />
     <Compile Include="Models\Cafeteria\CafeteriaInventorySeed.cs" />
@@ -792,6 +816,27 @@
     <Content Include="Views\Shared\_OrderStatusBadge.cshtml" />
     <Content Include="Views\Event\FeastPlan.cshtml" />
     <Content Include="Views\Event\Queue.cshtml" />
+    <Content Include="Views\FeastPlan\Index.cshtml" />
+    <Content Include="Views\FeastPlan\Rsvps.cshtml" />
+    <Content Include="Views\FeastPlan\EventDetails.cshtml" />
+    <Content Include="Views\FeastPlan\Favourites.cshtml" />
+    <Content Include="Views\FeastPlan\Quantities.cshtml" />
+    <Content Include="Views\FeastPlan\Fatigue.cshtml" />
+    <Content Include="Views\FeastPlan\Balance.cshtml" />
+    <Content Include="Views\FeastPlan\Waste.cshtml" />
+    <Content Include="Views\FeastPlan\Leftovers.cshtml" />
+    <Content Include="Views\FeastPlan\Tags.cshtml" />
+    <Content Include="Views\FeastPlan\_Summary.cshtml" />
+    <Content Include="Views\FeastPlan\Review.cshtml" />
+    <Content Include="Views\FeastPlan\Decision.cshtml" />
+    <Content Include="Views\FeastPlan\Edit.cshtml" />
+    <Content Include="Views\FeastPlan\Approved.cshtml" />
+    <Content Include="Views\FeastPlan\_Steps.cshtml" />
+    <Content Include="Views\FeastPlan\_Counts.cshtml" />
+    <Content Include="Views\FeastPlan\_Items.cshtml" />
+    <Content Include="Views\FeastPlan\_Check.cshtml" />
+    <Content Include="Views\FeastPlan\_PlanHeader.cshtml" />
+    <Content Include="Views\FeastPlan\_History.cshtml" />
     <WebConfigFile Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />

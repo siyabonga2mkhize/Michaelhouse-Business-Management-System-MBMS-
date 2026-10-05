@@ -1,0 +1,26 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@*
+    UC19 plan heading: event, date, venue, status and revision.
+*@
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">Feast plan — @Model.Event.EventName</h1>
+        <p class="text-muted mb-0">
+            @Model.Event.EventDate.ToString("dddd dd MMMM yyyy"),
+            @Model.Event.StartTime.ToString(@"hh\:mm")–@Model.Event.EndTime.ToString(@"hh\:mm")
+            @if (Model.Event.Venue != null)
+            {
+                <span>· @Model.Event.Venue.Name</span>
+            }
+        </p>
+    </div>
+    <div class="text-end">
+        <span class="badge @FeastPlanService.StatusBadge(Model.Status) fs-6">@FeastPlanService.StatusLabel(Model.Status)</span>
+        <div class="small text-muted mt-1">
+            Revision @Model.Revision · @Model.BufferPercent.ToString("0.##")% buffer ·
+            calculated @SchoolClock.FromUtc(Model.CalculatedAt).ToString("dd MMM HH:mm")
+        </div>
+    </div>
+</div>

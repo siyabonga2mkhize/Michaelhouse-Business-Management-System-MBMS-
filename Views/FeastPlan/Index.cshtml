@@ -1,0 +1,136 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model List<EventFeastPlan>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plans";
+
+    bool canCoordinate = ViewBag.CanCoordinate == true;
+    bool canApprove = ViewBag.CanApprove == true;
+    var readyEvents = ViewBag.ReadyEvents as List<CafeteriaEvent> ?? new List<CafeteriaEvent>();
+}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Feast Plans</h1>
+        <p class="text-muted mb-0">
+            Dish quantities for scheduled events, worked out from their RSVPs, checked for stock, menu fatigue, buffet
+            balance and waste, reviewed by the Meal Coordinator and approved by the Cafeteria Manager.
+        </p>
+        @if (canCoordinate)
+        {
+            <a class="btn btn-sm btn-outline-secondary mt-2" href="@Url.Action("Tags", "FeastPlan")">
+                <i class="bi bi-palette"></i> Colour and texture tags for the meal library
+            </a>
+        }
+    </div>
+
+    @if (canCoordinate)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Events ready for a feast plan</div>
+            <div class="card-body p-0">
+                @if (readyEvents.Count == 0)
+                {
+                    <p class="text-muted p-3 mb-0">
+                        No upcoming events with closed RSVPs need a plan. Close an event's RSVPs first.
+                    </p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Venue</th>
+                                    <th class="text-end">Headcount</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var e in readyEvents)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@e.EventName</td>
+                                        <td>@e.EventDate.ToString("ddd dd MMM yyyy") @e.StartTime.ToString(@"hh\:mm")</td>
+                                        <td>@(e.Venue != null ? e.Venue.Name : "—")</td>
+                                        <td class="text-end">@(e.GuaranteedHeadcount.HasValue ? e.GuaranteedHeadcount.Value.ToString() : "—")</td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-primary" href="@Url.Action("Rsvps", "FeastPlan", new { id = e.Id })">
+                                                <i class="bi bi-play-fill"></i> Start feast plan
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-semibold">
+            @(canCoordinate || canApprove ? "Feast plans" : "Approved feast plans")
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Count == 0)
+            {
+                <p class="text-muted p-3 mb-0">No feast plans yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Event</th>
+                                <th>Event date</th>
+                                <th>Status</th>
+                                <th class="text-end">Guests</th>
+                                <th class="text-end">Revision</th>
+                                <th>Last change</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                string action = p.Status == FeastPlanStatus.Approved
+                                    ? "Approved"
+                                    : p.Status == FeastPlanStatus.AwaitingApproval && canApprove
+                                        ? "Decision"
+                                        : p.Status == FeastPlanStatus.Drafting && canCoordinate && p.Stage < FeastStage.ReadyForReview
+                                            ? (p.Stage == FeastStage.Favourites ? "Favourites"
+                                                : p.Stage == FeastStage.Quantities ? "Quantities"
+                                                : p.Stage == FeastStage.Fatigue ? "Fatigue"
+                                                : p.Stage == FeastStage.Balance ? "Balance" : "Waste")
+                                            : "Review";
+                                string label = action == "Decision" ? "Decide"
+                                    : action == "Approved" ? "View"
+                                    : p.Status == FeastPlanStatus.Drafting && canCoordinate && p.Stage < FeastStage.ReadyForReview ? "Continue (step " + p.Stage + ")"
+                                    : "Review";
+
+                                <tr>
+                                    <td class="fw-semibold">@p.Event.EventName</td>
+                                    <td>@p.Event.EventDate.ToString("ddd dd MMM yyyy")</td>
+                                    <td><span class="badge @FeastPlanService.StatusBadge(p.Status)">@FeastPlanService.StatusLabel(p.Status)</span></td>
+                                    <td class="text-end">@p.TotalGuests</td>
+                                    <td class="text-end">@p.Revision</td>
+                                    <td>@SchoolClock.FromUtc(p.UpdatedAt ?? p.GeneratedAt).ToString("dd MMM HH:mm")</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-primary" href="@Url.Action(action, "FeastPlan", new { id = p.Id })">@label</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

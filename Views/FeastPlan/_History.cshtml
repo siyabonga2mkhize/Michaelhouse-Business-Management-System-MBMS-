@@ -1,0 +1,27 @@
+@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model IEnumerable<EventFeastPlanHistory>
+@*
+    UC19 audit trail, newest first.
+*@
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-white fw-semibold">History</div>
+    <ul class="list-group list-group-flush">
+        @foreach (var h in Model.OrderByDescending(x => x.At).ThenByDescending(x => x.Id))
+        {
+            <li class="list-group-item small">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">@FeastPlanService.HistoryLabel(h.Action)</span>
+                    <span class="text-muted">@SchoolClock.FromUtc(h.At).ToString("dd MMM yyyy HH:mm")</span>
+                </div>
+                <div class="text-muted">
+                    Revision @h.Revision · @(string.IsNullOrEmpty(h.UserName) ? "User #" + h.UserId : h.UserName)@(string.IsNullOrEmpty(h.UserRole) ? "" : " (" + h.UserRole + ")")
+                </div>
+                @if (!string.IsNullOrEmpty(h.Comments))
+                {
+                    <div class="mt-1">@h.Comments</div>
+                }
+            </li>
+        }
+    </ul>
+</div>
