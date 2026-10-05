@@ -19,8 +19,11 @@ namespace Michaelhouse
         {
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            // Web API (api/mobile/*) first: the MVC "{controller}/{action}/{id}"
+            // route would otherwise catch three-part addresses such as
+            // api/mobile/students and return 404
             GlobalConfiguration.Configure(WebApiConfig.Register);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             // UC18: RSVP is a public form. Anti-forgery tokens must not
             // be bound to the current user identity, otherwise a token
@@ -46,6 +49,10 @@ namespace Michaelhouse
 
             // UC18: opens scheduled event RSVPs on time
             Michaelhouse.Services.EventRsvpScheduler.Start();
+
+            // UC16: load the face recognition models in the background,
+            // so the first face scan doesn't wait for them
+            System.Threading.Tasks.Task.Run(() => Michaelhouse.Services.DlibFaceRecognitionService.Warmup());
 
             // 🌱 SEED THE DATABASE ONCE WHEN THE APP STARTS
             //SeedDrivers();

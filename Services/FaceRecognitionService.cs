@@ -13,10 +13,11 @@ namespace Michaelhouse.Services
     // ============================================================
     // UC16 — Face Recognition Service
     //
-    // Two implementations are planned:
-    //  1. SimulatedFaceRecognitionService  — used today.
-    //  2. RealFaceRecognitionService (future) — same interface,
-    //     powered by a real engine (e.g. FaceRecognitionDotNet).
+    // Two implementations:
+    //  1. DlibFaceRecognitionService — real face recognition, used by
+    //     the website and the mobile API (FaceRecognitionServices.Create)
+    //  2. SimulatedFaceRecognitionService — the earlier stand-in, kept
+    //     for automated tests only
     //
     // The interface is engine-agnostic: an encoding is a vector
     // stored as CSV in StudentFaceSignature.FaceEncoding, and
@@ -26,6 +27,11 @@ namespace Michaelhouse.Services
 
     public interface IFaceRecognitionService
     {
+        // Checks the photo (exactly one face) and encodes that face;
+        // Status says why it can't be used
+        FaceAnalysis Analyse(byte[] imageBytes);
+
+        // Null when the photo can't be used (see Analyse for why)
         string GenerateEncoding(byte[] imageBytes);
 
         double CompareEncodings(string known, string candidate);
@@ -44,8 +50,39 @@ namespace Michaelhouse.Services
         public bool IsAutoVerified { get; set; }
     }
 
+    public enum FaceAnalysisStatus
+    {
+        Ok = 1,
+        NotAnImage = 2,
+        NoFace = 3,
+        MultipleFaces = 4,
+        EngineUnavailable = 5
+    }
+
+    public class FaceAnalysis
+    {
+        public FaceAnalysisStatus Status { get; set; }
+
+        // Set when Status is Ok
+        public string Encoding { get; set; }
+
+        // Plain-language reason when it isn't Ok
+        public string Message { get; set; }
+
+        public bool IsOk { get { return Status == FaceAnalysisStatus.Ok; } }
+    }
+
+    // The engine the website and the mobile API use
+    public static class FaceRecognitionServices
+    {
+        public static IFaceRecognitionService Create()
+        {
+            return new DlibFaceRecognitionService();
+        }
+    }
+
     // ============================================================
-    // Simulated engine — IMPORTANT: this is not biometric face
+    // Simulated engine (tests only) — IMPORTANT: this is not biometric face
     // recognition. Its "encoding" is a small normalised greyscale
     // thumbnail of the centre of the photo, so two photos match when
     // they look alike (same person, pose, lighting and framing). It
@@ -53,7 +90,8 @@ namespace Michaelhouse.Services
     // must replace GenerateEncoding before relying on it for identity.
     //
     // Students enrolled under the earlier placeholder (random
-    // numbers) won't match anyone and need to enrol again.
+    // numbers), or before the crop was made the same shape for every
+    // photo size, won't match anyone and need to enrol again.
     // ============================================================
 
     public class SimulatedFaceRecognitionService : IFaceRecognitionService
@@ -68,6 +106,15 @@ namespace Michaelhouse.Services
         private const int GridHeight = 16;     // 8 x 16 = 128 values
         private const double MaxDistance = 2.0;
 
+        // No face detection here: any readable image is "one face"
+        public FaceAnalysis Analyse(byte[] imageBytes)
+        {
+            var encoding = GenerateEncoding(imageBytes);
+            return encoding == null
+                ? new FaceAnalysis { Status = FaceAnalysisStatus.NotAnImage, Message = "The photo could not be read." }
+                : new FaceAnalysis { Status = FaceAnalysisStatus.Ok, Encoding = encoding };
+        }
+
         // Null when the bytes aren't a usable image
         public string GenerateEncoding(byte[] imageBytes)
         {
@@ -81,9 +128,13 @@ namespace Michaelhouse.Services
                 using (var source = Image.FromStream(stream))
                 using (var thumb = new Bitmap(GridWidth, GridHeight))
                 {
-                    // The face sits in the centre of the terminal frame
-                    int cropWidth = Math.Max(1, (int)(source.Width * 0.6));
-                    int cropHeight = Math.Max(1, (int)(source.Height * 0.8));
+                    // The face sits in the centre of the frame. Crop the SAME
+                    // shape (3 wide x 4 tall, sized from the shorter side)
+                    // from every photo, so a 4:3 webcam, a 16:9 webcam and a
+                    // portrait phone photo all give comparable thumbnails.
+                    int shorter = Math.Min(source.Width, source.Height);
+                    int cropWidth = Math.Max(1, (int)(shorter * 0.6));
+                    int cropHeight = Math.Max(1, (int)(shorter * 0.8));
                     var crop = new Rectangle((source.Width - cropWidth) / 2, (source.Height - cropHeight) / 2, cropWidth, cropHeight);
 
                     using (var g = Graphics.FromImage(thumb))
@@ -156,6 +207,7 @@ namespace Michaelhouse.Services
 
             if (ranked.Count == 0)
             {
+                System.Diagnostics.Debug.WriteLine("[FaceMatch] No students are enrolled.");
                 return null;
             }
 
@@ -164,6 +216,21 @@ namespace Michaelhouse.Services
 
             bool closeEnough = best.Distance <= MatchThreshold;
             bool unambiguous = runnerUp == null || runnerUp.Distance - best.Distance >= AmbiguityMargin;
+
+            // Debug builds only: why a scan did or didn't match, in
+            // Visual Studio's Output window (Show output from: Debug)
+            System.Diagnostics.Debug.WriteLine(string.Format(CultureInfo.InvariantCulture,
+                "[FaceMatch] {0} enrolled. Best: student {1} at {2:0.000} (needs <= {3:0.00}){4}. Runner-up: {5}. Result: {6}",
+                ranked.Count,
+                best.Signature.StudentId,
+                best.Distance,
+                MatchThreshold,
+                closeEnough ? "" : " TOO DIFFERENT",
+                runnerUp == null ? "none" : string.Format(CultureInfo.InvariantCulture,
+                    "student {0} at {1:0.000} (gap {2:0.000}, needs >= {3:0.00}){4}",
+                    runnerUp.Signature.StudentId, runnerUp.Distance, runnerUp.Distance - best.Distance,
+                    AmbiguityMargin, unambiguous ? "" : " TOO CLOSE TO CALL"),
+                closeEnough && unambiguous ? "MATCH" : "NO MATCH"));
 
             return new FaceMatchResult
             {

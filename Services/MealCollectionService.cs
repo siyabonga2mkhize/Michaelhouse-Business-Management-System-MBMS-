@@ -114,7 +114,7 @@ namespace Michaelhouse.Services
         public MealCollectionService(DBContextClass db, IFaceRecognitionService face, Func<DateTime> now)
         {
             _db = db ?? throw new ArgumentNullException(nameof(db));
-            _face = face ?? new SimulatedFaceRecognitionService();
+            _face = face ?? FaceRecognitionServices.Create();
             _now = now ?? (() => SchoolClock.Now);
         }
 
@@ -149,19 +149,22 @@ namespace Michaelhouse.Services
                 };
             }
 
-            var encoding = _face.GenerateEncoding(photo);
-            if (encoding == null)
+            // Exactly one face, clearly visible
+            var analysis = _face.Analyse(photo);
+            if (!analysis.IsOk)
             {
                 return new CollectionResult
                 {
                     Outcome = CollectionOutcome.InvalidPhoto,
-                    Title = "Photo could not be read",
-                    Message = "Please try again, with the student's face in the frame."
+                    Title = PhotoProblemTitle(analysis.Status),
+                    Message = analysis.Status == FaceAnalysisStatus.NotAnImage
+                        ? "Please try again, with the student's face in the frame."
+                        : analysis.Message
                 };
             }
 
             var enrolled = _db.StudentFaceSignatures.Where(x => x.IsActive).ToList();
-            var match = _face.FindBestMatch(encoding, enrolled);
+            var match = _face.FindBestMatch(analysis.Encoding, enrolled);
 
             if (match == null || !match.IsAutoVerified)
             {
@@ -169,7 +172,7 @@ namespace Michaelhouse.Services
                 {
                     Outcome = CollectionOutcome.FaceNotRecognised,
                     Title = "Identity could not be verified",
-                    Message = "Please try again or contact the cafeteria."
+                    Message = "This face doesn't clearly match any enrolled student. Please try again or contact the cafeteria."
                 };
             }
 
@@ -286,6 +289,17 @@ namespace Michaelhouse.Services
                     again.IdentityVerified = true;
                     return again.Outcome == CollectionOutcome.AlreadyCollected ? again : Expired();
                 }
+            }
+        }
+
+        public static string PhotoProblemTitle(FaceAnalysisStatus status)
+        {
+            switch (status)
+            {
+                case FaceAnalysisStatus.NoFace: return "No face found";
+                case FaceAnalysisStatus.MultipleFaces: return "More than one face";
+                case FaceAnalysisStatus.EngineUnavailable: return "Face recognition is not set up";
+                default: return "Photo could not be read";
             }
         }
 

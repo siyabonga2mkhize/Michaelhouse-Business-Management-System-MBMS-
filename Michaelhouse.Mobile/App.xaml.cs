@@ -1,2 +1,0 @@
-namespace Michaelhouse.Mobile;
-public partial class App : Application { public App(){InitializeComponent();} protected override Window CreateWindow(IActivationState? state) { var api=IPlatformApplication.Current!.Services.GetRequiredService<Services.MobileApiClient>(); var session=IPlatformApplication.Current.Services.GetRequiredService<Services.SessionService>(); return new Window(new NavigationPage(new Pages.LoginPage(api,session))); } }

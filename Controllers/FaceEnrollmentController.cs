@@ -16,7 +16,7 @@ namespace Michaelhouse.Controllers
         public FaceEnrollmentController()
         {
             _db = new DBContextClass();
-            _faceService = new SimulatedFaceRecognitionService();
+            _faceService = FaceRecognitionServices.Create();
         }
 
         protected override void Dispose(bool disposing)
@@ -84,11 +84,32 @@ namespace Michaelhouse.Controllers
                     return Json(new { success = false, message = "Image too small." });
                 }
 
-                // Generate the signature
-                string encoding = _faceService.GenerateEncoding(imageBytes);
-                if (encoding == null)
+                // Exactly one face, clearly visible
+                var analysis = _faceService.Analyse(imageBytes);
+                if (!analysis.IsOk)
                 {
-                    return Json(new { success = false, message = "The photo could not be read. Make sure your face is well lit and centred, then try again." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = analysis.Status == FaceAnalysisStatus.NotAnImage
+                            ? "The photo could not be read. Make sure your face is well lit and centred, then try again."
+                            : analysis.Message
+                    });
+                }
+                string encoding = analysis.Encoding;
+
+                // A face may be enrolled for one student only
+                var others = _db.StudentFaceSignatures
+                    .Where(x => x.IsActive && x.StudentId != studentId)
+                    .ToList();
+                var sameFace = _faceService.FindBestMatch(encoding, others);
+                if (sameFace != null && sameFace.Distance <= DlibFaceRecognitionService.MatchThreshold)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "This face is already enrolled for another student. A face can only be enrolled once — ask the Admin to remove the other enrollment if it's wrong."
+                    });
                 }
 
                 // Save or update

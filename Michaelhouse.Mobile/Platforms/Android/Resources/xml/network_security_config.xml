@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<network-security-config>
-  <!-- Development-only host tunnel created by adb reverse. -->
-  <domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="false">localhost</domain>
-    <!-- The DEBUG Android build uses the host's LAN binding for a physical device. -->
-    <domain includeSubdomains="false">192.168.10.252</domain>
-  </domain-config>
-</network-security-config>
