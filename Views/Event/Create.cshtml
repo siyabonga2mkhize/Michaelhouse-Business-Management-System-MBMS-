@@ -24,558 +24,412 @@
         kv => kv.Value.Select(t => new { id = t.MenuItemId, qty = t.QuantityPerGuest.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) }).ToList());
 }
 
-<style>
-    .sce-shell {
-        max-width: 900px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .sce-header {
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .sce-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-    .sce-meta {
-        color: #888;
-        font-size: .82rem;
-    }
-
-    .sce-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .sce-section {
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin: 0 0 1rem 0;
-        padding-bottom: .5rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .sce-row {
-        display: grid;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .sce-2col {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .sce-3col {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-
-    @@media (max-width: 700px) {
-        .sce-2col, .sce-3col {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .sce-label {
-        display: block;
-        font-size: .75rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: .35rem;
-    }
-
-        .sce-label .req {
-            color: #C21E2E;
-        }
-
-    .sce-input {
-        width: 100%;
-        padding: .5rem .7rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: .88rem;
-    }
-
-        .sce-input:focus {
-            border-color: #C21E2E;
-            outline: none;
-        }
-
-        .sce-input:disabled {
-            background: #f9fafb;
-            color: #6b7280;
-        }
-
-    .sce-help {
-        font-size: .72rem;
-        color: #9ca3af;
-        margin-top: .25rem;
-    }
-
-    .sce-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid #f3f4f6;
-    }
-
-    .sce-check {
-        display: flex;
-        align-items: center;
-        gap: .45rem;
-        font-size: .88rem;
-        font-weight: 600;
-        cursor: pointer;
-        margin-bottom: .35rem;
-    }
-
-    .sce-houses {
-        margin: 0 0 1rem 1.6rem;
-        font-size: .82rem;
-    }
-
-        .sce-houses label {
-            display: inline-flex;
-            align-items: center;
-            gap: .3rem;
-            margin: 0 1rem .35rem 0;
-            cursor: pointer;
-        }
-
-    /* Buffet meals */
-    .sce-meal-tools {
-        display: flex;
-        gap: .5rem;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        margin-bottom: .75rem;
-    }
-
-    .sce-meal-list {
-        max-height: 420px;
-        overflow-y: auto;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-    }
-
-    .sce-meal {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: .65rem;
-        align-items: center;
-        padding: .6rem .8rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-        .sce-meal:last-child {
-            border-bottom: none;
-        }
-
-        .sce-meal.selected {
-            background: #fef2f2;
-        }
-
-    .sce-meal-name {
-        font-weight: 600;
-        font-size: .88rem;
-    }
-
-    .sce-meal-meta {
-        font-size: .72rem;
-        color: #6b7280;
-    }
-
-    .sce-tag {
-        display: inline-block;
-        font-size: .65rem;
-        font-weight: 700;
-        padding: .1rem .4rem;
-        border-radius: 4px;
-        margin-right: .25rem;
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .sce-portions {
-        width: 80px;
-    }
-
-    @@media (max-width: 700px) {
-        .sce-meal {
-            grid-template-columns: auto 1fr;
-        }
-
-        .sce-portions-wrap {
-            grid-column: 2;
-        }
-    }
-
-    /* Coverage */
-    .sce-coverage-basis {
-        font-size: .8rem;
-        color: #4b5563;
-        margin-bottom: .75rem;
-    }
-
-    .sce-warning {
-        background: #fef3c7;
-        color: #92400e;
-        border: 1px solid #fde68a;
-        border-radius: 6px;
-        padding: .55rem .8rem;
-        font-size: .82rem;
-        margin-bottom: .4rem;
-    }
-
-    .sce-ok {
-        background: #d1fae5;
-        color: #065f46;
-        border-radius: 6px;
-        padding: .55rem .8rem;
-        font-size: .82rem;
-        margin-bottom: .75rem;
-    }
-
-    .sce-groups {
-        width: 100%;
-        font-size: .8rem;
-        border-collapse: collapse;
-        margin-top: .5rem;
-    }
-
-        .sce-groups th {
-            text-align: left;
-            font-size: .68rem;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #6b7280;
-            padding: .35rem .5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .sce-groups td {
-            padding: .4rem .5rem;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: top;
-        }
-
-        .sce-groups .none {
-            color: #b91c1c;
-            font-weight: 600;
-        }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="sce-shell">
-
-        <div class="sce-header">
-            <h1>@(isEdit ? "Edit Event" : "Schedule Event")</h1>
-            <div class="sce-meta">
-                Event details, when RSVPs open, who's invited and the buffet. The buffet is checked against
-                the dietary needs of the students invited.
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Hospitality & Feasts</h5>
             </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">@(isEdit ? "Edit Event" : "Schedule Event")</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Logistics, RSVP protocols, house audience, and dietary buffet planning.
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@(isEdit ? Url.Action("Details", "Event", new { id = Model.Id }) : Url.Action("Index", "Event"))" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-x-lg me-2 text-sm"></i> Cancel
+            </a>
+        </div>
+    </div>
 
-        @using (Html.BeginForm(isEdit ? "Edit" : "Create", "Event", isEdit ? new { id = Model.Id } : null, FormMethod.Post, new { id = "eventForm" }))
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-32 pt-2 flex flex-col gap-8">
+
+        @using (Html.BeginForm(isEdit ? "Edit" : "Create", "Event", isEdit ? new { id = Model.Id } : null, FormMethod.Post, new { id = "eventForm", @class = "flex flex-col gap-8" }))
         {
             @Html.AntiForgeryToken()
 
             if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
             {
-                <div class="alert alert-danger">
-                    @Html.ValidationSummary(false, "Please fix the errors below:")
+                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm text-sm font-serif">
+                    <div class="flex items-center mb-1">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Please resolve the validation errors below:</strong>
+                    </div>
+                    @Html.ValidationSummary(false, "", new { @class = "text-xs font-mono mb-0" })
                 </div>
             }
 
-            <!-- EVENT DETAILS -->
-            <div class="sce-card">
-                <div class="sce-section">Event Details</div>
-
-                <div class="sce-row sce-2col">
-                    <div>
-                        <label class="sce-label">Event Name <span class="req">*</span></label>
-                        @Html.TextBoxFor(m => m.EventName, new { @class = "sce-input", placeholder = "e.g. Sports Day Buffet", maxlength = "150", required = "required" })
-                    </div>
-                    <div>
-                        <label class="sce-label">Event Type <span class="req">*</span></label>
-                        <select name="EventType" class="sce-input" required>
-                            @foreach (var t in eventTypes)
-                            {
-                                var selected = Model != null && ((int)Model.EventType).ToString() == t.Value;
-                                <option value="@t.Value" @(selected ? "selected" : "")>@t.Text</option>
-                            }
-                        </select>
-                    </div>
+            @* --- 1. EVENT LOGISTICS MODULE --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-calendar-event me-2 text-[#C21E2E]"></i> 01. Event Logistics & Venue
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Core Identity</span>
                 </div>
 
-                <div class="sce-row">
-                    <div>
-                        <label class="sce-label">Description</label>
-                        @Html.TextAreaFor(m => m.Description, new { @class = "sce-input", rows = "2", maxlength = "1000", placeholder = "What the event is, who it's for" })
-                    </div>
-                </div>
+                <div class="p-6 flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Event Name *</label>
+                            @Html.TextBoxFor(m => m.EventName, new { @class = "w-full border-b-2 border-gray-200 py-2.5 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent", placeholder = "e.g. Sports Day Feast", maxlength = "150", required = "required" })
+                        </div>
 
-                <div class="sce-row sce-3col">
-                    <div>
-                        <label class="sce-label">Event Date <span class="req">*</span></label>
-                        @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}",
-                            new { @class = "sce-input", type = "date", required = "required" })
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Event Classification *</label>
+                            <select name="EventType" class="w-full border-b-2 border-gray-200 py-2.5 outline-none focus:border-[#C21E2E] font-serif text-base text-gray-900 transition-colors bg-transparent" required>
+                                @foreach (var t in eventTypes)
+                                {
+                                    var selected = Model != null && ((int)Model.EventType).ToString() == t.Value;
+                                    <option value="@t.Value" @(selected ? "selected" : "")>@t.Text</option>
+                                }
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="sce-label">Start Time <span class="req">*</span></label>
-                        @Html.TextBoxFor(m => m.StartTime, "{0:hh\\:mm}",
-                            new { @class = "sce-input", type = "time", required = "required" })
-                    </div>
-                    <div>
-                        <label class="sce-label">End Time <span class="req">*</span></label>
-                        @Html.TextBoxFor(m => m.EndTime, "{0:hh\\:mm}",
-                            new { @class = "sce-input", type = "time", required = "required" })
-                    </div>
-                </div>
 
-                <div class="sce-row sce-2col">
                     <div>
-                        <label class="sce-label">Location</label>
-                        <select name="VenueId" class="sce-input">
-                            <option value="">— No specific venue —</option>
-                            @foreach (var v in venues)
-                            {
-                                var selected = Model != null && Model.VenueId == v.Id;
-                                <option value="@v.Id" @(selected ? "selected" : "")>
-                                    @v.Name (seats @v.Capacity)
-                                </option>
-                            }
-                        </select>
-                        <div class="sce-help">Optional. A venue can't be double-booked.</div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Description</label>
+                        @Html.TextAreaFor(m => m.Description, new { @class = "w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = "2", maxlength = "1000", placeholder = "Purpose of event, special dignitaries, order of proceedings..." })
                     </div>
-                    <div>
-                        <label class="sce-label">Expected Headcount <span class="req">*</span></label>
-                        @Html.TextBoxFor(m => m.ExpectedHeadcount,
-                            new { @class = "sce-input", type = "number", min = "1", required = "required" })
-                        <div class="sce-help">Rough estimate — RSVPs refine this later.</div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 border-t border-gray-100">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Event Date *</label>
+                            @Html.TextBoxFor(m => m.EventDate, "{0:yyyy-MM-dd}", new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", type = "date", required = "required" })
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Start Time *</label>
+                            @Html.TextBoxFor(m => m.StartTime, "{0:hh\\:mm}", new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", type = "time", required = "required" })
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">End Time *</label>
+                            @Html.TextBoxFor(m => m.EndTime, "{0:hh\\:mm}", new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent", type = "time", required = "required" })
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-gray-100">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Assigned Venue</label>
+                            <select name="VenueId" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent">
+                                <option value="">— Unassigned (Field / Open Pavilion) —</option>
+                                @foreach (var v in venues)
+                                {
+                                    var selected = Model != null && Model.VenueId == v.Id;
+                                    <option value="@v.Id" @(selected ? "selected" : "")>
+                                        @v.Name (Cap: @v.Capacity guests)
+                                    </option>
+                                }
+                            </select>
+                            <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Cross-checked for scheduling collisions</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Expected Total Headcount *</label>
+                            @Html.TextBoxFor(m => m.ExpectedHeadcount, new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-lg font-bold text-gray-900 transition-colors bg-transparent", type = "number", min = "1", required = "required" })
+                            <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Refined as responses are submitted</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- RSVP -->
-            <div class="sce-card">
-                <div class="sce-section">RSVP</div>
+            @* --- 2. RSVP WINDOW MODULE --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-clock-history me-2 text-[#C21E2E]"></i> 02. RSVP Scheduling Window
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Response Automation</span>
+                </div>
 
-                <div class="sce-row sce-2col">
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <label class="sce-label">RSVP Opens</label>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">RSVP Window Opening</label>
                         @if (rsvpStarted)
                         {
-                            <input type="text" class="sce-input" disabled
-                                   value="@(Model.RsvpOpenedAt.HasValue ? "Opened " + SchoolClock.FromUtc(Model.RsvpOpenedAt.Value).ToString("dd MMM yyyy HH:mm") : "Opened")" />
-                            <div class="sce-help">RSVPs have already opened for this event.</div>
+                            <input type="text" class="w-full border-b-2 border-gray-200 py-2 font-mono text-xs text-gray-500 bg-gray-50 cursor-not-allowed" disabled
+                                   value="@(Model.RsvpOpenedAt.HasValue ? "Opened: " + SchoolClock.FromUtc(Model.RsvpOpenedAt.Value).ToString("dd MMM yyyy HH:mm") : "Opened")" />
+                            <span class="block text-[8px] font-mono uppercase tracking-widest text-amber-700 mt-1 font-bold">Responses currently active</span>
                         }
                         else
                         {
-                            <input type="datetime-local" name="RsvpOpensAt" class="sce-input"
+                            <input type="datetime-local" name="RsvpOpensAt" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent"
                                    value="@(Model.RsvpOpensAt.HasValue ? Model.RsvpOpensAt.Value.ToString("yyyy-MM-dd'T'HH:mm") : "")" />
-                            <div class="sce-help">
-                                RSVPs open automatically at this date and time. Leave empty to open them yourself
-                                from the event page. You can always open them earlier.
-                            </div>
+                            <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Leave empty to open manually from dashboard</span>
                         }
                     </div>
+
                     <div>
-                        <label class="sce-label">RSVP Deadline</label>
-                        <input type="date" name="RsvpDeadline" class="sce-input"
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">RSVP Strict Cutoff Date</label>
+                        <input type="date" name="RsvpDeadline" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent"
                                value="@(Model.RsvpDeadline.HasValue ? Model.RsvpDeadline.Value.ToString("yyyy-MM-dd") : "")" />
-                        <div class="sce-help">Last day to respond. After it, the form stops taking responses.</div>
+                        <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Form locks at end of designated date</span>
                     </div>
                 </div>
             </div>
 
-            <!-- WHO'S INVITED -->
-            <div class="sce-card">
-                <div class="sce-section">Who's invited?</div>
-
-                <label class="sce-check">
-                    <input type="checkbox" name="InviteStudents" value="true" id="inviteStudents" @(Model.InviteStudents ? "checked" : "") />
-                    Students
-                </label>
-                <div class="sce-houses" id="studentHouses">
-                    <div class="sce-help" style="margin:0 0 .35rem 0;">
-                        Leave all unticked to invite every registered student, or tick houses to invite only the students living in them.
-                    </div>
-                    @foreach (var h in houses)
-                    {
-                        <label>
-                            <input type="checkbox" name="InviteStudentHouses" value="@h.ResidenceId" @(studentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
-                            @h.Name
-                        </label>
-                    }
+            @* --- 3. TARGET AUDIENCE MODULE --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-people me-2 text-[#C21E2E]"></i> 03. Audience & House Targeting
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Permissions</span>
                 </div>
 
-                <label class="sce-check">
-                    <input type="checkbox" name="InviteParents" value="true" id="inviteParents" @(Model.InviteParents ? "checked" : "") />
-                    Parents
-                </label>
-                <div class="sce-houses" id="parentHouses">
-                    <div class="sce-help" style="margin:0 0 .35rem 0;">
-                        Leave all unticked to invite every parent, or tick houses to invite only parents of students in them.
+                <div class="p-6 flex flex-col gap-6">
+                    @* Students Target *@
+                    <div class="border-b border-gray-100 pb-5">
+                        <label class="flex items-center gap-3 cursor-pointer mb-2 w-max">
+                            <input type="checkbox" name="InviteStudents" value="true" id="inviteStudents" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.InviteStudents ? "checked" : "") />
+                            <span class="font-serif font-bold text-base text-gray-900">Include Student Body</span>
+                        </label>
+
+                        <div class="ps-7 mt-3 flex flex-col gap-3" id="studentHouses">
+                            <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">
+                                Leave all unselected to invite entire school, or target specific boarding houses:
+                            </span>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                                @foreach (var h in houses)
+                                {
+                                    <label class="flex items-center gap-2 p-2 border border-gray-200 bg-gray-50/50 hover:bg-gray-100 cursor-pointer text-xs font-serif text-gray-800 transition-colors">
+                                        <input type="checkbox" name="InviteStudentHouses" value="@h.ResidenceId" class="text-[#C21E2E] rounded focus:ring-0" @(studentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
+                                        <span>@h.Name</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
                     </div>
-                    @foreach (var h in houses)
-                    {
-                        <label>
-                            <input type="checkbox" name="InviteHouses" value="@h.ResidenceId" @(parentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
-                            @h.Name
-                        </label>
-                    }
-                </div>
 
-                <label class="sce-check">
-                    <input type="checkbox" name="InviteStaff" value="true" @(Model.InviteStaff ? "checked" : "") />
-                    All Staff
-                </label>
-
-                <div style="border-top:1px solid #f3f4f6; margin-top:.75rem; padding-top:.75rem;">
-                    <label class="sce-check">
-                        <input type="checkbox" name="AllowGuests" value="true" id="allowGuests" @(Model.AllowGuests ? "checked" : "") />
-                        Parents and staff may bring guests
-                    </label>
-                    <div class="sce-houses" id="guestLimit">
-                        <label style="gap:.5rem;">
-                            Up to
-                            <input type="number" name="MaxGuestsPerInvitee" class="sce-input" style="width:80px;" min="1" max="10"
-                                   value="@(Model.MaxGuestsPerInvitee > 0 ? Model.MaxGuestsPerInvitee : 2)" />
-                            guests each
+                    @* Parents Target *@
+                    <div class="border-b border-gray-100 pb-5">
+                        <label class="flex items-center gap-3 cursor-pointer mb-2 w-max">
+                            <input type="checkbox" name="InviteParents" value="true" id="inviteParents" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.InviteParents ? "checked" : "") />
+                            <span class="font-serif font-bold text-base text-gray-900">Include Parents & Guardians</span>
                         </label>
-                        <div class="sce-help" style="margin:0;">Students RSVP for themselves only.</div>
+
+                        <div class="ps-7 mt-3 flex flex-col gap-3" id="parentHouses">
+                            <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">
+                                Target parents of students in selected houses (leave blank for all):
+                            </span>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                                @foreach (var h in houses)
+                                {
+                                    <label class="flex items-center gap-2 p-2 border border-gray-200 bg-gray-50/50 hover:bg-gray-100 cursor-pointer text-xs font-serif text-gray-800 transition-colors">
+                                        <input type="checkbox" name="InviteHouses" value="@h.ResidenceId" class="text-[#C21E2E] rounded focus:ring-0" @(parentHouseIds.Contains(h.ResidenceId) ? "checked" : "") />
+                                        <span>@h.Name</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Staff & Guests *@
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pt-1">
+                        <label class="flex items-center gap-3 cursor-pointer w-max">
+                            <input type="checkbox" name="InviteStaff" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.InviteStaff ? "checked" : "") />
+                            <span class="font-serif font-bold text-sm text-gray-900">Invite Faculty & Operational Staff</span>
+                        </label>
+
+                        <div class="flex items-center gap-4 bg-gray-50 border border-gray-200 p-3">
+                            <label class="flex items-center gap-2.5 cursor-pointer m-0">
+                                <input type="checkbox" name="AllowGuests" value="true" id="allowGuests" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.AllowGuests ? "checked" : "") />
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Allow External Guests</span>
+                            </label>
+
+                            <div class="flex items-center gap-2 border-l border-gray-200 ps-4" id="guestLimit">
+                                <span class="text-[9px] font-mono uppercase text-gray-500">Max / Host:</span>
+                                <input type="number" name="MaxGuestsPerInvitee" class="w-16 border border-gray-300 p-1 text-center font-mono font-bold text-xs" min="1" max="10"
+                                       value="@(Model.MaxGuestsPerInvitee > 0 ? Model.MaxGuestsPerInvitee : 2)" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- BUFFET MEALS -->
-            <div class="sce-card">
-                <div class="sce-section">Buffet Meals</div>
+            @* --- 4. BUFFET CATALOG MODULE --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-card-checklist me-2 text-[#C21E2E]"></i> 04. Buffet Offerings & Catalog
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Culinary Manifest</span>
+                </div>
 
-                <div class="sce-meal-tools">
-                    <div style="flex:1; min-width:200px;">
-                        <label class="sce-label">Menu Template</label>
-                        <select name="MenuTemplateId" id="templateSelect" class="sce-input">
-                            <option value="">— None —</option>
-                            @foreach (var t in templates)
-                            {
-                                var selected = Model != null && Model.MenuTemplateId == t.Id;
-                                <option value="@t.Id" @(selected ? "selected" : "")>
-                                    @t.Name (@t.DefaultHeadcount guests)
-                                </option>
-                            }
-                        </select>
+                <div class="p-6 flex flex-col gap-6">
+                    @* Preset Toolbar *@
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50 p-4 border border-gray-200">
+                        <div class="md:col-span-5">
+                            <label class="block text-[8px] uppercase tracking-[2px] font-bold text-gray-500 mb-1">Preload Template</label>
+                            <select name="MenuTemplateId" id="templateSelect" class="w-full border border-gray-300 p-2 font-serif text-xs bg-white">
+                                <option value="">— Select Menu Template —</option>
+                                @foreach (var t in templates)
+                                {
+                                    var selected = Model != null && Model.MenuTemplateId == t.Id;
+                                    <option value="@t.Id" @(selected ? "selected" : "")>
+                                        @t.Name (@t.DefaultHeadcount Guests Basis)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <button type="button" class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-3 text-[9px] font-bold uppercase tracking-[1px] hover:bg-gray-100 transition-colors shadow-2xs" id="prefillBtn">
+                                Apply Template
+                            </button>
+                        </div>
+
+                        <div class="md:col-span-4">
+                            <label class="block text-[8px] uppercase tracking-[2px] font-bold text-gray-500 mb-1">Filter Dishes</label>
+                            <input type="search" id="mealFilter" class="w-full border border-gray-300 p-2 font-mono text-xs bg-white" placeholder="Type dish or tag..." />
+                        </div>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="prefillBtn">Pre-fill from template</button>
-                    <div style="flex:1; min-width:180px;">
-                        <label class="sce-label">Find a meal</label>
-                        <input type="search" id="mealFilter" class="sce-input" placeholder="Type to filter…" />
+
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer mb-1 w-max">
+                            <input type="checkbox" name="OffersMealChoice" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.OffersMealChoice ? "checked" : "") />
+                            <span class="font-serif font-bold text-sm text-gray-900">Attendees select individual meal choice upon RSVP</span>
+                        </label>
+                        <span class="block text-[9px] font-mono uppercase tracking-widest text-gray-400 ps-7">
+                            When enabled, guests can only choose a single compliant dish. Uncheck for self-service banquets.
+                        </span>
                     </div>
-                </div>
 
-                <label class="sce-check" style="margin-bottom:.6rem;">
-                    <input type="checkbox" name="OffersMealChoice" value="true" @(Model.OffersMealChoice ? "checked" : "") />
-                    Attendees choose their meal when they RSVP
-                </label>
-                <div class="sce-help" style="margin:-.35rem 0 .75rem 1.6rem;">
-                    They can only choose from the meals ticked below, and meals that don't suit their dietary needs
-                    are blocked. The kitchen then prepares what people chose. Leave unticked for a self-service buffet.
-                </div>
-
-                <div class="sce-help" style="margin:0 0 .6rem 0;">
-                    Meals from the Dietitian's meal library. Tick every meal the buffet will offer — different meals can
-                    cater for different groups. Portions per guest guide the feast plan quantities.
-                </div>
-
-                @if (meals.Count == 0)
-                {
-                    <div class="sce-warning">There are no active meals in the meal library yet.</div>
-                }
-                else
-                {
-                    <div class="sce-meal-list" id="mealList">
-                        @foreach (var m in meals)
+                    @* Meals Ledger List *@
+                    <div>
+                        @if (meals.Count == 0)
                         {
-                            bool isSelected = selectedMeals.ContainsKey(m.MenuItemId);
-                            string portions = (isSelected ? selectedMeals[m.MenuItemId] : 1m).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                            <div class="p-8 text-center bg-gray-50 border border-gray-200 text-xs font-mono uppercase tracking-widest text-gray-400">
+                                No dishes configured in meal library.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="max-h-96 overflow-y-auto custom-scrollbar border border-gray-200 divide-y divide-gray-100" id="mealList">
+                                @foreach (var m in meals)
+                                {
+                                    bool isSelected = selectedMeals.ContainsKey(m.MenuItemId);
+                                    string portions = (isSelected ? selectedMeals[m.MenuItemId] : 1m).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
-                            <div class="sce-meal @(isSelected ? "selected" : "")" data-name="@m.Name.ToLowerInvariant()">
-                                <input type="checkbox" name="BuffetMeals" value="@m.MenuItemId" id="meal_@m.MenuItemId" @(isSelected ? "checked" : "") />
-                                <label for="meal_@m.MenuItemId" style="cursor:pointer; margin:0;">
-                                    <div class="sce-meal-name">@m.Name</div>
-                                    <div class="sce-meal-meta">
-                                        @foreach (var tag in m.SuitableFor)
-                                        {
-                                            <span class="sce-tag">@tag</span>
-                                        }
-                                        @(string.IsNullOrEmpty(m.Allergens) ? "No listed allergens" : "Contains: " + m.Allergens)
+                                    <div class="sce-meal p-3 flex justify-between items-center gap-4 transition-colors hover:bg-gray-50/80 @(isSelected ? "bg-red-50/20" : "")" data-name="@m.Name.ToLowerInvariant()">
+                                        <div class="flex items-start gap-3 flex-grow">
+                                            <input type="checkbox" name="BuffetMeals" value="@m.MenuItemId" id="meal_@m.MenuItemId" class="mt-1 w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-0 cursor-pointer" @(isSelected ? "checked" : "") />
+                                            <div>
+                                                <label for="meal_@m.MenuItemId" class="cursor-pointer font-serif font-bold text-sm text-gray-900 block mb-0.5">@m.Name</label>
+                                                <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                                    @foreach (var tag in m.SuitableFor)
+                                                    {
+                                                        <span class="inline-flex items-center text-[7px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 px-1.5 py-0.2 border border-emerald-200">@tag</span>
+                                                    }
+                                                    <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest ms-2">
+                                                        @(string.IsNullOrEmpty(m.Allergens) ? "No listed allergens" : "Allergens: " + m.Allergens)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <span class="text-[8px] font-mono uppercase text-gray-400">Yield/Guest:</span>
+                                            <input type="number" name="Portions_@m.MenuItemId" class="w-16 border border-gray-300 py-1 px-1.5 font-mono text-center text-xs font-bold" min="0.1" max="5" step="0.1"
+                                                   value="@portions" title="Portions per guest" />
+                                        </div>
                                     </div>
-                                </label>
-                                <div class="sce-portions-wrap">
-                                    <input type="number" name="Portions_@m.MenuItemId" class="sce-input sce-portions" min="0.1" max="5" step="0.1"
-                                           value="@portions" title="Portions per guest" />
-                                </div>
+                                }
+                            </div>
+
+                            <div class="mt-3 flex justify-between items-center text-[9px] font-mono uppercase tracking-widest text-gray-500">
+                                <span>Checked options dictate production quantities</span>
+                                <span><strong id="mealCount" class="text-gray-900 font-bold">@selectedMeals.Count</strong> meals activated</span>
                             </div>
                         }
                     </div>
-                    <div class="sce-help"><span id="mealCount">@selectedMeals.Count</span> meal(s) selected.</div>
-                }
-            </div>
-
-            <!-- DIETARY COVERAGE -->
-            <div class="sce-card">
-                <div class="sce-section">Dietary Coverage</div>
-                <div id="coverage">
-                    <div class="sce-help">Select buffet meals and who's invited to check dietary coverage.</div>
                 </div>
             </div>
 
-            <!-- NOTES -->
-            <div class="sce-card">
-                <div class="sce-section">Notes</div>
-
-                <div class="sce-row">
-                    <div>
-                        <label class="sce-label">Special Instructions</label>
-                        @Html.TextAreaFor(m => m.SpecialInstructions,
-                            new { @class = "sce-input", rows = "3", maxlength = "1000", placeholder = "e.g. Serve the halal dishes from a separate table" })
-                        <div class="sce-help">Visible to chef and kitchen staff.</div>
-                    </div>
+            @* --- 5. DIETARY COVERAGE TELEMETRY --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-shield-check me-2 text-[#C21E2E]"></i> 05. Live Dietary Compliance
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Automated Audit</span>
                 </div>
 
-                <div class="sce-row">
-                    <div>
-                        <label class="sce-label">Internal Notes</label>
-                        @Html.TextAreaFor(m => m.InternalNotes,
-                            new { @class = "sce-input", rows = "2", maxlength = "1000", placeholder = "Coordinator-only notes" })
+                <div class="p-6">
+                    <div id="coverage">
+                        <div class="p-4 bg-gray-50 border border-dashed border-gray-200 text-center text-xs font-mono uppercase tracking-widest text-gray-400">
+                            Analyzing audience dietary requirements against selected dishes...
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="sce-actions">
-                <a href="@(isEdit ? Url.Action("Details", "Event", new { id = Model.Id }) : Url.Action("Index", "Event"))" class="btn btn-outline-secondary">
-                    Cancel
+            @* --- 6. OPERATIONAL NOTES MODULE --- *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-gray-300">
+                        <i class="bi bi-journal-text me-2 text-[#C21E2E]"></i> 06. Operational Instructions
+                    </span>
+                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">Special Handling</span>
+                </div>
+
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Kitchen & Service Instructions</label>
+                        @Html.TextAreaFor(m => m.SpecialInstructions, new { @class = "w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = "3", maxlength = "1000", placeholder = "e.g. Segregate halal station with designated service tongs..." })
+                        <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Directly surfaced on Chef production sheets</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Internal Coordinator Memo</label>
+                        @Html.TextAreaFor(m => m.InternalNotes, new { @class = "w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y", rows = "3", maxlength = "1000", placeholder = "Budget allocations, external billing references..." })
+                        <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Private administrative ledger</span>
+                    </div>
+                </div>
+            </div>
+
+            @* --- ACTIONS BAR --- *@
+            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <a href="@(isEdit ? Url.Action("Details", "Event", new { id = Model.Id }) : Url.Action("Index", "Event"))" class="bg-transparent border border-gray-300 text-gray-600 px-8 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors">
+                    Discard Changes
                 </a>
-                <button type="submit" class="btn btn-primary btn-lg">
-                    @(isEdit ? "Save Changes" : "Schedule Event")
+                <button type="submit" class="bg-[#C21E2E] text-white px-10 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all">
+                    @(isEdit ? "Update Event Dossier" : "Authorize & Schedule Event")
                 </button>
             </div>
         }
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -602,7 +456,7 @@
         var mealRows = Array.prototype.slice.call(document.querySelectorAll(".sce-meal"));
         function syncRow(row) {
             var cb = row.querySelector("input[type=checkbox]");
-            row.classList.toggle("selected", cb.checked);
+            row.classList.toggle("bg-red-50/20", cb.checked);
         }
         function updateCount() {
             var el = document.getElementById("mealCount");
@@ -661,7 +515,7 @@
                 .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .then(render)
                 .catch(function () {
-                    coverage.textContent = "Could not check dietary coverage right now.";
+                    coverage.innerHTML = "<div class='p-3 bg-red-50 text-[#C21E2E] text-xs font-mono uppercase tracking-widest'>Could not check dietary coverage right now.</div>";
                 });
         }
 
@@ -675,32 +529,42 @@
         function render(data) {
             coverage.textContent = "";
 
-            coverage.appendChild(el("div", "sce-coverage-basis",
-                "Checked against: " + data.basis + (data.studentCount ? " (" + data.studentCount + " " + (data.noun || "student") + (data.studentCount === 1 ? "" : "s") + ")" : "")));
+            var basisNode = el("div", "text-xs font-mono text-gray-500 uppercase tracking-widest mb-3",
+                "Checked against: " + data.basis + (data.studentCount ? " (" + data.studentCount + " " + (data.noun || "student") + (data.studentCount === 1 ? "" : "s") + ")" : ""));
+            coverage.appendChild(basisNode);
 
             if (data.warnings.length === 0) {
-                coverage.appendChild(el("div", "sce-ok",
-                    data.groups.length ? "✓ Every dietary group has at least one suitable buffet meal." : "✓ No student dietary groups to check."));
+                var okNode = el("div", "p-3 bg-green-50 border border-green-200 text-green-800 text-xs font-mono uppercase tracking-wider mb-3 flex items-center gap-2",
+                    data.groups.length ? "✓ Every dietary group has at least one suitable buffet meal." : "✓ No student dietary groups to check.");
+                coverage.appendChild(okNode);
             }
-            data.warnings.forEach(function (w) { coverage.appendChild(el("div", "sce-warning", "⚠ " + w)); });
+            data.warnings.forEach(function (w) {
+                var warnNode = el("div", "p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-mono uppercase tracking-wider mb-2", "⚠ " + w);
+                coverage.appendChild(warnNode);
+            });
 
             if (data.groups.length === 0) return;
 
-            var table = el("table", "sce-groups");
-            var head = el("tr");
-            ["Dietary group", "Students", "Suitable buffet meals"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+            var tableWrap = el("div", "overflow-x-auto border border-gray-200 mt-3");
+            var table = el("table", "table align-middle mb-0 w-full text-xs");
+            var head = el("tr", "bg-gray-100 text-[8px] uppercase tracking-widest font-bold text-gray-500 border-b border-gray-200");
+            ["Dietary Group", "Students", "Suitable Buffet Meals"].forEach(function (h) {
+                var th = el("th", "p-2.5", h);
+                head.appendChild(th);
+            });
             var thead = el("thead"); thead.appendChild(head); table.appendChild(thead);
 
-            var body = el("tbody");
+            var body = el("tbody", "divide-y divide-gray-100");
             data.groups.forEach(function (g) {
-                var tr = el("tr");
-                tr.appendChild(el("td", null, g.label));
-                tr.appendChild(el("td", null, String(g.students)));
-                tr.appendChild(g.covered ? el("td", null, g.meals.join(", ")) : el("td", "none", "None"));
+                var tr = el("tr", "hover:bg-gray-50/50");
+                tr.appendChild(el("td", "p-2.5 font-serif font-bold text-gray-900", g.label));
+                tr.appendChild(el("td", "p-2.5 font-mono text-gray-600", String(g.students)));
+                tr.appendChild(g.covered ? el("td", "p-2.5 font-serif text-gray-700", g.meals.join(", ")) : el("td", "p-2.5 font-mono font-bold uppercase text-[#C21E2E]", "None"));
                 body.appendChild(tr);
             });
             table.appendChild(body);
-            coverage.appendChild(table);
+            tableWrap.appendChild(table);
+            coverage.appendChild(tableWrap);
         }
 
         ["inviteStudents"].forEach(function (id) { document.getElementById(id).addEventListener("change", scheduleCheck); });

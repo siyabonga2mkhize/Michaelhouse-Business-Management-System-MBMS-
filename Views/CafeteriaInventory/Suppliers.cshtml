@@ -5,89 +5,212 @@
     var counts = ViewBag.IngredientCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
     var others = ViewBag.OtherSuppliers as List<Michaelhouse.Models.Supplier> ?? new List<Michaelhouse.Models.Supplier>();
     bool isManager = ViewBag.IsManager == true;
+
+    int activeCount = Model.Count(s => s.IsActive);
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>Cafeteria Suppliers</h1>
-                <div class="inv-meta">Suppliers of ingredients. Link each ingredient to its suppliers on the ingredient's page.</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Coordinator</h5>
             </div>
-            @if (isManager)
-            {
-                <a href="@Url.Action("SupplierEdit", "CafeteriaInventory")" class="btn btn-primary">Add supplier</a>
-            }
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Suppliers</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Suppliers of ingredients. Link each ingredient to its suppliers on the ingredient's page.</p>
         </div>
 
-        <div class="inv-card" style="padding:0;">
-            <div class="inv-table-wrap">
-                <table class="inv-table">
-                    <thead>
-                        <tr>
-                            <th>Supplier</th>
-                            <th class="inv-hide-sm">Contact</th>
-                            <th class="inv-hide-sm">Phone / email</th>
-                            <th class="num">Ingredients</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Count == 0)
-                        {
-                            <tr><td colspan="5" class="inv-muted">No cafeteria suppliers yet.</td></tr>
-                        }
-                        @foreach (var s in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@s.Name</strong>
-                                    @if (!s.IsActive)
-                                    {
-                                        <span class="inv-badge muted">Inactive</span>
-                                    }
-                                </td>
-                                <td class="inv-hide-sm">@s.ContactPerson</td>
-                                <td class="inv-hide-sm">@s.Phone<br /><span class="inv-muted">@s.Email</span></td>
-                                <td class="num">@(counts.ContainsKey(s.SupplierId) ? counts[s.SupplierId] : 0)</td>
-                                <td class="num">
-                                    @if (isManager)
-                                    {
-                                        <a href="@Url.Action("SupplierEdit", "CafeteriaInventory", new { id = s.SupplierId })" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                        <form method="post" action="@Url.Action("RemoveSupplier", "CafeteriaInventory", new { supplierId = s.SupplierId })" style="display:inline;"
-                                              onsubmit="return confirm('Stop using @s.Name for the cafeteria? (The Store keeps it.)');">
-                                            @Html.AntiForgeryToken()
-                                            <button class="btn btn-sm btn-link text-danger">Remove</button>
-                                        </form>
-                                    }
-                                </td>
+        @if (isManager)
+        {
+            <div class="flex gap-3">
+                <a href="@Url.Action("SupplierEdit", "CafeteriaInventory")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                    <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Add New Supplier
+                </a>
+            </div>
+        }
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
+
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div class="bg-[#1a1a1a] shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-truck absolute -right-4 -bottom-4 text-7xl text-gray-800 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-2">Active Cafeteria Suppliers</h6>
+                    <h3 class="font-serif text-4xl font-bold text-white mb-0">@activeCount</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-file-earmark absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Total Suppliers Registered</h6>
+                    <h3 class="font-serif text-4xl font-bold text-gray-900 mb-0">@Model.Count</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-box-seam absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Available From Store</h6>
+                    <h3 class="font-serif text-4xl font-bold text-gray-900 mb-0">@others.Count</h3>
+                </div>
+            </div>
+        </div>
+
+        @* --- VENDOR DOSSIERS LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+            @* Header & Search Bar *@
+            <div class="p-5 border-b border-gray-100 bg-white flex justify-between items-center relative z-10">
+                <div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Active Vendor Dossiers</h5>
+                    <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest mt-1 block">Michaelhouse · Procurement Registry</span>
+                </div>
+                <div class="relative">
+                    <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Search dossiers..." class="pl-9 pr-4 py-2 border border-gray-200 text-[10px] font-bold uppercase tracking-[2px] text-gray-700 outline-none focus:border-[#C21E2E] transition-colors w-64 bg-gray-50/50" />
+                </div>
+            </div>
+
+            @* Table Data *@
+            <div class="table-responsive flex-grow">
+                @if (Model.Count == 0)
+                {
+                    <div class="p-16 text-center text-muted">
+                        <i class="bi bi-building-slash text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">Registry Empty</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No cafeteria suppliers registered yet.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-white">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-900 border-b-2 border-gray-100">
+                                <th class="ps-6 py-4">Vendor ID / Name</th>
+                                <th>Primary Contact</th>
+                                <th class="text-center">Catalog Size</th>
+                                <th class="text-center">Status</th>
+                                <th class="pe-6 text-end">Administrative Action</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var s in Model)
+                            {
+                                int ingredientCount = counts.ContainsKey(s.SupplierId) ? counts[s.SupplierId] : 0;
+
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                    <td class="ps-6 py-4">
+                                        <strong class="font-serif text-lg text-gray-900 block mb-0.5">@s.Name</strong>
+                                        <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest">#MH-VN-@s.SupplierId.ToString("D3")</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="text-[10px] font-bold uppercase tracking-[1px] text-gray-900">@(string.IsNullOrWhiteSpace(s.ContactPerson) ? "UNASSIGNED" : s.ContactPerson)</div>
+                                        <div class="text-[9px] font-mono text-gray-500 mt-0.5">
+                                            @if (!string.IsNullOrWhiteSpace(s.Email))
+                                            {
+                                                <a href="mailto:@s.Email" class="text-gray-500 hover:text-[#C21E2E] text-decoration-none">@s.Email</a>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(s.Phone))
+                                            {
+                                                <span class="mx-1">·</span> @s.Phone
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center font-mono text-xs text-gray-600">
+                                        @ingredientCount Units
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (s.IsActive)
+                                        {
+                                            <span class="inline-flex items-center bg-white border border-[#10b981] text-[#10b981] px-3 py-1 text-[8px] uppercase tracking-[2px] font-bold shadow-sm">Authorized</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center bg-gray-50 border border-gray-300 text-gray-500 px-3 py-1 text-[8px] uppercase tracking-[2px] font-bold shadow-sm">Inactive</span>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 text-end">
+                                        @if (isManager)
+                                        {
+                                            <div class="flex justify-end gap-2">
+                                                <a href="@Url.Action("SupplierEdit", "CafeteriaInventory", new { id = s.SupplierId })" class="inline-flex items-center justify-center bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-100 hover:text-gray-900 transition-colors shadow-sm">
+                                                    Open File
+                                                </a>
+                                                <form method="post" action="@Url.Action("RemoveSupplier", "CafeteriaInventory", new { supplierId = s.SupplierId })" class="m-0" onsubmit="return confirm('Stop using @s.Name for the cafeteria? (The Store keeps it.)');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="inline-flex items-center justify-center bg-white border border-[#C21E2E] text-[#C21E2E] px-3 py-2 text-[9px] hover:bg-red-50 transition-colors shadow-sm" title="Remove Supplier">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
             </div>
         </div>
 
+        @* --- IMPORT FROM STORE REGISTRY --- *@
         @if (isManager && others.Count > 0)
         {
-            <form class="inv-card inv-form" method="post" action="@Url.Action("AddSupplier", "CafeteriaInventory")">
-                @Html.AntiForgeryToken()
-                <h2>Use a supplier the Store already has</h2>
-                <div class="inv-actions">
-                    <select name="supplierId" class="inv-input" style="max-width:320px;" required>
-                        <option value="">— Choose —</option>
+            <div class="bg-gray-50 border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-3"><i class="bi bi-shop me-2 text-gray-500"></i> Import From Store Registry</h5>
+
+                <form method="post" action="@Url.Action("AddSupplier", "CafeteriaInventory")" class="flex flex-wrap items-center gap-4 m-0">
+                    @Html.AntiForgeryToken()
+
+                    <select name="supplierId" class="border border-gray-300 p-3 text-[11px] font-bold uppercase tracking-[1px] text-gray-700 outline-none focus:border-[#C21E2E] transition-colors w-full md:w-80 bg-white shadow-sm" required>
+                        <option value="">— Select Authorized Store Vendor —</option>
                         @foreach (var s in others)
                         {
                             <option value="@s.SupplierId">@s.Name</option>
                         }
                     </select>
-                    <button class="btn btn-outline-secondary">Add to cafeteria</button>
-                </div>
-            </form>
+
+                    <button type="submit" class="bg-[#1a1a1a] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                        <i class="bi bi-plus-circle me-1"></i> Add To Cafeteria
+                    </button>
+                </form>
+            </div>
         }
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

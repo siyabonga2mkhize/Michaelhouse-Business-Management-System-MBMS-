@@ -2,7 +2,7 @@
 @using Michaelhouse.Models.Cafeteria
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Dashboard";
+    ViewBag.Title = "Cafeteria Dashboard";
 
     var pendingMenus = ViewBag.PendingMenus as List<MealMenu> ?? new List<MealMenu>();
     var acceptedMenus = ViewBag.AcceptedMenus as List<MealMenu> ?? new List<MealMenu>();
@@ -10,188 +10,235 @@
     var latestAccepted = acceptedMenus.FirstOrDefault();
 }
 
-<div class="container-fluid py-4">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <div class="mb-4">
-        <h1 class="h3 mb-1">Meal Coordinator</h1>
-        <p class="text-muted mb-0">
-            Overview of weekly menus awaiting review and recently published.
-        </p>
-    </div>
-
-    <!-- SUMMARY CARDS -->
-    <div class="row g-3 mb-4">
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Pending Review</div>
-                    <div class="display-6 text-warning">@pendingMenus.Count</div>
-                    <div class="small text-muted mt-1">
-                        @(pendingMenus.Count == 1 ? "menu awaiting review" : "menus awaiting review")
-                    </div>
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Coordinator</h5>
             </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Cafeteria Dashboard</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Overview of weekly menus awaiting review and recently published.</p>
         </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Latest Published</div>
-                    @if (latestAccepted != null)
-                    {
-                        <div class="fw-bold fs-5 mt-2">
-                            @latestAccepted.StartDate.ToString("dd MMM") - @latestAccepted.EndDate.ToString("dd MMM")
-                        </div>
-                        <div class="small text-muted mt-1">
-                            @latestAccepted.StartDate.Year
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-muted mt-2">No menus published yet</div>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="small text-muted text-uppercase">Next Week</div>
-                    <div class="fw-bold fs-5 mt-2">Not generated</div>
-                    <div class="small text-muted mt-1">Create a proposal when ready</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- SCHEDULE BUTTON -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-                <strong>Schedule a new menu</strong>
-                <div class="small text-muted">
-                    Enter requirements and generate a proposed menu for a week.
-                </div>
-            </div>
-            <a href="@Url.Action("Schedule", "Cafeteria")"
-               class="btn btn-primary">
-                + Schedule Menu
+        <div class="flex gap-3">
+            <a href="@Url.Action("Schedule", "Cafeteria")" class="inline-flex items-center justify-center bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                <i class="bi bi-calendar-plus me-2 text-sm align-middle"></i> Schedule Menu
             </a>
         </div>
     </div>
 
-    <!-- PENDING MENUS -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <strong>Awaiting Review</strong>
-            <span class="badge bg-warning text-dark ms-2">@pendingMenus.Count</span>
-        </div>
-        <div class="card-body p-0">
-            @if (!pendingMenus.Any())
-            {
-                <div class="p-4 text-muted">No menus pending review.</div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Period</th>
-                                <th>Created</th>
-                                <th>Chef Status</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var menu in pendingMenus)
-                            {
-                                <tr>
-                                    <td class="fw-bold">
-                                        @menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")
-                                    </td>
-                                    <td class="small text-muted">
-                                        @menu.CreatedDate.ToString("dd MMM HH:mm")
-                                    </td>
-                                    <td>
-                                        @if (menu.IsKitchenReady)
-                                        {
-                                            <span class="badge bg-success">Kitchen Ready</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">Awaiting Chef</span>
-                                        }
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="@Url.Action("Review", "Cafeteria", new { id = menu.Id })"
-                                           class="btn btn-sm btn-outline-primary">
-                                            Open Review
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
+
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            @* Pending Review *@
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-yellow-500 hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-hourglass-split absolute -right-4 -bottom-4 text-7xl text-yellow-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-yellow-700 mb-2">Pending Review</h6>
+                    <h3 class="font-mono text-4xl font-bold text-yellow-600 mb-0">@pendingMenus.Count</h3>
+                    <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">
+                        @(pendingMenus.Count == 1 ? "Menu awaiting review" : "Menus awaiting review")
+                    </span>
                 </div>
-            }
+            </div>
+
+            @* Latest Published *@
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-[#10b981] hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-journal-check absolute -right-4 -bottom-4 text-7xl text-green-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-green-700 mb-2">Latest Published</h6>
+                    @if (latestAccepted != null)
+                    {
+                        <h3 class="font-mono text-2xl font-bold text-[#10b981] mb-0 mt-3">@latestAccepted.StartDate.ToString("dd MMM") - @latestAccepted.EndDate.ToString("dd MMM")</h3>
+                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">@latestAccepted.StartDate.Year</span>
+                    }
+                    else
+                    {
+                        <h3 class="font-mono text-xl font-bold text-gray-400 mb-0 mt-3">Not Published</h3>
+                        <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">No menus active</span>
+                    }
+                </div>
+            </div>
+
+            @* Next Week *@
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group border-b-4 border-b-gray-400 hover:border-gray-400 transition-colors duration-300">
+                <i class="bi bi-calendar-x absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 group-hover:scale-110 transition-transform"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-2">Next Week</h6>
+                    <h3 class="font-mono text-2xl font-bold text-gray-700 mb-0 mt-3">Not Generated</h3>
+                    <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2 block">Create a proposal when ready</span>
+                </div>
+            </div>
+
+        </div>
+
+        @* --- TWO COLUMN LEDGER LAYOUT --- *@
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 flex-grow min-h-0">
+
+            @* --- LEFT: AWAITING REVIEW --- *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-clock-history absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+                @* Header *@
+                <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10 flex-shrink-0">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-hourglass-split me-2 text-yellow-500"></i> Awaiting Review</h5>
+                    <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest bg-yellow-500 text-yellow-900 px-2 py-1 shadow-sm">
+                        @pendingMenus.Count Pending
+                    </span>
+                </div>
+
+                @* Table *@
+                <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10 bg-white">
+                    @if (!pendingMenus.Any())
+                    {
+                        <div class="text-center py-16 text-muted">
+                            <i class="bi bi-check-circle text-gray-200 text-6xl d-block mb-4"></i>
+                            <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">All Caught Up</h4>
+                            <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No menus pending review.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                                    <th class="ps-6 py-4">Period</th>
+                                    <th class="border-l border-gray-100 ps-4">Created</th>
+                                    <th class="border-l border-gray-100 ps-4">Chef Status</th>
+                                    <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var menu in pendingMenus)
+                                {
+                                    <tr class="hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0 group/row">
+                                        <td class="ps-6 py-4">
+                                            <strong class="font-serif text-sm text-gray-900 group-hover/row:text-[#C21E2E] transition-colors">@menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")</strong>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4">
+                                            <span class="font-mono text-xs text-gray-500">@menu.CreatedDate.ToString("dd MMM HH:mm")</span>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4">
+                                            @if (menu.IsKitchenReady)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm bg-green-50 text-green-700 border-green-200">Kitchen Ready</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm bg-yellow-50 text-yellow-700 border-yellow-200">Awaiting Chef</span>
+                                            }
+                                        </td>
+                                        <td class="pe-6 border-l border-gray-50 text-end">
+                                            <a href="@Url.Action("Review", "Cafeteria", new { id = menu.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-800 hover:text-gray-900 transition-colors shadow-sm">
+                                                Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+            @* --- RIGHT: RECENTLY PUBLISHED --- *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                @* Ghost Watermark *@
+                <i class="bi bi-journal-check absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+                @* Header *@
+                <div class="p-6 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10 flex-shrink-0">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-megaphone me-2 text-green-500"></i> Recently Published</h5>
+                </div>
+
+                @* Table *@
+                <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10 bg-white">
+                    @if (!acceptedMenus.Any())
+                    {
+                        <div class="text-center py-16 text-muted">
+                            <i class="bi bi-file-earmark text-gray-200 text-6xl d-block mb-4"></i>
+                            <h4 class="text-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Records</h4>
+                            <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No published menus yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover mb-0 align-middle w-full">
+                            <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                                    <th class="ps-6 py-4">Period</th>
+                                    <th class="border-l border-gray-100 ps-4">Published</th>
+                                    <th class="pe-6 border-l border-gray-100 text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var menu in acceptedMenus)
+                                {
+                                    <tr class="hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0 group/row">
+                                        <td class="ps-6 py-4">
+                                            <strong class="font-serif text-sm text-gray-900 group-hover/row:text-[#C21E2E] transition-colors">@menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")</strong>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4">
+                                            <span class="font-mono text-xs text-gray-500">@(menu.LastModifiedDate.HasValue ? menu.LastModifiedDate.Value.ToString("dd MMM HH:mm") : "-")</span>
+                                        </td>
+                                        <td class="pe-6 border-l border-gray-50 text-end">
+                                            <div class="flex justify-end gap-2">
+                                                <a href="@Url.Action("Review", "Cafeteria", new { id = menu.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-3 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-800 hover:text-gray-900 transition-colors shadow-sm" title="View Menu">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = menu.Id })" class="inline-flex items-center justify-center bg-[#10b981] border border-[#10b981] text-white px-3 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:bg-green-600 transition-colors shadow-sm" title="Kitchen List">
+                                                    <i class="bi bi-list-check me-1"></i> Kitchen
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <!-- RECENTLY PUBLISHED -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white">
-            <strong>Recently Published</strong>
-        </div>
-        <div class="card-body p-0">
-            @if (!acceptedMenus.Any())
-            {
-                <div class="p-4 text-muted">No published menus yet.</div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Period</th>
-                                <th>Published</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var menu in acceptedMenus)
-                            {
-                                <tr>
-                                    <td class="fw-bold">
-                                        @menu.StartDate.ToString("dd MMM") - @menu.EndDate.ToString("dd MMM yyyy")
-                                    </td>
-                                    <td class="small text-muted">
-                                        @(menu.LastModifiedDate.HasValue ? menu.LastModifiedDate.Value.ToString("dd MMM HH:mm") : "-")
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="@Url.Action("Review", "Cafeteria", new { id = menu.Id })"
-                                           class="btn btn-sm btn-outline-primary">
-                                            View
-                                        </a>
-                                        <a href="@Url.Action("KitchenRequirements", "Cafeteria", new { id = menu.Id })"
-                                           class="btn btn-sm btn-outline-success">
-                                            Kitchen List
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-        </div>
-    </div>
-
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
 
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -10,144 +10,190 @@
     bool showInactive = ViewBag.ShowInactive == true;
 }
 
-<style>
-    .ml-shell {
-        max-width: 1150px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .ml-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-        .ml-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-        .ml-header p {
-            color: #6b7280;
-            font-size: .88rem;
-            margin: 0;
-        }
-
-    .ml-table {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-        .ml-table table {
-            margin: 0;
-            font-size: .88rem;
-        }
-
-        .ml-table th {
-            font-size: .72rem;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            color: #6b7280;
-            background: #f9fafb;
-        }
-
-    .ml-inactive td {
-        color: #9ca3af;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="ml-shell">
-
-        <div class="ml-header">
-            <div>
-                <h1>Meal Library</h1>
-                <p>Meals available to menu scheduling and student meal plans. Nutrition and allergens are calculated from each meal's ingredients.</p>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Meal Coordinator</h5>
             </div>
-            <div class="d-flex gap-2">
-                @if (showInactive)
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Meal Library</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">Meals available to menu scheduling and student meal plans. Nutrition and allergens are calculated from each meal's ingredients.</p>
+        </div>
+        <div class="flex gap-3">
+            @if (showInactive)
+            {
+                <a href="@Url.Action("Index", "MealLibrary")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-900 transition-all duration-300 shadow-sm">
+                    <i class="bi bi-eye-slash me-2 text-sm align-middle"></i> Hide Inactive
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "MealLibrary", new { showInactive = true })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-900 transition-all duration-300 shadow-sm">
+                    <i class="bi bi-eye me-2 text-sm align-middle"></i> Show Inactive
+                </a>
+            }
+
+            @if (canEdit)
+            {
+                <a href="@Url.Action("Create", "MealLibrary")" class="inline-flex items-center justify-center bg-[#C21E2E] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.4)] transition-all duration-300">
+                    <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Create Meal
+                </a>
+            }
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
+
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col flex-grow relative overflow-hidden group">
+
+            @* Ghost Watermark *@
+            <i class="bi bi-egg-fried absolute -right-12 -bottom-12 text-9xl text-black opacity-[0.02] transition-transform duration-1000 group-hover:-rotate-12 group-hover:scale-[1.2] pointer-events-none z-0"></i>
+
+            @* Table Container *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                @if (!Model.Any())
                 {
-                    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MealLibrary")">Hide inactive</a>
+                    <div class="text-center py-20 text-muted">
+                        <i class="bi bi-journal-x text-gray-200 text-6xl d-block mb-4"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Meals Found</h4>
+                        <p class="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-0">The meal library is currently empty.</p>
+                    </div>
                 }
                 else
                 {
-                    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "MealLibrary", new { showInactive = true })">Show inactive</a>
+                    <table class="table table-hover mb-0 align-middle w-full">
+                        <thead class="sticky top-0 z-20 bg-white shadow-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200 bg-gray-50/80">
+                                <th class="ps-6 py-4">Meal</th>
+                                <th class="border-l border-gray-100 ps-4">Meal Type</th>
+                                <th class="border-l border-gray-100 ps-4">Dietary</th>
+                                <th class="border-l border-gray-100 ps-4">Nutrition Category</th>
+                                <th class="border-l border-gray-100 ps-4 text-end">KCAL</th>
+                                <th class="border-l border-gray-100 ps-4 text-end">Protein (g)</th>
+                                <th class="border-l border-gray-100 ps-4">Allergens</th>
+                                <th class="pe-6 border-l border-gray-100 text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var m in Model)
+                            {
+                                string rowClass = m.IsActive ? "text-gray-900" : "text-gray-400 bg-gray-50/50";
+
+                                <tr class="hover:bg-gray-50/80 transition-all duration-300 border-b border-gray-50 last:border-0 group/row @rowClass">
+                                    <td class="ps-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <strong class="font-serif text-sm @(m.IsActive ? "group-hover/row:text-[#C21E2E] transition-colors" : "")">@m.Name</strong>
+
+                                            @if (!m.IsActive)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-gray-200 text-gray-600 px-2 py-0.5 border border-gray-300 shadow-sm">Inactive</span>
+                                            }
+                                            @if (m.IngredientCount == 0)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-2 py-0.5 border border-yellow-200 shadow-sm" title="No Ingredients Mapped">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i> Empty
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-mono text-xs">@m.MealSlots</span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono text-xs">@m.DietaryClassification</span>
+                                            @if (m.IsHalal)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 px-2 py-0.5 border border-green-200 shadow-sm">Halal</span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2 py-1 border shadow-sm bg-gray-50 text-gray-700 border-gray-200">
+                                            @(Enum.IsDefined(typeof(NutritionCategory), m.NutritionCategory) ? m.NutritionCategory.ToString() : "Not set")
+                                        </span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-end">
+                                        <span class="font-mono text-xs font-bold @(m.IsActive ? "text-gray-900" : "text-gray-400")">@m.CaloriesPerPortion.ToString("0")</span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-end">
+                                        <span class="font-mono text-xs font-bold @(m.IsActive ? "text-blue-700" : "text-gray-400")">@m.ProteinGramsPerPortion.ToString("0.#")</span>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <span class="font-mono text-[10px] uppercase tracking-widest @(string.IsNullOrEmpty(m.Allergens) ? "text-gray-400" : "text-[#C21E2E] font-bold")">
+                                            @(string.IsNullOrEmpty(m.Allergens) ? "None" : m.Allergens)
+                                        </span>
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        <div class="flex justify-end gap-2">
+                                            <a href="@Url.Action("Details", "MealLibrary", new { id = m.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-3 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:border-gray-800 hover:text-gray-900 transition-colors shadow-sm" title="View Details">
+                                                View
+                                            </a>
+                                            @if (canEdit)
+                                            {
+                                                <a href="@Url.Action("Edit", "MealLibrary", new { id = m.Id })" class="inline-flex items-center justify-center bg-[#1a1a1a] border border-[#1a1a1a] text-white px-3 py-2 text-[9px] font-bold uppercase tracking-[1px] hover:bg-black transition-colors shadow-sm" title="Edit Meal">
+                                                    Edit
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 }
-                @if (canEdit)
-                {
-                    <a class="btn btn-success" href="@Url.Action("Create", "MealLibrary")"><i class="bi bi-plus-lg"></i> Create Meal</a>
-                }
+            </div>
+
+            @* Footer *@
+            <div class="p-4 bg-[#1a1a1a] border-t border-gray-800 flex justify-between items-center flex-shrink-0 relative z-10">
+                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-400 font-mono">
+                    <i class="bi bi-shield-lock me-2 text-gray-500"></i> Culinary Assets Ledger
+                </div>
             </div>
         </div>
 
-
-        @if (!Model.Any())
-        {
-            <div class="alert alert-secondary">No meals yet.</div>
-        }
-        else
-        {
-            <div class="ml-table table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>Meal</th>
-                            <th>Meal type</th>
-                            <th>Dietary</th>
-                            <th>Nutrition category</th>
-                            <th class="text-end">kcal</th>
-                            <th class="text-end">Protein (g)</th>
-                            <th>Allergens</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var m in Model)
-                        {
-                            <tr class="@(m.IsActive ? "" : "ml-inactive")">
-                                <td>
-                                    <strong>@m.Name</strong>
-                                    @if (!m.IsActive)
-                                    {
-                                        <span class="badge bg-secondary ms-1">Inactive</span>
-                                    }
-                                    @if (m.IngredientCount == 0)
-                                    {
-                                        <span class="badge bg-warning text-dark ms-1">No ingredients</span>
-                                    }
-                                </td>
-                                <td>@m.MealSlots</td>
-                                <td>
-                                    @m.DietaryClassification
-                                    @if (m.IsHalal)
-                                    {
-                                        <span class="badge bg-success ms-1">Halal</span>
-                                    }
-                                </td>
-                                <td>@(Enum.IsDefined(typeof(NutritionCategory), m.NutritionCategory) ? m.NutritionCategory.ToString() : "Not set")</td>
-                                <td class="text-end">@m.CaloriesPerPortion.ToString("0")</td>
-                                <td class="text-end">@m.ProteinGramsPerPortion.ToString("0.#")</td>
-                                <td>@(string.IsNullOrEmpty(m.Allergens) ? "None" : m.Allergens)</td>
-                                <td class="text-end text-nowrap">
-                                    <a class="btn btn-sm btn-outline-primary" href="@Url.Action("Details", "MealLibrary", new { id = m.Id })">View</a>
-                                    @if (canEdit)
-                                    {
-                                        <a class="btn btn-sm btn-outline-secondary" href="@Url.Action("Edit", "MealLibrary", new { id = m.Id })">Edit</a>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

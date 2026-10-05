@@ -32,150 +32,283 @@
     var ordered = lines.OrderBy(l => preselect.Contains(l.Ingredient.Id) ? 0 : 1).ThenBy(l => l.Ingredient.Name).ToList();
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>@(isEdit ? "Edit " + Model.PoNumber : "Place Stock Order")</h1>
-                <div class="inv-meta">
-                    1. choose the supplier · 2. tick the ingredients and enter quantities · 3. save the draft and review it · 4. send it.
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@(isEdit ? Url.Action("Details", "IngredientOrder", new { id = Model.Id }) : Url.Action("Index", "CafeteriaInventory"))" class="btn btn-outline-secondary">Cancel</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">@(isEdit ? "Edit Order " + Model.PoNumber : "New Procurement Order")</h2>
         </div>
+        <div class="flex gap-3">
+            <a href="@(isEdit ? Url.Action("Details", "IngredientOrder", new { id = Model.Id }) : Url.Action("Index", "CafeteriaInventory"))" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Orders
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col">
 
         @if (suppliers.Count == 0)
         {
-            <div class="inv-note warn">
-                There are no cafeteria suppliers yet. <a href="@Url.Action("Suppliers", "CafeteriaInventory")">Add a supplier</a> first.
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-yellow-800 shadow-sm flex items-center mb-6">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <span class="text-xs font-mono uppercase tracking-widest">
+                    There are no cafeteria suppliers yet. <a href="@Url.Action("Suppliers", "CafeteriaInventory")" class="font-bold text-yellow-900 hover:underline">Add a supplier</a> first.
+                </span>
             </div>
         }
 
-        <form method="post" action="@(isEdit ? Url.Action("Edit", "IngredientOrder", new { id = Model.Id }) : Url.Action("Create", "IngredientOrder"))" id="orderForm" class="inv-form">
+        <form method="post" action="@(isEdit ? Url.Action("Edit", "IngredientOrder", new { id = Model.Id }) : Url.Action("Create", "IngredientOrder"))" id="orderForm" class="flex flex-col gap-8 flex-grow m-0">
             @Html.AntiForgeryToken()
 
-            <div class="inv-card">
-                <div class="inv-row">
-                    <div>
-                        <label>Supplier *</label>
-                        <select name="supplierId" id="supplierSelect" class="inv-input" required>
-                            <option value="">— Choose —</option>
-                            @foreach (var s in suppliers)
-                            {
-                                <option value="@s.SupplierId" @(s.SupplierId == selectedSupplier ? "selected" : "")>@s.Name</option>
-                            }
-                        </select>
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+
+                @* --- LEFT COLUMN: LOGISTICS & SUMMARY --- *@
+                <div class="xl:col-span-4 flex flex-col gap-6">
+
+                    @* Card 1: Supplier & Date *@
+                    <div class="bg-white shadow-sm border border-gray-100 p-6 flex flex-col gap-5 relative overflow-hidden group">
+                        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">1. Select Supplier</h6>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-800 mb-2">Supplier</label>
+                            <select name="supplierId" id="supplierSelect" class="w-full border border-gray-300 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-white shadow-sm" required>
+                                <option value="">— Choose —</option>
+                                @foreach (var s in suppliers)
+                                {
+                                    <option value="@s.SupplierId" @(s.SupplierId == selectedSupplier ? "selected" : "")>@s.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-800 mb-2">Requested Delivery Date</label>
+                            <input type="date" name="requestedDeliveryDate" class="w-full border border-gray-300 p-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-white shadow-sm"
+                                   value="@(Model.RequestedDeliveryDate.HasValue ? Model.RequestedDeliveryDate.Value.ToString("yyyy-MM-dd") : "")"
+                                   min="@SchoolClock.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="flex items-center gap-3 cursor-pointer m-0">
+                                <input type="checkbox" id="onlySupplier" checked class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" />
+                                <span class="text-[9px] font-bold uppercase tracking-[1px] text-gray-600">Filter to selected supplier's catalog</span>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label>Requested delivery date</label>
-                        <input type="date" name="requestedDeliveryDate" class="inv-input"
-                               value="@(Model.RequestedDeliveryDate.HasValue ? Model.RequestedDeliveryDate.Value.ToString("yyyy-MM-dd") : "")"
-                               min="@SchoolClock.Today.ToString("yyyy-MM-dd")" />
+
+                    @* Card 2: Notes *@
+                    <div class="bg-white shadow-sm border border-gray-100 p-6 relative overflow-hidden group">
+                        <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-4">2. Notes (Optional)</h6>
+                        <textarea name="notes" class="w-full border border-gray-300 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-white shadow-sm resize-y" rows="4" maxlength="1000" placeholder="e.g. Urgent delivery required, specific instructions...">@Model.Notes</textarea>
                     </div>
-                    <div>
-                        <label>Notes for the supplier</label>
-                        <input name="notes" class="inv-input" maxlength="1000" value="@Model.Notes" />
+
+                    @* Card 3: Dark Summary *@
+                    <div class="bg-[#1a1a1a] shadow-sm p-6 flex flex-col mt-auto">
+                        <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-6">Order Summary</h6>
+
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+                            <span class="text-xs font-serif text-gray-400">Line Items</span>
+                            <span id="lineItemCount" class="font-mono font-bold text-xl text-white">0</span>
+                        </div>
+
+                        <button type="submit" class="w-full bg-[#C21E2E] text-white px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" @(suppliers.Count == 0 ? "disabled" : "")>
+                            <i class="bi bi-file-earmark-check me-2"></i> @(isEdit ? "Update Draft PO" : "Create Draft PO")
+                        </button>
+                    </div>
+
+                </div>
+
+                @* --- RIGHT COLUMN: PRODUCT SELECTION --- *@
+                <div class="xl:col-span-8 flex flex-col">
+
+                    @* Header Section *@
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400 mb-1">3. Select Products</h6>
+                            <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest">Tick checkbox and set quantity to include an item</span>
+                        </div>
+                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-red-50 text-[#C21E2E] border border-[#C21E2E] px-3 py-1 shadow-sm">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Low Stock Items Highlighted
+                        </span>
+                    </div>
+
+                    @* Table Container *@
+                    <div class="bg-white shadow-sm border border-gray-100 flex-grow overflow-hidden flex flex-col">
+                        <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                            <table class="table align-middle mb-0 w-full">
+                                <thead class="sticky top-0 z-20 bg-white">
+                                    <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-900 border-b-2 border-gray-100">
+                                        <th class="ps-6 py-4">Product</th>
+                                        <th class="text-center">Current Stock</th>
+                                        <th class="text-center">Thresholds</th>
+                                        <th class="text-center">Shortfall</th>
+                                        <th class="pe-6 text-end">Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-700">
+                                    @foreach (var l in ordered)
+                                    {
+                                        var id = l.Ingredient.Id;
+                                        bool on = preselect.Contains(id);
+                                        decimal qty = suggested.ContainsKey(id) ? suggested[id] : 0m;
+                                        string supplierIds = suppliersByIngredient.ContainsKey(id) ? string.Join(",", suppliersByIngredient[id]) : "";
+                                        UpcomingRequirement up;
+                                        upcoming.TryGetValue(id, out up);
+
+                                        // Highlight logic based on exact screenshot (grey background for selected items, red text for warnings)
+                                        <tr class="order-row transition-colors border-b border-gray-50 last:border-0 @(on ? "bg-gray-100/80" : "hover:bg-gray-50")" data-suppliers="@supplierIds" data-ticked="@(on ? "1" : "0")">
+
+                                            <td class="ps-6 py-4">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="mt-1">
+                                                        <input type="checkbox" class="row-tick w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E] cursor-pointer" @(on ? "checked" : "") aria-label="Order @l.Ingredient.Name" />
+                                                    </div>
+                                                    <div>
+                                                        <strong class="font-serif font-bold text-sm text-gray-900 block mb-0.5">@l.Ingredient.Name</strong>
+                                                        <div class="flex gap-2 mt-1">
+                                                            @if (l.IsOutOfStock)
+                                                            {
+                                                                <span class="text-[8px] font-bold uppercase tracking-widest text-[#C21E2E]">Out of Stock</span>
+                                                            }
+                                                            else if (l.IsLowStock)
+                                                            {
+                                                                <span class="text-[8px] font-bold uppercase tracking-widest text-yellow-600">Low Stock</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest">Standard Stock</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td class="text-center font-mono text-xs text-gray-600">@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</td>
+
+                                            <td class="text-center">
+                                                <div class="flex flex-col gap-1">
+                                                    <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest" title="Reorder Level">RL: @IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</span>
+                                                    @if (l.OnOrder > 0)
+                                                    {
+                                                        <span class="font-mono text-[9px] text-blue-600 uppercase tracking-widest" title="On Order">OO: @IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</span>
+                                                    }
+                                                </div>
+                                            </td>
+
+                                            <td class="text-center font-mono text-xs font-bold @(up != null && up.Shortfall > 0m ? "text-[#C21E2E]" : "text-gray-400")">
+                                                @(up != null && up.Shortfall > 0m ? IngredientUnits.Format(up.Shortfall, l.Ingredient.Unit) : "—")
+                                            </td>
+
+                                            <td class="pe-6 text-end">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    <input type="hidden" name="ingredientId" value="@id" class="row-field" @(on ? "" : "disabled") />
+                                                    <input name="quantity" class="row-field qty w-20 border border-gray-300 py-2 px-2 text-center font-mono text-sm font-bold text-gray-900 outline-none focus:border-[#C21E2E] transition-colors bg-white shadow-sm disabled:opacity-50 disabled:bg-gray-100" inputmode="decimal" @(on ? "" : "disabled")
+                                                           value="@(qty > 0m ? IngredientUnits.ToDisplay(qty, l.Ingredient.Unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                                                    <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest w-8 text-left">@IngredientUnits.DisplayUnit(l.Ingredient.Unit)</span>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <label style="display:flex; gap:.4rem; align-items:center; font-weight:400;">
-                    <input type="checkbox" id="onlySupplier" checked /> Only show ingredients this supplier supplies
-                </label>
-            </div>
 
-            <div class="inv-card" style="padding:0;">
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th style="width:30px;"></th>
-                                <th>Ingredient</th>
-                                <th class="num">Available</th>
-                                <th class="num inv-hide-sm">Reorder</th>
-                                <th class="num inv-hide-sm">On order</th>
-                                <th class="num inv-hide-sm">Upcoming short</th>
-                                <th class="num">Order</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var l in ordered)
-                            {
-                                var id = l.Ingredient.Id;
-                                bool on = preselect.Contains(id);
-                                decimal qty = suggested.ContainsKey(id) ? suggested[id] : 0m;
-                                string supplierIds = suppliersByIngredient.ContainsKey(id) ? string.Join(",", suppliersByIngredient[id]) : "";
-                                UpcomingRequirement up;
-                                upcoming.TryGetValue(id, out up);
-
-                                <tr class="order-row" data-suppliers="@supplierIds" data-ticked="@(on ? "1" : "0")">
-                                    <td><input type="checkbox" class="row-tick" @(on ? "checked" : "") aria-label="Order @l.Ingredient.Name" /></td>
-                                    <td>
-                                        <strong>@l.Ingredient.Name</strong>
-                                        @if (l.IsOutOfStock)
-                                        {
-                                            <span class="inv-badge bad">Out</span>
-                                        }
-                                        else if (l.IsLowStock)
-                                        {
-                                            <span class="inv-badge low">Low</span>
-                                        }
-                                    </td>
-                                    <td class="num">@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
-                                    <td class="num inv-hide-sm">@(up != null && up.Shortfall > 0m ? IngredientUnits.Format(up.Shortfall, l.Ingredient.Unit) : "—")</td>
-                                    <td class="num">
-                                        <input type="hidden" name="ingredientId" value="@id" class="row-field" @(on ? "" : "disabled") />
-                                        <input name="quantity" class="inv-input qty row-field" inputmode="decimal" @(on ? "" : "disabled")
-                                               value="@(qty > 0m ? IngredientUnits.ToDisplay(qty, l.Ingredient.Unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "")" />
-                                        <span class="inv-muted" style="font-size:.75rem;">@IngredientUnits.DisplayUnit(l.Ingredient.Unit)</span>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="inv-actions">
-                <button type="submit" class="btn btn-primary" @(suppliers.Count == 0 ? "disabled" : "")>@(isEdit ? "Save draft" : "Save draft and review")</button>
-                <span class="inv-help">Nothing is sent to the supplier until you press Send on the next page.</span>
             </div>
         </form>
 
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
 @section Scripts {
     <script>
-    (function () {
-        var supplierSelect = document.getElementById('supplierSelect');
-        var onlySupplier = document.getElementById('onlySupplier');
-        var rows = Array.prototype.slice.call(document.querySelectorAll('.order-row'));
+        (function () {
+            var supplierSelect = document.getElementById('supplierSelect');
+            var onlySupplier = document.getElementById('onlySupplier');
+            var rows = Array.prototype.slice.call(document.querySelectorAll('.order-row'));
+            var lineItemCounter = document.getElementById('lineItemCount');
 
-        // Tick a row to order it: only ticked rows are posted
-        rows.forEach(function (row) {
-            var tick = row.querySelector('.row-tick');
-            tick.addEventListener('change', function () {
-                row.querySelectorAll('.row-field').forEach(function (f) { f.disabled = !tick.checked; });
-                if (tick.checked) row.querySelector('input[name=quantity]').focus();
-            });
-        });
+            function updateLineItemCount() {
+                var count = 0;
+                rows.forEach(function (row) {
+                    if (row.querySelector('.row-tick').checked && row.style.display !== 'none') {
+                        count++;
+                    }
+                });
+                lineItemCounter.textContent = count;
+            }
 
-        function filter() {
-            var supplierId = supplierSelect.value;
+            // Tick a row to order it: only ticked rows are posted
             rows.forEach(function (row) {
-                var supplied = (row.getAttribute('data-suppliers') || '').split(',').indexOf(supplierId) >= 0;
-                var ticked = row.querySelector('.row-tick').checked;
-                row.style.display = !onlySupplier.checked || !supplierId || supplied || ticked ? '' : 'none';
-            });
-        }
+                var tick = row.querySelector('.row-tick');
+                tick.addEventListener('change', function () {
+                    row.querySelectorAll('.row-field').forEach(function (f) { f.disabled = !tick.checked; });
 
-        supplierSelect.addEventListener('change', filter);
-        onlySupplier.addEventListener('change', filter);
-        filter();
-    })();
+                    // Highlight row when checked matching the screenshot layout
+                    if (tick.checked) {
+                        row.classList.add('bg-gray-100/80');
+                        row.classList.remove('hover:bg-gray-50');
+                        row.querySelector('input[name=quantity]').focus();
+                    } else {
+                        row.classList.remove('bg-gray-100/80');
+                        row.classList.add('hover:bg-gray-50');
+                    }
+
+                    updateLineItemCount();
+                });
+            });
+
+            function filter() {
+                var supplierId = supplierSelect.value;
+                rows.forEach(function (row) {
+                    var supplied = (row.getAttribute('data-suppliers') || '').split(',').indexOf(supplierId) >= 0;
+                    var ticked = row.querySelector('.row-tick').checked;
+                    row.style.display = !onlySupplier.checked || !supplierId || supplied || ticked ? '' : 'none';
+                });
+                updateLineItemCount();
+            }
+
+            supplierSelect.addEventListener('change', filter);
+            onlySupplier.addEventListener('change', filter);
+
+            // Initial setup
+            filter();
+            updateLineItemCount();
+        })();
     </script>
 }

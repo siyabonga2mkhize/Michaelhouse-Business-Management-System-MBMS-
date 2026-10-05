@@ -1,5 +1,4 @@
-﻿
-@using Michaelhouse.Models.Cafeteria
+﻿@using Michaelhouse.Models.Cafeteria
 @model CafeteriaEvent
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -22,816 +21,653 @@
     string calendarUrl = ViewBag.CalendarUrl as string;
 }
 
-<style>
-    .rv-shell {
-        max-width: 640px;
-        margin: 2rem auto;
-        padding: 0 1rem;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-y-auto bg-gray-50/50 custom-scrollbar py-8 px-4">
 
-    .rv-hero {
-        background: linear-gradient(135deg, #C21E2E 0%, #8f1622 100%);
-        color: #fff;
-        border-radius: 12px 12px 0 0;
-        padding: 2rem 2rem 1.75rem;
-    }
+    @* --- DOSSIER SHELL --- *@
+    <div class="max-w-3xl w-full mx-auto shadow-xl bg-white border border-gray-200 relative overflow-hidden flex flex-col">
 
-    .rv-hero-label {
-        font-size: .7rem;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        opacity: .85;
-        margin-bottom: .5rem;
-    }
+        @* --- HERO HEADER --- *@
+        <div class="bg-[#1a1a1a] border-t-4 border-t-[#C21E2E] p-8 relative overflow-hidden flex-shrink-0">
+            <i class="bi bi-envelope-paper absolute -right-8 -bottom-8 text-9xl text-white opacity-[0.03] pointer-events-none z-0"></i>
 
-    .rv-hero h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.9rem;
-        margin: 0 0 .85rem 0;
-        line-height: 1.15;
-    }
-
-    .rv-hero-meta {
-        font-size: .88rem;
-        opacity: .95;
-        line-height: 1.7;
-    }
-
-        .rv-hero-meta strong {
-            font-weight: 600;
-        }
-
-    .rv-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-top: none;
-        border-radius: 0 0 12px 12px;
-        padding: 2rem;
-    }
-
-    .rv-section-label {
-        font-size: .7rem;
-        font-weight: 700;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin: 0 0 .85rem 0;
-    }
-
-        .rv-section-label + .rv-section-label {
-            margin-top: 0;
-        }
-
-    .rv-section {
-        padding-bottom: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-        .rv-section:last-of-type {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-    .rv-radio-group {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: .75rem;
-    }
-
-    .rv-radio-tile {
-        position: relative;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all .12s;
-        user-select: none;
-    }
-
-        .rv-radio-tile:hover {
-            border-color: #9ca3af;
-        }
-
-        .rv-radio-tile input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .rv-radio-tile .rv-tile-icon {
-            font-size: 1.6rem;
-            display: block;
-            margin-bottom: .35rem;
-            line-height: 1;
-        }
-
-        .rv-radio-tile .rv-tile-label {
-            font-weight: 700;
-            font-size: .9rem;
-            color: #374151;
-        }
-
-        .rv-radio-tile.selected {
-            border-color: #C21E2E;
-            background: #fef2f2;
-        }
-
-            .rv-radio-tile.selected .rv-tile-label {
-                color: #C21E2E;
-            }
-
-    .rv-field {
-        margin-bottom: 1rem;
-    }
-
-    .rv-field-label {
-        display: block;
-        font-size: .78rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: .35rem;
-    }
-
-        .rv-field-label .req {
-            color: #C21E2E;
-        }
-
-    .rv-field-help {
-        font-size: .72rem;
-        color: #9ca3af;
-        margin-top: .25rem;
-    }
-
-    .rv-input {
-        width: 100%;
-        padding: .65rem .85rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: .92rem;
-        font-family: inherit;
-    }
-
-        .rv-input:focus {
-            border-color: #C21E2E;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(194, 30, 46, 0.1);
-        }
-
-    .rv-row {
-        display: grid;
-        gap: 1rem;
-    }
-
-    .rv-2col {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .rv-3col {
-        grid-template-columns: 1fr 1fr 1fr;
-    }
-
-    .rv-count-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: .75rem;
-        margin-top: .5rem;
-    }
-
-    .rv-attending-block {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1.25rem;
-        margin-top: .5rem;
-    }
-
-    .rv-summary {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 6px;
-        padding: .75rem 1rem;
-        font-size: .82rem;
-        color: #1e40af;
-        margin-top: .75rem;
-    }
-
-        .rv-summary strong {
-            font-weight: 700;
-        }
-
-    .rv-submit {
-        width: 100%;
-        padding: .95rem;
-        border: none;
-        border-radius: 8px;
-        background: #C21E2E;
-        color: #fff;
-        font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: .04em;
-        cursor: pointer;
-        transition: background .12s;
-    }
-
-        .rv-submit:hover {
-            background: #8f1622;
-        }
-
-    .rv-meal {
-        display: flex;
-        gap: .6rem;
-        align-items: flex-start;
-        padding: .6rem .75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        margin-bottom: .5rem;
-        cursor: pointer;
-        font-size: .88rem;
-    }
-
-        .rv-meal.unavailable {
-            opacity: .55;
-            cursor: not-allowed;
-            background: #f9fafb;
-        }
-
-    .rv-meal-meta, .rv-meal-reason {
-        display: block;
-        font-size: .75rem;
-        color: #6b7280;
-    }
-
-    .rv-meal-reason {
-        color: #b91c1c;
-    }
-
-    .rv-tag {
-        display: inline-block;
-        font-size: .65rem;
-        font-weight: 700;
-        padding: .05rem .35rem;
-        border-radius: 4px;
-        margin-left: .25rem;
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .rv-guest {
-        border-top: 1px dashed #e5e7eb;
-        padding-top: .75rem;
-        margin-top: .75rem;
-    }
-
-    .rv-closed {
-        padding: 3rem 2rem;
-        text-align: center;
-        color: #6b7280;
-    }
-
-        .rv-closed .rv-closed-icon {
-            font-size: 3rem;
-            color: #d1d5db;
-            margin-bottom: 1rem;
-        }
-
-        .rv-closed h2 {
-            font-size: 1.4rem;
-            color: #374151;
-            margin: 0 0 .5rem 0;
-        }
-</style>
-
-<div class="rv-shell">
-
-    <div class="rv-hero">
-        <div class="rv-hero-label">You're invited</div>
-        <h1>@Model.EventName</h1>
-        <div class="rv-hero-meta">
-            <strong>@Model.EventDate.ToString("dddd, dd MMMM yyyy")</strong><br />
-            @Model.StartTime.ToString(@"hh\:mm") – @Model.EndTime.ToString(@"hh\:mm")
-            &nbsp;·&nbsp;
-            @(Model.Venue != null ? Model.Venue.Name : "")
-        </div>
-    </div>
-
-    <div class="rv-card">
-
-        @if (!isOpen)
-        {
-            <div class="rv-closed">
-                <div class="rv-closed-icon">🔒</div>
-                <h2>RSVPs Closed</h2>
-                <p>@(closedReason ?? "This event is not currently accepting RSVPs.")</p>
-                @if (response != null)
-                {
-                    <p>Your response: <strong>@(response.ResponseStatus == "Attending" ? "Attending" : "Not attending")</strong></p>
-                }
-                @if (calendarUrl != null)
-                {
-                    <a href="@calendarUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">📅 Add to Google Calendar</a>
-                }
-                <p style="font-size:.85rem; margin-top:1.5rem;">
-                    Contact the Michaelhouse cafeteria if you need to make changes.
-                </p>
-            </div>
-        }
-        else if (invitee != null && !invitee.IsInvited)
-        {
-            <div class="rv-closed">
-                <div class="rv-closed-icon">🔒</div>
-                <h2>Not invited</h2>
-                <p>@invitee.NotInvitedReason</p>
-            </div>
-        }
-        else if (invitee != null)
-        {
-            if (formErrors.Count > 0)
-            {
-                <div class="alert alert-danger" style="margin-bottom:1.5rem;">
-                    <strong>Please check your RSVP:</strong>
-                    <ul style="margin:.4rem 0 0 1rem; padding:0;">
-                        @foreach (var e in formErrors)
-                        {
-                            <li>@e</li>
-                        }
-                    </ul>
+            <div class="relative z-10">
+                <span class="inline-block text-[10px] font-mono font-bold uppercase tracking-[4px] text-[#C21E2E] mb-3 bg-red-950/30 px-3 py-1 border border-red-900/50">
+                    Official Invitation
+                </span>
+                <h1 class="text-4xl md:text-5xl font-serif font-bold text-white tracking-tight mb-6 leading-tight">
+                    @Model.EventName
+                </h1>
+                <div class="text-[11px] font-mono text-gray-400 uppercase tracking-widest leading-relaxed flex flex-col gap-1.5">
+                    <span><i class="bi bi-calendar-event me-2 text-gray-500"></i> <strong class="text-gray-200">@Model.EventDate.ToString("dddd, dd MMMM yyyy")</strong></span>
+                    <span><i class="bi bi-clock me-2 text-gray-500"></i> @Model.StartTime.ToString(@"hh\:mm") – @Model.EndTime.ToString(@"hh\:mm")</span>
+                    @if (Model.Venue != null)
+                    {
+                        <span><i class="bi bi-geo-alt me-2 text-gray-500"></i> @Model.Venue.Name</span>
+                    }
                 </div>
-            }
+            </div>
+        </div>
 
-            <form action="@Url.Action("Event", "Rsvp", new { id = Model.Id })" method="post" id="rsvpForm"
-                  data-meal-url="@Url.Action("MealOptions", "Rsvp", new { id = Model.Id })"
-                  data-live-diet="@(invitee.Type != "Student" ? "true" : "false")">
-                @Html.AntiForgeryToken()
+        <div class="p-8">
+            @* --- CLOSED / UNAUTHORIZED STATES --- *@
+            @if (!isOpen)
+            {
+                <div class="py-12 text-center text-muted flex flex-col items-center">
+                    <i class="bi bi-lock-fill text-gray-200 text-6xl d-block mb-4"></i>
+                    <h2 class="font-serif font-bold text-2xl text-gray-800 mb-2">RSVPs Closed</h2>
+                    <p class="text-sm font-mono text-gray-500 uppercase tracking-widest mb-6">
+                        @(closedReason ?? "This event is not currently accepting RSVPs.")
+                    </p>
 
-                <!-- ── Attending? ── -->
-                <div class="rv-section">
-                    <div class="rv-section-label">@invitee.Name, will you be attending?</div>
-                    <div class="rv-field-help" style="margin:0 0 .75rem 0;">
-                        Responding as <strong>@invitee.Type.ToLower()</strong>.
-                        @if (response != null)
-                        {
-                            <text>You've answered: <strong>@(response.ResponseStatus == "Attending" ? "Attending" : "Not attending")</strong>. You can change it until RSVPs close.</text>
-                        }
-                    </div>
-
-                    <div class="rv-radio-group">
-                        <label class="rv-radio-tile @(formAttending == true ? "selected" : "")" data-value="Attending">
-                            <input type="radio" name="ResponseStatus" value="Attending" required @(formAttending == true ? "checked" : "") />
-                            <span class="rv-tile-icon">🎉</span>
-                            <span class="rv-tile-label">Yes</span>
-                        </label>
-                        <label class="rv-radio-tile @(formAttending == false ? "selected" : "")" data-value="Declined">
-                            <input type="radio" name="ResponseStatus" value="Declined" @(formAttending == false ? "checked" : "") />
-                            <span class="rv-tile-icon">😔</span>
-                            <span class="rv-tile-label">No</span>
-                        </label>
-                    </div>
+                    @if (response != null)
+                    {
+                        <div class="bg-gray-50 border border-gray-200 px-6 py-3 mb-6">
+                            <span class="text-[10px] font-mono uppercase tracking-[2px] text-gray-500 block mb-1">Your Registered Response</span>
+                            <strong class="font-serif text-lg text-[#C21E2E]">@(response.ResponseStatus == "Attending" ? "Attending" : "Not Attending")</strong>
+                        </div>
+                    }
 
                     @if (calendarUrl != null)
                     {
-                        <a href="@calendarUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm" style="margin-top:.85rem;">
-                            📅 Add to Google Calendar
+                        <a href="@calendarUrl" target="_blank" rel="noopener" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-colors shadow-sm text-decoration-none">
+                            <i class="bi bi-calendar-plus me-2 text-sm"></i> Add to Google Calendar
                         </a>
                     }
+
+                    <div class="mt-8 text-[9px] font-mono uppercase tracking-widest text-gray-400 border-t border-gray-100 pt-6 w-full">
+                        Contact the Michaelhouse cafeteria administration for modifications.
+                    </div>
                 </div>
+            }
+            else if (invitee != null && !invitee.IsInvited)
+            {
+                <div class="py-12 text-center text-muted flex flex-col items-center">
+                    <i class="bi bi-shield-lock text-gray-200 text-6xl d-block mb-4"></i>
+                    <h2 class="font-serif font-bold text-2xl text-gray-800 mb-2">Access Denied</h2>
+                    <p class="text-sm font-mono text-gray-500 uppercase tracking-widest">
+                        @invitee.NotInvitedReason
+                    </p>
+                </div>
+            }
+            else if (invitee != null)
+            {
+                @* --- KNOWN INVITEE FORM --- *@
+                if (formErrors.Count > 0)
+                {
+                    <div class="bg-red-50 border-l-4 border-[#C21E2E] p-5 mb-8 shadow-sm">
+                        <strong class="text-sm font-serif text-[#C21E2E] block mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i> Please review your response:</strong>
+                        <ul class="mb-0 text-xs font-mono text-red-900 list-disc pl-5 uppercase tracking-wider leading-relaxed">
+                            @foreach (var e in formErrors)
+                            {
+                                <li>@e</li>
+                            }
+                        </ul>
+                    </div>
+                }
 
-                <div id="attendingSection" style="@(formAttending == true ? "" : "display:none;")">
+                <form action="@Url.Action("Event", "Rsvp", new { id = Model.Id })" method="post" id="rsvpForm" class="m-0"
+                      data-meal-url="@Url.Action("MealOptions", "Rsvp", new { id = Model.Id })"
+                      data-live-diet="@(invitee.Type != "Student" ? "true" : "false")">
+                    @Html.AntiForgeryToken()
 
-                    <!-- ── Dietary needs ── -->
-                    <div class="rv-section">
-                        <div class="rv-section-label">Your dietary requirements</div>
+                    @* Section 1: Attending Status *@
+                    <div class="mb-10 pb-8 border-b border-gray-100">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-2">01. Attendance Declaration</h4>
+                        <div class="font-serif text-lg text-gray-900 mb-2">@invitee.Name, will you be attending?</div>
 
-                        @if (invitee.Type == "Student")
+                        <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-6">
+                            Responding as <strong class="text-gray-800">@invitee.Type.ToLower()</strong>.
+                            @if (response != null)
+                            {
+                                <span class="block mt-1">
+                                    Current Record: <strong class="text-[#C21E2E]">@(response.ResponseStatus == "Attending" ? "Attending" : "Not attending")</strong>. Updates permitted until RSVP closure.
+                                </span>
+                            }
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="rv-radio-tile relative bg-white border-2 border-gray-200 p-4 text-center cursor-pointer hover:border-gray-400 transition-all duration-200 @(formAttending == true ? "selected" : "")" data-value="Attending">
+                                <input type="radio" name="ResponseStatus" value="Attending" class="absolute opacity-0" required @(formAttending == true ? "checked" : "") />
+                                <span class="block text-3xl mb-2">🎉</span>
+                                <span class="block font-serif font-bold text-gray-900 tile-label">Yes, Attending</span>
+                            </label>
+
+                            <label class="rv-radio-tile relative bg-white border-2 border-gray-200 p-4 text-center cursor-pointer hover:border-gray-400 transition-all duration-200 @(formAttending == false ? "selected" : "")" data-value="Declined">
+                                <input type="radio" name="ResponseStatus" value="Declined" class="absolute opacity-0" @(formAttending == false ? "checked" : "") />
+                                <span class="block text-3xl mb-2">😔</span>
+                                <span class="block font-serif font-bold text-gray-900 tile-label">No, Declined</span>
+                            </label>
+                        </div>
+
+                        @if (calendarUrl != null)
                         {
-                            <div class="rv-field-help" style="margin-top:0;">
-                                The kitchen uses your dietary profile — you don't need to enter anything here.
-                            </div>
-                            <div style="font-size:.88rem; margin-top:.5rem; line-height:1.7;">
-                                <div><strong>Preference:</strong> @(string.IsNullOrWhiteSpace(dietary.PreferenceSummary) ? "None" : dietary.PreferenceSummary)</div>
-                                <div><strong>Allergies:</strong> @(string.IsNullOrWhiteSpace(dietary.AllergySummary) ? "None" : dietary.AllergySummary)</div>
-                                <div><strong>Medical:</strong> @(string.IsNullOrWhiteSpace(dietary.MedicalRestrictionSummary) ? "None" : dietary.MedicalRestrictionSummary)</div>
-                            </div>
-                            <div class="rv-field-help">
-                                Something wrong? <a href="@Url.Action("Index", "DietaryProfile")">Update your dietary profile</a>.
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="rv-field-help" style="margin-top:0; margin-bottom:.75rem;">
-                                For this event only. Meals you can't eat are blocked below.
-                            </div>
-
-                            <div class="rv-field">
-                                <label class="rv-field-label">Meal preference</label>
-                                @foreach (var o in Michaelhouse.Services.DietaryProfileService.PreferenceOptions)
-                                {
-                                    <label style="display:inline-flex; align-items:center; gap:.3rem; margin:0 1rem .35rem 0; font-size:.88rem;">
-                                        <input type="radio" name="DietaryPreference" value="@o.Code" class="diet-input"
-                                               @(string.Equals(dietaryForm.DietaryPreference ?? "None", o.Code, StringComparison.OrdinalIgnoreCase) ? "checked" : "") />
-                                        @(o.Code == "None" ? "No special requirement" : o.Label)
-                                    </label>
-                                }
-                                <input type="text" name="DietaryPreferenceOther" class="rv-input diet-input" maxlength="200" style="margin-top:.35rem;"
-                                       placeholder="If other, please describe" value="@dietaryForm.DietaryPreferenceOther" />
-                            </div>
-
-                            <div class="rv-field">
-                                <label class="rv-field-label">Allergies</label>
-                                @foreach (var o in Michaelhouse.Services.DietaryProfileService.AllergyOptions)
-                                {
-                                    <label style="display:inline-flex; align-items:center; gap:.3rem; margin:0 1rem .35rem 0; font-size:.88rem;">
-                                        <input type="checkbox" name="SelectedAllergies" value="@o.Code" class="diet-input"
-                                               @(dietaryForm.SelectedAllergies != null && dietaryForm.SelectedAllergies.Contains(o.Code) ? "checked" : "") />
-                                        @o.Label
-                                    </label>
-                                }
-                                <input type="text" name="OtherAllergies" class="rv-input diet-input" maxlength="300" style="margin-top:.35rem;"
-                                       placeholder="Other allergies, comma-separated" value="@dietaryForm.OtherAllergies" />
-                            </div>
-
-                            <div class="rv-field">
-                                <label class="rv-field-label">Medical dietary restrictions</label>
-                                @foreach (var o in Michaelhouse.Services.DietaryProfileService.MedicalRestrictionOptions)
-                                {
-                                    <label style="display:inline-flex; align-items:center; gap:.3rem; margin:0 1rem .35rem 0; font-size:.88rem;">
-                                        <input type="checkbox" name="SelectedMedicalRestrictions" value="@o.Code" class="diet-input"
-                                               @(dietaryForm.SelectedMedicalRestrictions != null && dietaryForm.SelectedMedicalRestrictions.Contains(o.Code) ? "checked" : "") />
-                                        @o.Label
-                                    </label>
-                                }
-                                <input type="text" name="MedicalRestrictionOther" class="rv-input diet-input" maxlength="200" style="margin-top:.35rem;"
-                                       placeholder="If other, please describe" value="@dietaryForm.MedicalRestrictionOther" />
-                            </div>
-
-                            <div class="rv-field" style="margin-bottom:0;">
-                                <label class="rv-field-label">Anything else the kitchen should know?</label>
-                                <textarea name="DietaryNotes" class="rv-input" rows="2" maxlength="500">@dietaryForm.DietaryNotes</textarea>
+                            <div class="mt-4">
+                                <a href="@calendarUrl" target="_blank" rel="noopener" class="inline-flex items-center text-[9px] font-bold uppercase tracking-[2px] text-gray-500 hover:text-gray-900 transition-colors text-decoration-none">
+                                    <i class="bi bi-calendar-plus me-1.5"></i> Add to Calendar
+                                </a>
                             </div>
                         }
                     </div>
 
-                    <!-- ── Meal ── -->
-                    @if (Model.OffersMealChoice && mealOptions.Count > 0)
-                    {
-                        <div class="rv-section">
-                            <div class="rv-section-label">Your meal</div>
-                            @if (!mealOptions.Any(m => m.IsSuitable))
-                            {
-                                <div class="alert alert-warning" style="font-size:.85rem;">
-                                    None of this event's meals suit your dietary needs. Please contact the cafeteria.
-                                </div>
-                            }
-                            @foreach (var m in mealOptions)
-                            {
-                                <label class="rv-meal @(m.IsSuitable ? "" : "unavailable")" data-meal-id="@m.MenuItemId">
-                                    <input type="radio" name="MenuItemId" value="@m.MenuItemId"
-                                           @(m.IsSuitable ? "" : "disabled") @(m.IsSuitable && formMeal == m.MenuItemId ? "checked" : "") />
-                                    <span>
-                                        <strong>@m.Name</strong>
-                                        @foreach (var tag in m.SuitableFor)
-                                        {
-                                            <span class="rv-tag">@tag</span>
-                                        }
-                                        <span class="rv-meal-meta">@(string.IsNullOrEmpty(m.Allergens) ? "No listed allergens" : "Contains: " + m.Allergens)</span>
-                                        <span class="rv-meal-reason">@(m.IsSuitable ? "" : "Not suitable: " + m.UnsuitableReason)</span>
-                                    </span>
-                                </label>
-                            }
-                        </div>
-                    }
+                    @* Contingent Section: Only show if attending *@
+                    <div id="attendingSection" style="@(formAttending == true ? "" : "display:none;")">
 
-                    <!-- ── Guests (parents / staff) ── -->
-                    @if (invitee.CanBringGuests)
-                    {
-                        <div class="rv-section">
-                            <div class="rv-section-label">Guests</div>
-                            <div class="rv-field">
-                                <label class="rv-field-label">How many guests are you bringing?</label>
-                                <select name="GuestCount" id="guestCount" class="rv-input" style="max-width:140px;">
-                                    @for (int g = 0; g <= Model.MaxGuestsPerInvitee; g++)
-                                    {
-                                        <option value="@g" @(g == formGuests.Count ? "selected" : "")>@g</option>
-                                    }
-                                </select>
-                                <div class="rv-field-help">Up to @Model.MaxGuestsPerInvitee. Not including yourself.</div>
-                            </div>
+                        @* Section 2: Dietary Needs *@
+                        <div class="mb-10 pb-8 border-b border-gray-100">
+                            <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">02. Dietary Requirements</h4>
 
-                            @for (int g = 0; g < Model.MaxGuestsPerInvitee; g++)
+                            @if (invitee.Type == "Student")
                             {
-                                var guest = g < formGuests.Count ? formGuests[g] : new Michaelhouse.Services.GuestInput();
-                                <div class="rv-guest" data-guest="@g" style="@(g < formGuests.Count ? "" : "display:none;")">
-                                    <div class="rv-field-label">Guest @(g + 1)</div>
-                                    <div class="rv-row rv-2col">
-                                        <div class="rv-field" style="margin-bottom:.5rem;">
-                                            <select name="GuestPref_@g" class="rv-input guest-pref">
-                                                @foreach (var o in Michaelhouse.Services.DietaryProfileService.PreferenceOptions)
-                                                {
-                                                    <option value="@o.Code" @(string.Equals(guest.DietaryPreference ?? "None", o.Code, StringComparison.OrdinalIgnoreCase) ? "selected" : "")>
-                                                        @(o.Code == "None" ? "No special requirement" : o.Label)
-                                                    </option>
-                                                }
-                                            </select>
-                                        </div>
-                                        @if (Model.OffersMealChoice && mealOptions.Count > 0)
-                                        {
-                                            <div class="rv-field" style="margin-bottom:.5rem;">
-                                                <select name="GuestMeal_@g" class="rv-input guest-meal">
-                                                    <option value="">— Choose their meal —</option>
-                                                    @foreach (var m in mealOptions)
-                                                    {
-                                                        <option value="@m.MenuItemId" data-suits="@string.Join(",", m.SuitableFor)"
-                                                                @(guest.MenuItemId == m.MenuItemId ? "selected" : "")>@m.Name</option>
-                                                    }
-                                                </select>
-                                            </div>
-                                        }
+                                <div class="bg-gray-50 border border-gray-200 p-5 shadow-xs">
+                                    <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-4">
+                                        <i class="bi bi-info-circle me-1"></i> The kitchen uses your established dietary profile automatically.
                                     </div>
-                                    <input type="text" name="GuestNotes_@g" class="rv-input guest-notes" maxlength="200"
-                                           placeholder="Their dietary requirement (allergies etc.)" value="@guest.DietaryNotes" />
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-serif text-gray-900">
+                                        <div><strong class="font-mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Preference</strong> @(string.IsNullOrWhiteSpace(dietary.PreferenceSummary) ? "None" : dietary.PreferenceSummary)</div>
+                                        <div><strong class="font-mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Allergies</strong> @(string.IsNullOrWhiteSpace(dietary.AllergySummary) ? "None" : dietary.AllergySummary)</div>
+                                        <div class="md:col-span-2"><strong class="font-mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Medical</strong> @(string.IsNullOrWhiteSpace(dietary.MedicalRestrictionSummary) ? "None" : dietary.MedicalRestrictionSummary)</div>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-gray-200">
+                                        <a href="@Url.Action("Index", "DietaryProfile")" class="text-[9px] font-bold uppercase tracking-[2px] text-[#C21E2E] hover:underline">
+                                            Update Dietary Profile
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-5">
+                                    Specific to this event. Unsuitable menu options will be dynamically restricted below.
+                                </div>
+
+                                <div class="flex flex-col gap-6">
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-3">Meal Preference</label>
+                                        <div class="flex flex-wrap gap-4">
+                                            @foreach (var o in Michaelhouse.Services.DietaryProfileService.PreferenceOptions)
+                                            {
+                                                <label class="flex items-center gap-2 cursor-pointer text-sm font-serif text-gray-800">
+                                                    <input type="radio" name="DietaryPreference" value="@o.Code" class="diet-input w-4 h-4 text-[#C21E2E] focus:ring-[#C21E2E] border-gray-300"
+                                                           @(string.Equals(dietaryForm.DietaryPreference ?? "None", o.Code, StringComparison.OrdinalIgnoreCase) ? "checked" : "") />
+                                                    @(o.Code == "None" ? "No Special Requirement" : o.Label)
+                                                </label>
+                                            }
+                                        </div>
+                                        <input type="text" name="DietaryPreferenceOther" class="diet-input w-full border-b-2 border-gray-200 py-2 mt-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-transparent" maxlength="200"
+                                               placeholder="If other, please describe..." value="@dietaryForm.DietaryPreferenceOther" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-3">Allergies</label>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            @foreach (var o in Michaelhouse.Services.DietaryProfileService.AllergyOptions)
+                                            {
+                                                <label class="flex items-center gap-2 cursor-pointer text-sm font-serif text-gray-800">
+                                                    <input type="checkbox" name="SelectedAllergies" value="@o.Code" class="diet-input w-4 h-4 text-[#C21E2E] focus:ring-[#C21E2E] border-gray-300 rounded"
+                                                           @(dietaryForm.SelectedAllergies != null && dietaryForm.SelectedAllergies.Contains(o.Code) ? "checked" : "") />
+                                                    @o.Label
+                                                </label>
+                                            }
+                                        </div>
+                                        <input type="text" name="OtherAllergies" class="diet-input w-full border-b-2 border-gray-200 py-2 mt-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-transparent" maxlength="300"
+                                               placeholder="Other allergies, comma-separated..." value="@dietaryForm.OtherAllergies" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-3">Medical Dietary Restrictions</label>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            @foreach (var o in Michaelhouse.Services.DietaryProfileService.MedicalRestrictionOptions)
+                                            {
+                                                <label class="flex items-center gap-2 cursor-pointer text-sm font-serif text-gray-800">
+                                                    <input type="checkbox" name="SelectedMedicalRestrictions" value="@o.Code" class="diet-input w-4 h-4 text-[#C21E2E] focus:ring-[#C21E2E] border-gray-300 rounded"
+                                                           @(dietaryForm.SelectedMedicalRestrictions != null && dietaryForm.SelectedMedicalRestrictions.Contains(o.Code) ? "checked" : "") />
+                                                    @o.Label
+                                                </label>
+                                            }
+                                        </div>
+                                        <input type="text" name="MedicalRestrictionOther" class="diet-input w-full border-b-2 border-gray-200 py-2 mt-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-transparent" maxlength="200"
+                                               placeholder="If other, please describe..." value="@dietaryForm.MedicalRestrictionOther" />
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-2">Additional Kitchen Notes</label>
+                                        <textarea name="DietaryNotes" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y" rows="2" maxlength="500" placeholder="Optional details..."></textarea>
+                                    </div>
                                 </div>
                             }
                         </div>
-                    }
-                </div>
 
-                <!-- ── Comments ── -->
-                <div class="rv-section">
-                    <div class="rv-field" style="margin-bottom:0;">
-                        <label class="rv-field-label">Anything else?</label>
-                        <textarea name="Comments" class="rv-input" rows="2" maxlength="500" placeholder="Optional">@formComments</textarea>
-                    </div>
-                </div>
+                        @* Section 3: Meal Choice *@
+                        @if (Model.OffersMealChoice && mealOptions.Count > 0)
+                        {
+                            <div class="mb-10 pb-8 border-b border-gray-100">
+                                <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">03. Culinary Selection</h4>
 
-                <button type="submit" class="rv-submit">
-                    @(response != null ? "Update RSVP" : "Submit RSVP")
-                </button>
-            </form>
-        }
-        else
-        {
-            <form action="@Url.Action("Event", "Rsvp", new { id = Model.Id })" method="post" id="rsvpForm">
-                @Html.AntiForgeryToken()
+                                @if (!mealOptions.Any(m => m.IsSuitable))
+                                {
+                                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 text-xs font-mono text-yellow-800 uppercase tracking-widest shadow-sm mb-4">
+                                        <i class="bi bi-exclamation-triangle me-1"></i> None of this event's standard meals meet your dietary requirements. Please contact the cafeteria.
+                                    </div>
+                                }
 
-                <!-- ── Are you attending? ── -->
-                <div class="rv-section">
-                    <div class="rv-section-label">Will you be attending?</div>
+                                <div class="flex flex-col gap-3">
+                                    @foreach (var m in mealOptions)
+                                    {
+                                        <label class="rv-meal relative flex items-start gap-4 p-4 bg-white border-2 border-gray-200 rounded-lg cursor-pointer transition-all duration-200 @(m.IsSuitable ? "hover:border-[#C21E2E]" : "unavailable opacity-60 bg-gray-50 cursor-not-allowed")" data-meal-id="@m.MenuItemId">
+                                            <input type="radio" name="MenuItemId" value="@m.MenuItemId" class="mt-1 w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E] cursor-pointer"
+                                                   @(m.IsSuitable ? "" : "disabled") @(m.IsSuitable && formMeal == m.MenuItemId ? "checked" : "") />
 
-                    <div class="rv-radio-group">
-                        <label class="rv-radio-tile" data-value="Attending">
-                            <input type="radio" name="ResponseStatus" value="Attending" required />
-                            <span class="rv-tile-icon">🎉</span>
-                            <span class="rv-tile-label">Yes</span>
-                        </label>
-                        <label class="rv-radio-tile" data-value="Maybe">
-                            <input type="radio" name="ResponseStatus" value="Maybe" />
-                            <span class="rv-tile-icon">🤔</span>
-                            <span class="rv-tile-label">Maybe</span>
-                        </label>
-                        <label class="rv-radio-tile" data-value="Declined">
-                            <input type="radio" name="ResponseStatus" value="Declined" />
-                            <span class="rv-tile-icon">😔</span>
-                            <span class="rv-tile-label">No</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- ── Who are you? ── -->
-                <div class="rv-section">
-                    <div class="rv-section-label">Your details</div>
-
-                    <div class="rv-field">
-                        <label class="rv-field-label">Full name <span class="req">*</span></label>
-                        <input type="text" name="ResponderName" class="rv-input" required maxlength="150"
-                               placeholder="e.g. Jane van der Merwe" />
-                    </div>
-
-                    <div class="rv-row rv-2col">
-                        <div class="rv-field">
-                            <label class="rv-field-label">Email</label>
-                            <input type="email" name="ResponderEmail" class="rv-input" maxlength="200"
-                                   placeholder="jane@example.com" />
-                        </div>
-                        <div class="rv-field">
-                            <label class="rv-field-label">Phone</label>
-                            <input type="tel" name="ResponderPhone" class="rv-input" maxlength="30"
-                                   placeholder="082 123 4567" />
-                        </div>
-                    </div>
-
-                    <div class="rv-field">
-                        <label class="rv-field-label">I am a…</label>
-                        <select name="ResponderGroup" class="rv-input">
-                            <option value="Parent">Parent</option>
-                            <option value="Staff">Staff</option>
-                            <option value="Board">Board Member</option>
-                            <option value="OldBoy">Old Boy / Old Girl</option>
-                            <option value="Guest" selected>Guest</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- ── Only if attending ── -->
-                <div class="rv-section" id="attendingSection" style="display:none;">
-                    <div class="rv-section-label">Attendance &amp; meals</div>
-
-                    <div class="rv-field">
-                        <label class="rv-field-label">How many in your group? <span class="req">*</span></label>
-                        <input type="number" name="TotalAttendees" id="totalAttendees"
-                               class="rv-input" min="1" max="20" value="1" />
-                        <div class="rv-field-help">Include yourself. Maximum 20 per response.</div>
-                    </div>
-
-                    <div class="rv-field" style="margin-top:1.25rem;">
-                        <label class="rv-field-label">Meal preferences</label>
-                        <div class="rv-field-help" style="margin-top:0; margin-bottom:.5rem;">
-                            How many of your group want each option? Leave blank if everyone wants standard.
-                        </div>
-
-                        <div class="rv-count-grid">
-                            <div class="rv-field" style="margin-bottom:0;">
-                                <label class="rv-field-label" style="font-size:.72rem;">Standard</label>
-                                <input type="number" name="StandardCount" id="stdCount"
-                                       class="rv-input" min="0" max="20" value="0" />
+                                            <div class="flex-grow">
+                                                <strong class="font-serif text-base text-gray-900 block mb-1">@m.Name</strong>
+                                                <div class="flex flex-wrap gap-1.5 mb-2">
+                                                    @foreach (var tag in m.SuitableFor)
+                                                    {
+                                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 px-2 py-0.5 border border-emerald-200 shadow-2xs">@tag</span>
+                                                    }
+                                                </div>
+                                                <span class="block text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+                                                    @(string.IsNullOrEmpty(m.Allergens) ? "No listed allergens" : "Contains: " + m.Allergens)
+                                                </span>
+                                                <span class="rv-meal-reason block text-[9px] font-mono font-bold text-[#C21E2E] uppercase tracking-widest">
+                                                    @(m.IsSuitable ? "" : "Not suitable: " + m.UnsuitableReason)
+                                                </span>
+                                            </div>
+                                        </label>
+                                    }
+                                </div>
                             </div>
-                            <div class="rv-field" style="margin-bottom:0;">
-                                <label class="rv-field-label" style="font-size:.72rem;">Vegetarian</label>
-                                <input type="number" name="VegetarianCount" id="vegCount"
-                                       class="rv-input" min="0" max="20" value="0" />
+                        }
+
+                        @* Section 4: Guests *@
+                        @if (invitee.CanBringGuests)
+                        {
+                            <div class="mb-10 pb-8 border-b border-gray-100">
+                                <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">04. Guest Registry</h4>
+
+                                <div class="bg-gray-50 border border-gray-200 p-5 shadow-xs mb-6">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-2">Guest Quantity Allocation</label>
+                                    <div class="flex items-center gap-3">
+                                        <select name="GuestCount" id="guestCount" class="border border-gray-300 p-2 font-mono text-sm font-bold w-24 text-center bg-white outline-none focus:border-[#C21E2E]">
+                                            @for (int g = 0; g <= Model.MaxGuestsPerInvitee; g++)
+                                            {
+                                                <option value="@g" @(g == formGuests.Count ? "selected" : "")>@g</option>
+                                            }
+                                        </select>
+                                        <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Up to @Model.MaxGuestsPerInvitee external guests</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-6">
+                                    @for (int g = 0; g < Model.MaxGuestsPerInvitee; g++)
+                                    {
+                                        var guest = g < formGuests.Count ? formGuests[g] : new Michaelhouse.Services.GuestInput();
+                                        <div class="rv-guest bg-white border border-gray-200 p-5 shadow-sm" data-guest="@g" style="@(g < formGuests.Count ? "" : "display:none;")">
+                                            <h5 class="font-serif font-bold text-lg text-[#C21E2E] border-b border-gray-100 pb-2 mb-4">Guest @(g + 1)</h5>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+                                                <div>
+                                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Dietary Preference</label>
+                                                    <select name="GuestPref_@g" class="guest-pref w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm bg-transparent">
+                                                        @foreach (var o in Michaelhouse.Services.DietaryProfileService.PreferenceOptions)
+                                                        {
+                                                            <option value="@o.Code" @(string.Equals(guest.DietaryPreference ?? "None", o.Code, StringComparison.OrdinalIgnoreCase) ? "selected" : "")>
+                                                                @(o.Code == "None" ? "No Special Requirement" : o.Label)
+                                                            </option>
+                                                        }
+                                                    </select>
+                                                </div>
+
+                                                @if (Model.OffersMealChoice && mealOptions.Count > 0)
+                                                {
+                                                    <div>
+                                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Meal Selection</label>
+                                                        <select name="GuestMeal_@g" class="guest-meal w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm bg-transparent">
+                                                            <option value="">— Assign Meal —</option>
+                                                            @foreach (var m in mealOptions)
+                                                            {
+                                                                <option value="@m.MenuItemId" data-suits="@string.Join(",", m.SuitableFor)"
+                                                                        @(guest.MenuItemId == m.MenuItemId ? "selected" : "")>
+                                                                    @m.Name
+                                                                    </option>
+                                                                }
+                                                        </select>
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Allergies & Notes</label>
+                                                <input type="text" name="GuestNotes_@g" class="guest-notes w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm bg-transparent" maxlength="200"
+                                                       placeholder="Specific requirements..." value="@guest.DietaryNotes" />
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
-                            <div class="rv-field" style="margin-bottom:0;">
-                                <label class="rv-field-label" style="font-size:.72rem;">Other diet</label>
-                                <input type="number" name="OtherDietCount" id="othCount"
-                                       class="rv-input" min="0" max="20" value="0" />
+                        }
+
+                    </div>
+
+                    @* Section: General Comments *@
+                    <div class="mb-8">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-3">Ancillary Comments</h4>
+                        <textarea name="Comments" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y shadow-inner" rows="3" maxlength="500" placeholder="Optional messages for event coordination...">@formComments</textarea>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-200">
+                        <button type="submit" class="w-full bg-[#1a1a1a] text-white px-8 py-4 text-[12px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_10px_20px_rgba(0,0,0,0.2)] transition-all duration-300">
+                            @(response != null ? "Update Registered RSVP" : "Submit Formal RSVP")
+                        </button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                @* --- UNKNOWN/PUBLIC INVITEE FORM --- *@
+                <form action="@Url.Action("Event", "Rsvp", new { id = Model.Id })" method="post" id="rsvpForm" class="m-0">
+                    @Html.AntiForgeryToken()
+
+                    @* Attending? *@
+                    <div class="mb-10 pb-8 border-b border-gray-100">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">01. Attendance Declaration</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <label class="rv-radio-tile relative bg-white border-2 border-gray-200 p-4 text-center cursor-pointer hover:border-gray-400 transition-all duration-200" data-value="Attending">
+                                <input type="radio" name="ResponseStatus" value="Attending" class="absolute opacity-0" required />
+                                <span class="block text-3xl mb-2">🎉</span>
+                                <span class="block font-serif font-bold text-gray-900 tile-label">Yes</span>
+                            </label>
+                            <label class="rv-radio-tile relative bg-white border-2 border-gray-200 p-4 text-center cursor-pointer hover:border-gray-400 transition-all duration-200" data-value="Maybe">
+                                <input type="radio" name="ResponseStatus" value="Maybe" class="absolute opacity-0" />
+                                <span class="block text-3xl mb-2">🤔</span>
+                                <span class="block font-serif font-bold text-gray-900 tile-label">Maybe</span>
+                            </label>
+                            <label class="rv-radio-tile relative bg-white border-2 border-gray-200 p-4 text-center cursor-pointer hover:border-gray-400 transition-all duration-200" data-value="Declined">
+                                <input type="radio" name="ResponseStatus" value="Declined" class="absolute opacity-0" />
+                                <span class="block text-3xl mb-2">😔</span>
+                                <span class="block font-serif font-bold text-gray-900 tile-label">No</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    @* Personal Details *@
+                    <div class="mb-10 pb-8 border-b border-gray-100">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">02. Identity Dossier</h4>
+
+                        <div class="mb-5">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Full Name *</label>
+                            <input type="text" name="ResponderName" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent" required maxlength="150" placeholder="e.g. Jane van der Merwe" />
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Email Address</label>
+                                <input type="email" name="ResponderEmail" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" maxlength="200" placeholder="jane@example.com" />
+                            </div>
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Contact Number</label>
+                                <input type="tel" name="ResponderPhone" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" maxlength="30" placeholder="082 123 4567" />
                             </div>
                         </div>
 
-                        <div class="rv-summary" id="mealSummary">
-                            <strong>Meals accounted for:</strong> <span id="mealSum">0</span> of <span id="mealTotal">1</span>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Affiliation</label>
+                            <select name="ResponderGroup" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-base text-gray-900 transition-colors bg-transparent">
+                                <option value="Parent">Parent</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Board">Board Member</option>
+                                <option value="OldBoy">Old Boy / Old Girl</option>
+                                <option value="Guest" selected>Guest</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="rv-field" style="margin-top:1.25rem;">
-                        <label class="rv-field-label">Any dietary requirements we should know about?</label>
-                        <textarea name="DietaryNotes" class="rv-input" rows="3" maxlength="500"
-                                  placeholder="e.g. One guest is gluten-free, two are nut-allergic"></textarea>
+                    @* Logistics (Attending Only) *@
+                    <div id="attendingSection" style="display:none;" class="mb-10 pb-8 border-b border-gray-100">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-4">03. Group Logistics</h4>
+
+                        <div class="bg-gray-50 border border-gray-200 p-5 shadow-xs mb-6">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-2">Total Party Size *</label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" name="TotalAttendees" id="totalAttendees" class="border border-gray-300 p-2 font-mono text-lg font-bold w-24 text-center bg-white outline-none focus:border-[#C21E2E]" min="1" max="20" value="1" />
+                                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Include yourself (Max 20)</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-2">Dietary Distribution</label>
+                            <span class="block text-[9px] font-mono uppercase tracking-widest text-gray-500 mb-4">Leave 0 if party requires standard meals.</span>
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-white border border-gray-200 p-3 text-center">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Standard</label>
+                                    <input type="number" name="StandardCount" id="stdCount" class="w-full border-b-2 border-gray-200 py-1 text-center font-mono font-bold outline-none focus:border-[#C21E2E]" min="0" max="20" value="0" />
+                                </div>
+                                <div class="bg-white border border-gray-200 p-3 text-center">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Vegetarian</label>
+                                    <input type="number" name="VegetarianCount" id="vegCount" class="w-full border-b-2 border-gray-200 py-1 text-center font-mono font-bold outline-none focus:border-[#C21E2E]" min="0" max="20" value="0" />
+                                </div>
+                                <div class="bg-white border border-gray-200 p-3 text-center">
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Other Diet</label>
+                                    <input type="number" name="OtherDietCount" id="othCount" class="w-full border-b-2 border-gray-200 py-1 text-center font-mono font-bold outline-none focus:border-[#C21E2E]" min="0" max="20" value="0" />
+                                </div>
+                            </div>
+
+                            <div id="mealSummary" class="mt-4 p-3 bg-blue-50 border border-blue-200 text-xs font-mono text-blue-800 uppercase tracking-widest shadow-sm">
+                                <strong>Meals Accounted For:</strong> <span id="mealSum">0</span> of <span id="mealTotal">1</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-900 mb-2">Specific Dietary Instructions</label>
+                            <textarea name="DietaryNotes" class="w-full border border-gray-200 p-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y" rows="3" maxlength="500" placeholder="e.g. One guest is gluten-free, two are nut-allergic"></textarea>
+                        </div>
                     </div>
-                </div>
 
-                <!-- ── Comments ── -->
-                <div class="rv-section">
-                    <div class="rv-field" style="margin-bottom:0;">
-                        <label class="rv-field-label">Anything else?</label>
-                        <textarea name="Comments" class="rv-input" rows="2" maxlength="500"
-                                  placeholder="Optional — any message you'd like to share"></textarea>
+                    @* Comments *@
+                    <div class="mb-8">
+                        <h4 class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-500 mb-3">Ancillary Comments</h4>
+                        <textarea name="Comments" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y shadow-inner" rows="2" maxlength="500" placeholder="Optional messages..."></textarea>
                     </div>
-                </div>
 
-                <button type="submit" class="rv-submit">
-                    Submit RSVP
-                </button>
-            </form>
-        }
-
+                    <div class="pt-6 border-t border-gray-200">
+                        <button type="submit" class="w-full bg-[#1a1a1a] text-white px-8 py-4 text-[12px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_10px_20px_rgba(0,0,0,0.2)] transition-all duration-300">
+                            Submit Formal RSVP
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
     </div>
-
 </div>
 
-<script>
-    (function () {
-        var tiles = document.querySelectorAll('.rv-radio-tile');
-        var attendingSection = document.getElementById('attendingSection');
-        var totalInput = document.getElementById('totalAttendees');
-        var stdInput = document.getElementById('stdCount');
-        var vegInput = document.getElementById('vegCount');
-        var othInput = document.getElementById('othCount');
-        var mealSum = document.getElementById('mealSum');
-        var mealTotal = document.getElementById('mealTotal');
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-        // ── Tile selection UI ──
-        tiles.forEach(function (tile) {
-            tile.addEventListener('click', function () {
-                tiles.forEach(function (t) { t.classList.remove('selected'); });
-                tile.classList.add('selected');
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
 
-                var radio = tile.querySelector('input[type=radio]');
-                if (radio) radio.checked = true;
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
 
-                var value = tile.getAttribute('data-value');
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
 
-                if (!attendingSection) {
-                    // student form: nothing else to show
-                } else if (value === 'Attending') {
-                    attendingSection.style.display = 'block';
-                } else {
-                    attendingSection.style.display = 'none';
-                    // Zero out the counts so the controller doesn't accidentally record them
-                    if (stdInput) stdInput.value = 0;
-                    if (vegInput) vegInput.value = 0;
-                    if (othInput) othInput.value = 0;
-                }
-
-                updateSummary();
-            });
-        });
-
-        // ── Auto-sum meal counts ──
-        function updateSummary() {
-            if (!mealSum) return;
-            var total = parseInt(totalInput.value, 10) || 0;
-            var std = parseInt(stdInput.value, 10) || 0;
-            var veg = parseInt(vegInput.value, 10) || 0;
-            var oth = parseInt(othInput.value, 10) || 0;
-            var sum = std + veg + oth;
-
-            mealSum.textContent = sum;
-            mealTotal.textContent = total;
-
-            // If the sum is less than total, that's fine — remainder = standard.
-            // If it exceeds, colour it red.
-            var box = document.getElementById('mealSummary');
-            if (sum > total) {
-                box.style.background = '#fee2e2';
-                box.style.borderColor = '#fecaca';
-                box.style.color = '#991b1b';
-                box.innerHTML = '<strong>Warning:</strong> you have counted more meals (' + sum +
-                                ') than attendees (' + total + ').';
-            } else {
-                box.style.background = '#eff6ff';
-                box.style.borderColor = '#bfdbfe';
-                box.style.color = '#1e40af';
-                var remaining = total - sum;
-                var html = '<strong>Meals:</strong> ' + sum + ' of ' + total;
-                if (remaining > 0) {
-                    html += ' — the remaining ' + remaining + ' will be counted as standard.';
-                }
-                box.innerHTML = html;
-            }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
 
-        // ── Invitee form: guests ──
-        var guestCount = document.getElementById('guestCount');
-        function syncGuests() {
-            var n = parseInt(guestCount.value, 10) || 0;
-            document.querySelectorAll('.rv-guest').forEach(function (row) {
-                row.style.display = parseInt(row.getAttribute('data-guest'), 10) < n ? '' : 'none';
-            });
-        }
-        if (guestCount) { guestCount.addEventListener('change', syncGuests); syncGuests(); }
+    /* Custom styles needed for JS toggles */
+    .rv-radio-tile.selected {
+        border-color: #C21E2E !important;
+        background-color: #fef2f2 !important;
+    }
 
-        // A guest's meal must suit their dietary group
-        function filterGuestMeals(row) {
-            var pref = row.querySelector('.guest-pref').value;
-            var meal = row.querySelector('.guest-meal');
-            if (!meal) return;
-            Array.prototype.forEach.call(meal.options, function (o) {
-                if (!o.value) return;
-                var suits = (o.getAttribute('data-suits') || '').split(',');
-                var ok = pref === 'None' || pref === 'Other' || suits.indexOf(pref) >= 0;
-                o.disabled = !ok;
-                if (!ok && o.selected) meal.value = '';
-            });
+        .rv-radio-tile.selected .tile-label {
+            color: #C21E2E !important;
         }
-        document.querySelectorAll('.rv-guest').forEach(function (row) {
-            row.querySelector('.guest-pref').addEventListener('change', function () { filterGuestMeals(row); });
-            filterGuestMeals(row);
-        });
 
-        // Parents / staff: re-check which meals suit them as they tick
-        // their dietary needs (the server decides)
-        var form = document.getElementById('rsvpForm');
-        if (form && form.getAttribute('data-live-diet') === 'true' && document.querySelector('.rv-meal')) {
-            var timer = null;
-            function recheck() {
-                var data = new FormData(form);
-                fetch(form.getAttribute('data-meal-url'), { method: 'POST', body: data, credentials: 'same-origin' })
-                    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-                    .then(function (res) {
-                        res.meals.forEach(function (m) {
-                            var label = document.querySelector('.rv-meal[data-meal-id="' + m.id + '"]');
-                            if (!label) return;
-                            var radio = label.querySelector('input');
-                            label.classList.toggle('unavailable', !m.suitable);
-                            radio.disabled = !m.suitable;
-                            if (!m.suitable) radio.checked = false;
-                            label.querySelector('.rv-meal-reason').textContent = m.suitable ? '' : 'Not suitable: ' + m.reason;
-                        });
-                    })
-                    .catch(function () { /* the server checks again on submit */ });
-            }
-            document.querySelectorAll('.diet-input').forEach(function (el) {
-                el.addEventListener(el.type === 'text' ? 'input' : 'change', function () {
-                    clearTimeout(timer); timer = setTimeout(recheck, 300);
+    .rv-meal.selected {
+        border-color: #C21E2E !important;
+        background-color: #fef2f2 !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        (function () {
+            var tiles = document.querySelectorAll('.rv-radio-tile');
+            var attendingSection = document.getElementById('attendingSection');
+            var totalInput = document.getElementById('totalAttendees');
+            var stdInput = document.getElementById('stdCount');
+            var vegInput = document.getElementById('vegCount');
+            var othInput = document.getElementById('othCount');
+            var mealSum = document.getElementById('mealSum');
+            var mealTotal = document.getElementById('mealTotal');
+
+            // ── Tile selection UI ──
+            tiles.forEach(function (tile) {
+                tile.addEventListener('click', function () {
+                    tiles.forEach(function (t) { t.classList.remove('selected'); });
+                    tile.classList.add('selected');
+
+                    var radio = tile.querySelector('input[type=radio]');
+                    if (radio) radio.checked = true;
+
+                    var value = tile.getAttribute('data-value');
+
+                    if (!attendingSection) {
+                        // student form: nothing else to show
+                    } else if (value === 'Attending') {
+                        attendingSection.style.display = 'block';
+                    } else {
+                        attendingSection.style.display = 'none';
+                        // Zero out the counts so the controller doesn't accidentally record them
+                        if (stdInput) stdInput.value = 0;
+                        if (vegInput) vegInput.value = 0;
+                        if (othInput) othInput.value = 0;
+                    }
+
+                    updateSummary();
                 });
             });
-        }
 
-        if (totalInput) totalInput.addEventListener('input', updateSummary);
-        if (stdInput)   stdInput.addEventListener('input', updateSummary);
-        if (vegInput)   vegInput.addEventListener('input', updateSummary);
-        if (othInput)   othInput.addEventListener('input', updateSummary);
-    })();
-</script>
+            // ── Auto-sum meal counts ──
+            function updateSummary() {
+                if (!mealSum) return;
+                var total = parseInt(totalInput.value, 10) || 0;
+                var std = parseInt(stdInput.value, 10) || 0;
+                var veg = parseInt(vegInput.value, 10) || 0;
+                var oth = parseInt(othInput.value, 10) || 0;
+                var sum = std + veg + oth;
 
+                mealSum.textContent = sum;
+                mealTotal.textContent = total;
+
+                var box = document.getElementById('mealSummary');
+                if (sum > total) {
+                    box.className = 'mt-4 p-3 bg-red-50 border border-red-200 text-xs font-mono text-red-900 uppercase tracking-widest shadow-sm';
+                    box.innerHTML = '<strong><i class="bi bi-exclamation-triangle me-1"></i> Warning:</strong> Excess meal count (' + sum + ') vs attendees (' + total + ').';
+                } else {
+                    box.className = 'mt-4 p-3 bg-blue-50 border border-blue-200 text-xs font-mono text-blue-800 uppercase tracking-widest shadow-sm';
+                    var remaining = total - sum;
+                    var html = '<strong>Meals Accounted:</strong> ' + sum + ' of ' + total;
+                    if (remaining > 0) {
+                        html += ' — ' + remaining + ' unallocated default to standard.';
+                    }
+                    box.innerHTML = html;
+                }
+            }
+
+            // ── Invitee form: guests ──
+            var guestCount = document.getElementById('guestCount');
+            function syncGuests() {
+                var n = parseInt(guestCount.value, 10) || 0;
+                document.querySelectorAll('.rv-guest').forEach(function (row) {
+                    row.style.display = parseInt(row.getAttribute('data-guest'), 10) < n ? '' : 'none';
+                });
+            }
+            if (guestCount) { guestCount.addEventListener('change', syncGuests); syncGuests(); }
+
+            // A guest's meal must suit their dietary group
+            function filterGuestMeals(row) {
+                var pref = row.querySelector('.guest-pref').value;
+                var meal = row.querySelector('.guest-meal');
+                if (!meal) return;
+                Array.prototype.forEach.call(meal.options, function (o) {
+                    if (!o.value) return;
+                    var suits = (o.getAttribute('data-suits') || '').split(',');
+                    var ok = pref === 'None' || pref === 'Other' || suits.indexOf(pref) >= 0;
+                    o.disabled = !ok;
+                    if (!ok && o.selected) meal.value = '';
+                });
+            }
+            document.querySelectorAll('.rv-guest').forEach(function (row) {
+                row.querySelector('.guest-pref').addEventListener('change', function () { filterGuestMeals(row); });
+                filterGuestMeals(row);
+            });
+
+            // ── Meal choice UI toggle (for radio lists) ──
+            var mealLabels = document.querySelectorAll('.rv-meal');
+            mealLabels.forEach(function (label) {
+                label.addEventListener('click', function () {
+                    var radio = label.querySelector('input[type="radio"]');
+                    if (!radio || radio.disabled) return;
+
+                    mealLabels.forEach(function (l) { l.classList.remove('selected', 'border-[#C21E2E]', 'bg-red-50/20'); l.classList.add('border-gray-200'); });
+
+                    label.classList.add('selected', 'border-[#C21E2E]', 'bg-red-50/20');
+                    label.classList.remove('border-gray-200');
+                    radio.checked = true;
+                });
+            });
+
+            // Parents / staff: re-check which meals suit them as they tick dietary needs
+            var form = document.getElementById('rsvpForm');
+            if (form && form.getAttribute('data-live-diet') === 'true' && document.querySelector('.rv-meal')) {
+                var timer = null;
+                function recheck() {
+                    var data = new FormData(form);
+                    fetch(form.getAttribute('data-meal-url'), { method: 'POST', body: data, credentials: 'same-origin' })
+                        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+                        .then(function (res) {
+                            res.meals.forEach(function (m) {
+                                var label = document.querySelector('.rv-meal[data-meal-id="' + m.id + '"]');
+                                if (!label) return;
+                                var radio = label.querySelector('input');
+
+                                if (m.suitable) {
+                                    label.classList.remove('unavailable', 'opacity-60', 'bg-gray-50', 'cursor-not-allowed');
+                                    label.classList.add('hover:border-[#C21E2E]', 'cursor-pointer');
+                                    radio.disabled = false;
+                                } else {
+                                    label.classList.add('unavailable', 'opacity-60', 'bg-gray-50', 'cursor-not-allowed');
+                                    label.classList.remove('hover:border-[#C21E2E]', 'cursor-pointer', 'selected', 'border-[#C21E2E]', 'bg-red-50/20');
+                                    radio.disabled = true;
+                                    radio.checked = false;
+                                }
+                                label.querySelector('.rv-meal-reason').textContent = m.suitable ? '' : 'Not suitable: ' + m.reason;
+                            });
+                        })
+                        .catch(function () { /* the server checks again on submit */ });
+                }
+                document.querySelectorAll('.diet-input').forEach(function (el) {
+                    el.addEventListener(el.type === 'text' ? 'input' : 'change', function () {
+                        clearTimeout(timer); timer = setTimeout(recheck, 300);
+                    });
+                });
+            }
+
+            if (totalInput) totalInput.addEventListener('input', updateSummary);
+            if (stdInput) stdInput.addEventListener('input', updateSummary);
+            if (vegInput) vegInput.addEventListener('input', updateSummary);
+            if (othInput) othInput.addEventListener('input', updateSummary);
+        })();
+    </script>
+}
