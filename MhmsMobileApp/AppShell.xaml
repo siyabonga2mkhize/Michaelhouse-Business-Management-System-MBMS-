@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MhmsMobileApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MhmsMobileApp"
+    xmlns:views="clr-namespace:MhmsMobileApp.Views"
+    Title="Michaelhouse">
+
+    <!-- Tabs are added in AppShell.xaml.cs, based on the logged-in
+         user's role (see UserSession.ScreensFor). The Squad page is
+         kept in the project but not shown. -->
+    <TabBar x:Name="MainTabs" />
+
+</Shell>

@@ -23,9 +23,7 @@ Migrations/
 *.log
 /Models/VisitorAccessRequest.cs.txt
 /Views/ScanGate.cshtml
-# Build output
-bin/
-obj/
+.vscode/ 
 
-# Visual Studio
-.vs/
+# Face recognition models (Download-FaceModels.ps1) - too big for GitHub
+/App_Data/FaceModels/*.dat

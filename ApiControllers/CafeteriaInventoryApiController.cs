@@ -181,7 +181,15 @@ namespace Michaelhouse.ApiControllers
                 invoiceFilePath = vm.InvoiceFilePath,
                 invoiceFileName = vm.InvoiceFileName,
                 detectedSupplier = vm.DetectedSupplier,
+                notes = vm.Notes,
+                fromScan = vm.FromScan,
+                // False when invoice reading (Azure Document Intelligence)
+                // isn't configured — the photo is still attached
+                scanAvailable = vm.ScanAvailable,
                 messages = vm.Messages,
+                // For choosing the ingredient of an unmatched invoice item
+                ingredientOptions = (vm.IngredientOptions ?? new System.Collections.Generic.List<IngredientOption>())
+                    .Select(o => new { id = o.Id, name = o.Name, unit = o.DisplayUnit }),
                 lines = vm.Lines.Select(l => new
                 {
                     purchaseOrderLineId = l.PurchaseOrderLineId,

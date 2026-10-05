@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MhmsMobileApp.Views.FeastPlanPage"
+             Title="Feast Plan">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <ActivityIndicator x:Name="LoadingSpinner"
+                           Grid.Row="0"
+                           IsRunning="True"
+                           IsVisible="True"
+                           Color="#C21E2E" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="14" IsVisible="False">
+
+                <Label x:Name="ErrorLabel"
+                       TextColor="Red"
+                       FontSize="14"
+                       IsVisible="False" />
+
+                <Label x:Name="EventNameLabel"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="#111827" />
+
+                <Label x:Name="EventMetaLabel"
+                       FontSize="13"
+                       TextColor="#6b7280" />
+
+                <!-- STATS -->
+                <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6" Margin="0,8,0,8">
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label Text="GUESTS" FontSize="9" FontAttributes="Bold" TextColor="#6b7280" />
+                        <Label x:Name="GuestsLabel" FontSize="20" FontAttributes="Bold" TextColor="#065f46" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1">
+                        <Label Text="STD" FontSize="9" FontAttributes="Bold" TextColor="#6b7280" />
+                        <Label x:Name="StdLabel" FontSize="20" FontAttributes="Bold" TextColor="#111827" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="2">
+                        <Label Text="VEG" FontSize="9" FontAttributes="Bold" TextColor="#6b7280" />
+                        <Label x:Name="VegLabel" FontSize="20" FontAttributes="Bold" TextColor="#111827" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="3">
+                        <Label Text="OTHER" FontSize="9" FontAttributes="Bold" TextColor="#6b7280" />
+                        <Label x:Name="OthLabel" FontSize="20" FontAttributes="Bold" TextColor="#111827" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="4">
+                        <Label Text="SHORT" FontSize="9" FontAttributes="Bold" TextColor="#6b7280" />
+                        <Label x:Name="ShortLabel" FontSize="20" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- DIETARY NOTES -->
+                <Frame x:Name="DietaryFrame"
+                       BorderColor="#fde68a"
+                       BackgroundColor="#fffbeb"
+                       CornerRadius="8"
+                       Padding="10"
+                       IsVisible="False">
+                    <VerticalStackLayout>
+                        <Label Text="DIETARY NOTES"
+                               FontSize="10"
+                               FontAttributes="Bold"
+                               TextColor="#92400e" />
+                        <Label x:Name="DietaryLabel"
+                               FontSize="12"
+                               TextColor="#78350f"
+                               Margin="0,4,0,0" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- TIMELINE -->
+                <Label Text="PRODUCTION TIMELINE"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="#6b7280"
+                       Margin="0,8,0,0" />
+
+                <VerticalStackLayout x:Name="TimelineContainer" Spacing="8" />
+
+                <!-- DISHES -->
+                <Label Text="DISHES"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="#6b7280"
+                       Margin="0,16,0,0" />
+
+                <VerticalStackLayout x:Name="DishesContainer" Spacing="10" />
+
+                <!-- TOTAL INGREDIENTS -->
+                <Label Text="TOTAL INGREDIENTS"
+                       FontSize="11"
+                       FontAttributes="Bold"
+                       TextColor="#6b7280"
+                       Margin="0,16,0,0" />
+
+                <VerticalStackLayout x:Name="IngredientsContainer" Spacing="4" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

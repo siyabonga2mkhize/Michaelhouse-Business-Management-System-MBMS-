@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MhmsMobileApp.Views.SquadPage"
+             Title="Squad Status">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+
+        <ActivityIndicator x:Name="LoadingSpinner"
+                           Grid.Row="0"
+                           IsRunning="True"
+                           IsVisible="True"
+                           Color="#C21E2E" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="12" IsVisible="False">
+
+                <Label x:Name="ErrorLabel"
+                       TextColor="Red"
+                       FontSize="14"
+                       IsVisible="False" />
+
+                <Label Text="Squad Status"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="#111827" />
+
+                <Label Text="Tap a student to toggle availability."
+                       FontSize="13"
+                       TextColor="#6b7280" />
+
+                <VerticalStackLayout x:Name="SportsContainer" Spacing="16" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

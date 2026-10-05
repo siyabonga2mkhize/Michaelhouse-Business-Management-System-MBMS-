@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- UC13 — My Meal Plan: the week at a glance. Tap a meal to choose it
+     (ChooseMealPage). Built in MealPlanPage.xaml.cs. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MhmsMobileApp.Views.MealPlanPage"
+             Title="My Meal Plan">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <RefreshView x:Name="Refresher" Grid.Row="0" Refreshing="OnRefreshing">
+            <ScrollView>
+                <VerticalStackLayout x:Name="Root" Padding="16,20,16,24" Spacing="14">
+                    <ActivityIndicator x:Name="LoadingSpinner"
+                                       IsRunning="True"
+                                       Margin="0,40,0,0" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <!-- Submit bar, always visible at the bottom while the plan can be submitted -->
+        <Border x:Name="SubmitBar"
+                Grid.Row="1"
+                IsVisible="False"
+                BackgroundColor="{StaticResource White}"
+                Stroke="{StaticResource CardBorder}"
+                StrokeThickness="1"
+                Padding="16,12,16,16">
+            <VerticalStackLayout Spacing="8">
+                <Label x:Name="SubmitInfoLabel"
+                       Style="{StaticResource MutedText}"
+                       HorizontalTextAlignment="Center" />
+                <Button x:Name="SubmitButton"
+                        Text="Submit Meal Plan"
+                        Style="{StaticResource PrimaryButton}"
+                        Clicked="OnSubmitClicked" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+</ContentPage>
