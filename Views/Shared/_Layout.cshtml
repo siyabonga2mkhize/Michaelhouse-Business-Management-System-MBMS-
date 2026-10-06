@@ -553,6 +553,14 @@
                             <i class="bi bi-person-walking"></i>
                             <span class="link-text">Active Visitors</span>
                         </a>
+
+                        <hr class="sidebar-divider" />
+                        <div class="sidebar-label">Cafeteria Events</div>
+
+                        <a class="nav-link @(currentController == "FeastPlan" ? "active" : "")"
+                           href="@Url.Action("Index", "FeastPlan")">
+                            <i class="bi bi-egg-fried"></i> <span class="link-text">Feast Plans</span>
+                        </a>
                     }
                     else if (userRole == "InventoryManager")
                     {
@@ -1028,6 +1036,10 @@
                            href="@Url.Action("Create", "Event")">
                             <i class="bi bi-plus-circle"></i> <span class="link-text">Schedule Event</span>
                         </a>
+                        <a class="nav-link @(currentController == "FeastPlan" ? "active" : "")"
+                           href="@Url.Action("Index", "FeastPlan")">
+                            <i class="bi bi-egg-fried"></i> <span class="link-text">Feast Plans</span>
+                        </a>
 
                         <hr class="sidebar-divider" />
                         <div class="sidebar-label">Service</div>
@@ -1068,6 +1080,10 @@
                         <a class="nav-link @(currentController == "Event" && currentAction == "Queue" ? "active" : "")"
                            href="@Url.Action("Queue", "Event")">
                             <i class="bi bi-calendar-event"></i> <span class="link-text">Event Queue</span>
+                        </a>
+                        <a class="nav-link @(currentController == "FeastPlan" ? "active" : "")"
+                           href="@Url.Action("Index", "FeastPlan")">
+                            <i class="bi bi-egg-fried"></i> <span class="link-text">Feast Plans</span>
                         </a>
                         <a class="nav-link @(currentController == "MealLibrary" ? "active" : "")"
                            href="@Url.Action("Index", "MealLibrary")">

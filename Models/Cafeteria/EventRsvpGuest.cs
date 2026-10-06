@@ -28,6 +28,11 @@ namespace Michaelhouse.Models.Cafeteria
         [StringLength(200)]
         public string DietaryNotes { get; set; }
 
+        // UC18 step 6 — optional cultural favourite dish for this guest.
+        // UC19 step 3 matches it to the meal library and checks stock.
+        [StringLength(150)]
+        public string CulturalFavoriteDish { get; set; }
+
         // Their meal, when the event offers a choice
         [ForeignKey("MenuItem")]
         public int? MenuItemId { get; set; }

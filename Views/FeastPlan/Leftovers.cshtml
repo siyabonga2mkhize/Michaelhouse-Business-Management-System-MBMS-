@@ -1,0 +1,78 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Leftovers";
+    var leftovers = ViewBag.Leftovers as List<EventDishLeftover> ?? new List<EventDishLeftover>();
+    bool eventOver = ViewBag.EventOver == true;
+    var items = FeastPlanService.InOrder(Model.Items).Where(i => i.MenuItemId.HasValue).ToList();
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-print-none">
+        @Html.Partial("_Steps", 10)
+    </div>
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="mb-3">
+        <h2 class="h4 mb-1">Step 10 — Record leftovers after the event</h2>
+        <p class="text-muted mb-0">
+            For each dish, enter how many portions were left over. These records feed the Menu Fatigue Score of future
+            feast plans (step 5) and the waste optimisation (step 7).
+        </p>
+    </div>
+
+    @if (!eventOver)
+    {
+        <div class="alert alert-secondary">
+            The event takes place on @Model.Event.EventDate.ToString("dd MMM yyyy"). Leftovers can be recorded from that day.
+        </div>
+    }
+
+    @using (Html.BeginForm("Leftovers", "FeastPlan", new { id = Model.Id }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="card shadow-sm mb-4">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Dish</th>
+                            <th class="text-end">Prepared</th>
+                            <th style="width:12rem">Left over (portions)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            var record = leftovers.FirstOrDefault(l => l.MenuItemId == item.MenuItemId.Value);
+                            <tr>
+                                <td class="fw-semibold">@item.DishName</td>
+                                <td class="text-end">@item.TotalQuantity</td>
+                                <td>
+                                    <input type="number" class="form-control" name="left_@item.Id" min="0" max="@item.TotalQuantity"
+                                           value="@(record != null ? record.LeftoverPortions.ToString() : "")"
+                                           @(eventOver ? "" : "disabled") />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="@Url.Action("Approved", "FeastPlan", new { id = Model.Id })">
+                <i class="bi bi-arrow-left"></i> Back to the plan
+            </a>
+            @if (eventOver)
+            {
+                <button type="submit" class="btn btn-primary">Save leftovers</button>
+            }
+        </div>
+    }
+</div>

@@ -404,7 +404,7 @@ namespace Michaelhouse.Controllers
             ViewBag.FormGuests = posted != null
                 ? posted.Guests ?? new List<GuestInput>()
                 : response != null
-                    ? response.Guests.OrderBy(g => g.Id).Select(g => new GuestInput { DietaryPreference = g.DietaryPreference, DietaryNotes = g.DietaryNotes, MenuItemId = g.MenuItemId }).ToList()
+                    ? response.Guests.OrderBy(g => g.Id).Select(g => new GuestInput { DietaryPreference = g.DietaryPreference, DietaryNotes = g.DietaryNotes, MenuItemId = g.MenuItemId, CulturalFavoriteDish = g.CulturalFavoriteDish }).ToList()
                     : new List<GuestInput>();
 
             bool attending = response != null && response.ResponseStatus == EventRsvpService.ResponseAttending;
@@ -447,7 +447,8 @@ namespace Michaelhouse.Controllers
                 {
                     DietaryPreference = Request.Form["GuestPref_" + i],
                     DietaryNotes = Request.Form["GuestNotes_" + i],
-                    MenuItemId = ParseInt(Request.Form["GuestMeal_" + i])
+                    MenuItemId = ParseInt(Request.Form["GuestMeal_" + i]),
+                    CulturalFavoriteDish = Request.Form["GuestFavourite_" + i]
                 });
             }
 

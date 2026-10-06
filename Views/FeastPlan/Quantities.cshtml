@@ -1,0 +1,59 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Quantities";
+    var check = ViewBag.Check as FeastPlanCheck ?? new FeastPlanCheck();
+    bool canEdit = ViewBag.CanEdit == true;
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 4)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="mb-3">
+        <h2 class="h4 mb-1">Step 4 — Assortment and quantities</h2>
+        <p class="text-muted mb-0">
+            The assortment is the event's buffet plus the cultural favourites you added. Each guest gets one portion:
+            main dishes are shared between the guests of their dietary group (standard, vegetarian, halal), common dishes
+            cover everyone, and a favourite covers the guests who asked for it. A @Model.BufferPercent.ToString("0.##")% buffer
+            is added and rounded up. Every number comes from the @Model.TotalGuests attending guests in the RSVPs.
+        </p>
+    </div>
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    @Html.Partial("_Check", check)
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Items)
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Favourites", "FeastPlan", new { id = Model.Id })">
+            <i class="bi bi-arrow-left"></i> Back to step 3
+        </a>
+        <div class="d-flex gap-2">
+            @if (canEdit)
+            {
+                <a class="btn btn-outline-primary" href="@Url.Action("Edit", "FeastPlan", new { id = Model.Id })">
+                    <i class="bi bi-pencil"></i> Change the buffer or dishes
+                </a>
+                using (Html.BeginForm("Advance", "FeastPlan", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="fromStep" value="4" />
+                    <button type="submit" class="btn btn-primary" @(check.Problems.Count > 0 ? "disabled" : "")>
+                        Next: menu fatigue <i class="bi bi-arrow-right"></i>
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</div>
