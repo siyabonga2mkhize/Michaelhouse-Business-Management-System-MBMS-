@@ -1,4 +1,4 @@
-@using Michaelhouse.Models.Cafeteria
+﻿@using Michaelhouse.Models.Cafeteria
 @using Michaelhouse.Services
 @model EventFeastPlan
 @{
@@ -31,7 +31,7 @@
                 <li>Frequency points: @FeastRules.PointsPerServing for each time served in the window, at most @FeastRules.MaxServingPoints.</li>
                 <li>Waste points: the share of the dish that was left over (leftover ÷ prepared) × @FeastRules.MaxWastePoints.</li>
                 <li>Score = frequency points + waste points, at most 100. "Served" means a different day on which it was collected or served.</li>
-                <li>A replacement is an active meal with a recipe, colour and texture tags, not already on the plan, used in the same buffet section before, and suitable for the same dietary group.</li>
+                <li>A replacement is an active meal with a recipe, colour and texture tags, not already on the plan, used in the same buffet section before (or never used in a buffet), and suitable for the same dietary group.</li>
             </ul>
         </details>
     </div>
