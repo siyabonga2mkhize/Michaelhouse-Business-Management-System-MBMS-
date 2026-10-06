@@ -2,8 +2,13 @@
 @using Michaelhouse.Services
 @model EventFeastPlan
 @*
-    UC19 plan heading: event, date, venue, status and revision.
+    UC19 plan heading: event, date, venue, status and revision,
+    with links to the event's own pages (UC17).
 *@
+@{
+    string headerRole = Session["UserRole"] != null ? Session["UserRole"].ToString() : "";
+    bool canOpenEvent = headerRole == FeastPlanRoles.CafeteriaManager || headerRole == FeastPlanRoles.Admin;
+}
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
     <div>
         <h1 class="h3 mb-1">Feast plan — @Model.Event.EventName</h1>
@@ -15,6 +20,16 @@
                 <span>· @Model.Event.Venue.Name</span>
             }
         </p>
+        <div class="small mt-1">
+            @if (canOpenEvent)
+            {
+                <a href="@Url.Action("Details", "Event", new { id = Model.EventId })">Event details</a>
+            }
+            @if (Model.Status == FeastPlanStatus.Approved)
+            {
+                @(canOpenEvent ? " · " : "")<a href="@Url.Action("FeastPlan", "Event", new { id = Model.EventId })">Kitchen plan and ingredient issue</a>
+            }
+        </div>
     </div>
     <div class="text-end">
         <span class="badge @FeastPlanService.StatusBadge(Model.Status) fs-6">@FeastPlanService.StatusLabel(Model.Status)</span>

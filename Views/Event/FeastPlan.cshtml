@@ -428,6 +428,21 @@
             <div class="alert alert-success">@TempData["Success"]</div>
         }
 
+        <!-- Where the dish quantities come from (UC19) -->
+        @if (Model.ApprovedFeastPlanId.HasValue)
+        {
+            <div class="alert alert-success">
+                Dishes and portions come from the <strong>approved feast plan</strong>@(Model.ApprovedFeastPlanAt.HasValue ? " (approved " + Michaelhouse.Services.SchoolClock.FromUtc(Model.ApprovedFeastPlanAt.Value).ToString("ddd dd MMM HH:mm") + ")" : "").
+                <a href="@Url.Action("Approved", "FeastPlan", new { id = Model.ApprovedFeastPlanId.Value })">View feast plan</a>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-secondary">
+                Estimated from the RSVPs. Once the Cafeteria Manager approves a feast plan for this event, its dishes and portions are used here instead.
+            </div>
+        }
+
         <!-- STATS -->
         <div class="fp-stats">
             <div class="fp-stat">

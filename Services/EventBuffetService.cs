@@ -589,6 +589,11 @@ namespace Michaelhouse.Services
         {
             var requirements = CalculateRequirements(evt);
 
+            // UC19: once the Cafeteria Manager approves a feast plan, its
+            // dishes and portions replace the RSVP estimate
+            var approved = ApprovedFeastPlan(evt.Id);
+            if (approved != null) UseApprovedPlan(requirements, approved);
+
             var vm = new FeastPlanViewModel
             {
                 EventId = evt.Id,
@@ -599,10 +604,12 @@ namespace Michaelhouse.Services
                 VenueName = evt.Venue != null ? evt.Venue.Name : "",
                 MenuTemplateName = evt.MenuTemplate != null ? evt.MenuTemplate.Name : "",
                 TotalGuests = requirements.Attendance.Total,
-                Requirements = requirements
+                Requirements = requirements,
+                ApprovedFeastPlanId = approved != null ? approved.Id : (int?)null,
+                ApprovedFeastPlanAt = approved != null ? approved.DecidedAt : null
             };
 
-            vm.Coverage = Analyse(evt, requirements.Meals.Select(m => m.MenuItem.Id).ToList());
+            vm.Coverage = Analyse(evt, requirements.Meals.Where(m => m.MenuItem.Id > 0).Select(m => m.MenuItem.Id).ToList());
 
             var attending = _db.EventRsvps
                 .Where(r => r.EventId == evt.Id && r.ResponseStatus == EventRsvpService.ResponseAttending)
@@ -736,6 +743,45 @@ namespace Michaelhouse.Services
             }
 
             return vm;
+        }
+
+        // The event's approved UC19 feast plan, if the Cafeteria Manager
+        // has approved one (FeastPlanService allows one live plan per event)
+        public EventFeastPlan ApprovedFeastPlan(int eventId)
+        {
+            return _db.EventFeastPlans
+                .Include(p => p.Items)
+                .Where(p => p.EventId == eventId && p.Status == FeastPlanStatus.Approved)
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefault();
+        }
+
+        // Replaces the RSVP meal lines with the approved plan's dishes.
+        // A dish without a library meal has no recipe, so it is listed
+        // with its portions but adds no ingredients.
+        private void UseApprovedPlan(EventRequirements requirements, EventFeastPlan plan)
+        {
+            var ids = plan.Items.Where(i => i.MenuItemId.HasValue).Select(i => i.MenuItemId.Value).Distinct().ToList();
+            var meals = MealsWithIngredients().Where(m => ids.Contains(m.Id)).ToList().ToDictionary(m => m.Id);
+            int guests = Math.Max(1, plan.TotalGuests);
+
+            requirements.Meals = plan.Items
+                .Where(i => i.TotalQuantity > 0)
+                .OrderBy(i => i.SortOrder)
+                .Select(i => new EventMealRequirement
+                {
+                    MenuItem = i.MenuItemId.HasValue && meals.ContainsKey(i.MenuItemId.Value)
+                        ? meals[i.MenuItemId.Value]
+                        : new MenuItem { Name = i.DishName },
+                    Section = i.Section,
+                    QuantityPerGuest = Math.Round((decimal)i.TotalQuantity / guests, 2),
+                    Portions = i.TotalQuantity
+                })
+                .ToList();
+
+            requirements.Notes.Add(string.Format(
+                "Dishes and portions come from the approved feast plan (UC19, revision {0}), not the RSVP estimate.",
+                plan.Revision));
         }
     }
 

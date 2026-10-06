@@ -306,6 +306,7 @@ namespace Michaelhouse.Controllers
             ViewBag.UsesTemplateMenu = !_db.CafeteriaEventMenuItems.Any(b => b.EventId == id) && evt.MenuTemplateId.HasValue;
             ViewBag.CanEdit = CanEdit(evt);
             ViewBag.Houses = _db.Residences.ToList().ToDictionary(r => r.ResidenceId, r => r.Name);
+            ViewBag.FeastPlan = new FeastPlanService(_db).LivePlanFor(id);   // UC19, or null
 
             return View(evt);
         }
