@@ -1,43 +1,155 @@
-﻿
-@using Michaelhouse.Models.Cafeteria
+﻿@using Michaelhouse.Models.Cafeteria
+@model System.Collections.Generic.List<MealCollection>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Collection Log";
-    var rows = Model as System.Collections.Generic.List<MealCollection> ?? new System.Collections.Generic.List<MealCollection>();
+    var rows = Model ?? new System.Collections.Generic.List<MealCollection>();
 }
 
-<div class="container-fluid py-4">
-    <h1 class="h3 mb-4">Collection Log — @DateTime.Today.ToString("dd MMM yyyy")</h1>
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    @if (rows.Count == 0)
-    {
-        <div class="alert alert-info">No collections recorded today.</div>
-    }
-    else
-    {
-        <table class="table table-hover bg-white">
-            <thead class="table-light">
-                <tr>
-                    <th>Time</th>
-                    <th>Student</th>
-                    <th>Meal</th>
-                    <th>Method</th>
-                    <th>Confidence</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in rows)
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Culinary Operations</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Daily Collection Log</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                <i class="bi bi-calendar3 me-1.5"></i> @DateTime.Today.ToString("dddd, dd MMMM yyyy")
+                <span class="mx-2 text-gray-300">|</span>
+                <strong class="text-gray-900 font-bold">@rows.Count</strong> Total Collections
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Dashboard
+            </a>
+            <a href="@Url.Action("Index", "MealCollection")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300 text-decoration-none">
+                <i class="bi bi-camera-video me-2 text-sm"></i> Terminal
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-2 flex flex-col w-full">
+
+        @* --- COLLECTION AUDIT LEDGER --- *@
+        <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden group mb-8">
+
+            <div class="p-5 bg-[#1a1a1a] flex justify-between items-center border-b-2 border-b-[#C21E2E] relative z-10 flex-shrink-0">
+                <div>
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[4px] text-white">
+                        <i class="bi bi-journal-text me-2 text-[#C21E2E]"></i> Official Audit Record
+                    </span>
+                    <span class="text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1 block">Full Chronological Log</span>
+                </div>
+            </div>
+
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                @if (rows.Count == 0)
                 {
-                    <tr>
-                        <td>@r.CollectedAt.ToLocalTime().ToString("HH:mm:ss")</td>
-                        <td>@(r.Student != null ? r.Student.FirstName + " " + r.Student.LastName : "-")</td>
-                        <td>@r.MealSlot</td>
-                        <td>@r.VerifiedByMethod</td>
-                        <td>@(r.MatchConfidence.HasValue ? (r.MatchConfidence.Value * 100).ToString("0") + "%" : "-")</td>
-                    </tr>
+                    <div class="p-20 text-center text-muted flex flex-col items-center justify-center">
+                        <i class="bi bi-journal-x text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Collections Recorded</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">The terminal has not processed any meals today.</span>
+                    </div>
                 }
-            </tbody>
-        </table>
-    }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm shadow-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b border-gray-200">
+                                <th class="ps-6 py-4 w-40">Timestamp</th>
+                                <th class="border-l border-gray-100 ps-4">Student Identity</th>
+                                <th class="border-l border-gray-100 ps-4">Allocated Meal</th>
+                                <th class="border-l border-gray-100 ps-4">Verification Method</th>
+                                <th class="border-l border-gray-100 pe-6 ps-4 text-end">System Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @foreach (var r in rows)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 h-16 group/row">
+                                    <td class="ps-6 py-3 font-mono font-bold text-xs text-gray-900 group-hover/row:text-[#C21E2E] transition-colors">
+                                        @r.CollectedAt.ToLocalTime().ToString("HH:mm:ss")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-serif font-bold text-base text-gray-900">
+                                        @(r.Student != null ? r.Student.FirstName + " " + r.Student.LastName : "(Unknown Identity)")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs uppercase tracking-widest text-gray-600">
+                                        @r.MealSlot
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        @if (r.VerifiedByMethod == Michaelhouse.Models.Cafeteria.CollectionMethod.FaceMatch)
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 px-3 py-1 shadow-2xs">
+                                                <i class="bi bi-person-bounding-box me-1.5"></i> Biometric Match
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 shadow-2xs">
+                                                <i class="bi bi-shield-lock me-1.5"></i> Manual Override
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        @if (r.MatchConfidence.HasValue)
+                                        {
+                                            <span class="font-mono text-xs font-bold text-gray-900">@((r.MatchConfidence.Value * 100).ToString("0"))%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="font-mono text-xs text-gray-300">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center relative z-10 flex-shrink-0">
+                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+                    <i class="bi bi-info-circle me-1"></i> Log records cannot be altered or deleted.
+                </span>
+            </div>
+        </div>
+
+    </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

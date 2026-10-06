@@ -39,6 +39,29 @@
                 <span class="mx-2 text-gray-300">|</span>
                 <strong id="headerChosenCount">@Model.OpenSlotsChosen</strong> of <strong>@Model.OpenSlotCount</strong> open meals chosen
             </p>
+
+            @* --- WEEK TABS: this week and any menu published ahead --- *@
+            @if (Model.Weeks.Count > 1)
+            {
+                <div class="flex flex-wrap gap-2 mt-5">
+                    @foreach (var w in Model.Weeks)
+                    {
+                        string weekStatus = !w.Status.HasValue ? "Not started"
+                            : w.Status == MealPlanStatus.Draft ? "Draft"
+                            : w.Status == MealPlanStatus.SentBack ? "Sent back"
+                            : w.Status == MealPlanStatus.Approved ? "Approved"
+                            : "Submitted";
+                        string weekName = w.IsCurrentWeek ? "This week" : w.WeekStartDate > Model.Now.Date ? "Upcoming" : "Previous";
+
+                        <a href="@Url.Action("Index", "StudentMealPlan", new { week = w.WeekStartDate.ToString("yyyy-MM-dd") })"
+                           class="flex flex-col px-4 py-2 border-2 transition-colors text-decoration-none @(w.IsSelected ? "border-[#1a1a1a] bg-[#1a1a1a] text-white" : "border-gray-200 bg-white text-gray-700 hover:border-gray-400")">
+                            <span class="text-[9px] font-bold uppercase tracking-[2px] @(w.IsSelected ? "text-gray-300" : "text-gray-400")">@weekName</span>
+                            <span class="font-serif font-bold text-sm">@w.WeekStartDate.ToString("dd MMM") – @w.WeekEndDate.ToString("dd MMM")</span>
+                            <span class="text-[8px] font-mono uppercase tracking-widest @(w.IsSelected ? "text-gray-300" : (w.Status == MealPlanStatus.SentBack ? "text-[#C21E2E]" : "text-gray-400"))">@weekStatus</span>
+                        </a>
+                    }
+                </div>
+            }
         </div>
     </div>
 

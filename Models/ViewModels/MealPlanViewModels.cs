@@ -13,6 +13,7 @@ namespace Michaelhouse.Models.ViewModels
         public MealPlanBuildViewModel()
         {
             Days = new List<MealPlanDayViewModel>();
+            Weeks = new List<MealPlanWeekOption>();
         }
 
         public int MealPlanId { get; set; }
@@ -58,6 +59,25 @@ namespace Michaelhouse.Models.ViewModels
 
         public DateTime? SubmittedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
+
+        // Published weeks the student can switch between (this week,
+        // and any menu accepted ahead of time)
+        public List<MealPlanWeekOption> Weeks { get; set; }
+    }
+
+    // ============================================================
+    // ONE PUBLISHED WEEK (week tabs)
+    // ============================================================
+
+    public class MealPlanWeekOption
+    {
+        public DateTime WeekStartDate { get; set; }
+        public DateTime WeekEndDate { get; set; }
+        public bool IsCurrentWeek { get; set; }
+        public bool IsSelected { get; set; }
+
+        // The student's plan for that week, if one has been started
+        public MealPlanStatus? Status { get; set; }
     }
 
     // ============================================================

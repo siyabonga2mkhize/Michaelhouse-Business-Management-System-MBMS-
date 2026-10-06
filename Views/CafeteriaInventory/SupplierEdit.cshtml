@@ -5,57 +5,127 @@
     ViewBag.Title = isNew ? "Add Supplier" : "Edit Supplier";
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell" style="max-width:640px;">
-
-        <div class="inv-header">
-            <div>
-                <h1>@(isNew ? "Add Supplier" : Model.Name)</h1>
-                <div class="inv-meta">@(isNew ? "A new cafeteria supplier." : "Shared with the Store if it also uses this supplier.")</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@Url.Action("Suppliers", "CafeteriaInventory")" class="btn btn-outline-secondary">← Suppliers</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">@(isNew ? "Register Vendor" : Model.Name)</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                @(isNew ? "Add a new authorized cafeteria supplier." : "Shared with the Store if it also utilizes this supplier.")
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Suppliers", "CafeteriaInventory")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Registry
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
 
         @if (!ViewData.ModelState.IsValid)
         {
-            <div class="inv-note bad">@Html.ValidationSummary(false)</div>
+            <div class="max-w-4xl mx-auto w-full bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm text-sm font-serif">
+                <div class="flex items-center mb-1">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please resolve the validation errors below:</strong>
+                </div>
+                @Html.ValidationSummary(false, "", new { @class = "text-xs font-mono mb-0" })
+            </div>
         }
 
-        <form class="inv-card inv-form" method="post" action="@Url.Action("SupplierEdit", "CafeteriaInventory", isNew ? null : new { id = Model.SupplierId })">
+        @* --- DOSSIER FORM MODULE --- *@
+        <form method="post" action="@Url.Action("SupplierEdit", "CafeteriaInventory", isNew ? null : new { id = Model.SupplierId })" class="max-w-4xl mx-auto w-full flex flex-col gap-8 m-0">
             @Html.AntiForgeryToken()
-            <div style="margin-bottom:.75rem;">
-                <label>Name *</label>
-                <input name="name" class="inv-input" maxlength="200" required value="@Model.Name" />
-            </div>
-            <div class="inv-row">
-                <div>
-                    <label>Contact person</label>
-                    <input name="contactPerson" class="inv-input" maxlength="100" value="@Model.ContactPerson" />
+
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                @* Module Header *@
+                <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-building me-2 text-gray-500"></i> Vendor Identity Dossier</h5>
                 </div>
-                <div>
-                    <label>Phone</label>
-                    <input name="phone" class="inv-input" maxlength="20" value="@Model.Phone" />
+
+                <div class="p-8 flex flex-col gap-8 relative z-10">
+
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Registered Entity Name *</label>
+                        <input name="name" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-2xl font-bold text-gray-900 transition-colors bg-transparent" maxlength="200" required value="@Model.Name" placeholder="e.g. Farm Fresh Logistics Ltd." />
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Primary Contact Person</label>
+                            <input name="contactPerson" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" maxlength="100" value="@Model.ContactPerson" placeholder="Full name of representative..." />
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Contact Number</label>
+                            <input name="phone" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" maxlength="20" value="@Model.Phone" placeholder="+27 XX XXX XXXX" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Email Address</label>
+                        <input name="email" type="email" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" maxlength="200" value="@Model.Email" placeholder="orders@vendor.co.za" />
+                        <span class="block text-[9px] font-mono uppercase tracking-widest text-gray-400 mt-2"><i class="bi bi-info-circle me-1"></i> Purchase orders are digitally dispatched to this address.</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Physical/Billing Address</label>
+                        <textarea name="address" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y" rows="3" maxlength="500" placeholder="Full street address and postal code...">@Model.Address</textarea>
+                    </div>
+
+                    @if (!isNew)
+                    {
+                        <div class="pt-4 border-t border-gray-100">
+                            <label class="flex items-center gap-3 cursor-pointer w-max">
+                                <input type="checkbox" name="isActive" value="true" class="w-4 h-4 text-[#10b981] border-gray-300 rounded focus:ring-[#10b981]" @(Model.IsActive ? "checked" : "") />
+                                <span class="font-serif font-bold text-sm text-gray-900">Vendor is active and authorized for procurement</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                @* Action Footer *@
+                <div class="bg-gray-50 border-t border-gray-100 p-5 flex justify-end items-center gap-4 relative z-10 flex-shrink-0">
+                    <a href="@Url.Action("Suppliers", "CafeteriaInventory")" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors shadow-sm text-decoration-none">
+                        Discard
+                    </a>
+                    <button type="submit" class="bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all shadow-sm">
+                        <i class="bi bi-save me-1.5"></i> @(isNew ? "Register Vendor" : "Update Profile")
+                    </button>
                 </div>
             </div>
-            <div style="margin-bottom:.75rem;">
-                <label>Email</label>
-                <input name="email" type="email" class="inv-input" maxlength="200" value="@Model.Email" />
-                <div class="inv-help">Purchase orders are emailed here when sent.</div>
-            </div>
-            <div style="margin-bottom:.75rem;">
-                <label>Address</label>
-                <textarea name="address" class="inv-input" rows="2" maxlength="500">@Model.Address</textarea>
-            </div>
-            @if (!isNew)
-            {
-                <label style="display:flex; gap:.4rem; align-items:center; font-weight:400; margin-bottom:.75rem;">
-                    <input type="checkbox" name="isActive" value="true" @(Model.IsActive ? "checked" : "") /> Active
-                </label>
-            }
-            <button class="btn btn-primary">Save supplier</button>
         </form>
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -19,202 +19,243 @@
         : Model.DietaryPreference;
 }
 
-<style>
-    .dp-shell {
-        max-width: 760px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .dp-header {
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .dp-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-        .dp-header p {
-            color: #6b7280;
-            font-size: .88rem;
-            margin: 0;
-        }
-
-    .dp-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.25rem 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-        .dp-card h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin: 0 0 .2rem 0;
-        }
-
-        .dp-card .dp-help {
-            color: #6b7280;
-            font-size: .8rem;
-            margin-bottom: .85rem;
-        }
-
-    .dp-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-        gap: .35rem 1rem;
-    }
-
-    .dp-other {
-        margin-top: .75rem;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="dp-shell">
-
-        <div class="dp-header">
-            <h1>My Dietary Profile</h1>
-            <p>
-                The cafeteria uses this to keep unsuitable meals out of your meal plan
-                and to warn kitchen staff when you collect a meal.
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Identity & Operations</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">My Dietary Profile</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0 leading-relaxed max-w-2xl">
+                The kitchen utilizes this profile to automatically filter unsuitable meal options from your planner and issue safety alerts during collection.
                 @if (Model.UpdatedAt.HasValue)
                 {
-                    <br /><span>Last updated @Model.UpdatedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm").</span>
+                    <span class="block mt-1 text-[#C21E2E] font-bold">Record Last Updated: @Model.UpdatedAt.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span>
                 }
             </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "StudentMealPlan")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Planner
+            </a>
+        </div>
+    </div>
 
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-32 pt-4 flex flex-col w-full">
 
         @if (!ViewData.ModelState.IsValid)
         {
-            @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
+            <div class="max-w-4xl mx-auto w-full bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm text-sm font-serif mb-6">
+                <div class="flex items-center mb-1">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please resolve the validation errors below:</strong>
+                </div>
+                @Html.ValidationSummary(false, "", new { @class = "text-xs font-mono mb-0 list-disc pl-5" })
+            </div>
         }
 
-        <form action="@Url.Action("Save", "DietaryProfile")" method="post">
+        @* --- DOSSIER FORM MODULE --- *@
+        <form action="@Url.Action("Save", "DietaryProfile")" method="post" class="max-w-4xl mx-auto w-full flex flex-col gap-8 m-0">
             @Html.AntiForgeryToken()
 
-            <!-- 1. PREFERENCE -->
-            <div class="dp-card">
-                <h2>Dietary preference</h2>
-                <div class="dp-help">A lifestyle or religious choice. Not an allergy or medical need.</div>
+            @* 1. PREFERENCE *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-person-hearts me-2 text-gray-400"></i> Section 01. Dietary Preference</h5>
+                </div>
 
-                @foreach (var option in DietaryProfileService.PreferenceOptions)
-                {
-                    var id = "pref_" + option.Code;
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="DietaryPreference"
-                               id="@id" value="@option.Code"
-                               @(string.Equals(preference, option.Code, System.StringComparison.OrdinalIgnoreCase) ? "checked" : "")
-                               data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "prefOtherBox" : "")" />
-                        <label class="form-check-label" for="@id">@option.Label</label>
+                <div class="p-8">
+                    <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest leading-relaxed mb-6 border-l-2 border-gray-300 pl-4 py-1">
+                        A lifestyle or religious choice. <strong class="text-gray-900">Do not</strong> use this section for allergies or medical restrictions.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach (var option in DietaryProfileService.PreferenceOptions)
+                        {
+                            var id = "pref_" + option.Code;
+                            var isChecked = string.Equals(preference, option.Code, System.StringComparison.OrdinalIgnoreCase);
+                            <label class="flex items-center p-4 border-2 transition-all duration-200 cursor-pointer @(isChecked ? "border-[#C21E2E] bg-red-50/20" : "border-gray-200 bg-white hover:border-gray-400")">
+                                <input type="radio" name="DietaryPreference" id="@id" value="@option.Code" class="w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E]"
+                                       @(isChecked ? "checked" : "")
+                                       data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "prefOtherBox" : "")" />
+                                <span class="ml-3 font-serif font-bold text-sm text-gray-900 select-none">@option.Label</span>
+                            </label>
+                        }
                     </div>
-                }
 
-                <div id="prefOtherBox" class="dp-other">
-                    <label class="form-label small" for="DietaryPreferenceOther">Describe your dietary preference</label>
-                    <input type="text" class="form-control" id="DietaryPreferenceOther" name="DietaryPreferenceOther"
-                           maxlength="200" value="@Model.DietaryPreferenceOther" />
+                    <div id="prefOtherBox" class="mt-6 pt-6 border-t border-gray-100" style="display:none;">
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2" for="DietaryPreferenceOther">Describe Custom Preference</label>
+                        <input type="text" id="DietaryPreferenceOther" name="DietaryPreferenceOther" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50" maxlength="200" value="@Model.DietaryPreferenceOther" placeholder="Details of your preference..." />
+                    </div>
                 </div>
             </div>
 
-            <!-- 2. ALLERGIES -->
-            <div class="dp-card">
-                <h2>Food allergies</h2>
-                <div class="dp-help">Foods that cause an allergic reaction. Meals containing these are removed from your options.</div>
-
-                <div class="dp-grid">
-                    @foreach (var option in DietaryProfileService.AllergyOptions)
-                    {
-                        var id = "allergy_" + option.Code.Replace(" ", "");
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="SelectedAllergies"
-                                   id="@id" value="@option.Code"
-                                   @(selectedAllergies.Contains(option.Code) ? "checked" : "")
-                                   data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "allergyOtherBox" : "")" />
-                            <label class="form-check-label" for="@id">@option.Label</label>
-                        </div>
-                    }
+            @* 2. ALLERGIES *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-shield-exclamation me-2 text-[#C21E2E]"></i> Section 02. Food Allergies</h5>
                 </div>
 
-                <div id="allergyOtherBox" class="dp-other">
-                    <label class="form-label small" for="OtherAllergies">Other allergies (separate with commas)</label>
-                    <input type="text" class="form-control" id="OtherAllergies" name="OtherAllergies"
-                           maxlength="300" value="@Model.OtherAllergies" placeholder="e.g. Kiwi, Mustard" />
-                </div>
-            </div>
+                <div class="p-8">
+                    <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest leading-relaxed mb-6 border-l-2 border-red-300 pl-4 py-1">
+                        Foods that cause an allergic reaction. The system automatically restricts meals containing these ingredients from your selection planner.
+                    </p>
 
-            <!-- 3. MEDICAL DIETARY RESTRICTIONS -->
-            <div class="dp-card">
-                <h2>Medical dietary restrictions</h2>
-                <div class="dp-help">
-                    Medically required limits on what you can eat. Only include conditions that affect food.
-                    Lactose, gluten and coeliac restrictions remove matching meals; others are shown to the Dietitian and kitchen.
-                </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        @foreach (var option in DietaryProfileService.AllergyOptions)
+                        {
+                            var id = "allergy_" + option.Code.Replace(" ", "");
+                            var isChecked = selectedAllergies.Contains(option.Code);
+                            <label class="flex items-center p-3 border transition-all duration-200 cursor-pointer @(isChecked ? "border-[#C21E2E] bg-red-50/10" : "border-gray-200 bg-white hover:bg-gray-50")">
+                                <input type="checkbox" name="SelectedAllergies" id="@id" value="@option.Code" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]"
+                                       @(isChecked ? "checked" : "")
+                                       data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "allergyOtherBox" : "")" />
+                                <span class="ml-3 font-serif font-bold text-sm text-gray-900 select-none">@option.Label</span>
+                            </label>
+                        }
+                    </div>
 
-                <div class="dp-grid">
-                    @foreach (var option in DietaryProfileService.MedicalRestrictionOptions)
-                    {
-                        var id = "medical_" + option.Code;
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="SelectedMedicalRestrictions"
-                                   id="@id" value="@option.Code"
-                                   @(selectedMedical.Contains(option.Code) ? "checked" : "")
-                                   data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "medicalOtherBox" : "")" />
-                            <label class="form-check-label" for="@id">@option.Label</label>
-                        </div>
-                    }
-                </div>
-
-                <div id="medicalOtherBox" class="dp-other">
-                    <label class="form-label small" for="MedicalRestrictionOther">Describe the medical dietary restriction</label>
-                    <input type="text" class="form-control" id="MedicalRestrictionOther" name="MedicalRestrictionOther"
-                           maxlength="200" value="@Model.MedicalRestrictionOther" />
+                    <div id="allergyOtherBox" class="mt-6 pt-6 border-t border-gray-100" style="display:none;">
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2" for="OtherAllergies">Other Allergies (Comma-Separated)</label>
+                        <input type="text" id="OtherAllergies" name="OtherAllergies" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50" maxlength="300" value="@Model.OtherAllergies" placeholder="e.g. Kiwi, Mustard" />
+                    </div>
                 </div>
             </div>
 
-            <!-- 4. NOTES -->
-            <div class="dp-card">
-                <h2>Additional dietary information</h2>
-                <div class="dp-help">Anything else the Dietitian or kitchen should know about what you eat.</div>
+            @* 3. MEDICAL RESTRICTIONS *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-hospital me-2 text-blue-400"></i> Section 03. Medical Restrictions</h5>
+                </div>
 
-                <textarea class="form-control" id="DietaryNotes" name="DietaryNotes" rows="3"
-                          maxlength="1000">@Model.DietaryNotes</textarea>
+                <div class="p-8">
+                    <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest leading-relaxed mb-6 border-l-2 border-blue-300 pl-4 py-1">
+                        Medically mandated limitations. <strong class="text-gray-900">Lactose, Gluten, and Coeliac restrictions strictly enforce meal filtering</strong>. Other conditions generate operational alerts for kitchen staff and the Dietitian.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach (var option in DietaryProfileService.MedicalRestrictionOptions)
+                        {
+                            var id = "medical_" + option.Code;
+                            var isChecked = selectedMedical.Contains(option.Code);
+                            <label class="flex items-center p-3 border transition-all duration-200 cursor-pointer @(isChecked ? "border-[#C21E2E] bg-red-50/10" : "border-gray-200 bg-white hover:bg-gray-50")">
+                                <input type="checkbox" name="SelectedMedicalRestrictions" id="@id" value="@option.Code" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]"
+                                       @(isChecked ? "checked" : "")
+                                       data-other-target="@(option.Code == DietaryProfileService.OtherCode ? "medicalOtherBox" : "")" />
+                                <span class="ml-3 font-serif font-bold text-sm text-gray-900 select-none">@option.Label</span>
+                            </label>
+                        }
+                    </div>
+
+                    <div id="medicalOtherBox" class="mt-6 pt-6 border-t border-gray-100" style="display:none;">
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2" for="MedicalRestrictionOther">Medical Condition Details</label>
+                        <input type="text" id="MedicalRestrictionOther" name="MedicalRestrictionOther" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50" maxlength="200" value="@Model.MedicalRestrictionOther" placeholder="Describe the medical dietary restriction..." />
+                    </div>
+                </div>
             </div>
 
-            <div class="d-flex justify-content-end gap-2">
-                <a href="@Url.Action("Index", "StudentMealPlan")" class="btn btn-outline-secondary">Back to My Meal Plan</a>
-                <button type="submit" class="btn btn-success">Save Dietary Profile</button>
+            @* 4. NOTES *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-journal-text me-2 text-gray-400"></i> Section 04. Ancillary Information</h5>
+                </div>
+
+                <div class="p-8">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-3" for="DietaryNotes">Additional Dietary Directives</label>
+                    <textarea id="DietaryNotes" name="DietaryNotes" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y shadow-inner" rows="4" maxlength="1000" placeholder="Anything else the Dietitian or culinary operations team should know regarding your consumption patterns...">@Model.DietaryNotes</textarea>
+                </div>
+
+                @* FORM ACTIONS *@
+                <div class="bg-gray-50 border-t border-gray-100 p-5 flex justify-end items-center gap-4 relative z-10">
+                    <a href="@Url.Action("Index", "StudentMealPlan")" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3.5 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors shadow-sm text-decoration-none">
+                        Discard Changes
+                    </a>
+                    <button type="submit" class="bg-[#10b981] border border-[#10b981] text-white px-8 py-3.5 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all shadow-sm">
+                        <i class="bi bi-save me-1.5 text-sm align-text-bottom"></i> Update Profile
+                    </button>
+                </div>
             </div>
+
         </form>
 
     </div>
 </div>
 
-<script>
-    // Show each "Other" text box only while its "Other" option is selected.
-    // The server still validates; this is only a convenience.
-    (function () {
-        var boxes = ["prefOtherBox", "allergyOtherBox", "medicalOtherBox"];
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-        function refresh() {
-            boxes.forEach(function (boxId) {
-                var trigger = document.querySelector('[data-other-target="' + boxId + '"]');
-                var box = document.getElementById(boxId);
-                if (trigger && box) {
-                    box.style.display = trigger.checked ? "block" : "none";
-                }
-            });
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
+</style>
 
-        document.querySelectorAll('input[name="DietaryPreference"], input[name="SelectedAllergies"], input[name="SelectedMedicalRestrictions"]')
-            .forEach(function (input) {
-                input.addEventListener("change", refresh);
-            });
+@section Scripts {
+    <script>
+        // Show each "Other" text box only while its "Other" option is selected.
+        // The server still validates; this is only a convenience UI toggle.
+        (function () {
+            var boxes = ["prefOtherBox", "allergyOtherBox", "medicalOtherBox"];
 
-        refresh();
-    })();
-</script>
+            function refresh() {
+                boxes.forEach(function (boxId) {
+                    var trigger = document.querySelector('[data-other-target="' + boxId + '"]');
+                    var box = document.getElementById(boxId);
+                    if (trigger && box) {
+                        box.style.display = trigger.checked ? "block" : "none";
+                    }
+                });
+
+                // Add styling for radio buttons
+                document.querySelectorAll('input[type="radio"][name="DietaryPreference"]').forEach(function (radio) {
+                    var parent = radio.closest('label');
+                    if (radio.checked) {
+                        parent.classList.add('border-[#C21E2E]', 'bg-red-50/20');
+                        parent.classList.remove('border-gray-200', 'bg-white');
+                    } else {
+                        parent.classList.remove('border-[#C21E2E]', 'bg-red-50/20');
+                        parent.classList.add('border-gray-200', 'bg-white');
+                    }
+                });
+
+                // Add styling for checkboxes
+                document.querySelectorAll('input[type="checkbox"][name="SelectedAllergies"], input[type="checkbox"][name="SelectedMedicalRestrictions"]').forEach(function (checkbox) {
+                    var parent = checkbox.closest('label');
+                    if (checkbox.checked) {
+                        parent.classList.add('border-[#C21E2E]', 'bg-red-50/10');
+                        parent.classList.remove('border-gray-200', 'bg-white');
+                    } else {
+                        parent.classList.remove('border-[#C21E2E]', 'bg-red-50/10');
+                        parent.classList.add('border-gray-200', 'bg-white');
+                    }
+                });
+            }
+
+            document.querySelectorAll('input[name="DietaryPreference"], input[name="SelectedAllergies"], input[name="SelectedMedicalRestrictions"]')
+                .forEach(function (input) {
+                    input.addEventListener("change", refresh);
+                });
+
+            refresh();
+        })();
+    </script>
+}

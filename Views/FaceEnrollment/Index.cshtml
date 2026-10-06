@@ -6,279 +6,268 @@
     string enrolledAt = ViewBag.EnrolledAt as string;
 }
 
-<style>
-    .fe-shell {
-        max-width: 700px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .fe-header {
-        text-align: center;
-        padding-bottom: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .fe-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .5rem 0;
-        }
-
-        .fe-header p {
-            color: #6b7280;
-            font-size: .88rem;
-            max-width: 480px;
-            margin: 0 auto;
-        }
-
-    .fe-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 2rem;
-        text-align: center;
-    }
-
-    .fe-video-wrap {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto 1rem auto;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #111;
-        position: relative;
-        aspect-ratio: 4/3;
-    }
-
-        .fe-video-wrap video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .fe-video-wrap .placeholder {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #6b7280;
-            font-size: .85rem;
-            text-align: center;
-            padding: 1rem;
-        }
-
-    .fe-actions {
-        display: flex;
-        justify-content: center;
-        gap: .75rem;
-        margin-top: 1rem;
-    }
-
-    .fe-status {
-        margin-top: 1rem;
-        font-size: .85rem;
-        padding: .65rem 1rem;
-        border-radius: 6px;
-        display: inline-block;
-    }
-
-        .fe-status.ok {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .fe-status.err {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .fe-status.info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-    .fe-info-box {
-        margin-top: 1.5rem;
-        padding: 1rem 1.25rem;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 8px;
-        font-size: .82rem;
-        color: #1e40af;
-        text-align: left;
-    }
-
-        .fe-info-box strong {
-            display: block;
-            margin-bottom: .35rem;
-        }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="fe-shell">
-
-        <div class="fe-header">
-            <h1>Face Enrollment</h1>
-            <p>
-                Enroll once so the cafeteria can verify you at meal collection.
-                Your photo is never stored — only a mathematical signature is kept.
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Student Identity & Operations</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Biometric Enrollment</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0 max-w-2xl leading-relaxed">
+                Enroll once to enable frictionless verification at the cafeteria collection terminal.
             </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "StudentMealPlan")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Planner
+            </a>
+        </div>
+    </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-20 pt-4 flex flex-col items-center w-full">
 
-    <div class="fe-card">
+        <div class="w-full max-w-3xl flex flex-col gap-6">
 
-        @if (isEnrolled)
-        {
-            <div class="fe-status ok">Already enrolled on @enrolledAt</div>
+            @* --- SYSTEM ALERTS --- *@
+            @if (TempData["Success"] != null)
+            {
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-700 shadow-sm flex items-center">
+                    <i class="bi bi-check-circle-fill me-3 text-xl"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Success"]</span>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
+                    <i class="bi bi-x-circle-fill me-3 text-xl"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">@TempData["Error"]</span>
+                </div>
+            }
 
-            <div class="fe-video-wrap" style="margin-top:1.5rem;">
-                <div class="placeholder">You are enrolled. Use "Re-enroll" below if you need to update your face signature.</div>
-            </div>
-
-            <div class="fe-actions">
-                <button type="button" class="btn btn-outline-primary" onclick="startCamera()">
-                    Re-enroll
-                </button>
-
-                <form action="@Url.Action("Revoke", "FaceEnrollment")" method="post" style="display:inline;">
-                    @Html.AntiForgeryToken()
-                    <button type="submit"
-                            class="btn btn-outline-danger"
-                            onclick="return confirm('Remove your face signature?');">
-                        Remove Enrollment
-                    </button>
-                </form>
-            </div>
-        }
-        else
-        {
-
-            @Html.AntiForgeryToken()
-
-            <div class="fe-video-wrap">
-                <video id="video" autoplay playsinline></video>
-                <div id="placeholder" class="placeholder">
-                    Click "Start Camera" to begin.
+            @* --- SECURITY COMPLIANCE NOTICE --- *@
+            <div class="bg-blue-50 border border-blue-200 p-5 shadow-xs flex gap-4">
+                <i class="bi bi-shield-lock-fill text-blue-500 text-3xl"></i>
+                <div>
+                    <h6 class="text-[10px] font-mono font-bold uppercase tracking-[3px] text-blue-900 mb-1">Privacy & Data Protection</h6>
+                    <p class="text-[11px] font-mono uppercase tracking-widest text-blue-800 leading-relaxed mb-0">
+                        Images are captured temporarily to generate a mathematical 128-point vector signature, then instantly discarded. The signature cannot be reverse-engineered into a photograph. You may revoke authorization at any time.
+                    </p>
                 </div>
             </div>
 
-            <div class="fe-actions">
-                <button type="button" id="startBtn" class="btn btn-primary" onclick="startCamera()">
-                    Start Camera
-                </button>
-                <button type="button" id="captureBtn" class="btn btn-success" style="display:none;" onclick="capturePhoto()">
-                    Capture &amp; Enroll
-                </button>
+            @* --- ENROLLMENT TERMINAL MODULE --- *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group w-full">
+                <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-camera-video me-2 text-[#C21E2E]"></i> Biometric Terminal</h5>
+                </div>
+
+                <div class="p-8 flex flex-col items-center">
+
+                    @if (isEnrolled)
+                    {
+                        <div class="w-full bg-green-50 border border-green-200 p-5 text-center mb-8 shadow-sm">
+                            <i class="bi bi-person-check-fill text-green-600 text-4xl block mb-2"></i>
+                            <h4 class="font-serif font-bold text-xl text-green-900 mb-1">Identity Signature Active</h4>
+                            <span class="text-[10px] font-mono uppercase tracking-widest text-green-700">Enrolled on @enrolledAt</span>
+                        </div>
+
+                        <div class="relative bg-[#111] aspect-[4/3] w-full max-w-lg rounded-sm overflow-hidden mb-8 shadow-inner border-2 border-gray-800 flex items-center justify-center p-6 text-center">
+                            <div class="text-[10px] font-mono uppercase tracking-widest text-gray-400 leading-relaxed">
+                                <i class="bi bi-webcam text-4xl block mb-3 text-gray-600"></i>
+                                You are currently enrolled. Select "Re-Enroll" below if you need to capture a new signature.
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
+                            <button type="button" class="flex-1 bg-[#1a1a1a] text-white px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm" onclick="startCamera()">
+                                <i class="bi bi-arrow-repeat me-1.5"></i> Re-Enroll
+                            </button>
+
+                            <form action="@Url.Action("Revoke", "FaceEnrollment")" method="post" class="flex-1 m-0 flex">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="w-full bg-white border-2 border-[#C21E2E] text-[#C21E2E] px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-all shadow-sm" onclick="return confirm('WARNING: Permanently revoke your biometric signature? You will need manual verification for meal collection.');">
+                                    <i class="bi bi-trash3 me-1.5"></i> Revoke
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="relative bg-black aspect-[4/3] w-full max-w-lg rounded-sm overflow-hidden mb-8 shadow-inner border-2 border-gray-800">
+                            <video id="video" autoplay playsinline class="w-full h-full object-cover block"></video>
+                            <div id="placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 font-mono text-xs uppercase tracking-widest text-center p-4 bg-gray-900/90 z-10">
+                                <div>
+                                    <i class="bi bi-person-bounding-box text-5xl block mb-3 text-gray-500"></i>
+                                    Click "Start Camera" to initialize optical feed.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
+                            <button type="button" id="startBtn" class="flex-1 bg-[#1a1a1a] text-white px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm" onclick="startCamera()">
+                                <i class="bi bi-power me-1.5"></i> Start Camera
+                            </button>
+                            <button type="button" id="captureBtn" class="flex-1 bg-[#10b981] border border-[#10b981] text-white px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 transition-all shadow-sm" style="display:none;" onclick="capturePhoto()">
+                                <i class="bi bi-camera me-1.5"></i> Capture & Enroll
+                            </button>
+                        </div>
+
+                        <div id="status" class="fe-status" style="display:none;"></div>
+                    }
+
+                </div>
             </div>
-            <div id="status" style="display:none;"></div>
 
-            <div id="status" style="display:none;"></div>
-        }
-
-        <div class="fe-info-box">
-            <strong>How your privacy is protected</strong>
-            We capture an image only long enough to produce a 128-number signature.
-            The photo is discarded immediately. The signature cannot be reverse-engineered
-            back into a picture. You can revoke it at any time with the button above.
         </div>
-    </div>
-
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Dynamic JS Classes */
+    .fe-status {
+        margin-top: 1.5rem;
+        width: 100%;
+        max-width: 32rem; /* max-w-lg */
+        padding: 1rem 1.5rem;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        text-align: center;
+        border-radius: 4px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+        .fe-status.ok {
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .fe-status.err {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .fe-status.info {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+</style>
+
 @section Scripts {
     <script>
-    var video = document.getElementById('video');
-    var placeholder = document.getElementById('placeholder');
-    var startBtn = document.getElementById('startBtn');
-    var captureBtn = document.getElementById('captureBtn');
-    var status = document.getElementById('status');
+        var video = document.getElementById('video');
+        var placeholder = document.getElementById('placeholder');
+        var startBtn = document.getElementById('startBtn');
+        var captureBtn = document.getElementById('captureBtn');
+        var statusEl = document.getElementById('status');
         var stream = null;
 
         function setStatus(msg, cls) {
-            var el = document.getElementById('status') || status;
+            var el = statusEl;
             if (!el) {
                 console.log('[FaceEnrollment] ' + msg);
                 return;
             }
             el.className = 'fe-status ' + (cls || 'info');
-            el.textContent = msg;
+            el.innerHTML = msg; // Allows icons if needed
             el.style.display = 'inline-block';
         }
-   
-    function startCamera() {
-        if (video == null) {
-            // Re-enroll path — reload the page and let the student start fresh
-            window.location.href = '@Url.Action("Index", "FaceEnrollment")';
-            return;
+
+        function startCamera() {
+            if (video == null) {
+                // Re-enroll path — reload the page and let the student start fresh
+                window.location.href = '@Url.Action("Index", "FaceEnrollment")';
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 } } })
+                .then(function (s) {
+                    stream = s;
+                    video.srcObject = s;
+                    if (placeholder) placeholder.style.display = 'none';
+                    if (startBtn) startBtn.style.display = 'none';
+                    if (captureBtn) captureBtn.style.display = 'inline-flex';
+                    setStatus('<i class="bi bi-info-circle me-1.5"></i> Camera ready. Position your face and click Capture.', 'info');
+                })
+                .catch(function (err) {
+                    setStatus('<i class="bi bi-exclamation-triangle me-1.5"></i> Camera error: ' + err.message, 'err');
+                });
         }
 
-        navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
-            .then(function (s) {
-                stream = s;
-                video.srcObject = s;
-                if (placeholder) placeholder.style.display = 'none';
-                if (startBtn) startBtn.style.display = 'none';
-                if (captureBtn) captureBtn.style.display = 'inline-block';
-                setStatus('Camera ready. Position your face and click Capture.', 'info');
+        function capturePhoto() {
+            if (!video || !video.videoWidth) {
+                setStatus('<i class="bi bi-exclamation-triangle me-1.5"></i> Camera not ready.', 'err');
+                return;
+            }
+
+            var canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+            setStatus('<i class="bi bi-hourglass-split me-1.5"></i> Generating signature & transmitting...', 'info');
+
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('@Url.Action("Capture", "FaceEnrollment")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(token)
+                    + '&imageBase64=' + encodeURIComponent(dataUrl)
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    setStatus('<i class="bi bi-check2-circle me-1.5"></i> Enrolled successfully. Redirecting...', 'ok');
+                    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+                    setTimeout(function () {
+                        window.location.href = '@Url.Action("Index", "FaceEnrollment")';
+                    }, 1000);
+                } else {
+                    setStatus('<i class="bi bi-exclamation-octagon me-1.5"></i> ' + (data.message || 'Enrollment failed.'), 'err');
+                }
             })
             .catch(function (err) {
-                setStatus('Camera error: ' + err.message, 'err');
+                setStatus('<i class="bi bi-hdd-network me-1.5"></i> Server error: ' + err.message, 'err');
             });
-    }
-
-    function capturePhoto() {
-        if (!video || !video.videoWidth) {
-            setStatus('Camera not ready.', 'err');
-            return;
         }
-
-        var canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-
-        var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-
-        setStatus('Sending to server…', 'info');
-
-        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-        fetch('@Url.Action("Capture", "FaceEnrollment")', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': token
-            },
-            body: '__RequestVerificationToken=' + encodeURIComponent(token)
-                + '&imageBase64=' + encodeURIComponent(dataUrl)
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            if (data.success) {
-                setStatus('Enrolled successfully. Redirecting…', 'ok');
-                if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-                setTimeout(function () {
-                    window.location.href = '@Url.Action("Index", "FaceEnrollment")';
-                }, 1000);
-            } else {
-                setStatus(data.message || 'Enrollment failed.', 'err');
-            }
-        })
-        .catch(function (err) {
-            setStatus('Server error: ' + err.message, 'err');
-        });
-    }
     </script>
 }

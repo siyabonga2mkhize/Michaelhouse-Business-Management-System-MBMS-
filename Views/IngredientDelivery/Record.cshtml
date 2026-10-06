@@ -11,111 +11,140 @@
     Func<decimal?, string> num = q => q.HasValue ? q.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "";
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<style>
-    .dl-line { border: 1px solid #e5e7eb; border-radius: 10px; padding: .85rem 1rem; margin-bottom: .75rem; background: #fff; }
-    .dl-line.unmatched { border-color: #fecaca; background: #fffafa; }
-    .dl-line.excluded { opacity: .75; }
-    .dl-invoice { font-size: .78rem; color: #6b7280; margin-bottom: .35rem; }
-    .dl-name { font-weight: 700; font-size: 1rem; }
-    .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .5rem; align-items: end; }
-    .dl-check { display: flex; gap: .45rem; align-items: center; font-size: .9rem; margin: .4rem 0 0 0; font-weight: 400 !important; }
-    .dl-check input { width: 20px; height: 20px; }
-    .dl-scan { border: 2px dashed #d1d5db; border-radius: 10px; padding: 1rem; text-align: center; background: #fafafa; }
-    .dl-order { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 0; border-bottom: 1px solid #f3f4f6; }
-    .dl-order:last-child { border-bottom: none; }
-    @@media (max-width: 640px) { .dl-grid { grid-template-columns: 1fr; } }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="inv-shell" style="max-width:820px;">
-
-        <div class="inv-header">
-            <div>
-                <h1>Record Delivery</h1>
-                <div class="inv-meta">
-                    @if (Model.PurchaseOrderId.HasValue)
-                    {
-                        <text>Order <strong>@Model.PoNumber</strong> · @Model.SupplierName</text>
-                    }
-                    else if (Model.NoOrder || Model.FromScan)
-                    {
-                        <text>Check every item before confirming. Stock only changes when you confirm.</text>
-                    }
-                    else
-                    {
-                        <text>Choose the purchase order the delivery is for, or scan the invoice.</text>
-                    }
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@Url.Action("Index", "IngredientDelivery")" class="btn btn-outline-secondary">← Deliveries</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Record Delivery</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                @if (Model.PurchaseOrderId.HasValue)
+                {
+                    <span class="text-[#C21E2E] font-bold">PO-@Model.PoNumber</span> <span class="mx-2 text-gray-300">|</span> @Model.SupplierName
+                }
+                else if (Model.NoOrder || Model.FromScan)
+                {
+                    <text>Check every item before confirming. Stock only updates upon final confirmation.</text>
+                }
+                else
+                {
+                    <text>Select pending purchase order, or scan invoice to begin.</text>
+                }
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "IngredientDelivery")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back to Deliveries
+            </a>
+        </div>
+    </div>
 
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-32 pt-2 flex flex-col gap-8 max-w-5xl mx-auto w-full">
+
+        @* --- SYSTEM ALERTS --- *@
         @if (!string.IsNullOrEmpty(formError))
         {
-            <div class="inv-note bad"><strong>Not recorded:</strong> @formError</div>
+            <div class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm flex items-center">
+                <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-[2px] block mb-0.5">Not Recorded</span>
+                    <span class="text-sm font-serif">@formError</span>
+                </div>
+            </div>
         }
         @foreach (var m in Model.Messages)
         {
-            <div class="inv-note info">@m</div>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-800 shadow-sm flex items-center">
+                <i class="bi bi-info-circle-fill me-3 text-xl"></i>
+                <span class="text-sm font-serif">@m</span>
+            </div>
         }
 
-        <!-- SCAN / UPLOAD INVOICE -->
+        @* --- SCAN / UPLOAD INVOICE MODULE --- *@
         @if (!Model.FromScan)
         {
-            <form method="post" action="@Url.Action("Scan", "IngredientDelivery")" enctype="multipart/form-data" class="inv-card dl-scan">
+            <form method="post" action="@Url.Action("Scan", "IngredientDelivery")" enctype="multipart/form-data" class="bg-gray-50 border-2 border-dashed border-gray-300 p-8 text-center flex flex-col items-center justify-center group hover:bg-gray-100 hover:border-[#C21E2E] transition-all">
                 @Html.AntiForgeryToken()
                 @if (Model.PurchaseOrderId.HasValue)
                 {
                     <input type="hidden" name="orderId" value="@Model.PurchaseOrderId" />
                 }
-                <div style="font-weight:700; margin-bottom:.35rem;">📷 Scan or upload the supplier's invoice</div>
-                <div class="inv-help" style="margin-bottom:.6rem;">
+                <i class="bi bi-upc-scan text-4xl text-gray-400 group-hover:text-[#C21E2E] transition-colors mb-3"></i>
+                <div class="font-serif font-bold text-lg text-gray-900 mb-2">Scan or Upload Supplier Invoice</div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-6 max-w-md">
                     @if (Model.ScanAvailable)
                     {
-                        <text>The items are read from the invoice and matched to ingredients for you to check. Nothing is saved until you confirm.</text>
+                        <text>Items are extracted via OCR and cross-referenced. Nothing is saved until final review.</text>
                     }
                     else
                     {
-                        <text>Invoice reading isn't set up on this server, but the invoice will still be attached to the delivery.</text>
+                        <text>OCR reading is offline, but the invoice document will be securely attached to this delivery record.</text>
                     }
                 </div>
-                <input type="file" name="invoice" accept="image/*,application/pdf" capture="environment" required class="inv-input" style="max-width:420px; margin:0 auto .6rem auto;" />
-                <button class="btn btn-primary">Read invoice</button>
+
+                <input type="file" name="invoice" accept="image/*,application/pdf" capture="environment" required class="block w-full max-w-md text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-[#1a1a1a] file:text-white hover:file:bg-black transition-all mb-6 bg-white border border-gray-200 p-2 cursor-pointer shadow-xs" />
+
+                <button type="submit" class="bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black transition-all shadow-sm">
+                    Read Invoice Document
+                </button>
             </form>
         }
 
+        @* --- ORDER SELECTION STATE --- *@
         @if (choosing)
         {
-            <!-- CHOOSE ORDER -->
-            <div class="inv-card">
-                <h2>Orders awaiting delivery</h2>
-                @if (Model.OpenOrders.Count == 0)
-                {
-                    <div class="inv-muted" style="font-size:.85rem;">No orders are waiting for a delivery.</div>
-                }
-                @foreach (var o in Model.OpenOrders)
-                {
-                    <div class="dl-order">
-                        <div>
-                            <strong>@o.PoNumber</strong> · @(o.Supplier != null ? o.Supplier.Name : "")
-                            <div class="inv-help">
-                                @string.Join(", ", o.Lines.Where(l => l.Outstanding > 0m).Select(l => l.Ingredient.Name + " " + Michaelhouse.Services.IngredientUnits.Format(l.Outstanding, l.Ingredient.Unit)))
-                            </div>
+            <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+                <div class="p-5 border-b border-gray-200 bg-[#1a1a1a] flex justify-between items-center text-white">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Select Pending Order</h5>
+                </div>
+
+                <div class="p-0">
+                    @if (Model.OpenOrders.Count == 0)
+                    {
+                        <div class="p-12 text-center text-muted font-mono text-xs uppercase tracking-widest text-gray-400">
+                            No orders are currently waiting for delivery.
                         </div>
-                        <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="btn btn-primary">Receive</a>
-                    </div>
-                }
-                <div style="margin-top:.75rem;">
-                    <a href="@Url.Action("Record", "IngredientDelivery", new { noOrder = true })" class="inv-help">Record a delivery that has no purchase order</a>
+                    }
+                    else
+                    {
+                        <div class="divide-y divide-gray-100">
+                            @foreach (var o in Model.OpenOrders)
+                            {
+                                <div class="p-5 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-gray-50 transition-colors">
+                                    <div>
+                                        <div class="font-serif font-bold text-lg text-gray-900 mb-1">
+                                            <span class="text-[#C21E2E] font-mono text-sm uppercase tracking-widest">@o.PoNumber</span> <span class="mx-2 text-gray-300">|</span> @(o.Supplier != null ? o.Supplier.Name : "Unknown Vendor")
+                                        </div>
+                                        <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 leading-relaxed">
+                                            <span class="font-bold text-gray-700">Awaiting:</span> @string.Join(", ", o.Lines.Where(l => l.Outstanding > 0m).Select(l => l.Ingredient.Name + " " + Michaelhouse.Services.IngredientUnits.Format(l.Outstanding, l.Ingredient.Unit)))
+                                        </div>
+                                    </div>
+                                    <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="inline-flex items-center justify-center bg-white border border-[#C21E2E] text-[#C21E2E] px-6 py-2.5 text-[9px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-colors shadow-xs text-decoration-none whitespace-nowrap">
+                                        Receive Order
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="p-4 bg-gray-50 border-t border-gray-200 text-center">
+                    <a href="@Url.Action("Record", "IngredientDelivery", new { noOrder = true })" class="text-[10px] font-bold uppercase tracking-[2px] text-gray-500 hover:text-gray-900 transition-colors text-decoration-none">
+                        Record an unscheduled delivery (No PO)
+                    </a>
                 </div>
             </div>
         }
         else
         {
-            <!-- REVIEW + CONFIRM -->
-            <form method="post" action="@Url.Action("Record", "IngredientDelivery")" class="inv-form" id="deliveryForm">
+            @* --- REVIEW + CONFIRM FORM --- *@
+            <form method="post" action="@Url.Action("Record", "IngredientDelivery")" id="deliveryForm" class="flex flex-col gap-8 m-0">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Token" value="@Model.Token" />
                 <input type="hidden" name="PurchaseOrderId" value="@Model.PurchaseOrderId" />
@@ -123,61 +152,80 @@
                 <input type="hidden" name="InvoiceFileName" value="@Model.InvoiceFileName" />
                 <input type="hidden" name="LineCount" id="lineCount" value="@Model.Lines.Count" />
 
-                <div class="inv-card">
-                    @if (!Model.PurchaseOrderId.HasValue)
-                    {
-                        <div class="inv-note warn">
-                            No purchase order is linked.
-                            @if (Model.OpenOrders.Count > 0)
-                            {
-                                <text>If this delivery is for an order, <a href="@Url.Action("Record", "IngredientDelivery")">choose it first</a>.</text>
-                            }
-                        </div>
-                        <div class="inv-row">
-                            <div>
-                                <label>Supplier *</label>
-                                <select name="SupplierId" class="inv-input" required>
-                                    <option value="">— Choose —</option>
-                                    @foreach (var s in suppliers)
-                                    {
-                                        <option value="@s.SupplierId" @(s.SupplierId == Model.SupplierId ? "selected" : "")>@s.Name</option>
-                                    }
-                                </select>
-                                @if (!string.IsNullOrEmpty(Model.DetectedSupplier))
+                @* Delivery Metadata Module *@
+                <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden group">
+                    <div class="p-4 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center text-white">
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold mb-0">Delivery Metadata</h5>
+                    </div>
+
+                    <div class="p-6 flex flex-col gap-6">
+                        @if (!Model.PurchaseOrderId.HasValue)
+                        {
+                            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 text-xs font-mono text-amber-900 uppercase tracking-widest shadow-sm">
+                                <i class="bi bi-exclamation-triangle me-2"></i> No purchase order is linked.
+                                @if (Model.OpenOrders.Count > 0)
                                 {
-                                    <div class="inv-help">Invoice says: @Model.DetectedSupplier</div>
+                                    <span class="block mt-1 font-bold text-amber-700">If this delivery resolves an open PO, <a href="@Url.Action("Record", "IngredientDelivery")" class="underline hover:text-amber-900">select it first</a>.</span>
                                 }
                             </div>
-                        </div>
-                        <label class="dl-check"><input type="checkbox" name="NoOrderConfirmed" value="true" required /> I confirm this delivery has no purchase order</label>
-                    }
 
-                    <div class="inv-row" style="margin-top:.75rem;">
-                        <div>
-                            <label>Invoice number</label>
-                            <input name="InvoiceNumber" class="inv-input" maxlength="60" value="@Model.InvoiceNumber" />
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Vendor Origin *</label>
+                                    <select name="SupplierId" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-lg text-gray-900 transition-colors bg-transparent" required>
+                                        <option value="">— Select Vendor —</option>
+                                        @foreach (var s in suppliers)
+                                        {
+                                            <option value="@s.SupplierId" @(s.SupplierId == Model.SupplierId ? "selected" : "")>@s.Name</option>
+                                        }
+                                    </select>
+                                    @if (!string.IsNullOrEmpty(Model.DetectedSupplier))
+                                    {
+                                        <span class="block text-[9px] font-mono text-blue-600 uppercase tracking-widest mt-2"><i class="bi bi-upc-scan me-1"></i> Scan detected: @Model.DetectedSupplier</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <label class="flex items-center gap-3 cursor-pointer mt-2 bg-gray-50 p-3 border border-gray-200">
+                                <input type="checkbox" name="NoOrderConfirmed" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E]" required />
+                                <span class="font-serif font-bold text-sm text-gray-900">I formally authorize this delivery without a prior Purchase Order</span>
+                            </label>
+                        }
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Invoice Number</label>
+                                <input name="InvoiceNumber" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" maxlength="60" value="@Model.InvoiceNumber" placeholder="e.g. INV-2026-991" />
+                            </div>
+                            <div>
+                                <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Invoice Date</label>
+                                <input type="date" name="InvoiceDate" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent" value="@(Model.InvoiceDate.HasValue ? Model.InvoiceDate.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
                         </div>
-                        <div>
-                            <label>Invoice date</label>
-                            <input type="date" name="InvoiceDate" class="inv-input" value="@(Model.InvoiceDate.HasValue ? Model.InvoiceDate.Value.ToString("yyyy-MM-dd") : "")" />
-                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.InvoiceFileName))
+                        {
+                            <div class="bg-gray-50 p-3 border border-gray-200 text-[10px] font-mono uppercase tracking-widest text-gray-600">
+                                <i class="bi bi-paperclip me-2 text-gray-400"></i> Invoice Document Attached: <strong class="text-gray-900">@Model.InvoiceFileName</strong>
+                            </div>
+                        }
                     </div>
-                    @if (!string.IsNullOrEmpty(Model.InvoiceFileName))
-                    {
-                        <div class="inv-help">📎 Invoice attached: @Model.InvoiceFileName</div>
-                    }
                 </div>
 
-                <h2 style="font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6b7280;">Items received</h2>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xs font-mono font-bold uppercase tracking-[4px] text-gray-500 mb-0">Items Manifest</h2>
+                    <div class="flex-grow h-px bg-gray-200"></div>
+                </div>
 
-                <div id="lines">
+                @* Received Items Ledger *@
+                <div id="lines" class="flex flex-col gap-4">
                     @for (int n = 0; n < Model.Lines.Count; n++)
                     {
                         var l = Model.Lines[n];
                         string p = "Lines[" + n + "].";
                         bool linked = l.PurchaseOrderLineId.HasValue;
 
-                        <div class="dl-line @(l.Matched ? "" : "unmatched") @(l.Include ? "" : "excluded")">
+                        <div class="dl-line bg-white border-2 transition-all duration-200 p-5 shadow-xs @(l.Matched ? "border-gray-200" : "border-red-300 bg-red-50/10") @(l.Include ? "" : "excluded")">
                             <input type="hidden" name="@(p)PurchaseOrderLineId" value="@l.PurchaseOrderLineId" />
                             <input type="hidden" name="@(p)InvoiceDescription" value="@l.InvoiceDescription" />
                             <input type="hidden" name="@(p)InvoiceQuantity" value="@num(l.InvoiceQuantity)" />
@@ -185,102 +233,161 @@
                             <input type="hidden" name="@(p)MatchMessage" value="@l.MatchMessage" />
                             <input type="hidden" name="@(p)UnitMessage" value="@l.UnitMessage" />
 
-                            @if (!string.IsNullOrEmpty(l.InvoiceDescription))
-                            {
-                                <div class="dl-invoice">Invoice: <strong>@l.InvoiceDescription</strong> — detected @num(l.InvoiceQuantity) @l.InvoiceUnit</div>
-                            }
-                            @if (!string.IsNullOrEmpty(l.MatchMessage))
-                            {
-                                <div class="inv-note @(l.Matched ? "ok" : "bad")" style="padding:.3rem .6rem; font-size:.8rem;">@l.MatchMessage</div>
-                            }
-                            @if (!string.IsNullOrEmpty(l.UnitMessage))
-                            {
-                                <div class="inv-note warn" style="padding:.3rem .6rem; font-size:.8rem;">@l.UnitMessage</div>
-                            }
-
-                            @if (linked)
-                            {
-                                <input type="hidden" name="@(p)IngredientId" value="@l.IngredientId" />
-                                <div class="dl-name">@l.IngredientName</div>
-                                <div class="inv-help">Ordered @num(l.Ordered) @l.DisplayUnit · outstanding <strong>@num(l.Outstanding) @l.DisplayUnit</strong></div>
-                            }
-                            else
-                            {
-                                <label>Matched ingredient</label>
-                                <select name="@(p)IngredientId" class="inv-input">
-                                    <option value="">— Choose the ingredient —</option>
-                                    @foreach (var opt in Model.IngredientOptions)
+                            <div class="flex flex-col md:flex-row gap-6 mb-4">
+                                <div class="flex-grow flex flex-col gap-3">
+                                    @if (!string.IsNullOrEmpty(l.InvoiceDescription))
                                     {
-                                        <option value="@opt.Id" data-unit="@opt.DisplayUnit" @(l.IngredientId == opt.Id ? "selected" : "")>@opt.Name (@opt.DisplayUnit)</option>
+                                        <div class="bg-gray-100 border-l-4 border-gray-400 p-2 text-[9px] font-mono uppercase tracking-widest text-gray-600">
+                                            Invoice OCR: <strong class="text-gray-900">@l.InvoiceDescription</strong> — Detected <strong class="text-gray-900">@num(l.InvoiceQuantity) @l.InvoiceUnit</strong>
+                                        </div>
                                     }
-                                </select>
-                            }
 
-                            <div class="dl-grid">
-                                <div>
-                                    <label>Quantity received @(l.DisplayUnit != null ? "(" + l.DisplayUnit + ")" : "(kg / L)")</label>
-                                    <input name="@(p)Quantity" class="inv-input" inputmode="decimal" value="@num(l.Quantity)" />
+                                    @if (!string.IsNullOrEmpty(l.MatchMessage))
+                                    {
+                                        <div class="text-[9px] font-mono font-bold uppercase tracking-widest @(l.Matched ? "text-green-700" : "text-[#C21E2E]")">
+                                            <i class="bi @(l.Matched ? "bi-check2-circle" : "bi-exclamation-triangle") me-1"></i> @l.MatchMessage
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(l.UnitMessage))
+                                    {
+                                        <div class="text-[9px] font-mono font-bold uppercase tracking-widest text-amber-700">
+                                            <i class="bi bi-info-circle me-1"></i> @l.UnitMessage
+                                        </div>
+                                    }
+
+                                    @if (linked)
+                                    {
+                                        <input type="hidden" name="@(p)IngredientId" value="@l.IngredientId" />
+                                        <div class="font-serif font-bold text-lg text-gray-900">@l.IngredientName</div>
+                                        <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                                            Ordered @num(l.Ordered) @l.DisplayUnit <span class="mx-2">|</span> Outstanding: <strong class="text-[#C21E2E] text-xs">@num(l.Outstanding) @l.DisplayUnit</strong>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>
+                                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Matched Asset</label>
+                                            <select name="@(p)IngredientId" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-white">
+                                                <option value="">— Select Target Ingredient —</option>
+                                                @foreach (var opt in Model.IngredientOptions)
+                                                {
+                                                    <option value="@opt.Id" data-unit="@opt.DisplayUnit" @(l.IngredientId == opt.Id ? "selected" : "")>@opt.Name (@opt.DisplayUnit)</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    }
                                 </div>
-                                <div>
-                                    <label class="dl-check"><input type="checkbox" name="@(p)Include" value="true" @(l.Include ? "checked" : "") /> Received — record this item</label>
+
+                                <div class="w-full md:w-48 flex-shrink-0 flex flex-col gap-4">
+                                    <div>
+                                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Quantity @(l.DisplayUnit != null ? "(" + l.DisplayUnit + ")" : "(kg / L)")</label>
+                                        <input name="@(p)Quantity" class="w-full border-2 border-gray-300 py-2 px-3 outline-none focus:border-[#C21E2E] font-mono text-base font-bold text-gray-900 bg-white text-right" inputmode="decimal" value="@num(l.Quantity)" />
+                                    </div>
                                 </div>
                             </div>
 
-                            @if (!linked && Model.PurchaseOrderId.HasValue)
-                            {
-                                <label class="dl-check"><input type="checkbox" name="@(p)NotOnOrderConfirmed" value="true" @(l.NotOnOrderConfirmed ? "checked" : "") /> Not on the order — I confirm it was delivered</label>
-                            }
-                            <details @(l.AcceptExtra ? "open" : "")>
-                                <summary class="inv-help" style="cursor:pointer;">More than ordered?</summary>
-                                <label class="dl-check"><input type="checkbox" name="@(p)AcceptExtra" value="true" @(l.AcceptExtra ? "checked" : "") /> Accept the extra</label>
-                                <input name="@(p)Note" class="inv-input" maxlength="300" placeholder="Note (required to accept extra)" value="@l.Note" style="margin-top:.35rem;" />
-                            </details>
+                            <div class="flex flex-col gap-2 pt-3 border-t border-gray-100">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" name="@(p)Include" value="true" class="w-4 h-4 text-[#10b981] border-gray-300 rounded focus:ring-[#10b981]" @(l.Include ? "checked" : "") />
+                                    <span class="font-serif font-bold text-sm text-gray-900">Include — Record this item to stock</span>
+                                </label>
+
+                                @if (!linked && Model.PurchaseOrderId.HasValue)
+                                {
+                                    <label class="flex items-center gap-3 cursor-pointer pl-7">
+                                        <input type="checkbox" name="@(p)NotOnOrderConfirmed" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(l.NotOnOrderConfirmed ? "checked" : "") />
+                                        <span class="font-serif text-xs text-gray-700">Authorize un-ordered delivery</span>
+                                    </label>
+                                }
+
+                                <details class="group mt-1 pl-7" @(l.AcceptExtra ? "open" : "")>
+                                    <summary class="cursor-pointer text-[9px] font-bold uppercase tracking-widest text-amber-700 hover:text-amber-900 transition-colors list-none flex items-center select-none">
+                                        <i class="bi bi-chevron-right group-open:rotate-90 transition-transform me-1.5 text-[8px]"></i> Volume exceeds order limit?
+                                    </summary>
+                                    <div class="mt-3 bg-amber-50/50 p-3 border border-amber-100 flex flex-col gap-3">
+                                        <label class="flex items-center gap-3 cursor-pointer">
+                                            <input type="checkbox" name="@(p)AcceptExtra" value="true" class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500" @(l.AcceptExtra ? "checked" : "") />
+                                            <span class="font-serif text-xs font-bold text-gray-800">Accept overage delivery</span>
+                                        </label>
+                                        <input name="@(p)Note" class="w-full border-b border-gray-300 py-1.5 outline-none focus:border-amber-600 font-serif text-xs bg-transparent" maxlength="300" placeholder="Required justification for overage..." value="@l.Note" />
+                                    </div>
+                                </details>
+                            </div>
                         </div>
                     }
                 </div>
 
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="addLine" style="margin-bottom:1rem;">+ Add an item</button>
+                <button type="button" id="addLine" class="w-full border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 py-4 font-bold text-[10px] uppercase tracking-[3px] transition-colors">
+                    <i class="bi bi-plus-lg me-1"></i> Add Manual Item Line
+                </button>
 
-                <div class="inv-card">
-                    <label>Notes</label>
-                    <textarea name="Notes" class="inv-input" rows="2" maxlength="1000">@Model.Notes</textarea>
+                <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden p-6 mt-4">
+                    <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Delivery Notes</label>
+                    <textarea name="Notes" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-gray-50/50 resize-y" rows="2" maxlength="1000" placeholder="Optional comments regarding the shipment condition...">@Model.Notes</textarea>
                 </div>
 
-                <div class="inv-actions" style="margin-bottom:2rem;">
-                    <button type="submit" class="btn btn-primary btn-lg">Confirm delivery &amp; update stock</button>
-                    <span class="inv-help">Only items ticked "Received" are recorded.</span>
+                @* Sticky Footer *@
+                <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4 md:px-8 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex flex-col md:flex-row justify-between items-center gap-4 transition-all">
+                    <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                        <i class="bi bi-info-circle me-1"></i> Only items ticked <strong class="text-gray-900">Include</strong> are recorded to inventory.
+                    </div>
+
+                    <button type="submit" class="w-full md:w-auto bg-[#10b981] border-2 border-[#10b981] text-white px-10 py-3.5 text-[11px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:border-green-600 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all shadow-sm">
+                        Confirm Delivery & Update Stock
+                    </button>
                 </div>
             </form>
 
+            @* Client Side Template for Add Item *@
             <template id="lineTemplate">
-                <div class="dl-line unmatched">
+                <div class="dl-line bg-white border-2 border-red-300 bg-red-50/10 transition-all duration-200 p-5 shadow-xs">
                     <input type="hidden" data-name="PurchaseOrderLineId" value="" />
-                    <label>Ingredient</label>
-                    <select data-name="IngredientId" class="inv-input">
-                        <option value="">— Choose the ingredient —</option>
-                        @foreach (var opt in Model.IngredientOptions)
-                        {
-                            <option value="@opt.Id">@opt.Name (@opt.DisplayUnit)</option>
-                        }
-                    </select>
-                    <div class="dl-grid">
-                        <div>
-                            <label>Quantity received (kg / L)</label>
-                            <input data-name="Quantity" class="inv-input" inputmode="decimal" />
+
+                    <div class="flex flex-col md:flex-row gap-6 mb-4">
+                        <div class="flex-grow">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Ingredient Asset</label>
+                            <select data-name="IngredientId" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-white">
+                                <option value="">— Select Target Ingredient —</option>
+                                @foreach (var opt in Model.IngredientOptions)
+                                {
+                                    <option value="@opt.Id">@opt.Name (@opt.DisplayUnit)</option>
+                                }
+                            </select>
                         </div>
-                        <div>
-                            <label class="dl-check"><input type="checkbox" data-name="Include" value="true" checked /> Received — record this item</label>
+                        <div class="w-full md:w-48 flex-shrink-0">
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Quantity received (kg / L)</label>
+                            <input data-name="Quantity" class="w-full border-2 border-gray-300 py-2 px-3 outline-none focus:border-[#C21E2E] font-mono text-base font-bold text-gray-900 bg-white text-right" inputmode="decimal" />
                         </div>
                     </div>
-                    @if (Model.PurchaseOrderId.HasValue)
-                    {
-                        <label class="dl-check"><input type="checkbox" data-name="NotOnOrderConfirmed" value="true" /> Not on the order — I confirm it was delivered</label>
-                    }
-                    <details>
-                        <summary class="inv-help" style="cursor:pointer;">More than ordered?</summary>
-                        <label class="dl-check"><input type="checkbox" data-name="AcceptExtra" value="true" /> Accept the extra</label>
-                        <input data-name="Note" class="inv-input" maxlength="300" placeholder="Note (required to accept extra)" style="margin-top:.35rem;" />
-                    </details>
+
+                    <div class="flex flex-col gap-2 pt-3 border-t border-gray-100">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" data-name="Include" value="true" checked class="w-4 h-4 text-[#10b981] border-gray-300 rounded focus:ring-[#10b981]" />
+                            <span class="font-serif font-bold text-sm text-gray-900">Include — Record this item to stock</span>
+                        </label>
+
+                        @if (Model.PurchaseOrderId.HasValue)
+                        {
+                            <label class="flex items-center gap-3 cursor-pointer pl-7">
+                                <input type="checkbox" data-name="NotOnOrderConfirmed" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" />
+                                <span class="font-serif text-xs text-gray-700">Authorize un-ordered delivery</span>
+                            </label>
+                        }
+
+                        <details class="group mt-1 pl-7">
+                            <summary class="cursor-pointer text-[9px] font-bold uppercase tracking-widest text-amber-700 hover:text-amber-900 transition-colors list-none flex items-center select-none">
+                                <i class="bi bi-chevron-right group-open:rotate-90 transition-transform me-1.5 text-[8px]"></i> More than ordered?
+                            </summary>
+                            <div class="mt-3 bg-amber-50/50 p-3 border border-amber-100 flex flex-col gap-3">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" data-name="AcceptExtra" value="true" class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500" />
+                                    <span class="font-serif text-xs font-bold text-gray-800">Accept overage delivery</span>
+                                </label>
+                                <input data-name="Note" class="w-full border-b border-gray-300 py-1.5 outline-none focus:border-amber-600 font-serif text-xs bg-transparent" maxlength="300" placeholder="Required justification for overage..." />
+                            </div>
+                        </details>
+                    </div>
                 </div>
             </template>
         }
@@ -288,33 +395,62 @@
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Retained logic class for JS */
+    .dl-line.excluded {
+        opacity: 0.5;
+        background-color: #f9fafb !important;
+    }
+</style>
+
 @section Scripts {
     <script>
-    (function () {
-        var add = document.getElementById('addLine');
-        if (!add) return;
+        (function () {
+            var add = document.getElementById('addLine');
+            if (!add) return;
 
-        var counter = document.getElementById('lineCount');
-        var lines = document.getElementById('lines');
-        var template = document.getElementById('lineTemplate');
+            var counter = document.getElementById('lineCount');
+            var lines = document.getElementById('lines');
+            var template = document.getElementById('lineTemplate');
 
-        add.addEventListener('click', function () {
-            var n = parseInt(counter.value, 10) || 0;
-            var node = template.content.firstElementChild.cloneNode(true);
-            node.querySelectorAll('[data-name]').forEach(function (el) {
-                el.name = 'Lines[' + n + '].' + el.getAttribute('data-name');
+            add.addEventListener('click', function () {
+                var n = parseInt(counter.value, 10) || 0;
+                var node = template.content.firstElementChild.cloneNode(true);
+                node.querySelectorAll('[data-name]').forEach(function (el) {
+                    el.name = 'Lines[' + n + '].' + el.getAttribute('data-name');
+                });
+                lines.appendChild(node);
+                counter.value = n + 1;
+                node.querySelector('select').focus();
             });
-            lines.appendChild(node);
-            counter.value = n + 1;
-            node.querySelector('select').focus();
-        });
 
-        // Dim lines that won't be recorded
-        lines.addEventListener('change', function (e) {
-            if (e.target.name && /\.Include$/.test(e.target.name)) {
-                e.target.closest('.dl-line').classList.toggle('excluded', !e.target.checked);
-            }
-        });
-    })();
+            // Dim lines that won't be recorded
+            lines.addEventListener('change', function (e) {
+                if (e.target.name && /\.Include$/.test(e.target.name)) {
+                    e.target.closest('.dl-line').classList.toggle('excluded', !e.target.checked);
+                }
+            });
+        })();
     </script>
 }

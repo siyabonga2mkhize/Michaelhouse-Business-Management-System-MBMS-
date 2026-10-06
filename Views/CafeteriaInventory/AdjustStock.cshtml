@@ -15,115 +15,196 @@
     bool farmDefault = Model.External <= 0m && Model.Farm > 0m;
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell" style="max-width:760px;">
-
-        <div class="inv-header">
-            <div>
-                <h1>Adjust stock</h1>
-                <div class="inv-meta">@ing.Name · measured in @unit</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-outline-secondary">← @ing.Name</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Adjust Stock</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                <strong class="text-[#C21E2E] font-bold">@ing.Name</strong> <span class="mx-1 text-gray-300">|</span> Measured in @unit
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Asset
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8 w-full">
+
+        @* --- TELEMETRY STATS --- *@
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-truck absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Bought-In</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.External, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-tree absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-2">Farm</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.Farm, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-[#1a1a1a] shadow-sm p-6 relative overflow-hidden group">
+                <i class="bi bi-box-seam absolute -right-4 -bottom-4 text-7xl text-gray-800 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-2">Total Available</h6>
+                    <h3 class="font-mono text-3xl font-bold text-white mb-0">@IngredientUnits.Format(Model.Available, ing.Unit)</h3>
+                </div>
+            </div>
         </div>
 
-        <div class="inv-stats">
-            <div class="inv-stat"><div class="label">Bought-in</div><div class="value">@IngredientUnits.Format(Model.External, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">Farm</div><div class="value">@IngredientUnits.Format(Model.Farm, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">Total available</div><div class="value">@IngredientUnits.Format(Model.Available, ing.Unit)</div></div>
-        </div>
-
-        <form class="inv-card inv-form" method="post" action="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" id="adjustForm">
+        @* --- ADJUSTMENT FORM MODULE --- *@
+        <form method="post" action="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" id="adjustForm" class="m-0">
             @Html.AntiForgeryToken()
 
-            <div class="inv-row" style="margin-bottom:.75rem;">
-                <div>
-                    <label>Stock</label>
-                    <select name="source" id="source" class="inv-input">
-                        <option value="External" data-current="@shown(Model.External)" @(farmDefault ? "" : "selected")>Bought-in (@IngredientUnits.Format(Model.External, ing.Unit))</option>
-                        <option value="Farm" data-current="@shown(Model.Farm)" @(farmDefault ? "selected" : "")>Farm (@IngredientUnits.Format(Model.Farm, ing.Unit))</option>
-                    </select>
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+
+                @* Module Header *@
+                <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-sliders me-2 text-gray-500"></i> Stock Correction Protocol</h5>
                 </div>
-                <div>
-                    <label>Reason</label>
-                    <select name="reason" id="reason" class="inv-input" required>
-                        <option value="">— Choose —</option>
-                        @foreach (StockAdjustmentReason r in Enum.GetValues(typeof(StockAdjustmentReason)))
-                        {
-                            <option value="@r">@IngredientInventoryService.ReasonLabel(r)</option>
-                        }
-                    </select>
+
+                <div class="p-8 flex flex-col gap-8 relative z-10">
+
+                    @* Config Row *@
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Asset Source</label>
+                            <select name="source" id="source" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent cursor-pointer">
+                                <option value="External" data-current="@shown(Model.External)" @(farmDefault ? "" : "selected")>Bought-in (@IngredientUnits.Format(Model.External, ing.Unit))</option>
+                                <option value="Farm" data-current="@shown(Model.Farm)" @(farmDefault ? "selected" : "")>Farm (@IngredientUnits.Format(Model.Farm, ing.Unit))</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Reason Code *</label>
+                            <select name="reason" id="reason" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent cursor-pointer" required>
+                                <option value="">— Choose —</option>
+                                @foreach (StockAdjustmentReason r in Enum.GetValues(typeof(StockAdjustmentReason)))
+                                {
+                                    <option value="@r">@IngredientInventoryService.ReasonLabel(r)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    @* Mode Toggle *@
+                    <div class="flex gap-6 border-y border-gray-100 py-5">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="mode" value="change" class="w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E]" checked />
+                            <span class="font-serif font-bold text-sm text-gray-900">Add or remove an amount</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="mode" value="count" class="w-4 h-4 text-[#C21E2E] border-gray-300 focus:ring-[#C21E2E]" />
+                            <span class="font-serif font-bold text-sm text-gray-900">Enter what was counted</span>
+                        </label>
+                    </div>
+
+                    @* Value Input Rows *@
+                    <div id="changeFields" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Adjustment Vector</label>
+                            <select name="direction" id="direction" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm font-bold text-gray-900 transition-colors bg-transparent cursor-pointer">
+                                <option value="remove">Remove (−)</option>
+                                <option value="add">Add (+)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Quantity (@unit)</label>
+                            <input name="quantity" id="quantity" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-lg font-bold text-gray-900 transition-colors bg-transparent" inputmode="decimal" placeholder="e.g. 10" />
+                        </div>
+                    </div>
+
+                    <div id="countFields" style="display:none;" class="w-full md:w-1/2">
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Counted Quantity (@unit)</label>
+                        <input name="countedQuantity" id="counted" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-lg font-bold text-gray-900 transition-colors bg-transparent" inputmode="decimal" placeholder="What is physically there" />
+                        <span class="block text-[9px] font-mono uppercase tracking-widest text-gray-400 mt-2">The difference from the recorded stock is the adjustment.</span>
+                    </div>
+
+                    @* Notes Row *@
+                    <div>
+                        <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2">Notes <span class="text-gray-400 lowercase font-serif italic ml-1" id="notesHint">(optional)</span></label>
+                        <input name="notes" id="notes" class="w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent" maxlength="400" placeholder="e.g. Freezer failure overnight" />
+                    </div>
+
+                    @* Dynamic Preview *@
+                    <div class="mt-2">
+                        <div id="preview" class="bg-blue-50 border-l-4 border-blue-500 p-4 text-xs font-mono text-blue-900 uppercase tracking-widest shadow-sm flex items-center justify-between">
+                            <span>Current <strong class="font-bold text-sm mx-1" id="pvCurrent">—</strong> @unit</span>
+                            <i class="bi bi-arrow-right text-blue-300"></i>
+                            <span>Adjustment <strong class="font-bold text-sm mx-1" id="pvChange">—</strong> @unit</span>
+                            <i class="bi bi-arrow-right text-blue-300"></i>
+                            <span>New <strong class="font-bold text-base mx-1" id="pvNew">—</strong> @unit</span>
+                        </div>
+
+                        <div id="pvError" style="display:none;" class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-xs font-mono text-red-900 uppercase tracking-widest shadow-sm mt-4 font-bold">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> Adjustment would result in negative stock.
+                        </div>
+                    </div>
+                </div>
+
+                @* Action Footer *@
+                <div class="bg-gray-50 border-t border-gray-100 p-5 flex justify-end items-center gap-4 relative z-10 flex-shrink-0">
+                    <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors shadow-sm text-decoration-none">
+                        Cancel
+                    </a>
+                    <button type="submit" id="confirmBtn" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="bi bi-check2-circle me-1"></i> Confirm Adjustment
+                    </button>
                 </div>
             </div>
-
-            <div style="margin-bottom:.75rem;">
-                <label style="display:inline-flex; gap:.35rem; align-items:center; font-weight:400; margin-right:1.25rem;">
-                    <input type="radio" name="mode" value="change" checked /> Add or remove an amount
-                </label>
-                <label style="display:inline-flex; gap:.35rem; align-items:center; font-weight:400;">
-                    <input type="radio" name="mode" value="count" /> Enter what was counted
-                </label>
-            </div>
-
-            <div class="inv-row" id="changeFields" style="margin-bottom:.75rem;">
-                <div>
-                    <label>Adjustment</label>
-                    <select name="direction" id="direction" class="inv-input">
-                        <option value="remove">Remove (−)</option>
-                        <option value="add">Add (+)</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Quantity (@unit)</label>
-                    <input name="quantity" id="quantity" class="inv-input" inputmode="decimal" placeholder="e.g. 10" />
-                </div>
-            </div>
-
-            <div id="countFields" style="margin-bottom:.75rem; display:none;">
-                <label>Counted quantity (@unit)</label>
-                <input name="countedQuantity" id="counted" class="inv-input" inputmode="decimal" placeholder="What is physically there" />
-                <div class="inv-help">The difference from the recorded stock is the adjustment.</div>
-            </div>
-
-            <div style="margin-bottom:.75rem;">
-                <label>Notes <span class="inv-muted" id="notesHint">(optional)</span></label>
-                <input name="notes" id="notes" class="inv-input" maxlength="400" placeholder="e.g. Freezer failure overnight" />
-            </div>
-
-            <div class="inv-note info" id="preview" style="margin-bottom:.75rem;">
-                Current <strong id="pvCurrent">—</strong> @unit →
-                adjustment <strong id="pvChange">—</strong> @unit →
-                new <strong id="pvNew">—</strong> @unit
-            </div>
-            <div class="inv-note bad" id="pvError" style="display:none; margin-bottom:.75rem;">Adjustment would result in negative stock.</div>
-
-            <button class="btn btn-primary" id="confirmBtn">Confirm adjustment</button>
-            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-link">Cancel</a>
         </form>
 
+        @* --- RECENT ADJUSTMENTS LEDGER --- *@
         @if (recent.Any())
         {
-            <div class="inv-card">
-                <h2>Recent adjustments</h2>
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>When</th>
-                                <th>Reason</th>
-                                <th class="num">Change</th>
-                                <th class="num">Stock after</th>
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+                <div class="p-5 border-b border-gray-100 bg-white flex justify-between items-center relative z-10">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Recent Adjustments Log</h5>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-gray-50/80">
+                            <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-200">
+                                <th class="ps-6 py-3">Timestamp</th>
+                                <th>Reason & Notes</th>
+                                <th class="text-end">Change Vector</th>
+                                <th class="pe-6 text-end border-l border-gray-100 ps-4">Final Stock Level</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             @foreach (var t in recent)
                             {
-                                <tr>
-                                    <td style="white-space:nowrap;">@SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM HH:mm")</td>
-                                    <td>@(t.Notes ?? "—")</td>
-                                    <td class="num" style="color:@(t.Quantity < 0 ? "#b91c1c" : "#065f46");">@(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)</td>
-                                    <td class="num">@IngredientUnits.Format(t.TotalAfter, ing.Unit)</td>
+                                <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                                    <td class="ps-6 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
+                                        @SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM yyyy, HH:mm")
+                                    </td>
+
+                                    <td class="font-serif text-sm text-gray-900">
+                                        @(string.IsNullOrWhiteSpace(t.Notes) ? "—" : t.Notes)
+                                    </td>
+
+                                    <td class="text-end font-mono font-bold text-base @(t.Quantity < 0 ? "text-[#C21E2E]" : "text-green-700")">
+                                        @(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)
+                                    </td>
+
+                                    <td class="pe-6 text-end border-l border-gray-50 ps-4 font-mono font-bold text-gray-900">
+                                        @IngredientUnits.Format(t.TotalAfter, ing.Unit)
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -135,52 +216,81 @@
     </div>
 </div>
 
-<script>
-    (function () {
-        var form = document.getElementById('adjustForm');
-        var source = document.getElementById('source');
-        var direction = document.getElementById('direction');
-        var quantity = document.getElementById('quantity');
-        var counted = document.getElementById('counted');
-        var reason = document.getElementById('reason');
-        var notesHint = document.getElementById('notesHint');
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
 
-        // Accepts "12.5" and "12,5"
-        function num(v) {
-            v = (v || '').trim().replace(',', '.');
-            return v === '' || isNaN(v) ? null : parseFloat(v);
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
         }
-        function fmt(v) { return (Math.round(v * 1000) / 1000).toString(); }
-        function mode() { return form.querySelector('input[name="mode"]:checked').value; }
+</style>
 
-        function update() {
-            var isCount = mode() === 'count';
-            document.getElementById('changeFields').style.display = isCount ? 'none' : '';
-            document.getElementById('countFields').style.display = isCount ? '' : 'none';
-            if (isCount && !reason.value) reason.value = 'StockCountCorrection';
-            notesHint.textContent = reason.value === 'Other' ? '(required)' : '(optional)';
+@section Scripts {
+    <script>
+        (function () {
+            var form = document.getElementById('adjustForm');
+            var source = document.getElementById('source');
+            var direction = document.getElementById('direction');
+            var quantity = document.getElementById('quantity');
+            var counted = document.getElementById('counted');
+            var reason = document.getElementById('reason');
+            var notesHint = document.getElementById('notesHint');
 
-            var current = parseFloat(source.options[source.selectedIndex].getAttribute('data-current')) || 0;
-            var change = null;
-            if (isCount) {
-                var c = num(counted.value);
-                if (c !== null) change = c - current;
-            } else {
-                var q = num(quantity.value);
-                if (q !== null) change = direction.value === 'remove' ? -q : q;
+            // Accepts "12.5" and "12,5"
+            function num(v) {
+                v = (v || '').trim().replace(',', '.');
+                return v === '' || isNaN(v) ? null : parseFloat(v);
+            }
+            function fmt(v) { return (Math.round(v * 1000) / 1000).toString(); }
+            function mode() { return form.querySelector('input[name="mode"]:checked').value; }
+
+            function update() {
+                var isCount = mode() === 'count';
+                document.getElementById('changeFields').style.display = isCount ? 'none' : 'grid';
+                document.getElementById('countFields').style.display = isCount ? 'block' : 'none';
+                if (isCount && !reason.value) reason.value = 'StockCountCorrection';
+                notesHint.textContent = reason.value === 'Other' ? '(required)' : '(optional)';
+
+                var current = parseFloat(source.options[source.selectedIndex].getAttribute('data-current')) || 0;
+                var change = null;
+                if (isCount) {
+                    var c = num(counted.value);
+                    if (c !== null) change = c - current;
+                } else {
+                    var q = num(quantity.value);
+                    if (q !== null) change = direction.value === 'remove' ? -q : q;
+                }
+
+                document.getElementById('pvCurrent').textContent = fmt(current);
+                document.getElementById('pvChange').textContent = change === null ? '—' : (change > 0 ? '+' : '') + fmt(change);
+                document.getElementById('pvNew').textContent = change === null ? '—' : fmt(current + change);
+
+                var negative = change !== null && current + change < 0;
+                document.getElementById('pvError').style.display = negative ? 'block' : 'none';
+                document.getElementById('confirmBtn').disabled = negative;
             }
 
-            document.getElementById('pvCurrent').textContent = fmt(current);
-            document.getElementById('pvChange').textContent = change === null ? '—' : (change > 0 ? '+' : '') + fmt(change);
-            document.getElementById('pvNew').textContent = change === null ? '—' : fmt(current + change);
-
-            var negative = change !== null && current + change < 0;
-            document.getElementById('pvError').style.display = negative ? '' : 'none';
-            document.getElementById('confirmBtn').disabled = negative;
-        }
-
-        form.addEventListener('input', update);
-        form.addEventListener('change', update);
-        update();
-    })();
-</script>
+            form.addEventListener('input', update);
+            form.addEventListener('change', update);
+            update();
+        })();
+    </script>
+}

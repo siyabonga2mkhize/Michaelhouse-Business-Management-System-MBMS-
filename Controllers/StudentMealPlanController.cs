@@ -33,7 +33,7 @@ namespace Michaelhouse.Controllers
         // ============================================================
 
         [HttpGet]
-        public ActionResult Index()
+        public ActionResult Index(string week)
         {
             int studentId = ResolveStudentId();
 
@@ -44,7 +44,7 @@ namespace Michaelhouse.Controllers
 
             try
             {
-                var vm = _service.GetOrCreateDraft(studentId);
+                var vm = _service.GetOrCreateDraft(studentId, ParseWeek(week));
                 return View(vm);
             }
             catch (InvalidOperationException ex)
@@ -80,7 +80,7 @@ namespace Michaelhouse.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction("Index");
+            return BackToWeek(mealPlanId, studentId);
         }
 
         // ============================================================
@@ -111,7 +111,27 @@ namespace Michaelhouse.Controllers
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToAction("Index");
+            return BackToWeek(mealPlanId, studentId);
+        }
+
+        // Back to the week the student was working on
+        private ActionResult BackToWeek(int mealPlanId, int studentId)
+        {
+            var weekStart = _db.MealPlans
+                .Where(p => p.Id == mealPlanId && p.StudentId == studentId)
+                .Select(p => (DateTime?)p.WeekStartDate)
+                .FirstOrDefault();
+
+            return weekStart.HasValue
+                ? RedirectToAction("Index", new { week = weekStart.Value.ToString("yyyy-MM-dd") })
+                : RedirectToAction("Index");
+        }
+
+        private static DateTime? ParseWeek(string week)
+        {
+            DateTime parsed;
+            return DateTime.TryParseExact(week, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out parsed) ? parsed : (DateTime?)null;
         }
 
         // ============================================================

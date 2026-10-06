@@ -7,94 +7,246 @@
     bool isManager = ViewBag.IsManager == true;
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>Ingredient Stock</h1>
-                <div class="inv-meta">Available = farm produce + bought-in stock. Quantities in kg / litres.</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@Url.Action("Index", "CafeteriaInventory")" class="btn btn-outline-secondary">← Inventory</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Ingredient Stock</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Available = farm produce + bought-in stock. Quantities in kg / litres.
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "CafeteriaInventory")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back to Inventory
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-2 flex flex-col gap-8">
+
+        @* --- STATUS FILTER CARDS (Acting as Navigation Tabs) --- *@
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            <a href="@Url.Action("Stock", "CafeteriaInventory")" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(filter == "all" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-boxes absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(filter == "all" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-1 @(filter == "all" ? "text-gray-400" : "text-gray-500")">All Active</h6>
+                    <span class="text-[9px] font-mono uppercase tracking-widest @(filter == "all" ? "text-gray-500" : "text-gray-400")">Complete Catalog</span>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "low" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(filter == "low" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-yellow-500")">
+                <i class="bi bi-exclamation-triangle absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(filter == "low" ? "text-gray-800" : "text-yellow-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-1 @(filter == "low" ? "text-yellow-500" : "text-yellow-600")">Critical & Low</h6>
+                    <span class="text-[9px] font-mono uppercase tracking-widest @(filter == "low" ? "text-gray-500" : "text-gray-400")">At/Below Threshold</span>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "out" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(filter == "out" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-[#C21E2E]")">
+                <i class="bi bi-x-octagon absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(filter == "out" ? "text-gray-800" : "text-red-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-1 @(filter == "out" ? "text-[#C21E2E]" : "text-[#C21E2E]")">Depleted</h6>
+                    <span class="text-[9px] font-mono uppercase tracking-widest @(filter == "out" ? "text-gray-500" : "text-gray-400")">Out of Stock</span>
+                </div>
+            </a>
+
+            <a href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "inactive" })" class="shadow-sm p-6 relative overflow-hidden group transition-colors duration-300 block text-decoration-none @(filter == "inactive" ? "bg-[#1a1a1a] border border-[#1a1a1a]" : "bg-white border border-gray-200 hover:border-gray-400")">
+                <i class="bi bi-archive absolute -right-4 -bottom-4 text-7xl opacity-50 transition-transform group-hover:scale-110 @(filter == "inactive" ? "text-gray-800" : "text-gray-50")"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[10px] uppercase tracking-[4px] font-bold mb-1 @(filter == "inactive" ? "text-gray-400" : "text-gray-500")">Inactive</h6>
+                    <span class="text-[9px] font-mono uppercase tracking-widest @(filter == "inactive" ? "text-gray-500" : "text-gray-400")">Archived Assets</span>
+                </div>
+            </a>
+
         </div>
 
-        <div class="inv-tabs">
-            <a class="@(filter == "all" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory")">All</a>
-            <a class="@(filter == "low" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "low" })">Low &amp; out</a>
-            <a class="@(filter == "out" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "out" })">Out of stock</a>
-            <a class="@(filter == "inactive" ? "active" : "")" href="@Url.Action("Stock", "CafeteriaInventory", new { filter = "inactive" })">Inactive</a>
-        </div>
+        @* --- STOCK REGISTRY LEDGER --- *@
+        <form method="get" action="@Url.Action("Auto", "IngredientOrder")" class="flex flex-col flex-grow m-0">
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group flex-grow">
 
-        <form method="get" action="@Url.Action("Auto", "IngredientOrder")">
-            <div class="inv-card" style="padding:0;">
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                @if (isManager)
-                                {
-                                    <th style="width:30px;"></th>
-                                }
-                                <th>Ingredient</th>
-                                <th class="num">Available</th>
-                                <th class="num inv-hide-sm">Farm</th>
-                                <th class="num inv-hide-sm">Bought-in</th>
-                                <th class="num">Reorder</th>
-                                <th class="num inv-hide-sm">On order</th>
-                                <th>Status</th>
-                                <th class="inv-hide-sm">Supplier</th>
-                                @if (isManager)
-                                {
-                                    <th></th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Count == 0)
-                            {
-                                <tr><td colspan="10" class="inv-muted">Nothing to show.</td></tr>
-                            }
-                            @foreach (var l in Model)
-                            {
-                                string css = l.Status == "In stock" ? "ok" : l.Status == "Low stock" ? "low" : l.Status == "Out of stock" ? "bad" : "muted";
-                                <tr>
+                @* Header *@
+                <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10 flex-shrink-0">
+                    <div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Stock Registry</h5>
+                    </div>
+                </div>
+
+                @* Table *@
+                <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                    @if (Model.Count == 0)
+                    {
+                        <div class="p-20 text-center text-muted">
+                            <i class="bi bi-box-seam text-gray-200 text-6xl d-block mb-3"></i>
+                            <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Records Found</h4>
+                            <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">There are no ingredients matching this filter.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table align-middle mb-0 w-full">
+                            <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm shadow-sm">
+                                <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-200">
                                     @if (isManager)
                                     {
-                                        <td>
-                                            @if (l.Ingredient.IsActive)
-                                            {
-                                                <input type="checkbox" name="ingredientIds" value="@l.Ingredient.Id" @(l.IsLowStock || l.IsOutOfStock ? "checked" : "") aria-label="Order @l.Ingredient.Name" />
-                                            }
-                                        </td>
+                                        <th class="ps-6 py-4" style="width: 50px;"></th>
                                     }
-                                    <td><a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.Ingredient.Id })">@l.Ingredient.Name</a></td>
-                                    <td class="num"><strong>@IngredientUnits.Format(l.Available, l.Ingredient.Unit)</strong></td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.Farm, l.Ingredient.Unit)</td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.External, l.Ingredient.Unit)</td>
-                                    <td class="num">@IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)</td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)</td>
-                                    <td><span class="inv-badge @css">@l.Status</span></td>
-                                    <td class="inv-hide-sm">@(l.PreferredSupplier ?? "—")</td>
+                                    <th class="@(isManager ? "" : "ps-6") py-4">Item Identity</th>
+                                    <th class="text-end border-l border-gray-100 ps-4">Current Level</th>
+                                    <th class="text-end border-l border-gray-100 ps-4">Farm</th>
+                                    <th class="text-end border-l border-gray-100 ps-4">Bought-In</th>
+                                    <th class="text-end border-l border-gray-100 ps-4">Threshold</th>
+                                    <th class="text-end border-l border-gray-100 ps-4">On Order</th>
+                                    <th class="text-center border-l border-gray-100 ps-4">Status</th>
+                                    <th class="border-l border-gray-100 ps-4">Preferred Vendor</th>
                                     @if (isManager)
                                     {
-                                        <td class="num"><a href="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = l.Ingredient.Id })">Adjust</a></td>
+                                        <th class="pe-6 border-l border-gray-100 text-end">Action</th>
                                     }
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var l in Model)
+                                {
+                                    string badgeClass = "bg-gray-100 text-gray-600 border-gray-200";
+                                    if (l.Status == "In stock") { badgeClass = "bg-green-50 text-green-700 border-green-200"; }
+                                    else if (l.Status == "Low stock") { badgeClass = "bg-yellow-50 text-yellow-700 border-yellow-200"; }
+                                    else if (l.Status == "Out of stock") { badgeClass = "bg-red-50 text-[#C21E2E] border-red-200"; }
+
+                                    bool isChecked = l.IsLowStock || l.IsOutOfStock;
+
+                                    <tr class="stock-row hover:bg-gray-50/80 transition-colors border-b border-gray-50 last:border-0 @(isChecked && isManager ? "bg-red-50/10" : "")">
+                                        @if (isManager)
+                                        {
+                                            <td class="ps-6 py-3">
+                                                @if (l.Ingredient.IsActive)
+                                                {
+                                                    <input type="checkbox" name="ingredientIds" value="@l.Ingredient.Id" class="row-tick w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E] cursor-pointer" @(isChecked ? "checked" : "") aria-label="Order @l.Ingredient.Name" />
+                                                }
+                                            </td>
+                                        }
+
+                                        <td class="@(isManager ? "" : "ps-6") py-3">
+                                            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = l.Ingredient.Id })" class="font-serif font-bold text-sm text-gray-900 hover:text-[#C21E2E] text-decoration-none transition-colors block">
+                                                @l.Ingredient.Name
+                                            </a>
+                                        </td>
+
+                                        <td class="text-end border-l border-gray-50 ps-4 font-mono font-bold text-gray-900">
+                                            @IngredientUnits.Format(l.Available, l.Ingredient.Unit)
+                                        </td>
+
+                                        <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                            @IngredientUnits.Format(l.Farm, l.Ingredient.Unit)
+                                        </td>
+
+                                        <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                            @IngredientUnits.Format(l.External, l.Ingredient.Unit)
+                                        </td>
+
+                                        <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs text-gray-400">
+                                            @IngredientUnits.Format(l.ReorderLevel, l.Ingredient.Unit)
+                                        </td>
+
+                                        <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs text-gray-600">
+                                            @IngredientUnits.Format(l.OnOrder, l.Ingredient.Unit)
+                                        </td>
+
+                                        <td class="text-center border-l border-gray-50 ps-4">
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 border shadow-2xs @badgeClass">
+                                                @l.Status
+                                            </span>
+                                        </td>
+
+                                        <td class="border-l border-gray-50 ps-4 font-serif text-xs text-gray-600">
+                                            @(l.PreferredSupplier ?? "—")
+                                        </td>
+
+                                        @if (isManager)
+                                        {
+                                            <td class="pe-6 border-l border-gray-50 text-end">
+                                                <a href="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = l.Ingredient.Id })" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-3 py-1.5 text-[8px] font-bold uppercase tracking-[1px] hover:bg-gray-100 hover:text-gray-900 transition-colors shadow-2xs text-decoration-none">
+                                                    Adjust
+                                                </a>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
                 </div>
+
+                @* Footer Actions *@
+                @if (isManager && Model.Count > 0)
+                {
+                    <div class="bg-gray-50 border-t border-gray-100 p-5 flex justify-between items-center relative z-10 flex-shrink-0 mt-auto">
+                        <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest"><i class="bi bi-info-circle me-1"></i> Low & out-of-stock items are auto-selected. Review drafts on next step.</span>
+                        <button type="submit" class="bg-[#C21E2E] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-red-700 hover:shadow-[0_0_15px_rgba(194,30,46,0.3)] transition-all shadow-sm">
+                            <i class="bi bi-magic me-2"></i> Auto-Generate POs
+                        </button>
+                    </div>
+                }
             </div>
-            @if (isManager && Model.Count > 0)
-            {
-                <div class="inv-actions">
-                    <button type="submit" class="btn btn-primary">Order ticked ingredients</button>
-                    <span class="inv-help">Low and out-of-stock ingredients are ticked for you. You'll review one purchase order per supplier before anything is created.</span>
-                </div>
-            }
         </form>
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #eee;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
+
+@if (isManager)
+{
+    @section Scripts {
+        <script>
+            (function () {
+                var rows = document.querySelectorAll('.stock-row');
+                rows.forEach(function (row) {
+                    var tick = row.querySelector('.row-tick');
+                    if (tick) {
+                        tick.addEventListener('change', function () {
+                            if (tick.checked) {
+                                row.classList.add('bg-red-50/10');
+                            } else {
+                                row.classList.remove('bg-red-50/10');
+                            }
+                        });
+                    }
+                });
+            })();
+        </script>
+    }
+}

@@ -51,6 +51,10 @@ namespace Michaelhouse.Services
         public string Content { get; set; }
 
         public List<InvoiceScanItem> Items { get; set; }
+
+        // True when Azure's line items were unusable and the lines were
+        // read from the table on the invoice instead
+        public bool ItemsFromTable { get; set; }
     }
 
     public class InvoiceScanService
@@ -217,6 +221,36 @@ namespace Michaelhouse.Services
                     }
                 }
 
+                // Azure finds line items mainly by their amounts. On an
+                // invoice without prices it can return empty items, so
+                // drop those and read the invoice's table instead.
+                result.Items = result.Items.Where(IsUsable).ToList();
+                if (result.Items.Count == 0)
+                {
+                    foreach (var table in analysed.Tables)
+                    {
+                        var rows = table.Cells
+                            .GroupBy(c => c.RowIndex)
+                            .OrderBy(g => g.Key)
+                            .Select(g => new TableRow
+                            {
+                                IsHeader = g.Any(c => c.Kind == DocumentTableCellKind.ColumnHeader),
+                                Cells = Enumerable.Range(0, table.ColumnCount)
+                                    .Select(i => g.Where(c => c.ColumnIndex == i).Select(c => c.Content).FirstOrDefault())
+                                    .ToList()
+                            })
+                            .ToList();
+
+                        var fromTable = ItemsFromTable(rows);
+                        if (fromTable.Count > 0)
+                        {
+                            result.Items = fromTable;
+                            result.ItemsFromTable = true;
+                            break;
+                        }
+                    }
+                }
+
                 result.Success = true;
             }
             catch (Exception ex)
@@ -226,6 +260,99 @@ namespace Michaelhouse.Services
             }
 
             return result;
+        }
+
+        private static bool IsUsable(InvoiceScanItem item)
+        {
+            return !string.IsNullOrWhiteSpace(item.Description) && item.Quantity.HasValue;
+        }
+
+        // ── Table fallback ──
+
+        public class TableRow
+        {
+            public bool IsHeader { get; set; }
+            public List<string> Cells { get; set; }
+        }
+
+        private static readonly string[] DescriptionHeaders = { "description", "item", "items", "itemdescription", "product", "productdescription", "details", "goods" };
+        private static readonly string[] CodeHeaders = { "code", "itemcode", "productcode", "sku", "itemno", "productno" };
+        private static readonly string[] QuantityHeaders = { "qty", "quantity", "qtydelivered", "qtysupplied", "qtyshipped", "quantitydelivered" };
+        private static readonly string[] UnitHeaders = { "unit", "units", "uom", "unitofmeasure" };
+        private static readonly string[] PriceHeaders = { "unitprice", "price", "rate", "unitcost", "priceperunit" };
+        private static readonly string[] AmountHeaders = { "amount", "total", "linetotal", "value", "extendedprice" };
+        private static readonly string[] SummaryRows = { "total", "subtotal", "vat", "tax", "grandtotal", "totaldue", "balancedue" };
+
+        // Reads item lines from a table whose header row names the
+        // columns. Needs at least a description and a quantity column.
+        public static List<InvoiceScanItem> ItemsFromTable(IList<TableRow> rows)
+        {
+            var items = new List<InvoiceScanItem>();
+            if (rows == null || rows.Count < 2) return items;
+
+            var header = rows.FirstOrDefault(r => r.IsHeader) ?? rows[0];
+            var names = header.Cells.Select(HeaderKey).ToList();
+
+            int desc = Column(names, DescriptionHeaders);
+            int qty = Column(names, QuantityHeaders);
+            if (desc < 0 || qty < 0) return items;
+
+            int code = Column(names, CodeHeaders);
+            int unit = Column(names, UnitHeaders);
+            int price = Column(names, PriceHeaders);
+            int amount = Column(names, AmountHeaders);
+
+            foreach (var row in rows.Where(r => r != header && !r.IsHeader))
+            {
+                var description = Clean(Cell(row, desc));
+                if (description == null || SummaryRows.Contains(HeaderKey(description))) continue;
+
+                var item = new InvoiceScanItem
+                {
+                    Description = description,
+                    ProductCode = Clean(Cell(row, code)),
+                    Quantity = ParseNumber(Cell(row, qty)),
+                    Unit = Clean(Cell(row, unit)),
+                    UnitPrice = ParseNumber(Cell(row, price)),
+                    Amount = ParseNumber(Cell(row, amount))
+                };
+
+                if (IsUsable(item)) items.Add(item);
+            }
+
+            return items;
+        }
+
+        private static string HeaderKey(string text)
+        {
+            return new string((text ?? "").ToLowerInvariant().Where(char.IsLetter).ToArray());
+        }
+
+        private static int Column(List<string> names, string[] wanted)
+        {
+            return names.FindIndex(n => wanted.Contains(n));
+        }
+
+        private static string Cell(TableRow row, int index)
+        {
+            return index >= 0 && index < row.Cells.Count ? row.Cells[index] : null;
+        }
+
+        // "R 1 234.50", "1,234.50", "12,5" → number; anything else → null
+        public static decimal? ParseNumber(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+
+            var s = new string(text.Where(c => char.IsDigit(c) || c == '.' || c == ',' || c == '-').ToArray());
+            if (s.Length == 0 || !s.Any(char.IsDigit)) return null;
+
+            if (s.Contains('.')) s = s.Replace(",", "");
+            else if (s.Count(c => c == ',') == 1 && s.Length - s.IndexOf(',') - 1 != 3) s = s.Replace(",", ".");
+            else s = s.Replace(",", "");
+
+            decimal parsed;
+            return decimal.TryParse(s, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out parsed)
+                ? parsed : (decimal?)null;
         }
 
         // ── Field readers: tolerate missing / differently typed fields ──

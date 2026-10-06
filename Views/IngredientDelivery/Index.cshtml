@@ -7,78 +7,190 @@
     var open = ViewBag.OpenOrders as List<IngredientPurchaseOrder> ?? new List<IngredientPurchaseOrder>();
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
-
-        <div class="inv-header">
-            <div>
-                <h1>Deliveries</h1>
-                <div class="inv-meta">Record what arrives; stock goes up when a delivery is confirmed.</div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
             </div>
-            <a href="@Url.Action("Record", "IngredientDelivery")" class="btn btn-primary">Record Delivery</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Deliveries</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Record inbound logistics. Stock levels update upon delivery confirmation.
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Record", "IngredientDelivery")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300">
+                <i class="bi bi-box-arrow-in-down me-2 text-sm align-middle"></i> Record Delivery
+            </a>
+        </div>
+    </div>
 
-        <div class="inv-card">
-            <h2>Awaiting delivery</h2>
-            @if (open.Count == 0)
-            {
-                <div class="inv-muted" style="font-size:.85rem;">No orders are waiting for a delivery.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr><th>Order</th><th>Supplier</th><th class="inv-hide-sm">Expected</th><th>Status</th><th></th></tr>
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-16 pt-2 flex flex-col gap-8">
+
+        @* --- AWAITING DELIVERY LEDGER --- *@
+        <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden group">
+
+            @* Ledger Header *@
+            <div class="p-5 border-b border-gray-200 bg-[#1a1a1a] flex justify-between items-center relative z-10 flex-shrink-0">
+                <div>
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">
+                        <i class="bi bi-truck me-2 text-gray-400"></i> Awaiting Delivery (@open.Count)
+                    </h5>
+                    <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest mt-1 block">Pending Inbound Purchase Orders</span>
+                </div>
+            </div>
+
+            @* Table Container *@
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar relative z-10">
+                @if (open.Count == 0)
+                {
+                    <div class="p-20 text-center text-muted">
+                        <i class="bi bi-shield-check text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Pending Orders</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No active purchase orders are awaiting delivery.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b-2 border-gray-200">
+                                <th class="ps-6 py-4">Order Reference</th>
+                                <th class="border-l border-gray-100 ps-4">Vendor Identity</th>
+                                <th class="border-l border-gray-100 ps-4 text-end">Expected Date</th>
+                                <th class="border-l border-gray-100 ps-4 text-center">Status</th>
+                                <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                            </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             @foreach (var o in open)
                             {
-                                <tr>
-                                    <td><a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })">@o.PoNumber</a></td>
-                                    <td>@(o.Supplier != null ? o.Supplier.Name : "")</td>
-                                    <td class="inv-hide-sm">@(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd dd MMM") : "—")</td>
-                                    <td>@Html.Partial("_OrderStatusBadge", o.Status)</td>
-                                    <td class="num"><a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="btn btn-sm btn-primary">Receive</a></td>
+                                <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-50 last:border-0 h-20 group/row">
+                                    <td class="ps-6 py-3">
+                                        <a href="@Url.Action("Details", "IngredientOrder", new { id = o.Id })" class="font-mono text-sm font-bold text-[#C21E2E] hover:underline transition-colors block">
+                                            @o.PoNumber
+                                        </a>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <strong class="font-serif text-base text-gray-900 uppercase tracking-widest">@(o.Supplier != null ? o.Supplier.Name : "UNASSIGNED")</strong>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-end font-mono text-xs text-gray-600">
+                                        @(o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("ddd, dd MMM yyyy") : "—")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 text-center">
+                                        @Html.Partial("_OrderStatusBadge", o.Status)
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = o.Id })" class="inline-flex items-center justify-center bg-[#C21E2E] border border-[#C21E2E] text-white px-5 py-2.5 text-[9px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-colors shadow-sm text-decoration-none">
+                                            <i class="bi bi-box-arrow-in-down me-1.5 text-xs"></i> Receive Shipment
+                                        </a>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-            }
+                }
+            </div>
         </div>
 
-        <div class="inv-card">
-            <h2>Recent deliveries</h2>
-            @if (Model.Count == 0)
-            {
-                <div class="inv-muted" style="font-size:.85rem;">No deliveries recorded yet.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr><th>Received</th><th>Supplier</th><th class="inv-hide-sm">Order</th><th class="inv-hide-sm">Invoice</th><th class="num">Items</th></tr>
+        @* --- RECENT DELIVERIES ARCHIVE --- *@
+        <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden group mt-4">
+
+            <div class="p-4 bg-gray-100 flex justify-between items-center border-b border-gray-200">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-[4px] text-gray-700">
+                    <i class="bi bi-clock-history me-2 text-gray-500"></i> Recent Deliveries Log
+                </span>
+                <span class="text-[8px] font-mono uppercase tracking-widest text-gray-400">Receiving Archive</span>
+            </div>
+
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                @if (Model.Count == 0)
+                {
+                    <div class="p-12 text-center bg-gray-50 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                        No deliveries recorded yet.
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200">
+                                <th class="ps-6 py-3">Received Timestamp</th>
+                                <th class="border-l border-gray-100 ps-4">Vendor Identity</th>
+                                <th class="border-l border-gray-100 ps-4">Order Reference</th>
+                                <th class="border-l border-gray-100 ps-4">Invoice No.</th>
+                                <th class="border-l border-gray-100 pe-6 ps-4 text-end">Items</th>
+                            </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-600 text-sm">
                             @foreach (var d in Model)
                             {
-                                <tr>
-                                    <td><a href="@Url.Action("Details", "IngredientDelivery", new { id = d.Id })">@SchoolClock.FromUtc(d.ReceivedAt).ToString("ddd dd MMM HH:mm")</a></td>
-                                    <td>@(d.Supplier != null ? d.Supplier.Name : "")</td>
-                                    <td class="inv-hide-sm">@(d.PurchaseOrder != null ? d.PurchaseOrder.PoNumber : "No order")</td>
-                                    <td class="inv-hide-sm">@(d.InvoiceNumber ?? "—")</td>
-                                    <td class="num">@d.Lines.Count</td>
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 h-16">
+                                    <td class="ps-6 py-3">
+                                        <a href="@Url.Action("Details", "IngredientDelivery", new { id = d.Id })" class="font-mono text-xs font-bold text-gray-900 hover:text-[#C21E2E] transition-colors text-decoration-none">
+                                            @SchoolClock.FromUtc(d.ReceivedAt).ToString("ddd, dd MMM yyyy, HH:mm")
+                                        </a>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-serif font-bold text-gray-900 text-sm">
+                                        @(d.Supplier != null ? d.Supplier.Name : "—")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                        @(d.PurchaseOrder != null ? d.PurchaseOrder.PoNumber : "No order")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                        @(string.IsNullOrWhiteSpace(d.InvoiceNumber) ? "—" : d.InvoiceNumber)
+                                    </td>
+
+                                    <td class="border-l border-gray-50 pe-6 ps-4 text-end font-mono font-bold text-base text-gray-900">
+                                        @d.Lines.Count
+                                        <span class="block text-[8px] font-mono text-gray-400 uppercase tracking-widest font-normal">Processed</span>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-            }
+                }
+            </div>
         </div>
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

@@ -1,156 +1,184 @@
-﻿
-@using System.Linq
+﻿@using System.Linq
 @using Michaelhouse.Models
 @model SportEvent
 
 @{
+    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "Add Fixture";
 
     var residences = ViewBag.Residences as List<Residence> ?? new List<Residence>();
     var sports = ViewBag.Sports as string[] ?? new string[0];
     var intensities = ViewBag.Intensities as string[] ?? new string[0];
     var eventTypes = ViewBag.EventTypes as string[] ?? new string[0];
+
+    string label = "block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-2";
+    string field = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent";
+    string monoField = "w-full border-b-2 border-gray-200 py-3 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent";
+    string hint = "block text-[9px] font-mono uppercase tracking-widest text-gray-400 mt-2";
 }
 
-<div class="container-fluid py-4">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <div class="mb-4">
-        <h1 class="h3 mb-1">Add Fixture</h1>
-        <p class="text-muted mb-0">
-            Declare a training session or match for one of your squads.
-        </p>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-
-            <form action="@Url.Action("Create", "Coach")" method="post">
-                @Html.AntiForgeryToken()
-
-                @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <label class="form-label">Event Type</label>
-                        <select name="EventType" class="form-select" required>
-                            <option value="">Choose...</option>
-                            @foreach (var t in eventTypes)
-                            {
-                                <option value="@t" @(Model.EventType == t ? "selected" : "")>@t</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Sport</label>
-                        <select name="Sport" class="form-select" required>
-                            <option value="">Choose...</option>
-                            @foreach (var s in sports)
-                            {
-                                <option value="@s" @(Model.Sport == s ? "selected" : "")>@s</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">House <span class="text-muted small">(optional)</span></label>
-                        <select name="ResidenceId" class="form-select">
-                            <option value="" @(Model.ResidenceId == null ? "selected" : "")>Every player of the sport (school fixture)</option>
-                            @foreach (var r in residences)
-                            {
-                                <option value="@r.ResidenceId" @(Model.ResidenceId == r.ResidenceId ? "selected" : "")>
-                                    Only players in @r.Name
-                                </option>
-                            }
-                        </select>
-                        <div class="form-text">Players come from the sports on students' profiles — you don't list them.</div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Intensity</label>
-                        <select name="Intensity" class="form-select" required>
-                            @foreach (var i in intensities)
-                            {
-                                <option value="@i" @(Model.Intensity == i ? "selected" : "")>@i</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Date</label>
-                        <input type="date"
-                               name="ScheduledDate"
-                               value="@Model.ScheduledDate.ToString("yyyy-MM-dd")"
-                               class="form-control"
-                               required />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Start Time</label>
-                        <input type="time"
-                               name="StartTime"
-                               value="@Model.StartTime.ToString(@"hh\:mm")"
-                               class="form-control"
-                               required />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">End Time</label>
-                        <input type="time"
-                               name="endTime"
-                               value="@ViewBag.EndTime"
-                               class="form-control"
-                               required />
-                    </div>
-
-                    <div class="col-md-8">
-                        <label class="form-label">Opponent (for matches only)</label>
-                        <input type="text"
-                               name="Opponent"
-                               value="@Model.Opponent"
-                               maxlength="200"
-                               class="form-control"
-                               placeholder="e.g. Hilton College" />
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Venue</label>
-                        <div class="form-check mt-2">
-                            <input type="checkbox"
-                                   name="IsHome"
-                                   value="true"
-                                   class="form-check-input"
-                                   id="isHome"
-                                   @(Model.IsHome ? "checked" : "") />
-                            <label class="form-check-label" for="isHome">Home fixture</label>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Notes</label>
-                        <textarea name="Notes"
-                                  class="form-control"
-                                  rows="3"
-                                  maxlength="500">@Model.Notes</textarea>
-                    </div>
-
-                </div>
-
-                <hr class="my-4" />
-
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="@Url.Action("Index", "Coach")" class="btn btn-secondary">
-                        Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        Save Fixture
-                    </button>
-                </div>
-
-            </form>
-
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10 flex-wrap gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Sport & Fixtures</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Add Fixture</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Declare a training session or match for one of your squads.
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="@Url.Action("Index", "Coach")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Fixtures
+            </a>
         </div>
     </div>
 
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-8">
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="max-w-4xl mx-auto w-full bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm text-sm font-serif">
+                <div class="flex items-center mb-1">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please resolve the validation errors below:</strong>
+                </div>
+                @Html.ValidationSummary(false, "", new { @class = "text-xs font-mono mb-0" })
+            </div>
+        }
+
+        <form action="@Url.Action("Create", "Coach")" method="post" class="max-w-4xl mx-auto w-full flex flex-col gap-8 m-0">
+            @Html.AntiForgeryToken()
+
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+
+                @* Module Header *@
+                <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center">
+                    <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0"><i class="bi bi-trophy me-2 text-gray-500"></i> Fixture Details</h5>
+                </div>
+
+                <div class="p-8 flex flex-col gap-8">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="@label">Event Type *</label>
+                            <select name="EventType" class="@field" required>
+                                <option value="">Choose...</option>
+                                @foreach (var t in eventTypes)
+                                {
+                                    <option value="@t" @(Model.EventType == t ? "selected" : "")>@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="@label">Sport *</label>
+                            <select name="Sport" class="@field" required>
+                                <option value="">Choose...</option>
+                                @foreach (var s in sports)
+                                {
+                                    <option value="@s" @(Model.Sport == s ? "selected" : "")>@s</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="@label">House (optional)</label>
+                            <select name="ResidenceId" class="@field">
+                                <option value="" @(Model.ResidenceId == null ? "selected" : "")>Every player of the sport (school fixture)</option>
+                                @foreach (var r in residences)
+                                {
+                                    <option value="@r.ResidenceId" @(Model.ResidenceId == r.ResidenceId ? "selected" : "")>Only players in @r.Name</option>
+                                }
+                            </select>
+                            <span class="@hint"><i class="bi bi-info-circle me-1"></i> Players come from the sports on students' profiles.</span>
+                        </div>
+                        <div>
+                            <label class="@label">Intensity *</label>
+                            <select name="Intensity" class="@field" required>
+                                @foreach (var i in intensities)
+                                {
+                                    <option value="@i" @(Model.Intensity == i ? "selected" : "")>@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <label class="@label">Date *</label>
+                            <input type="date" name="ScheduledDate" value="@Model.ScheduledDate.ToString("yyyy-MM-dd")" class="@monoField" required />
+                        </div>
+                        <div>
+                            <label class="@label">Start Time *</label>
+                            <input type="time" name="StartTime" value="@Model.StartTime.ToString(@"hh\:mm")" class="@monoField" required />
+                        </div>
+                        <div>
+                            <label class="@label">End Time *</label>
+                            <input type="time" name="endTime" value="@ViewBag.EndTime" class="@monoField" required />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
+                        <div class="md:col-span-2">
+                            <label class="@label">Opponent (matches only)</label>
+                            <input type="text" name="Opponent" value="@Model.Opponent" maxlength="200" class="@field" placeholder="e.g. Hilton College" />
+                        </div>
+                        <div class="pb-3">
+                            <label class="flex items-center gap-3 cursor-pointer w-max">
+                                <input type="checkbox" name="IsHome" value="true" class="w-4 h-4 text-[#C21E2E] border-gray-300 rounded focus:ring-[#C21E2E]" @(Model.IsHome ? "checked" : "") />
+                                <span class="font-serif font-bold text-sm text-gray-900">Home fixture</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="@label">Notes</label>
+                        <textarea name="Notes" class="w-full border border-gray-200 p-4 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-gray-50/50 resize-y" rows="3" maxlength="500" placeholder="Optional details for the kitchen...">@Model.Notes</textarea>
+                    </div>
+                </div>
+
+                @* Action Footer *@
+                <div class="bg-gray-50 border-t border-gray-100 p-5 flex justify-end items-center gap-4">
+                    <a href="@Url.Action("Index", "Coach")" class="bg-transparent border border-gray-300 text-gray-600 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-100 transition-colors shadow-sm text-decoration-none">
+                        Discard
+                    </a>
+                    <button type="submit" class="bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all shadow-sm">
+                        <i class="bi bi-save me-1.5"></i> Save Fixture
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

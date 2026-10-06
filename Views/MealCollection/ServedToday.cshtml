@@ -15,276 +15,204 @@
                  ?? new System.Collections.Generic.List<Michaelhouse.Models.Cafeteria.MealCollection>();
 }
 
-<style>
-    .st-shell {
-        max-width: 1100px;,
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .st-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .st-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-    .st-meta {
-        color: #888;
-        font-size: .82rem;
-    }
-
-        .st-meta strong {
-            color: #333;
-        }
-
-    .st-summary {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    @@media (max-width: 800px) {
-        .st-summary {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    .st-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.25rem;
-    }
-
-    .st-card-label {
-        font-size: .68rem;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: .35rem;
-    }
-
-    .st-card-value {
-        font-size: 1.9rem;
-        font-weight: 700;
-        color: #111827;
-        line-height: 1;
-    }
-
-    .st-card-sub {
-        font-size: .78rem;
-        color: #9ca3af;
-        margin-top: .35rem;
-    }
-
-    .st-progress {
-        height: 6px;
-        background: #e5e7eb;
-        border-radius: 3px;
-        overflow: hidden;
-        margin-top: .65rem;
-    }
-
-    .st-progress-fill {
-        height: 100%;
-        background: #C21E2E;
-        transition: width .3s;
-    }
-
-    .st-table {
-        width: 100%;
-        font-size: .85rem;
-        border-collapse: collapse;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-        .st-table th {
-            text-align: left;
-            padding: .75rem 1.25rem;
-            font-size: .68rem;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: #6b7280;
-            background: #f9fafb;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .st-table td {
-            padding: .7rem 1.25rem;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .st-table tr:last-child td {
-            border-bottom: none;
-        }
-
-    .st-badge {
-        font-size: .72rem;
-        padding: .2rem .55rem;
-        border-radius: 4px;
-        font-weight: 600;
-    }
-
-        .st-badge.face {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .st-badge.manual {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-    .st-empty {
-        padding: 2.5rem 1.25rem;
-        text-align: center;
-        color: #9ca3af;
-        font-size: .9rem;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="st-shell">
-
-        <div class="st-header">
-            <div>
-                <h1>Served Today</h1>
-                <div class="st-meta">
-                    @DateTime.Today.ToString("dddd, dd MMMM yyyy")
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Culinary Operations</h5>
             </div>
-            <a href="@Url.Action("Index", "MealCollection")" class="btn btn-primary">
-                Open Collection Terminal
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Served Today</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                <i class="bi bi-calendar3 me-1.5"></i> @DateTime.Today.ToString("dddd, dd MMMM yyyy")
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "MealCollection")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300 text-decoration-none">
+                <i class="bi bi-camera-video me-2 text-sm"></i> Open Terminal
             </a>
         </div>
+    </div>
 
-        <!-- SUMMARY CARDS -->
-        <div class="st-summary">
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-2 flex flex-col gap-8 w-full">
 
-            <div class="st-card">
-                <div class="st-card-label">Breakfast</div>
-                <div class="st-card-value">@breakfastServed</div>
-                <div class="st-card-sub">of @breakfastExpected expected</div>
-                <div class="st-progress">
-                    @{
-                        int bPct = breakfastExpected > 0 ? (breakfastServed * 100 / breakfastExpected) : 0;
-                    }
-                    <div class="st-progress-fill" style="width:@bPct%;"></div>
+        @* --- TELEMETRY PROGRESS CARDS --- *@
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            @* Breakfast Card *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <div class="flex justify-between items-start mb-2">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">Breakfast</h6>
+                    <i class="bi bi-sunrise text-gray-200 text-2xl group-hover:text-amber-400 transition-colors"></i>
+                </div>
+                <div class="font-mono text-4xl font-bold text-gray-900 mb-1">@breakfastServed</div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-4">of @breakfastExpected expected</div>
+
+                <div class="h-1.5 w-full bg-gray-100 overflow-hidden">
+                    @{ int bPct = breakfastExpected > 0 ? (breakfastServed * 100 / breakfastExpected) : 0; }
+                    <div class="h-full bg-amber-500 transition-all duration-500" style="width:@bPct%;"></div>
                 </div>
             </div>
 
-            <div class="st-card">
-                <div class="st-card-label">Lunch</div>
-                <div class="st-card-value">@lunchServed</div>
-                <div class="st-card-sub">of @lunchExpected expected</div>
-                <div class="st-progress">
-                    @{
-                        int lPct = lunchExpected > 0 ? (lunchServed * 100 / lunchExpected) : 0;
-                    }
-                    <div class="st-progress-fill" style="width:@lPct%;"></div>
+            @* Lunch Card *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <div class="flex justify-between items-start mb-2">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">Lunch</h6>
+                    <i class="bi bi-sun text-gray-200 text-2xl group-hover:text-orange-400 transition-colors"></i>
+                </div>
+                <div class="font-mono text-4xl font-bold text-gray-900 mb-1">@lunchServed</div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-4">of @lunchExpected expected</div>
+
+                <div class="h-1.5 w-full bg-gray-100 overflow-hidden">
+                    @{ int lPct = lunchExpected > 0 ? (lunchServed * 100 / lunchExpected) : 0; }
+                    <div class="h-full bg-orange-500 transition-all duration-500" style="width:@lPct%;"></div>
                 </div>
             </div>
 
-            <div class="st-card">
-                <div class="st-card-label">Dinner</div>
-                <div class="st-card-value">@dinnerServed</div>
-                <div class="st-card-sub">of @dinnerExpected expected</div>
-                <div class="st-progress">
-                    @{
-                        int dPct = dinnerExpected > 0 ? (dinnerServed * 100 / dinnerExpected) : 0;
-                    }
-                    <div class="st-progress-fill" style="width:@dPct%;"></div>
+            @* Dinner Card *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm p-6 relative overflow-hidden group">
+                <div class="flex justify-between items-start mb-2">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">Dinner</h6>
+                    <i class="bi bi-moon-stars text-gray-200 text-2xl group-hover:text-indigo-400 transition-colors"></i>
+                </div>
+                <div class="font-mono text-4xl font-bold text-gray-900 mb-1">@dinnerServed</div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-4">of @dinnerExpected expected</div>
+
+                <div class="h-1.5 w-full bg-gray-100 overflow-hidden">
+                    @{ int dPct = dinnerExpected > 0 ? (dinnerServed * 100 / dinnerExpected) : 0; }
+                    <div class="h-full bg-indigo-500 transition-all duration-500" style="width:@dPct%;"></div>
                 </div>
             </div>
 
-            <div class="st-card">
-                <div class="st-card-label">Total Today</div>
-                <div class="st-card-value">@totalServed</div>
-                <div class="st-card-sub">of @totalExpected expected</div>
-                <div class="st-progress">
-                    @{
-                        int tPct = totalExpected > 0 ? (totalServed * 100 / totalExpected) : 0;
-                    }
-                    <div class="st-progress-fill" style="width:@tPct%;"></div>
+            @* Total Card *@
+            <div class="bg-[#1a1a1a] shadow-sm p-6 relative overflow-hidden group">
+                <div class="flex justify-between items-start mb-2">
+                    <h6 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-400">Total Today</h6>
+                    <i class="bi bi-check-all text-gray-600 text-2xl group-hover:text-emerald-400 transition-colors"></i>
+                </div>
+                <div class="font-mono text-4xl font-bold text-white mb-1">@totalServed</div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-4">of @totalExpected expected</div>
+
+                <div class="h-1.5 w-full bg-gray-800 overflow-hidden">
+                    @{ int tPct = totalExpected > 0 ? (totalServed * 100 / totalExpected) : 0; }
+                    <div class="h-full bg-[#C21E2E] transition-all duration-500" style="width:@tPct%;"></div>
                 </div>
             </div>
 
         </div>
 
-        <!-- RECENT ACTIVITY -->
-        <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: baseline;">
-            <h2 style="font-size: 1.1rem; margin: 0;">Recent Collections</h2>
-            <span style="font-size: .82rem; color: #6b7280;">Last 20</span>
-        </div>
+        @* --- RECENT COLLECTIONS LEDGER --- *@
+        <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden group mt-4">
 
-        @if (recent.Count == 0)
-        {
-            <div class="st-card st-empty">
-                No meals collected yet today.
+            <div class="p-5 bg-white flex justify-between items-center border-b border-gray-200">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-[4px] text-gray-900">
+                    <i class="bi bi-clock-history me-2 text-[#C21E2E]"></i> Recent Collections Log
+                </span>
+                <span class="text-[8px] font-mono uppercase tracking-widest text-gray-400">Last 20 Records</span>
             </div>
-        }
-        else
-        {
-            <table class="st-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Student</th>
-                        <th>Meal</th>
-                        <th>Method</th>
-                        <th style="text-align:right;">Confidence</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var c in recent)
-                    {
-                        <tr>
-                            <td style="font-family: 'Courier New', monospace; font-weight: 600;">
-                                @c.CollectedAt.ToLocalTime().ToString("HH:mm:ss")
-                            </td>
-                            <td>
-                                @(c.Student != null ? c.Student.FirstName + " " + c.Student.LastName : "(unknown)")
-                            </td>
-                            <td>@c.MealSlot</td>
-                            <td>
-                                @if (c.VerifiedByMethod == Michaelhouse.Models.Cafeteria.CollectionMethod.FaceMatch)
-                                {
-                                    <span class="st-badge face">Face match</span>
-                                }
-                                else
-                                {
-                                    <span class="st-badge manual">Manual override</span>
-                                }
-                            </td>
-                            <td style="text-align:right;">
-                                @if (c.MatchConfidence.HasValue)
-                                {
-                                    <span>@Math.Round(c.MatchConfidence.Value * 100)%</span>
-                                }
-                                else
-                                {
-                                    <span style="color:#9ca3af;">—</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
+
+            <div class="table-responsive flex-grow overflow-y-auto custom-scrollbar">
+                @if (recent.Count == 0)
+                {
+                    <div class="p-16 text-center text-muted flex flex-col items-center justify-center">
+                        <i class="bi bi-clock-history text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Records Today</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No meals have been collected yet today.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400 border-b border-gray-200">
+                                <th class="ps-6 py-4 w-32">Timestamp</th>
+                                <th class="border-l border-gray-100 ps-4">Student Identity</th>
+                                <th class="border-l border-gray-100 ps-4">Allocated Meal</th>
+                                <th class="border-l border-gray-100 ps-4">Verification Method</th>
+                                <th class="border-l border-gray-100 pe-6 ps-4 text-end">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 text-sm font-serif">
+                            @foreach (var c in recent)
+                            {
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 h-16">
+                                    <td class="ps-6 py-3 font-mono font-bold text-xs text-gray-900">
+                                        @c.CollectedAt.ToLocalTime().ToString("HH:mm:ss")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <strong class="font-serif font-bold text-base text-gray-900">
+                                            @(c.Student != null ? c.Student.FirstName + " " + c.Student.LastName : "(Unknown Identity)")
+                                        </strong>
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs uppercase tracking-widest text-gray-600">
+                                        @c.MealSlot
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        @if (c.VerifiedByMethod == Michaelhouse.Models.Cafeteria.CollectionMethod.FaceMatch)
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 px-3 py-1 shadow-2xs">
+                                                <i class="bi bi-person-bounding-box me-1.5"></i> Biometric Match
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 shadow-2xs">
+                                                <i class="bi bi-shield-lock me-1.5"></i> Manual Override
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 text-end">
+                                        @if (c.MatchConfidence.HasValue)
+                                        {
+                                            <span class="font-mono text-xs font-bold text-gray-900">@Math.Round(c.MatchConfidence.Value * 100)%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="font-mono text-xs text-gray-400">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
 
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
