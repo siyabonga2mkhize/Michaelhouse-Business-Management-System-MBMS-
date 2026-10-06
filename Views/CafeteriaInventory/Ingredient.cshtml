@@ -12,239 +12,343 @@
     var upcoming = ViewBag.Upcoming as UpcomingRequirement;
     var userNames = ViewBag.UserNames as Dictionary<int, string> ?? new Dictionary<int, string>();
     bool isManager = ViewBag.IsManager == true;
+
     string unit = IngredientUnits.DisplayUnit(ing.Unit);
-    string css = Model.Status == "In stock" ? "ok" : Model.Status == "Low stock" ? "low" : Model.Status == "Out of stock" ? "bad" : "muted";
+    string css = Model.Status == "In stock" ? "bg-green-50 text-green-700 border-green-200"
+               : Model.Status == "Low stock" ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+               : Model.Status == "Out of stock" ? "bg-red-50 text-[#C21E2E] border-red-200"
+               : "bg-gray-100 text-gray-600 border-gray-200";
+
     Func<decimal, string> shown = q => IngredientUnits.ToDisplay(q, ing.Unit).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
 }
 
-@Html.Partial("_InventoryStyles")
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-<div class="container-fluid py-4">
-    <div class="inv-shell">
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Inventory Asset Dossier</h5>
+            </div>
+            <div class="flex items-center gap-4">
+                <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">@ing.Name</h2>
+                <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border shadow-sm mt-2 @css">
+                    @Model.Status
+                </span>
+            </div>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-3 mb-0">
+                Measured in @unit
+                @if (!string.IsNullOrEmpty(ing.Allergens))
+                {
+                    <span class="mx-2 text-gray-300">|</span> <span class="text-amber-700 font-bold">Allergens: @ing.Allergens</span>
+                }
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Stock", "CafeteriaInventory")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Stock Registry
+            </a>
+        </div>
+    </div>
 
-        <div class="inv-header">
-            <div>
-                <h1>@ing.Name</h1>
-                <div class="inv-meta">
-                    <span class="inv-badge @css">@Model.Status</span>
-                    &nbsp;Measured in @unit
-                    @if (!string.IsNullOrEmpty(ing.Allergens))
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-2 flex flex-col gap-8">
+
+        @* --- TELEMETRY STATS GRID --- *@
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+            <div class="bg-[#1a1a1a] shadow-sm p-5 relative overflow-hidden group">
+                <i class="bi bi-box-seam absolute -right-4 -bottom-4 text-6xl text-gray-800 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-1.5">Total Available</h6>
+                    <h3 class="font-mono text-3xl font-bold text-white mb-0">@IngredientUnits.Format(Model.Available, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-5 relative overflow-hidden group">
+                <i class="bi bi-tree absolute -right-4 -bottom-4 text-6xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1.5">Farm Origin</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.Farm, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-5 relative overflow-hidden group">
+                <i class="bi bi-truck absolute -right-4 -bottom-4 text-6xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1.5">Bought-In</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.External, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-5 relative overflow-hidden group">
+                <i class="bi bi-arrow-down-square absolute -right-4 -bottom-4 text-6xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1.5">Reorder Level</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.ReorderLevel, ing.Unit)</h3>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 shadow-sm p-5 relative overflow-hidden group">
+                <i class="bi bi-clock-history absolute -right-4 -bottom-4 text-6xl text-gray-50 opacity-50 transition-transform group-hover:scale-110"></i>
+                <div class="relative z-10">
+                    <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 mb-1.5">On Order</h6>
+                    <h3 class="font-mono text-3xl font-bold text-gray-900 mb-0">@IngredientUnits.Format(Model.OnOrder, ing.Unit)</h3>
+                </div>
+            </div>
+        </div>
+
+        @* --- SYSTEM ALERTS --- *@
+        @if (upcoming != null)
+        {
+            <div class="p-5 shadow-sm border-l-4 flex items-center @(upcoming.Shortfall > 0m ? "bg-red-50 border-[#C21E2E]" : "bg-blue-50 border-blue-500")">
+                <i class="bi @(upcoming.Shortfall > 0m ? "bi-exclamation-triangle-fill text-[#C21E2E]" : "bi-info-circle-fill text-blue-600") text-xl me-4"></i>
+                <div class="text-xs font-mono uppercase tracking-widest leading-relaxed @(upcoming.Shortfall > 0m ? "text-red-900" : "text-blue-900")">
+                    Upcoming kitchen plans require <strong class="font-bold text-sm">@IngredientUnits.Format(upcoming.Required, ing.Unit)</strong>
+                    (@string.Join(", ", upcoming.NeededFor)).
+                    @if (upcoming.Shortfall > 0m)
                     {
-                        <text> · allergens: @ing.Allergens</text>
+                        <span class="block mt-1">
+                            <span class="font-bold text-[#C21E2E]">Short by @IngredientUnits.Format(upcoming.Shortfall, ing.Unit)</span>@(upcoming.OnOrder > 0m ? " before orders arrive." : ".")
+                        </span>
                     }
                 </div>
             </div>
-            <a href="@Url.Action("Stock", "CafeteriaInventory")" class="btn btn-outline-secondary">← Stock</a>
-        </div>
-
-        <div class="inv-stats">
-            <div class="inv-stat"><div class="label">Available</div><div class="value">@IngredientUnits.Format(Model.Available, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">Farm</div><div class="value">@IngredientUnits.Format(Model.Farm, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">Bought-in</div><div class="value">@IngredientUnits.Format(Model.External, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">Reorder level</div><div class="value">@IngredientUnits.Format(Model.ReorderLevel, ing.Unit)</div></div>
-            <div class="inv-stat"><div class="label">On order</div><div class="value">@IngredientUnits.Format(Model.OnOrder, ing.Unit)</div></div>
-        </div>
-
-        @if (upcoming != null)
-        {
-            <div class="inv-note @(upcoming.Shortfall > 0m ? "bad" : "info")">
-                Upcoming kitchen plans need <strong>@IngredientUnits.Format(upcoming.Required, ing.Unit)</strong>
-                (@string.Join(", ", upcoming.NeededFor)).
-                @if (upcoming.Shortfall > 0m)
-                {
-                    <text>Short by <strong>@IngredientUnits.Format(upcoming.Shortfall, ing.Unit)</strong>@(upcoming.OnOrder > 0m ? " before orders arrive" : "").</text>
-                }
-            </div>
         }
 
+        @* --- MANAGER COMMAND MODULES --- *@
         @if (isManager)
         {
-            <div class="inv-row">
-                <!-- LEVELS -->
-                <form class="inv-card inv-form" method="post" action="@Url.Action("Levels", "CafeteriaInventory", new { id = ing.Id })">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                @* 1. Stock Levels Card *@
+                <form method="post" action="@Url.Action("Levels", "CafeteriaInventory", new { id = ing.Id })" class="bg-white border-2 border-gray-200 shadow-sm flex flex-col h-full relative overflow-hidden group">
                     @Html.AntiForgeryToken()
-                    <h2>Stock levels</h2>
-                    <div class="inv-row">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Stock Thresholds</h5>
+                    </div>
+                    <div class="p-6 flex flex-col gap-5 flex-grow relative z-10">
                         <div>
-                            <label>Reorder level (@unit)</label>
-                            <input name="reorderLevel" class="inv-input" inputmode="decimal" value="@shown(Model.ReorderLevel)" />
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Reorder level (@unit)</label>
+                            <input name="reorderLevel" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-base font-bold text-gray-900 transition-colors bg-transparent" inputmode="decimal" value="@shown(Model.ReorderLevel)" />
                         </div>
                         <div>
-                            <label>Target level (@unit)</label>
-                            <input name="targetLevel" class="inv-input" inputmode="decimal" value="@(Model.TargetStockLevel.HasValue ? shown(Model.TargetStockLevel.Value) : "")" />
-                            <div class="inv-help">Optional — orders top up to this.</div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Target level (@unit)</label>
+                            <input name="targetLevel" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-base font-bold text-gray-900 transition-colors bg-transparent" inputmode="decimal" value="@(Model.TargetStockLevel.HasValue ? shown(Model.TargetStockLevel.Value) : "")" />
+                            <span class="block text-[8px] font-mono uppercase tracking-widest text-gray-400 mt-1">Optional — orders top up to this.</span>
                         </div>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary">Save levels</button>
+                    <div class="p-4 bg-white border-t border-gray-100 mt-auto">
+                        <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-[9px] uppercase tracking-[2px] py-2.5 transition-colors">Save Levels</button>
+                    </div>
                 </form>
 
-                <!-- FARM PRODUCE -->
-                <form class="inv-card inv-form" method="post" action="@Url.Action("FarmProduce", "CafeteriaInventory", new { id = ing.Id })">
+                @* 2. Farm Produce Card *@
+                <form method="post" action="@Url.Action("FarmProduce", "CafeteriaInventory", new { id = ing.Id })" class="bg-white border-2 border-gray-200 shadow-sm flex flex-col h-full relative overflow-hidden group">
                     @Html.AntiForgeryToken()
-                    <h2>Farm produce received</h2>
-                    <div style="margin-bottom:.6rem;">
-                        <label>Quantity (@unit)</label>
-                        <input name="quantity" class="inv-input" inputmode="decimal" required />
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Farm Produce Received</h5>
                     </div>
-                    <div style="margin-bottom:.6rem;">
-                        <label>Notes</label>
-                        <input name="notes" class="inv-input" maxlength="500" placeholder="e.g. Harvest from field 2" />
+                    <div class="p-6 flex flex-col gap-5 flex-grow relative z-10">
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Quantity (@unit)</label>
+                            <input name="quantity" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-green-600 font-mono text-base font-bold text-gray-900 transition-colors bg-transparent" inputmode="decimal" required />
+                        </div>
+                        <div>
+                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1.5">Notes</label>
+                            <input name="notes" class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-green-600 font-serif text-sm text-gray-900 transition-colors bg-transparent" maxlength="500" placeholder="e.g. Harvest from field 2" />
+                        </div>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary" @(ing.IsActive ? "" : "disabled")>Add to farm stock</button>
+                    <div class="p-4 bg-white border-t border-gray-100 mt-auto">
+                        <button class="w-full bg-green-50 hover:bg-green-100 border border-green-200 text-green-800 font-bold text-[9px] uppercase tracking-[2px] py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" @(ing.IsActive ? "" : "disabled")>Add to Farm Stock</button>
+                    </div>
                 </form>
 
-                <!-- ADJUST -->
-                <div class="inv-card inv-form">
-                    <h2>Adjust stock</h2>
-                    <div class="inv-help" style="margin-bottom:.75rem;">
-                        Damaged, spoiled or lost stock, or a stock count that doesn't match.
-                        Every adjustment is recorded with its reason, who made it and when.
+                @* 3. Adjust Stock CTA Card *@
+                <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col h-full relative overflow-hidden group">
+                    <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center relative z-10">
+                        <h5 class="text-[10px] uppercase tracking-[3px] font-bold text-gray-900 mb-0">Manual Adjustment</h5>
                     </div>
-                    <a href="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-sm btn-outline-secondary">Adjust stock</a>
+                    <div class="p-6 flex flex-col flex-grow relative z-10">
+                        <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest leading-relaxed mb-0">
+                            Use this module to log damaged, spoiled, or lost stock, or to reconcile a physical stock count that doesn't match the system.<br><br>
+                            Every adjustment is strictly logged with its reason code, timestamp, and authorizing user.
+                        </p>
+                    </div>
+                    <div class="p-4 bg-white border-t border-gray-100 mt-auto">
+                        <a href="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-[9px] uppercase tracking-[2px] py-2.5 transition-colors text-decoration-none">Open Adjustment Interface</a>
+                    </div>
                 </div>
+
             </div>
         }
 
-        <!-- SUPPLIERS -->
-        <div class="inv-card">
-            <h2>Suppliers</h2>
-            @if (links.Count == 0)
-            {
-                <div class="inv-muted" style="font-size:.85rem; margin-bottom:.5rem;">No supplier linked yet.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>Supplier</th>
-                                <th class="inv-hide-sm">Their item name</th>
-                                <th class="num inv-hide-sm">Cost / @unit</th>
-                                <th class="num inv-hide-sm">Lead time</th>
-                                <th></th>
+        @* --- SUPPLIERS LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group mt-4">
+            <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center relative z-10">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Linked Vendors & Suppliers</h5>
+            </div>
+
+            <div class="table-responsive">
+                @if (links.Count == 0)
+                {
+                    <div class="p-12 text-center bg-gray-50 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                        No external vendors linked to this asset yet.
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-gray-50/80">
+                            <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-200">
+                                <th class="ps-6 py-3">Vendor Name</th>
+                                <th class="border-l border-gray-100 ps-4">Their Item Code / Name</th>
+                                <th class="text-end border-l border-gray-100 ps-4">Cost / @unit</th>
+                                <th class="text-end border-l border-gray-100 ps-4">Lead Time</th>
+                                @if (isManager)
+                                {
+                                    <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                                }
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             @foreach (var link in links)
                             {
-                                <tr>
-                                    <td>
-                                        @link.Supplier.Name
-                                        @if (link.IsPreferred)
-                                        {
-                                            <span class="inv-badge ok">Preferred</span>
-                                        }
-                                        @if (!link.IsActive || !link.Supplier.IsActive || !link.Supplier.SuppliesCafeteria)
-                                        {
-                                            <span class="inv-badge muted">Inactive</span>
-                                        }
+                                <tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
+                                    <td class="ps-6 py-3">
+                                        <div class="flex items-center gap-3">
+                                            <strong class="font-serif text-sm text-gray-900">@link.Supplier.Name</strong>
+                                            @if (link.IsPreferred)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 shadow-2xs">Preferred</span>
+                                            }
+                                            @if (!link.IsActive || !link.Supplier.IsActive || !link.Supplier.SuppliesCafeteria)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200 px-2 py-0.5 shadow-2xs">Inactive</span>
+                                            }
+                                        </div>
                                     </td>
-                                    <td class="inv-hide-sm">@(link.SupplierItemName ?? "—")</td>
-                                    <td class="num inv-hide-sm">@(link.UnitCost.HasValue ? "R " + link.UnitCost.Value.ToString("0.00") : "—")</td>
-                                    <td class="num inv-hide-sm">@link.LeadTimeDays days</td>
-                                    <td class="num">
-                                        @if (isManager)
-                                        {
-                                            <form method="post" action="@Url.Action("UnlinkSupplier", "CafeteriaInventory", new { id = ing.Id, linkId = link.Id })" style="display:inline;">
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">@(link.SupplierItemName ?? "—")</td>
+                                    <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs font-bold text-gray-900">@(link.UnitCost.HasValue ? "R " + link.UnitCost.Value.ToString("0.00") : "—")</td>
+                                    <td class="text-end border-l border-gray-50 ps-4 font-mono text-xs text-gray-600">@link.LeadTimeDays days</td>
+                                    @if (isManager)
+                                    {
+                                        <td class="pe-6 border-l border-gray-50 text-end">
+                                            <form method="post" action="@Url.Action("UnlinkSupplier", "CafeteriaInventory", new { id = ing.Id, linkId = link.Id })" class="m-0 inline-block">
                                                 @Html.AntiForgeryToken()
-                                                <button class="btn btn-sm btn-link text-danger p-0">Remove</button>
+                                                <button type="submit" class="bg-transparent border border-red-200 text-[#C21E2E] px-3 py-1.5 text-[8px] font-bold uppercase tracking-[1px] hover:bg-red-50 transition-colors shadow-2xs">
+                                                    Remove
+                                                </button>
                                             </form>
-                                        }
-                                    </td>
+                                        </td>
+                                    }
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-            }
-
-            @if (isManager)
-            {
-                <form class="inv-form" method="post" action="@Url.Action("LinkSupplier", "CafeteriaInventory", new { id = ing.Id })" style="margin-top:.75rem; border-top:1px solid #f3f4f6; padding-top:.75rem;">
-                    @Html.AntiForgeryToken()
-                    <div class="inv-row">
-                        <div>
-                            <label>Supplier</label>
-                            <select name="supplierId" class="inv-input" required>
-                                <option value="">— Choose —</option>
-                                @foreach (var s in suppliers)
-                                {
-                                    <option value="@s.SupplierId">@s.Name</option>
-                                }
-                            </select>
-                            <div class="inv-help"><a href="@Url.Action("Suppliers", "CafeteriaInventory")">Manage suppliers</a></div>
-                        </div>
-                        <div>
-                            <label>Their item name / code</label>
-                            <input name="supplierItemName" class="inv-input" maxlength="150" placeholder="As on their invoices" />
-                            <div class="inv-help">Helps match scanned invoices.</div>
-                        </div>
-                        <div>
-                            <label>Cost per @unit (R)</label>
-                            <input name="unitCost" class="inv-input" inputmode="decimal" />
-                        </div>
-                        <div>
-                            <label>Lead time (days)</label>
-                            <input name="leadTimeDays" type="number" min="0" max="90" value="3" class="inv-input" />
-                        </div>
-                    </div>
-                    <label style="display:flex; gap:.4rem; align-items:center; font-weight:400;">
-                        <input type="checkbox" name="isPreferred" value="true" /> Preferred supplier for @ing.Name
-                    </label>
-                    <button class="btn btn-sm btn-outline-secondary" style="margin-top:.5rem;">Add / update supplier</button>
-                </form>
-            }
+                }
+            </div>
         </div>
 
-        <!-- HISTORY -->
-        <div class="inv-card">
-            <h2>Stock history</h2>
-            @if (history.Count == 0)
-            {
-                <div class="inv-muted" style="font-size:.85rem;">No stock changes recorded yet.</div>
-            }
-            else
-            {
-                <div class="inv-table-wrap">
-                    <table class="inv-table">
-                        <thead>
-                            <tr>
-                                <th>When</th>
-                                <th>What</th>
-                                <th class="num">Change</th>
-                                <th class="num inv-hide-sm">Stock after</th>
-                                <th class="inv-hide-sm">Reference</th>
-                                <th class="inv-hide-sm">By</th>
+        @* --- STOCK HISTORY LEDGER --- *@
+        <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group">
+            <div class="p-5 border-b border-gray-100 bg-white flex justify-between items-center relative z-10">
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-900 mb-0">Stock History & Audit Log</h5>
+            </div>
+
+            <div class="table-responsive">
+                @if (history.Count == 0)
+                {
+                    <div class="p-12 text-center bg-gray-50 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                        No stock changes recorded yet.
+                    </div>
+                }
+                else
+                {
+                    <table class="table align-middle mb-0 w-full">
+                        <thead class="bg-gray-50/80">
+                            <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-400 border-b border-gray-200">
+                                <th class="ps-6 py-3">Timestamp</th>
+                                <th class="border-l border-gray-100 ps-4">Event Type & Reason</th>
+                                <th class="text-end border-l border-gray-100 ps-4">Vector</th>
+                                <th class="text-end border-l border-gray-100 ps-4">Stock After</th>
+                                <th class="border-l border-gray-100 ps-4">Reference</th>
+                                <th class="pe-6 border-l border-gray-100 ps-4">Authorized By</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="text-gray-700">
                             @foreach (var t in history)
                             {
                                 string what = t.Type == StockTransactionType.KitchenIssue ? "Kitchen issue"
                                     : t.Type == StockTransactionType.FarmProduce ? "Farm produce"
                                     : t.Type == StockTransactionType.Adjustment && t.AdjustmentReason.HasValue ? "Adjustment · " + IngredientInventoryService.ReasonLabel(t.AdjustmentReason.Value)
                                     : t.Type.ToString();
-                                <tr>
-                                    <td style="white-space:nowrap;">@SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM HH:mm")</td>
-                                    <td>
-                                        @what <span class="inv-muted">(@(t.Source == StockSource.Farm ? "farm" : "bought-in"))</span>
+
+                                <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                                    <td class="ps-6 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
+                                        @SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM yyyy, HH:mm")
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4">
+                                        <div class="font-serif font-bold text-sm text-gray-900">
+                                            @what <span class="font-mono text-[9px] uppercase tracking-widest text-gray-400 font-normal ms-1">(@(t.Source == StockSource.Farm ? "Farm" : "Bought-In"))</span>
+                                        </div>
                                         @if (!string.IsNullOrEmpty(t.Notes))
                                         {
-                                            <div class="inv-help">@t.Notes</div>
+                                            <div class="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-1">@t.Notes</div>
                                         }
                                     </td>
-                                    <td class="num" style="color:@(t.Quantity < 0 ? "#b91c1c" : "#065f46");">@(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)</td>
-                                    <td class="num inv-hide-sm">@IngredientUnits.Format(t.TotalAfter, ing.Unit)</td>
-                                    <td class="inv-hide-sm">@t.Reference</td>
-                                    <td class="inv-hide-sm">@(t.CreatedByUserId.HasValue && userNames.ContainsKey(t.CreatedByUserId.Value) ? userNames[t.CreatedByUserId.Value] : "—")</td>
+
+                                    <td class="text-end border-l border-gray-50 ps-4 font-mono font-bold text-base @(t.Quantity < 0 ? "text-[#C21E2E]" : "text-green-700")">
+                                        @(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)
+                                    </td>
+
+                                    <td class="text-end border-l border-gray-50 ps-4 font-mono font-bold text-gray-900">
+                                        @IngredientUnits.Format(t.TotalAfter, ing.Unit)
+                                    </td>
+
+                                    <td class="border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                        @(string.IsNullOrWhiteSpace(t.Reference) ? "—" : t.Reference)
+                                    </td>
+
+                                    <td class="pe-6 border-l border-gray-50 ps-4 font-mono text-xs text-gray-500">
+                                        @(t.CreatedByUserId.HasValue && userNames.ContainsKey(t.CreatedByUserId.Value) ? userNames[t.CreatedByUserId.Value] : "—")
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-            }
+                }
+            </div>
         </div>
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #f8f9fa !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

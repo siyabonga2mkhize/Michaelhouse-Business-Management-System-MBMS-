@@ -52,7 +52,7 @@ namespace Michaelhouse.ApiControllers
         [HttpGet]
         [Route("mine")]
         [Authorize(Roles = "Student")]
-        public JsonResult Mine()
+        public JsonResult Mine(string week = null)
         {
             int studentId = ResolveStudentId();
             if (studentId <= 0)
@@ -63,7 +63,12 @@ namespace Michaelhouse.ApiControllers
 
             try
             {
-                var vm = new MealPlanService(_db).GetOrCreateDraft(studentId);
+                // Optional ?week=yyyy-MM-dd; without it, this week's plan
+                DateTime parsed;
+                DateTime? weekStart = DateTime.TryParseExact(week, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out parsed) ? parsed : (DateTime?)null;
+
+                var vm = new MealPlanService(_db).GetOrCreateDraft(studentId, weekStart);
                 return Json(ToMobileJson(vm), JsonRequestBehavior.AllowGet);
             }
             catch (InvalidOperationException ex)
@@ -145,6 +150,14 @@ namespace Michaelhouse.ApiControllers
                 weekStart = vm.WeekStartDate.ToString("yyyy-MM-dd"),
                 weekEnd = vm.WeekEndDate.ToString("yyyy-MM-dd"),
                 weekLabel = vm.WeekStartDate.ToString("dd MMM") + " – " + vm.WeekEndDate.ToString("dd MMM yyyy"),
+                weeks = vm.Weeks.Select(w => new
+                {
+                    weekStart = w.WeekStartDate.ToString("yyyy-MM-dd"),
+                    label = w.WeekStartDate.ToString("dd MMM") + " – " + w.WeekEndDate.ToString("dd MMM"),
+                    isCurrentWeek = w.IsCurrentWeek,
+                    isSelected = w.IsSelected,
+                    status = w.Status.HasValue ? w.Status.Value.ToString() : null
+                }).ToList(),
                 status = vm.Status.ToString(),
                 statusText = StatusText(vm.Status),
                 isSubmitted = MealPlanService.IsSubmitted(vm.Status),

@@ -83,6 +83,14 @@ namespace Michaelhouse.Services
 
         public MealPlanBuildViewModel GetOrCreateDraft(int studentId)
         {
+            return GetOrCreateDraft(studentId, null);
+        }
+
+        // weekStart: the start date of an accepted menu to open (from the
+        // week tabs). Null, or a week that isn't published, opens the
+        // default week — see MenuForStudent.
+        public MealPlanBuildViewModel GetOrCreateDraft(int studentId, DateTime? weekStart)
+        {
             // 1. Load student + profile
             var student = _db.Students
                 .Include(s => s.StudentProfile)
@@ -93,21 +101,9 @@ namespace Michaelhouse.Services
                 throw new InvalidOperationException("Student not found.");
             }
 
-            // 2. Find the most recently PUBLISHED menu.
-            //
-            //    BUG FIX: previously this ordered by StartDate. When two
-            //    accepted menus overlap (e.g. 22–28 Sept and 23–29 Sept),
-            //    StartDate ordering picks the one starting LAST, which is
-            //    not necessarily the one the coordinator just published.
-            //
-            //    LastModifiedDate is set when the menu is Accepted — that's
-            //    the correct "publication" timestamp.
-            var acceptedMenu = _db.MealMenus
-                .Where(m => m.MenuStatus == MenuStatus.Accepted)
-                .OrderByDescending(m => m.LastModifiedDate)
-                .ThenByDescending(m => m.CreatedDate)
-                .ThenByDescending(m => m.Id)
-                .FirstOrDefault();
+            // 2. Which published menu: the week asked for, else the one
+            //    running today, else the next one (see MenuForStudent)
+            var acceptedMenu = MenuForStudent(weekStart);
 
             if (acceptedMenu == null)
             {
@@ -137,8 +133,108 @@ namespace Michaelhouse.Services
                 _db.SaveChanges();
             }
 
-            // 4. Build the view model
-            return BuildViewModel(plan, student, acceptedMenu);
+            // 4. Build the view model, with the other weeks to switch to
+            var vm = BuildViewModel(plan, student, acceptedMenu);
+            vm.Weeks = AvailableWeeks(studentId, acceptedMenu);
+            return vm;
+        }
+
+        // ============================================================
+        // WHICH MENU / WEEK
+        //
+        // A menu can be accepted ahead of time, so "the most recently
+        // published menu" is not necessarily this week's. Menus are
+        // chosen by their dates instead:
+        //   - the week asked for (an accepted menu starting that day);
+        //   - else the accepted menu running today;
+        //   - else the next one to start;
+        //   - else the last one that ran.
+        // Where two accepted menus start on the same day, the most
+        // recently published wins (LastModifiedDate is set on Accept).
+        // ============================================================
+
+        private IQueryable<MealMenu> AcceptedMenus()
+        {
+            return _db.MealMenus.Where(m => m.MenuStatus == MenuStatus.Accepted);
+        }
+
+        private static IOrderedEnumerable<MealMenu> NewestFirst(IEnumerable<MealMenu> menus)
+        {
+            return menus
+                .OrderByDescending(m => m.LastModifiedDate)
+                .ThenByDescending(m => m.CreatedDate)
+                .ThenByDescending(m => m.Id);
+        }
+
+        private MealMenu MenuForStudent(DateTime? weekStart)
+        {
+            var today = _now().Date;
+            var menus = AcceptedMenus().ToList();
+
+            MealMenu menu = null;
+
+            if (weekStart.HasValue)
+            {
+                var start = weekStart.Value.Date;
+                menu = NewestFirst(menus.Where(m => m.StartDate.Date == start)).FirstOrDefault();
+            }
+
+            if (menu == null)
+            {
+                menu = NewestFirst(menus.Where(m => m.StartDate.Date <= today && m.EndDate.Date >= today)).FirstOrDefault();
+            }
+
+            if (menu == null)
+            {
+                menu = menus
+                    .Where(m => m.StartDate.Date > today)
+                    .OrderBy(m => m.StartDate)
+                    .ThenByDescending(m => m.LastModifiedDate)
+                    .ThenByDescending(m => m.Id)
+                    .FirstOrDefault();
+            }
+
+            if (menu == null)
+            {
+                menu = menus
+                    .OrderByDescending(m => m.EndDate)
+                    .ThenByDescending(m => m.LastModifiedDate)
+                    .ThenByDescending(m => m.Id)
+                    .FirstOrDefault();
+            }
+
+            return menu;
+        }
+
+        // The weeks the student can open: accepted menus that haven't
+        // ended yet (one per start date), plus the week being shown.
+        public List<MealPlanWeekOption> AvailableWeeks(int studentId, MealMenu current)
+        {
+            var today = _now().Date;
+
+            var menus = AcceptedMenus().Where(m => m.EndDate >= today).ToList();
+            if (current != null && !menus.Any(m => m.Id == current.Id)) menus.Add(current);
+
+            var weeks = menus
+                .GroupBy(m => m.StartDate.Date)
+                .Select(g => NewestFirst(g).First())
+                .OrderBy(m => m.StartDate)
+                .ToList();
+
+            var starts = weeks.Select(m => m.StartDate.Date).ToList();
+            var statuses = _db.MealPlans
+                .Where(p => p.StudentId == studentId && starts.Contains(p.WeekStartDate))
+                .Select(p => new { p.WeekStartDate, p.Status })
+                .ToList();
+
+            return weeks.Select(m => new MealPlanWeekOption
+            {
+                WeekStartDate = m.StartDate.Date,
+                WeekEndDate = m.EndDate.Date,
+                IsCurrentWeek = m.StartDate.Date <= today && m.EndDate.Date >= today,
+                IsSelected = current != null && m.StartDate.Date == current.StartDate.Date,
+                Status = statuses.Where(s => s.WeekStartDate == m.StartDate.Date).Select(s => (MealPlanStatus?)s.Status).FirstOrDefault()
+            }).ToList();
         }
 
         // ============================================================

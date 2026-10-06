@@ -248,7 +248,11 @@ namespace Michaelhouse.Services
             }
 
             if (scan != null && scan.Success && scan.Items.Count == 0)
-                vm.Messages.Add("No item lines were found on the invoice. Enter the quantities received.");
+                vm.Messages.Add(order != null
+                    ? "No item lines could be read from the invoice. The order's outstanding quantities are filled in — check them against the invoice."
+                    : "No item lines were found on the invoice. Enter the quantities received.");
+            else if (scan != null && scan.ItemsFromTable)
+                vm.Messages.Add("Item lines were read from the table on the invoice. Please check the quantities.");
 
             return vm;
         }

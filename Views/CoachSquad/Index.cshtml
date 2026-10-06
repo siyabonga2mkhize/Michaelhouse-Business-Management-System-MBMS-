@@ -5,317 +5,239 @@
     ViewBag.Title = "My Sports";
 
     int upcomingDays = ViewBag.UpcomingDays ?? 14;
+    var sports = Model ?? new List<SportSquadViewModel>();
+    int players = sports.Sum(s => s.Players.Count);
+    int unavailable = sports.Sum(s => s.Players.Count(p => !p.IsAvailableToday));
 }
 
-<style>
-    .sq-shell {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    .sq-header {
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-
-        .sq-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-    .sq-meta {
-        color: #888;
-        font-size: .82rem;
-    }
-
-    .sq-sport {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        margin-bottom: 1.25rem;
-        overflow: hidden;
-    }
-
-    .sq-sport-header {
-        padding: .85rem 1.25rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .sq-sport-name {
-        font-weight: 700;
-        font-size: .95rem;
-    }
-
-    .sq-sport-count {
-        font-size: .8rem;
-        color: #6b7280;
-    }
-
-    .sq-row {
-        display: grid;
-        grid-template-columns: minmax(150px, 1fr) 120px 100px minmax(120px, 1fr) auto;
-        gap: 1rem;
-        padding: .85rem 1.25rem;
-        border-bottom: 1px solid #f3f4f6;
-        align-items: center;
-        font-size: .88rem;
-    }
-
-        .sq-row:last-child {
-            border-bottom: none;
-        }
-
-    .sq-player {
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .sq-number {
-        font-size: .75rem;
-        color: #9ca3af;
-    }
-
-    .sq-badge {
-        font-size: .72rem;
-        padding: .2rem .6rem;
-        border-radius: 4px;
-        font-weight: 600;
-    }
-
-        .sq-badge.ok {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .sq-badge.out {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-    .sq-reason {
-        font-size: .75rem;
-        color: #6b7280;
-        font-style: italic;
-    }
-
-    .sq-btn {
-        font-size: .78rem;
-        padding: .3rem .7rem;
-        border-radius: 4px;
-        border: 1px solid;
-        cursor: pointer;
-        background: #fff;
-        font-weight: 600;
-    }
-
-        .sq-btn.mark-out {
-            border-color: #fca5a5;
-            color: #991b1b;
-        }
-
-            .sq-btn.mark-out:hover {
-                background: #fef2f2;
-            }
-
-        .sq-btn.mark-in {
-            border-color: #86efac;
-            color: #065f46;
-        }
-
-            .sq-btn.mark-in:hover {
-                background: #f0fdf4;
-            }
-
-    .sq-fixtures {
-        padding: .75rem 1.25rem;
-        border-bottom: 1px solid #e5e7eb;
-        background: #fcfcfd;
-        font-size: .82rem;
-    }
-
-    .sq-fixture {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .75rem;
-        align-items: baseline;
-        padding: .2rem 0;
-    }
-
-    .sq-fixture-type {
-        font-size: .68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        padding: .1rem .45rem;
-        border-radius: 4px;
-        background: #e5e7eb;
-        color: #374151;
-    }
-
-        .sq-fixture-type.match {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-    @@media (max-width: 1280px) {
-        .sq-row {
-            grid-template-columns: 1fr 1fr;
-        }
-
-            .sq-row > .text-end {
-                grid-column: 1 / -1;
-                text-align: left !important;
-            }
-    }
-
-    .sq-empty {
-        padding: 2rem;
-        text-align: center;
-        color: #9ca3af;
-        font-size: .9rem;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="sq-shell">
-
-        <div class="sq-header">
-            <div>
-                <h1>My Sports</h1>
-                <div class="sq-meta">
-                    Players come from the sports parents select on their children's profiles &mdash; you don't keep a list.
-                    Mark a player unavailable (injury, leave, suspension) and they're left out of that sport's match and training
-                    meal recommendations until they're available again. They still get their normal meals.
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10 flex-wrap gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Sport & Fixtures</h5>
             </div>
-            <a href="@Url.Action("Create", "Coach")" class="btn btn-primary btn-sm">+ Add Fixture</a>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">My Sports</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Squads from students' profiles. Mark injured or absent players unavailable.
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="@Url.Action("Index", "Coach")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-calendar-event me-2 text-sm"></i> My Fixtures
+            </a>
+            <a href="@Url.Action("Create", "Coach")" class="inline-flex items-center justify-center bg-[#1a1a1a] text-white px-8 py-3 text-[10px] font-bold uppercase tracking-[3px] hover:bg-black hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-all duration-300 text-decoration-none">
+                <i class="bi bi-plus-lg me-2 text-sm align-middle"></i> Add Fixture
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-16 pt-2 flex flex-col gap-8">
+
+        @* --- SUMMARY TILES --- *@
+        <div class="grid grid-cols-3 gap-3 sm:gap-4">
+            <div class="bg-white border border-gray-200 p-3 sm:p-5 shadow-sm">
+                <span class="block text-[8px] sm:text-[9px] uppercase tracking-[2px] sm:tracking-[3px] font-bold text-gray-400 mb-2">Sports</span>
+                <span class="font-mono text-2xl sm:text-3xl font-bold text-gray-900">@sports.Count</span>
+            </div>
+            <div class="bg-white border border-gray-200 p-3 sm:p-5 shadow-sm">
+                <span class="block text-[8px] sm:text-[9px] uppercase tracking-[2px] sm:tracking-[3px] font-bold text-gray-400 mb-2">Players</span>
+                <span class="font-mono text-2xl sm:text-3xl font-bold text-gray-900">@players</span>
+            </div>
+            <div class="bg-white border border-gray-200 p-3 sm:p-5 shadow-sm">
+                <span class="block text-[8px] sm:text-[9px] uppercase tracking-[2px] sm:tracking-[3px] font-bold text-gray-400 mb-2">Unavailable</span>
+                <span class="font-mono text-2xl sm:text-3xl font-bold @(unavailable > 0 ? "text-[#C21E2E]" : "text-gray-900")">@unavailable</span>
+            </div>
         </div>
 
-        @if (Model == null || !Model.Any())
+        @* --- HOW THIS WORKS --- *@
+        <div class="bg-blue-50/60 border-l-4 border-[#1a1a1a] p-5 shadow-sm">
+            <span class="block text-[9px] uppercase tracking-[3px] font-bold text-gray-900 mb-2"><i class="bi bi-info-circle me-1"></i> How this works</span>
+            <p class="font-serif text-sm text-gray-700 mb-0">
+                Players come from the sports parents select on their children's profiles &mdash; you don't keep a list.
+                An unavailable player (injury, leave, suspension) is left out of that sport's match and training meal
+                recommendations until they're available again. They still get their normal meals.
+            </p>
+        </div>
+
+        @if (!sports.Any())
         {
-            <div class="sq-sport sq-empty">
-                No students have a sport on their profile yet.
+            <div class="bg-white border-2 border-gray-200 shadow-sm p-20 text-center">
+                <i class="bi bi-people text-gray-200 text-6xl d-block mb-3"></i>
+                <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Squads Yet</h4>
+                <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No students have a sport on their profile yet.</span>
             </div>
         }
-        else
-        {
-            foreach (var sport in Model)
-            {
-                <div class="sq-sport">
-                    <div class="sq-sport-header">
-                        <span class="sq-sport-name">@sport.Sport</span>
-                        <span class="sq-sport-count">@sport.AvailableCount of @sport.Players.Count available today</span>
-                    </div>
 
-                    <div class="sq-fixtures">
-                        <div class="fw-semibold mb-1">Upcoming (next @upcomingDays days)</div>
-                        @if (!sport.Upcoming.Any())
-                        {
-                            <div class="text-muted">
-                                Nothing scheduled.
-                                <a href="@Url.Action("Create", "Coach")">Add a training or match</a>
-                            </div>
-                        }
-                        else
-                        {
-                            foreach (var f in sport.Upcoming)
+        @foreach (var sport in sports)
+        {
+            <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+
+                @* Sport Header *@
+                <div class="p-5 border-b border-gray-200 bg-[#1a1a1a] flex justify-between items-center flex-wrap gap-2">
+                    <div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">
+                            <i class="bi bi-trophy me-2 text-gray-400"></i> @sport.Sport
+                        </h5>
+                        <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest mt-1 block">@sport.Players.Count player@(sport.Players.Count == 1 ? "" : "s") on profile</span>
+                    </div>
+                    <span class="text-[9px] font-mono font-bold uppercase tracking-widest text-white border border-gray-600 px-3 py-1">
+                        @sport.AvailableCount / @sport.Players.Count available today
+                    </span>
+                </div>
+
+                @* Upcoming fixtures *@
+                <div class="p-5 bg-gray-50 border-b border-gray-200">
+                    <span class="block text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-3">Upcoming &middot; next @upcomingDays days</span>
+                    @if (!sport.Upcoming.Any())
+                    {
+                        <span class="text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                            Nothing scheduled &middot;
+                            <a href="@Url.Action("Create", "Coach")" class="text-[#C21E2E] font-bold hover:underline">Add a training or match</a>
+                        </span>
+                    }
+                    else
+                    {
+                        <div class="flex flex-col gap-2">
+                            @foreach (var f in sport.Upcoming)
                             {
-                                <div class="sq-fixture">
-                                    <span class="sq-fixture-type @(f.EventType == "Match" ? "match" : "")">@f.EventType</span>
-                                    <span class="fw-semibold">@f.Date.ToString("ddd dd MMM")</span>
-                                    <span>@f.StartTime.ToString(@"hh\:mm")&ndash;@f.EndTime.ToString(@"hh\:mm")</span>
-                                    <span>@f.Label</span>
-                                    <span class="text-muted">
-                                        &middot; @f.Players player@(f.Players == 1 ? "" : "s")@(f.House != null ? " in " + f.House : "")
+                                bool isMatch = f.EventType == "Match";
+                                <div class="flex flex-wrap items-center gap-3 bg-white border border-gray-200 px-4 py-2">
+                                    <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest px-2 py-1 @(isMatch ? "bg-[#C21E2E] text-white" : "bg-gray-100 text-gray-700 border border-gray-200")">@f.EventType</span>
+                                    <span class="font-serif font-bold text-sm text-gray-900">@f.Date.ToString("ddd, dd MMM")</span>
+                                    <span class="font-mono text-xs text-gray-500">@f.StartTime.ToString(@"hh\:mm")&ndash;@f.EndTime.ToString(@"hh\:mm")</span>
+                                    <span class="font-serif text-sm text-gray-700">@f.Label</span>
+                                    <span class="text-[9px] font-mono uppercase tracking-widest text-gray-400">
+                                        @f.Players player@(f.Players == 1 ? "" : "s")@(f.House != null ? " · " + f.House : "")
                                     </span>
-                                    <a class="ms-auto small" href="@Url.Action("Edit", "Coach", new { id = f.Id })">Edit</a>
+                                    <a href="@Url.Action("Edit", "Coach", new { id = f.Id })" class="ms-auto text-[9px] font-bold uppercase tracking-[2px] text-gray-700 hover:text-[#C21E2E] text-decoration-none">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </a>
                                 </div>
                             }
-                        }
-                    </div>
-
-                    @if (!sport.Players.Any())
-                    {
-                        <div class="sq-empty">No students have @sport.Sport on their profile.</div>
-                    }
-
-                    @foreach (var player in sport.Players)
-                    {
-                        <div class="sq-row">
-                            <div>
-                                <div class="sq-player">@player.Name</div>
-                                <div class="sq-number">@player.StudentNumber</div>
-                            </div>
-
-                            <div class="small">
-                                <div>@(player.Grade ?? "-")</div>
-                                <div class="sq-number">@(player.House ?? "No house")</div>
-                            </div>
-
-                            <div>
-                                @if (player.IsAvailableToday)
-                                {
-                                    <span class="sq-badge ok">Available</span>
-                                }
-                                else
-                                {
-                                    <span class="sq-badge out">Unavailable</span>
-                                }
-                            </div>
-
-                            <div class="sq-reason">
-                                @if (!player.IsAvailableToday && !string.IsNullOrEmpty(player.StatusReason))
-                                {
-                                    <span>@player.StatusReason</span>
-                                    if (player.UnavailableUntil.HasValue)
-                                    {
-                                        <span> &middot; until @player.UnavailableUntil.Value.ToString("dd MMM")</span>
-                                    }
-                                }
-                            </div>
-
-                            <div class="text-end">
-                                @if (player.IsAvailableToday)
-                                {
-                                    <form action="@Url.Action("MarkUnavailable", "CoachSquad")" method="post" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@player.StatusId" />
-
-                                        <input type="text"
-                                               name="reason"
-                                               placeholder="Reason (e.g. Injured)"
-                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:120px;"
-                                               required />
-
-                                        <input type="date"
-                                               name="until"
-                                               title="Available again on (optional)"
-                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:120px;" />
-
-                                        <button type="submit" class="sq-btn mark-out">Unavailable</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <form action="@Url.Action("MarkAvailable", "CoachSquad", new { id = player.StatusId })" method="post" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="sq-btn mark-in">Mark Available</button>
-                                    </form>
-                                }
-                            </div>
                         </div>
                     }
                 </div>
-            }
+
+                @* Squad *@
+                @if (!sport.Players.Any())
+                {
+                    <div class="p-12 text-center text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                        No students have @sport.Sport on their profile.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 w-full whitespace-nowrap">
+                            <thead class="bg-gray-50/90">
+                                <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-500 border-b-2 border-gray-200">
+                                    <th class="ps-6 py-3">Player</th>
+                                    <th class="border-l border-gray-100 ps-4">Grade / House</th>
+                                    <th class="border-l border-gray-100 ps-4 text-center">Status</th>
+                                    <th class="border-l border-gray-100 ps-4">Reason</th>
+                                    <th class="pe-6 border-l border-gray-100 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                @foreach (var player in sport.Players)
+                                {
+                                    <tr class="hover:bg-gray-50/80 transition-colors border-b border-gray-50 last:border-0 h-16">
+                                        <td class="ps-6 py-3">
+                                            <span class="font-serif font-bold text-gray-900 block">@player.Name</span>
+                                            <span class="font-mono text-[10px] text-gray-400 uppercase tracking-widest">@player.StudentNumber</span>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4">
+                                            <span class="font-mono text-xs text-gray-900 block">@(player.Grade ?? "—")</span>
+                                            <span class="font-mono text-[10px] text-gray-400 uppercase tracking-widest">@(player.House ?? "No house")</span>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4 text-center">
+                                            @if (player.IsAvailableToday)
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1">Available</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-red-50 text-[#C21E2E] border border-red-200 px-2 py-1">Unavailable</span>
+                                            }
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4 font-serif text-sm italic text-gray-500">
+                                            @if (!player.IsAvailableToday && !string.IsNullOrEmpty(player.StatusReason))
+                                            {
+                                                @player.StatusReason
+                                                if (player.UnavailableUntil.HasValue)
+                                                {
+                                                    <span class="block not-italic font-mono text-[10px] uppercase tracking-widest text-gray-400">Until @player.UnavailableUntil.Value.ToString("dd MMM")</span>
+                                                }
+                                            }
+                                        </td>
+                                        <td class="pe-6 border-l border-gray-50 text-end">
+                                            @if (player.IsAvailableToday)
+                                            {
+                                                <form action="@Url.Action("MarkUnavailable", "CoachSquad")" method="post" class="inline-flex flex-wrap items-center justify-end gap-2 m-0">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@player.StatusId" />
+                                                    <input type="text" name="reason" placeholder="Reason (e.g. Injured)" maxlength="200" required
+                                                           class="w-36 border-b-2 border-gray-200 py-1.5 outline-none focus:border-[#C21E2E] font-serif text-xs text-gray-900 bg-transparent" />
+                                                    <input type="date" name="until" title="Available again on (optional)"
+                                                           class="w-36 border-b-2 border-gray-200 py-1.5 outline-none focus:border-[#C21E2E] font-mono text-xs text-gray-900 bg-transparent" />
+                                                    <button type="submit" class="inline-flex items-center justify-center bg-white border border-[#C21E2E] text-[#C21E2E] px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-red-50 transition-colors">
+                                                        Unavailable
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form action="@Url.Action("MarkAvailable", "CoachSquad", new { id = player.StatusId })" method="post" class="inline m-0">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="inline-flex items-center justify-center bg-white border border-emerald-500 text-emerald-700 px-4 py-2 text-[9px] font-bold uppercase tracking-[2px] hover:bg-emerald-50 transition-colors">
+                                                        <i class="bi bi-check2 me-1.5"></i> Mark Available
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
         }
 
     </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #e5e7eb !important;
+        vertical-align: middle;
+        padding-top: .9rem;
+        padding-bottom: .9rem;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>

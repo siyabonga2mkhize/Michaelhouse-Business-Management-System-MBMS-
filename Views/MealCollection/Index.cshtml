@@ -11,387 +11,174 @@
     int[] durationOptions = ViewBag.DurationOptions as int[] ?? new int[0];
 }
 
-<style>
-    .mc-shell {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30" id="mc-root">
+    @Html.AntiForgeryToken()
 
-    .mc-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-bottom: 1.25rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-        .mc-header h1 {
-            font-size: 1.9rem;
-            margin: 0 0 .35rem 0;
-        }
-
-    .mc-meta {
-        color: #888;
-        font-size: .82rem;
-    }
-
-        .mc-meta strong {
-            color: #333;
-        }
-
-    .mc-slot-banner {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: .5rem;
-        padding: .85rem 1.1rem;
-        border: 1.5px solid #C21E2E;
-        border-radius: 8px;
-        background: #fef2f2;
-        margin-bottom: 1.25rem;
-    }
-
-        .mc-slot-banner .slot {
-            font-size: .95rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #C21E2E;
-        }
-
-        .mc-slot-banner .hours {
-            font-size: .8rem;
-            color: #6b7280;
-        }
-
-        .mc-slot-banner.manual {
-            border-color: #d97706;
-            background: #fffbeb;
-        }
-
-            .mc-slot-banner.manual .slot {
-                color: #b45309;
-            }
-
-        .mc-slot-banner.closed {
-            border-color: #e5e7eb;
-            background: #f9fafb;
-        }
-
-            .mc-slot-banner.closed .slot {
-                color: #6b7280;
-            }
-
-    .mc-opening {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: .5rem;
-        padding: .75rem 1.1rem;
-        border: 1px dashed #d1d5db;
-        border-radius: 8px;
-        margin-bottom: 1.25rem;
-        font-size: .85rem;
-    }
-
-        .mc-opening .label {
-            font-weight: 600;
-            color: #374151;
-            margin-right: .25rem;
-        }
-
-        .mc-opening .hint {
-            flex-basis: 100%;
-            color: #6b7280;
-            font-size: .75rem;
-        }
-
-        .mc-opening select {
-            width: auto;
-        }
-
-    .mc-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
-
-    @@media (max-width: 800px) {
-        .mc-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .mc-camera-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.25rem;
-    }
-
-    .mc-camera-wrap {
-        position: relative;
-        background: #111;
-        aspect-ratio: 4/3;
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-
-        .mc-camera-wrap video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .mc-camera-wrap .placeholder {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            font-size: .9rem;
-            text-align: center;
-            padding: 1rem;
-        }
-
-    .mc-controls {
-        display: flex;
-        gap: .65rem;
-    }
-
-    .mc-status {
-        margin-top: 1rem;
-        font-size: .85rem;
-        padding: .65rem 1rem;
-        border-radius: 6px;
-        display: block;
-    }
-
-        .mc-status.ok {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .mc-status.err {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .mc-status.info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-    .mc-result-card {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 1.5rem;
-        display: none;
-    }
-
-        .mc-result-card.visible {
-            display: block;
-        }
-
-        .mc-result-card.ok {
-            border-color: #bbf7d0;
-            background: #f0fdf4;
-        }
-
-        .mc-result-card.warn {
-            border-color: #fde68a;
-            background: #fffbeb;
-        }
-
-        .mc-result-card.err {
-            border-color: #fecaca;
-            background: #fef2f2;
-        }
-
-    .mc-result-label {
-        font-size: .68rem;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin-bottom: .35rem;
-    }
-
-    .mc-result-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #111827;
-        margin-bottom: .25rem;
-    }
-
-    .mc-result-meta {
-        font-size: .82rem;
-        color: #6b7280;
-        margin-bottom: 1rem;
-    }
-
-    .mc-result-message {
-        font-size: .9rem;
-        color: #374151;
-        margin-bottom: 1rem;
-    }
-
-    .mc-result-meal {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .mc-result-meal-name {
-        font-size: 1.15rem;
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .mc-result-meal-slot {
-        font-size: .72rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: #9ca3af;
-        margin-bottom: .35rem;
-    }
-
-    .mc-warning {
-        padding: .75rem 1rem;
-        border-radius: 6px;
-        font-size: .85rem;
-        margin-bottom: 1rem;
-        font-weight: 600;
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .mc-actions {
-        display: flex;
-        gap: .65rem;
-        margin-top: 1rem;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="mc-shell" id="mc-root">
-        @Html.AntiForgeryToken()
-
-        <div class="mc-header">
-            <div>
-                <h1>Collection Terminal</h1>
-                <div class="mc-meta">
-                    Kitchen staff only · <strong id="todayCount">@todayCount</strong> meals collected today
-                </div>
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Culinary Operations</h5>
             </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Collection Terminal</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                <span class="text-[#C21E2E] font-bold">Authorized Kitchen Staff Only</span>
+                <span class="mx-2 text-gray-300">|</span>
+                <strong id="todayCount" class="text-gray-900 font-bold text-sm">@todayCount</strong> meals collected today
+            </p>
         </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("ChefIndex", "Cafeteria")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Dashboard
+            </a>
+        </div>
+    </div>
 
-        <!-- MEAL BEING SERVED (decided by the server from school time) -->
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-2 flex flex-col gap-6 w-full">
+
+        @* --- SYSTEM STATUS RIBBONS --- *@
         @if (currentSlot != null)
         {
-            <div class="mc-slot-banner @(isManualOpening ? "manual" : "")">
-                <span class="slot">Now serving: @currentSlot</span>
-                <span class="hours">@currentSlotHours</span>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 shadow-sm border-l-4 @(isManualOpening ? "bg-amber-50 border-amber-500" : "bg-red-50 border-[#C21E2E]")">
+                <div class="flex items-center gap-3">
+                    <i class="bi @(isManualOpening ? "bi-exclamation-triangle-fill text-amber-600" : "bi-clock-fill text-[#C21E2E]") text-xl"></i>
+                    <div>
+                        <span class="text-[11px] font-mono font-bold uppercase tracking-[3px] @(isManualOpening ? "text-amber-800" : "text-[#C21E2E]") block">Now Serving: @currentSlot</span>
+                    </div>
+                </div>
+                <div class="text-xs font-mono uppercase tracking-widest @(isManualOpening ? "text-amber-700" : "text-red-800") font-bold">
+                    <i class="bi bi-stopwatch me-1"></i> @currentSlotHours
+                </div>
             </div>
         }
         else
         {
-            <div class="mc-slot-banner closed">
-                <span class="slot">No meal is being served right now</span>
-                <span class="hours">@collectionHours</span>
-            </div>
-        }
-
-        <!-- MANUAL OPENING (Cafeteria Manager) -->
-        @if (canOpenCollection)
-        {
-            if (isManualOpening)
-            {
-                using (Html.BeginForm("CloseCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <span class="label">@currentSlot collection is open manually.</span>
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">Close now</button>
-                    <span class="hint">Normal hours: @collectionHours</span>
-                }
-            }
-            else
-            {
-                using (Html.BeginForm("OpenCollection", "MealCollection", FormMethod.Post, new { @class = "mc-opening" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <span class="label">Open collection for today's</span>
-                    <select name="slot" class="form-select form-select-sm">
-                        <option value="Breakfast">Breakfast</option>
-                        <option value="Lunch" selected>Lunch</option>
-                        <option value="Dinner">Dinner</option>
-                    </select>
-                    <span class="label">for</span>
-                    <select name="minutes" class="form-select form-select-sm">
-                        @foreach (var m in durationOptions)
-                        {
-                            <option value="@m" @(m == 60 ? "selected" : "")>@(m < 60 ? m + " minutes" : (m / 60) + (m == 60 ? " hour" : " hours"))</option>
-                        }
-                    </select>
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Open collection</button>
-                    <span class="hint">For testing and demonstrations. Overrides the normal hours (@collectionHours) until it ends or is closed. All other checks still apply, and collections are noted as made during a manual opening.</span>
-                }
-            }
-        }
-
-        <div class="mc-grid">
-
-            <!-- CAMERA -->
-            <div class="mc-camera-card">
-                <div class="mc-camera-wrap">
-                    <video id="video" autoplay playsinline></video>
-                    <div id="placeholder" class="placeholder">
-                        Click "Start Camera" to begin
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 shadow-sm border-l-4 bg-gray-100 border-gray-400">
+                <div class="flex items-center gap-3">
+                    <i class="bi bi-clock text-gray-500 text-xl"></i>
+                    <div>
+                        <span class="text-[11px] font-mono font-bold uppercase tracking-[3px] text-gray-600 block">No meal is being served right now</span>
                     </div>
                 </div>
+                <div class="text-xs font-mono uppercase tracking-widest text-gray-500 font-bold">
+                    Standard Hours: @collectionHours
+                </div>
+            </div>
+        }
 
-                <div class="mc-controls">
-                    <button type="button" id="startBtn" class="btn btn-primary flex-fill">
-                        Start Camera
-                    </button>
-                    <button type="button" id="captureBtn" class="btn btn-success flex-fill" style="display:none;">
-                        Capture &amp; Verify
-                    </button>
+        @* --- MANUAL OVERRIDE (MANAGER ONLY) --- *@
+        @if (canOpenCollection)
+        {
+            <div class="bg-white border border-gray-200 p-4 shadow-sm">
+                @if (isManualOpening)
+                {
+                    using (Html.BeginForm("CloseCollection", "MealCollection", FormMethod.Post, new { @class = "flex flex-wrap items-center gap-4 m-0" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <span class="font-serif font-bold text-sm text-gray-900"><i class="bi bi-unlock me-1.5 text-[#C21E2E]"></i> @currentSlot collection is open manually.</span>
+                        <button type="submit" class="bg-gray-100 border border-gray-300 text-gray-800 px-4 py-1.5 text-[9px] font-bold uppercase tracking-[1px] hover:bg-gray-200 transition-colors shadow-2xs">Close Now</button>
+                        <span class="text-[9px] font-mono uppercase tracking-widest text-gray-500 ms-auto">Normal hours: @collectionHours</span>
+                    }
+                }
+                else
+                {
+                    using (Html.BeginForm("OpenCollection", "MealCollection", FormMethod.Post, new { @class = "flex flex-wrap items-center gap-3 m-0" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <span class="font-serif font-bold text-sm text-gray-900"><i class="bi bi-key me-1.5 text-gray-400"></i> Override: Open collection for today's</span>
+
+                        <select name="slot" class="border border-gray-300 py-1 px-2 font-mono text-xs outline-none focus:border-[#C21E2E]">
+                            <option value="Breakfast">Breakfast</option>
+                            <option value="Lunch" selected>Lunch</option>
+                            <option value="Dinner">Dinner</option>
+                        </select>
+
+                        <span class="font-serif font-bold text-sm text-gray-900">for</span>
+
+                        <select name="minutes" class="border border-gray-300 py-1 px-2 font-mono text-xs outline-none focus:border-[#C21E2E]">
+                            @foreach (var m in durationOptions)
+                            {
+                                <option value="@m" @(m == 60 ? "selected" : "")>@(m < 60 ? m + " minutes" : (m / 60) + (m == 60 ? " hour" : " hours"))</option>
+                            }
+                        </select>
+
+                        <button type="submit" class="bg-transparent border border-[#C21E2E] text-[#C21E2E] px-4 py-1.5 text-[9px] font-bold uppercase tracking-[1px] hover:bg-red-50 transition-colors shadow-2xs">Authorize Opening</button>
+                        <p class="w-full text-[9px] font-mono uppercase tracking-widest text-gray-400 mt-2 mb-0">Overrides normal hours (@collectionHours) for testing/late arrivals. All dietary protocols still apply.</p>
+                    }
+                }
+            </div>
+        }
+
+        @* --- TWO COLUMN TERMINAL GRID --- *@
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
+
+            @* 1. BIOMETRIC CAPTURE MODULE *@
+            <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden h-fit">
+                <div class="p-4 bg-[#1a1a1a] text-white flex justify-between items-center border-b-2 border-b-[#C21E2E]">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-[4px] text-gray-300">
+                        <i class="bi bi-camera-video me-2 text-[#C21E2E]"></i> Biometric Terminal
+                    </span>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C21E2E] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#C21E2E]"></span>
+                    </span>
                 </div>
 
-                <div id="status" class="mc-status info" style="display:none;"></div>
+                <div class="p-6">
+                    <div class="relative bg-black aspect-[4/3] rounded-sm overflow-hidden mb-5 shadow-inner border border-gray-300">
+                        <video id="video" autoplay playsinline class="w-full h-full object-cover block"></video>
+                        <div id="placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 font-mono text-xs uppercase tracking-widest text-center p-4 bg-gray-900/90 z-10">
+                            <div>
+                                <i class="bi bi-webcam text-4xl block mb-3 text-gray-500"></i>
+                                Click "Start Camera" to initialize optical feed
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mb-4">
+                        <button type="button" id="startBtn" class="flex-1 bg-[#1a1a1a] text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-[2px] hover:bg-black transition-all shadow-sm">
+                            <i class="bi bi-power me-2"></i> Start Camera
+                        </button>
+                        <button type="button" id="captureBtn" class="flex-1 bg-blue-600 text-white px-6 py-3.5 text-[10px] font-bold uppercase tracking-[2px] hover:bg-blue-700 transition-all shadow-sm" style="display:none;">
+                            <i class="bi bi-viewfinder me-2"></i> Capture & Verify
+                        </button>
+                    </div>
+
+                    <div id="status" class="mc-status" style="display:none;"></div>
+                </div>
             </div>
 
-            <!-- RESULT -->
-            <div id="resultCard" class="mc-result-card">
-                <div id="resultLabel" class="mc-result-label"></div>
-                <div id="resultName" class="mc-result-name"></div>
-                <div id="resultMeta" class="mc-result-meta"></div>
-                <div id="resultMessage" class="mc-result-message"></div>
+            @* 2. RESULTS & CONFIRMATION MODULE *@
+            <div id="resultCard" class="mc-result-card relative h-fit hidden">
+                <div class="p-6">
+                    <div id="resultLabel" class="text-[10px] font-mono font-bold uppercase tracking-[4px] mb-2"></div>
+                    <div id="resultName" class="font-serif font-bold text-3xl text-gray-900 mb-1 leading-none"></div>
+                    <div id="resultMeta" class="text-xs font-mono uppercase tracking-widest text-gray-500 mb-5 border-b border-gray-100 pb-5"></div>
 
-                <div id="warningBox" class="mc-warning" style="display:none;"></div>
+                    <div id="resultMessage" class="font-serif text-lg text-gray-800 mb-5"></div>
 
-                <div id="mealBox" class="mc-result-meal">
-                    <div class="mc-result-meal-slot" id="mealSlotLabel"></div>
-                    <div class="mc-result-meal-name" id="mealName"></div>
-                    <div id="allergenInfo" style="font-size:.75rem; color:#6b7280; margin-top:.5rem;"></div>
-                </div>
+                    <div id="warningBox" class="bg-red-50 border-l-4 border-[#C21E2E] p-4 text-[#C21E2E] shadow-sm mb-5 text-sm font-serif hidden"></div>
 
-                <div class="mc-actions">
-                    <button type="button" id="confirmBtn" class="btn btn-success flex-fill">
-                        Confirm Collection
-                    </button>
-                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary flex-fill">
-                        Cancel
-                    </button>
+                    <div id="mealBox" class="bg-gray-50 border border-gray-200 p-5 shadow-xs mb-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <h6 class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 mb-0">Authorized Allocation</h6>
+                            <span id="mealSlotLabel" class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-white border border-gray-300 text-gray-700 px-2 py-0.5 shadow-2xs"></span>
+                        </div>
+                        <div id="mealName" class="font-serif font-bold text-xl text-gray-900 mb-3"></div>
+                        <div id="allergenInfo" class="text-[10px] font-mono text-gray-500 uppercase tracking-wider flex flex-col gap-1.5 border-t border-gray-200 pt-3"></div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="button" id="confirmBtn" class="flex-1 bg-[#10b981] border border-[#10b981] text-white px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-green-600 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all shadow-sm">
+                            <i class="bi bi-check2-circle me-1.5"></i> Confirm Collection
+                        </button>
+                        <button type="button" id="cancelBtn" class="flex-1 bg-white border-2 border-gray-300 text-gray-700 px-6 py-4 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-all shadow-sm">
+                            <i class="bi bi-x-lg me-1.5"></i> Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -400,14 +187,90 @@
     </div>
 </div>
 
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+
+    /* Dynamic JS Classes */
+    .mc-status {
+        padding: 1rem;
+        font-family: 'Source Code Pro', monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: 4px;
+        border-left-width: 4px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+        .mc-status.ok {
+            background-color: #f0fdf4;
+            color: #166534;
+            border-left-color: #10b981;
+        }
+
+        .mc-status.err {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border-left-color: #C21E2E;
+        }
+
+        .mc-status.info {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border-left-color: #3b82f6;
+        }
+
+    .mc-result-card.ok {
+        background-color: #ffffff;
+        border: 2px solid #10b981;
+    }
+
+        .mc-result-card.ok #resultLabel {
+            color: #059669;
+        }
+
+    .mc-result-card.warn {
+        background-color: #fffbeb;
+        border: 2px solid #f59e0b;
+    }
+
+        .mc-result-card.warn #resultLabel {
+            color: #d97706;
+        }
+
+    .mc-result-card.err {
+        background-color: #fef2f2;
+        border: 2px solid #C21E2E;
+    }
+
+        .mc-result-card.err #resultLabel {
+            color: #C21E2E;
+        }
+</style>
+
 @section Scripts {
     <script>
     (function () {
         // ── State ──────────────────────────────────────────────────
-        // The browser only ever sends a photo (Verify) and the one-time
-        // token the server returned (Record). Who the student is, which
-        // meal and slot, and whether they may collect are all decided
-        // on the server.
         var stream = null;
         var pendingToken = null;
         var video = document.getElementById("video");
@@ -438,7 +301,6 @@
                 return;
             }
 
-            // Same size as Face Enrollment (640x480), so photos are framed alike
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } })
                 .then(function (s) {
                     stream = s;
@@ -446,18 +308,18 @@
                     video.play();
                     placeholder.style.display = "none";
                     startBtn.style.display = "none";
-                    captureBtn.style.display = "inline-block";
-                    showStatus("Camera ready. Position the student's face in the frame.", "info");
+                    captureBtn.style.display = "inline-flex";
+                    showStatus("Camera active. Position student face in the frame.", "info");
                 })
                 .catch(function (err) {
-                    showStatus("Could not start camera: " + err.message, "err");
+                    showStatus("Camera initialization failed: " + err.message, "err");
                 });
         });
 
         // ── Capture & Verify ───────────────────────────────────────
         captureBtn.addEventListener("click", function () {
             if (!stream) {
-                showStatus("Camera not started.", "err");
+                showStatus("Camera feed unavailable.", "err");
                 return;
             }
 
@@ -466,7 +328,7 @@
             canvas.height = video.videoHeight || 480;
             canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            showStatus("Verifying…", "info");
+            showStatus("Executing biometric verification...", "info");
             captureBtn.disabled = true;
             hideResult();
 
@@ -476,7 +338,7 @@
 
                     if (data.success) {
                         pendingToken = data.token;
-                        showStatus("Check the meal, then confirm to record the collection.", "ok");
+                        showStatus("Verification successful. Authorize collection.", "ok");
                     } else {
                         showStatus(data.title + ".", "err");
                     }
@@ -485,7 +347,7 @@
                 })
                 .catch(function (err) {
                     captureBtn.disabled = false;
-                    showStatus("Error: " + err.message, "err");
+                    showStatus("System Exception: " + err.message, "err");
                 });
         });
 
@@ -503,7 +365,7 @@
                     showResult(data);
 
                     if (!data.success) {
-                        showStatus("Not recorded: " + data.title + ".", "err");
+                        showStatus("Transaction Failed: " + data.title + ".", "err");
                         return;
                     }
 
@@ -514,72 +376,74 @@
                 })
                 .catch(function (err) {
                     confirmBtn.disabled = false;
-                    showStatus("Error: " + err.message, "err");
+                    showStatus("System Exception: " + err.message, "err");
                 });
         });
 
         // ── Cancel ─────────────────────────────────────────────────
         cancelBtn.addEventListener("click", function () {
             hideResult();
-            showStatus("Ready. Position the next student.", "info");
+            showStatus("Terminal ready. Awaiting next subject.", "info");
         });
 
         // ── Result card ────────────────────────────────────────────
-        // outcome: ReadyForCollection → green with Confirm
-        //          Collected          → green, done
-        //          anything else      → red with the reason
         function showResult(data) {
             var ready = data.outcome === "ReadyForCollection";
             var collected = data.outcome === "Collected";
 
-            resultCard.classList.remove("ok", "warn", "err");
-            resultCard.classList.add("visible", (ready || collected) ? "ok" : "err");
+            resultCard.classList.remove("hidden", "ok", "warn", "err");
+            resultCard.classList.add((ready || collected) ? "ok" : "err");
 
             resultLabel.textContent = data.title || "";
             resultName.textContent = data.studentName || "";
             resultName.style.display = data.studentName ? "block" : "none";
-            resultMeta.textContent = data.studentNumber ? "Student no. " + data.studentNumber : "";
-            resultMessage.textContent = ready ? "Ready for collection." : (data.message || "");
+            resultMeta.textContent = data.studentNumber ? "Student ID: " + data.studentNumber : "";
+            resultMessage.textContent = ready ? "Identity verified. Authorized for collection." : (data.message || "");
 
-            // The meal (when the server found one)
+            // The meal
             mealBox.style.display = data.mealName ? "block" : "none";
             mealSlotLabel.textContent = data.mealDate || data.mealSlot || "";
             mealName.textContent = data.mealName || "";
 
             allergenInfo.textContent = "";
             addInfoLine("Contains", data.allergens);
-            addInfoLine("Student allergies", data.studentAllergies);
-            addInfoLine("Dietary preference", data.dietaryPreference);
-            addInfoLine("Medical dietary", data.medicalDietaryRestrictions);
-            addInfoLine("Dietary notes", data.dietaryNotes);
+            addInfoLine("Student Allergies", data.studentAllergies);
+            addInfoLine("Dietary Preference", data.dietaryPreference);
+            addInfoLine("Medical Restrictions", data.medicalDietaryRestrictions);
+            addInfoLine("Dietary Notes", data.dietaryNotes);
 
-            // Dietary warnings — shown, staff decide
-            warningBox.style.display = "none";
+            // Dietary warnings
+            warningBox.classList.add("hidden");
             warningBox.textContent = "";
             if (data.hasDietaryConflict) {
                 var heading = document.createElement("div");
                 heading.style.fontWeight = "700";
-                heading.textContent = "⚠ Dietary conflict — please review before confirming.";
+                heading.style.marginBottom = "0.5rem";
+                heading.textContent = "⚠ DIETARY CONFLICT DETECTED";
                 warningBox.appendChild(heading);
 
+                var list = document.createElement("ul");
+                list.className = "list-disc pl-5 m-0";
                 (data.dietaryConflicts || []).forEach(function (msg) {
-                    var line = document.createElement("div");
-                    line.textContent = "• " + msg;
-                    warningBox.appendChild(line);
+                    var line = document.createElement("li");
+                    line.textContent = msg;
+                    list.appendChild(line);
                 });
+                warningBox.appendChild(list);
 
-                warningBox.style.display = "block";
+                warningBox.classList.remove("hidden");
                 if (ready) resultCard.classList.replace("ok", "warn");
             }
 
             confirmBtn.style.display = ready ? "" : "none";
-            cancelBtn.textContent = ready ? "Cancel" : "Next student";
+            cancelBtn.textContent = ready ? "Cancel" : "Next Student";
         }
 
         function addInfoLine(label, value) {
             if (!value) return;
             var line = document.createElement("div");
             var strong = document.createElement("strong");
+            strong.className = "text-gray-700";
             strong.textContent = label + ": ";
             line.appendChild(strong);
             line.appendChild(document.createTextNode(value));
@@ -587,13 +451,13 @@
         }
 
         function hideResult() {
-            resultCard.classList.remove("visible");
+            resultCard.classList.add("hidden");
             pendingToken = null;
         }
 
         function showStatus(msg, kind) {
             statusBox.textContent = msg;
-            statusBox.className = "mc-status " + (kind || "info");
+            statusBox.className = "mc-status mt-4 " + (kind || "info");
             statusBox.style.display = "block";
         }
 
@@ -604,7 +468,7 @@
 
             return fetch(url, { method: "POST", body: form, credentials: "same-origin" })
                 .then(function (r) {
-                    if (!r.ok) throw new Error("server returned " + r.status);
+                    if (!r.ok) throw new Error("Server returned HTTP " + r.status);
                     return r.json();
                 });
         }

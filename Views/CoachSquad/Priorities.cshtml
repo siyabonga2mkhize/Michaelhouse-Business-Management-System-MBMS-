@@ -6,105 +6,149 @@
 
     DateTime weekStart = ViewBag.WeekStart ?? DateTime.Today;
     DateTime weekEnd = ViewBag.WeekEnd ?? DateTime.Today;
-    var existing = ViewBag.Existing as System.Collections.Generic.List<SportPriority>;
-    var sports = ViewBag.Sports as System.Collections.Generic.List<string>;
-
-    if (existing == null) { existing = new System.Collections.Generic.List<SportPriority>(); }
-    if (sports == null) { sports = new System.Collections.Generic.List<string>(); }
+    var existing = ViewBag.Existing as List<SportPriority> ?? new List<SportPriority>();
+    var sports = ViewBag.Sports as List<string> ?? new List<string>();
+    int highCount = sports.Count(s => existing.Any(p => p.Sport == s && p.PriorityLevel == 2));
 }
 
-<div class="container py-4" style="max-width: 900px;">
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
 
-    <div class="mb-4 pb-3" style="border-bottom: 1px solid #eaeaea;">
-        <h1 class="h3 mb-1">Weekly Priorities</h1>
-        <div class="text-muted small">
-            Week of @weekStart.ToString("dd MMM") – @weekEnd.ToString("dd MMM yyyy")
-            &nbsp;·&nbsp;
-            Set a sport to <strong>High priority</strong> to tilt the menu toward that sport's nutrition all week.
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10 flex-wrap gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Sport & Fixtures</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Weekly Priorities</h2>
+            <p class="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-2 mb-0">
+                Week of @weekStart.ToString("dd MMM") – @weekEnd.ToString("dd MMM yyyy")
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="@Url.Action("Index", "CoachSquad")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[10px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm text-decoration-none">
+                <i class="bi bi-people me-2 text-sm"></i> My Sports
+            </a>
         </div>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-16 pt-2 flex flex-col gap-8">
 
-    @if (sports.Count == 0)
-    {
-        <div class="card">
-            <div class="card-body text-center text-muted py-5">
-                No sports are currently registered to any student.
+        <div class="max-w-4xl mx-auto w-full flex flex-col gap-8">
+
+            @* --- HOW THIS WORKS --- *@
+            <div class="bg-blue-50/60 border-l-4 border-[#1a1a1a] p-5 shadow-sm">
+                <span class="block text-[9px] uppercase tracking-[3px] font-bold text-gray-900 mb-2"><i class="bi bi-info-circle me-1"></i> How this works</span>
+                <p class="font-serif text-sm text-gray-700 mb-0">
+                    Set a sport to <strong>High priority</strong> to tilt this week's menu toward that sport's nutrition &mdash;
+                    for example during finals or a tournament week. It resets to normal next week.
+                </p>
+            </div>
+
+            <div class="bg-white border-2 border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
+
+                <div class="p-5 border-b border-gray-200 bg-[#1a1a1a] flex justify-between items-center">
+                    <div>
+                        <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">
+                            <i class="bi bi-star me-2 text-gray-400"></i> Sport Priorities
+                        </h5>
+                        <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest mt-1 block">@highCount of @sports.Count set to high this week</span>
+                    </div>
+                </div>
+
+                @if (sports.Count == 0)
+                {
+                    <div class="p-20 text-center">
+                        <i class="bi bi-trophy text-gray-200 text-6xl d-block mb-3"></i>
+                        <h4 class="font-serif font-bold text-gray-400 uppercase tracking-[3px] mb-2">No Sports Yet</h4>
+                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No sports are currently registered to any student.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex flex-col">
+                        @foreach (var sport in sports)
+                        {
+                            var priority = existing.FirstOrDefault(p => p.Sport == sport);
+                            bool isHigh = priority != null && priority.PriorityLevel == 2;
+                            string existingReason = priority != null ? priority.Reason : "";
+
+                            <div class="p-6 border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition-colors @(isHigh ? "border-l-4 border-l-[#C21E2E]" : "")">
+                                <div class="flex flex-wrap items-center gap-3 mb-4">
+                                    <strong class="font-serif text-lg text-gray-900">@sport</strong>
+                                    @if (isHigh)
+                                    {
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-[#C21E2E] text-white px-2 py-1"><i class="bi bi-star-fill me-1"></i> High priority</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center text-[8px] font-bold uppercase tracking-widest bg-gray-100 text-gray-600 border border-gray-200 px-2 py-1">Normal</span>
+                                    }
+                                    @if (isHigh && !string.IsNullOrEmpty(existingReason))
+                                    {
+                                        <span class="font-serif text-sm italic text-gray-500">@existingReason</span>
+                                    }
+                                </div>
+
+                                <div class="flex flex-wrap items-end gap-4">
+                                    <form action="@Url.Action("SetPriority", "CoachSquad")" method="post" class="flex flex-grow items-end gap-3 m-0 min-w-[260px]">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="sport" value="@sport" />
+                                        <input type="hidden" name="isHigh" value="true" />
+                                        <div class="flex-grow">
+                                            <label class="block text-[9px] uppercase tracking-[2px] font-bold text-gray-500 mb-1">Reason</label>
+                                            <input type="text" name="reason" value="@existingReason" placeholder="e.g. Finals week" maxlength="300"
+                                                   class="w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 bg-transparent" />
+                                        </div>
+                                        <button type="submit" class="inline-flex items-center justify-center bg-[#C21E2E] border border-[#C21E2E] text-white px-5 py-2.5 text-[9px] font-bold uppercase tracking-[2px] hover:bg-red-700 transition-colors shadow-sm whitespace-nowrap">
+                                            <i class="bi bi-star-fill me-1.5"></i> @(isHigh ? "Update" : "Set High")
+                                        </button>
+                                    </form>
+
+                                    @if (isHigh)
+                                    {
+                                        <form action="@Url.Action("SetPriority", "CoachSquad")" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="sport" value="@sport" />
+                                            <input type="hidden" name="isHigh" value="false" />
+                                            <input type="hidden" name="reason" value="" />
+                                            <button type="submit" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-5 py-2.5 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 transition-colors whitespace-nowrap">
+                                                Set Normal
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
-    }
-    else
-    {
-        foreach (var sport in sports)
-        {
-            SportPriority priority = null;
-            foreach (var p in existing) { if (p.Sport == sport) { priority = p; break; } }
 
-            bool isHigh = priority != null && priority.PriorityLevel == 2;
-            string existingReason = priority != null ? priority.Reason : "";
-
-            <div class="card mb-2">
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <strong style="font-size:1.05rem;">@sport</strong>
-                            @if (isHigh)
-                            {
-                                <span class="badge bg-warning text-dark ms-2">★ High priority</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary ms-2">Normal</span>
-                            }
-                        </div>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(existingReason))
-                    {
-                        <div class="text-muted small mb-2"><em>@existingReason</em></div>
-                    }
-
-                    <div class="row g-2">
-
-                        <div class="col-md-7">
-                            <form action="@Url.Action("SetPriority", "CoachSquad")" method="post" class="d-flex gap-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="sport" value="@sport" />
-                                <input type="hidden" name="isHigh" value="true" />
-                                <input type="text"
-                                       name="reason"
-                                       value="@existingReason"
-                                       placeholder="Reason (e.g. Finals week)"
-                                       maxlength="300"
-                                       class="form-control form-control-sm" />
-                                <button type="submit" class="btn btn-sm btn-warning" style="white-space:nowrap;">
-                                    Set High
-                                </button>
-                            </form>
-                        </div>
-
-                        <div class="col-md-5">
-                            <form action="@Url.Action("SetPriority", "CoachSquad")" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="sport" value="@sport" />
-                                <input type="hidden" name="isHigh" value="false" />
-                                <input type="hidden" name="reason" value="" />
-                                <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
-                                    Set Normal
-                                </button>
-                            </form>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-        }
-    }
-
+    </div>
 </div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #C21E2E;
+        }
+</style>
