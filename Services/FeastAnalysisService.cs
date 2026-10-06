@@ -721,9 +721,9 @@ namespace Michaelhouse.Services
         //
         // A replacement must be: in the active meal library, linked to a
         // recipe, tagged with colour and texture, not already on the plan,
-        // used in the same buffet section before (the library has no
-        // section of its own), and suitable for the same dietary group
-        // as the dish it replaces.
+        // used in the same buffet section before (or never used in a buffet;
+        // the library has no section of its own), and suitable for the same
+        // dietary group as the dish it replaces.
         // ============================================================
 
         private class Candidate
@@ -778,7 +778,10 @@ namespace Michaelhouse.Services
         private static bool SuitsItem(Candidate candidate, EventFeastPlanItem item)
         {
             string section = string.IsNullOrWhiteSpace(item.Section) ? "Main" : item.Section.Trim();
-            if (!candidate.Sections.Contains(section)) return false;
+
+            // A meal already used in other buffet sections stays out of this one.
+            // A meal never used in any buffet is open to any section.
+            if (candidate.Sections.Count > 0 && !candidate.Sections.Contains(section)) return false;
 
             // Standard / vegetarian / halal dishes: the replacement must fall
             // in the same dietary group. Common dishes: any meal for that section.
