@@ -421,6 +421,14 @@ namespace Michaelhouse.Services
                     }
 
                     tx.Commit();
+
+                    // Anything still to come gets the next test invoice;
+                    // the one just delivered is left as it was
+                    if (delivery.PurchaseOrderId.HasValue)
+                    {
+                        new TestInvoiceService(_db).Refresh(delivery.PurchaseOrderId.Value);
+                    }
+
                     return delivery;
                 }
                 catch (DbUpdateException)

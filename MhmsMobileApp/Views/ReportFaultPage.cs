@@ -57,6 +57,8 @@ namespace MhmsMobileApp.Views
             _root.Children.Add(new ActivityIndicator { IsRunning = true, Margin = new Thickness(0, 40, 0, 0) });
             _scroll.Content = _root;
             Content = _scroll;
+
+            Responsive.Adapt(this, _root);
             _submit.Clicked += async (s, e) => await SubmitAsync();
         }
 
@@ -70,7 +72,7 @@ namespace MhmsMobileApp.Views
         {
             var form = await _api.GetFaultFormAsync();
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Report a Fault", "Something broken? Tell maintenance and they'll fix it."));
+            _root.Children.Add(Ui.PageHeader("Report a Fault", "Something broken? Tell maintenance and they'll fix it.", "Maintenance"));
 
             if (!form.Ok)
             {
@@ -174,14 +176,12 @@ namespace MhmsMobileApp.Views
         }
 
         private static Label Label(string text) =>
-            new Label { Text = text, FontFamily = "MontserratBold", FontSize = 13, TextColor = Ui.Color("TextPrimary") };
+            new Label { Text = text, Style = Ui.Style("FieldLabel"), TextColor = Ui.Color("TextPrimary") };
 
         private static Border Section(string title, View content)
         {
-            var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = title, Style = Ui.Style("FieldLabel") });
-            stack.Children.Add(content);
-            return Ui.Card(stack);
+            // Card with the web's black header bar
+            return Ui.Section(title, content);
         }
 
         private void SetAsset(AssetDto asset)
@@ -231,8 +231,8 @@ namespace MhmsMobileApp.Views
                 stack.Children.Add(new Border
                 {
                     StrokeThickness = 0,
-                    StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
-                    HeightRequest = 200,
+                    StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
+                    HeightRequest = Responsive.Size(0.55, 180, 360),
                     Content = new Image { Source = ImageSource.FromStream(() => new MemoryStream(bytes)), Aspect = Aspect.AspectFill }
                 });
                 var remove = new Button { Text = "Remove photo", Style = Ui.Style("SecondaryButton") };
@@ -241,7 +241,7 @@ namespace MhmsMobileApp.Views
             }
             else
             {
-                var take = new Button { Text = "📷 Take a Photo", Style = Ui.Style("SecondaryButton"), IsEnabled = PhotoHelper.CanTakePhoto };
+                var take = new Button { Text = "Take a Photo", Style = Ui.Style("SecondaryButton"), IsEnabled = PhotoHelper.CanTakePhoto };
                 take.Clicked += async (s, e) => await TakePhotoAsync();
                 stack.Children.Add(take);
             }

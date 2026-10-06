@@ -25,6 +25,7 @@ namespace MhmsMobileApp.Views
         public MealPlanPage()
         {
             InitializeComponent();
+            Responsive.Adapt(this, Root);
         }
 
         // Reload every time the screen is shown, so a pick made on
@@ -60,7 +61,7 @@ namespace MhmsMobileApp.Views
             if (plan == null || !plan.Ok)
             {
                 SubmitBar.IsVisible = false;
-                Root.Children.Add(Ui.PageHeader("My Meal Plan"));
+                Root.Children.Add(Ui.PageHeader("My Meal Plan", null, "Cafeteria"));
                 Root.Children.Add(Ui.Banner(BannerKind.Warning, "Meal plan not available",
                     plan == null ? "No response from server." : plan.Error));
                 return;
@@ -77,7 +78,7 @@ namespace MhmsMobileApp.Views
         private void Render(MealPlanDto plan)
         {
             // ── Header: week, status, progress ──
-            Root.Children.Add(Ui.PageHeader("My Meal Plan", plan.WeekLabel));
+            Root.Children.Add(Ui.PageHeader("My Meal Plan", plan.WeekLabel, "Cafeteria"));
             Root.Children.Add(StatusRow(plan));
 
             // ── Status banners (same wording as the web page) ──
@@ -109,11 +110,13 @@ namespace MhmsMobileApp.Views
             var profile = ProfileCard(plan);
             if (profile != null) Root.Children.Add(profile);
 
-            // ── One card per day ──
+            // ── One card per day; 2–3 per row on wide screens ──
+            var days = new AdaptiveGrid(360, 3);
             foreach (var day in plan.Days)
             {
-                Root.Children.Add(DayCard(day));
+                days.Children.Add(DayCard(day));
             }
+            Root.Children.Add(days);
 
             // ── Submit bar ──
             int stillToChoose = plan.OpenSlotCount - plan.OpenSlotsChosen;
@@ -124,17 +127,17 @@ namespace MhmsMobileApp.Views
 
         private View StatusRow(MealPlanDto plan)
         {
-            string bg, fg;
+            Tone tone;
             switch (plan.Status)
             {
                 case "Submitted":
                 case "SubmittedToDietitian":
                 case "Approved":
-                    bg = "#D1FAE5"; fg = "#065F46"; break;
+                    tone = Tone.Ok; break;
                 case "SentBack":
-                    bg = "#FEE2E2"; fg = "#991B1B"; break;
+                    tone = Tone.Bad; break;
                 default:
-                    bg = "#E5E7EB"; fg = "#374151"; break;
+                    tone = Tone.Muted; break;
             }
 
             double progress = plan.OpenSlotCount == 0 ? 1 : (double)plan.OpenSlotsChosen / plan.OpenSlotCount;
@@ -149,13 +152,12 @@ namespace MhmsMobileApp.Views
             var progressText = new Label
             {
                 Text = plan.OpenSlotsChosen + " of " + plan.OpenSlotCount + " open meals chosen",
-                FontFamily = "MontserratSemiBold",
-                FontSize = 14,
+                Style = Ui.Style("MonoCaps"),
                 TextColor = Ui.Color("TextPrimary"),
                 VerticalOptions = LayoutOptions.Center
             };
             grid.Add(progressText, 0, 0);
-            grid.Add(Ui.Chip(plan.StatusText, bg, fg, 12), 1, 0);
+            grid.Add(Ui.Badge(plan.StatusText, tone), 1, 0);
 
             var bar = new ProgressBar { Progress = progress, ProgressColor = Ui.Color("Primary") };
             grid.Add(bar, 0, 1);
@@ -190,7 +192,7 @@ namespace MhmsMobileApp.Views
             {
                 ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }
             };
-            header.Add(new Label { Text = "How your options are chosen", Style = Ui.Style("CardTitle"), FontSize = 14 }, 0, 0);
+            header.Add(new Label { Text = "How your options are chosen", Style = Ui.Style("FieldLabel"), TextColor = Ui.Color("TextPrimary"), VerticalOptions = LayoutOptions.Center }, 0, 0);
             header.Add(arrow, 1, 0);
 
             var stack = new VerticalStackLayout();
@@ -214,39 +216,37 @@ namespace MhmsMobileApp.Views
             text.Spans.Add(new Span { Text = label + ": ", FontFamily = "MontserratBold" });
             text.Spans.Add(new Span { Text = value + (suffix ?? "") });
 
-            return new Label { FormattedText = text, FontSize = 13, TextColor = Ui.Color("Gray600") };
+            return new Label { FormattedText = text, FontSize = 13, TextColor = Ui.Color("TextBody") };
         }
 
         private View DayCard(MealPlanDayDto day)
         {
             var stack = new VerticalStackLayout { Spacing = 0 };
 
-            // Day header
+            // Day header: the web's black bar
             var header = new Grid
             {
                 ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
-                Padding = new Thickness(16, 14),
-                BackgroundColor = Ui.Color("Secondary")
+                Padding = new Thickness(16, 12),
+                BackgroundColor = Ui.Color("SectionBar")
             };
             header.Add(new Label
             {
-                Text = day.DayLabel + ", " + day.DateLabel,
-                FontFamily = "PlayfairBold",
-                FontSize = 17,
-                TextColor = Ui.Color("TextPrimary"),
-                VerticalOptions = LayoutOptions.Center
+                Text = day.DayLabel + " · " + day.DateLabel,
+                Style = Ui.Style("SectionBarText")
             }, 0, 0);
             header.Add(new Label
             {
-                Text = day.Slots.Count(s => s.HasPick) + " of " + day.Slots.Count + " chosen",
-                Style = Ui.Style("MutedText"),
+                Text = day.Slots.Count(s => s.HasPick) + "/" + day.Slots.Count + " chosen",
+                Style = Ui.Style("MonoCaps"),
+                TextColor = Color.FromArgb("#B3FFFFFF"),
                 VerticalOptions = LayoutOptions.Center
             }, 1, 0);
             stack.Children.Add(header);
 
             for (int i = 0; i < day.Slots.Count; i++)
             {
-                if (i > 0) stack.Children.Add(new BoxView { HeightRequest = 1, Color = Ui.Color("CardBorder"), BackgroundColor = Ui.Color("CardBorder") });
+                if (i > 0) stack.Children.Add(Ui.Divider());
                 stack.Children.Add(SlotRow(day, day.Slots[i]));
             }
 
@@ -299,14 +299,9 @@ namespace MhmsMobileApp.Views
                 font = "MontserratBold";
             }
 
-            info.Children.Add(new Label { Text = pickText, FontFamily = font, FontSize = 15, TextColor = pickColour });
+            info.Children.Add(new Label { Text = pickText, FontFamily = font == "MontserratSemiBold" ? "PlayfairBold" : font, FontSize = 15, TextColor = pickColour });
 
-            info.Children.Add(new Label
-            {
-                Text = slot.IsLocked ? "Locked" : "Choose by end of " + slot.ChooseByLabel,
-                Style = Ui.Style("MutedText"),
-                FontSize = 11
-            });
+            info.Children.Add(Ui.Mono(slot.IsLocked ? "Locked" : "Choose by end of " + slot.ChooseByLabel, caps: true));
 
             if (slot.IsLocked && slot.CurrentPickNoLongerSuitable && !string.IsNullOrEmpty(slot.CurrentPickName))
             {
@@ -350,9 +345,9 @@ namespace MhmsMobileApp.Views
 
         private static View? SportTag(MealPlanSlotDto slot)
         {
-            if (slot.IsMatchDay) return Ui.Chip("Match day", "#DBEAFE", "#1E40AF", 10);
-            if (slot.IsDayBeforeMatch) return Ui.Chip("Pre-match", "#FEF3C7", "#92400E", 10);
-            if (slot.IsTrainingDay) return Ui.Chip("Training", "#FEF3C7", "#92400E", 10);
+            if (slot.IsMatchDay) return Ui.Badge("Match day", Tone.Info);
+            if (slot.IsDayBeforeMatch) return Ui.Badge("Pre-match", Tone.Low);
+            if (slot.IsTrainingDay) return Ui.Badge("Training", Tone.Low);
             return null;
         }
 

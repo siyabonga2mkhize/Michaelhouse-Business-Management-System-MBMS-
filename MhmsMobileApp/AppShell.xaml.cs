@@ -24,17 +24,17 @@ namespace MhmsMobileApp
             switch (screen)
             {
                 case AppScreen.MealPlan:
-                    return Tab("My Meal Plan", "MealPlanPage", () => new MealPlanPage());
+                    return Tab("Meals", "MealPlanPage", () => new MealPlanPage());
                 case AppScreen.Events:
-                    return Tab("My Events", "RsvpPage", () => new RsvpPage());
+                    return Tab("Events", "RsvpPage", () => new RsvpPage());
                 case AppScreen.MealCollection:
-                    return Tab("Meal Collection", "MealCollectionPage", () => new MealCollectionPage());
+                    return Tab("Collect", "MealCollectionPage", () => new MealCollectionPage());
                 case AppScreen.RecordDelivery:
-                    return Tab("Record Delivery", "RecordDeliveryPage", () => new RecordDeliveryPage());
+                    return Tab("Deliveries", "RecordDeliveryPage", () => new RecordDeliveryPage());
                 case AppScreen.KitchenPlan:
-                    return Tab("Kitchen Plan", "ProductionPage", () => new ProductionPage());
+                    return Tab("Kitchen", "ProductionPage", () => new ProductionPage());
                 case AppScreen.FeastPlan:
-                    return Tab("Feast Plan", "FeastPlanPage", () => new FeastPlanPage());
+                    return Tab("Feast", "FeastPlanPage", () => new FeastPlanPage());
                 case AppScreen.Safety:
                     return Tab("Safety", "SafetyPage", () => new SafetyPage());
                 case AppScreen.HouseMasterEmergency:
@@ -46,9 +46,9 @@ namespace MhmsMobileApp
                 case AppScreen.Requests:
                     return Tab("Requests", "RequestsPage", () => new RequestsPage());
                 case AppScreen.ReportFault:
-                    return Tab("Report Fault", "ReportFaultPage", () => new ReportFaultPage());
+                    return Tab("Faults", "ReportFaultPage", () => new ReportFaultPage());
                 case AppScreen.JobCards:
-                    return Tab("Job Cards", "JobCardsPage", () => new JobCardsPage());
+                    return Tab("Jobs", "JobCardsPage", () => new JobCardsPage());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(screen));
             }

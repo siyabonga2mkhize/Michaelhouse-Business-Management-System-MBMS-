@@ -87,6 +87,10 @@ namespace MhmsMobileApp.Models
         public decimal Fat { get; set; }
         public bool IsDefault { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
+
+        // "Recommended for your Rugby match" — safe options that suit
+        // the day's training / match (web: blue label on the option)
+        public string? Recommendation { get; set; }
     }
 
     // POST /api/mealplan/mine/pick

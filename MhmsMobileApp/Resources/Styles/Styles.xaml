@@ -27,9 +27,11 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Primary}}" />
         <Setter Property="FontFamily" Value="MontserratBold"/>
-        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="CharacterSpacing" Value="1.5"/>
+        <Setter Property="TextTransform" Value="Uppercase"/>
         <Setter Property="BorderWidth" Value="0"/>
-        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="CornerRadius" Value="0"/>
         <Setter Property="Padding" Value="16,12"/>
         <Setter Property="MinimumHeightRequest" Value="52"/>
         <Setter Property="MinimumWidthRequest" Value="52"/>
@@ -176,7 +178,7 @@
     <Style TargetType="Label" x:Key="Headline">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource MidnightBlue}, Dark={StaticResource White}}" />
         <Setter Property="FontFamily" Value="PlayfairBold" />
-        <Setter Property="FontSize" Value="32" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=32, Tablet=40, Default=32}" />
         <Setter Property="HorizontalOptions" Value="Center" />
         <Setter Property="HorizontalTextAlignment" Value="Center" />
     </Style>
@@ -190,45 +192,84 @@
     </Style>
 
     <!-- ============================================================
-         Michaelhouse styles, matching the web app:
-         Playfair Display headings, Montserrat body text, small
-         uppercase letter-spaced labels, red primary buttons.
+         Michaelhouse styles, matching the web app's redesign
+         (Tailwind views, e.g. Views/IngredientOrder/Create.cshtml):
+           • square cards / buttons / inputs (no rounded corners)
+           • page header: red bar + small uppercase eyebrow, then a
+             large Playfair title and a small uppercase mono subtitle
+           • black section bars with white, widely spaced capitals
+           • tiny uppercase letter-spaced labels; figures in mono
+             (Source Code Pro)
+         Sizes use OnIdiom so tablets get larger type; small labels
+         stay readable on phones (the web's 8–10px becomes 10–11).
          ============================================================ -->
 
-    <!-- Screen heading, like the web's h1/h2 -->
+    <!-- Screen heading (web: text-5xl font-serif font-bold) -->
     <Style TargetType="Label" x:Key="PageTitle">
         <Setter Property="FontFamily" Value="PlayfairBold" />
-        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=28, Tablet=38, Desktop=38, Default=28}" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+        <Setter Property="LineHeight" Value="1.1" />
     </Style>
 
-    <!-- Short red bar under a heading (web: .heading-accent) -->
+    <!-- Small grey capitals above the title (web: h5 text-[10px] uppercase tracking-[4px]) -->
+    <Style TargetType="Label" x:Key="Eyebrow">
+        <Setter Property="FontFamily" Value="MontserratBold" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=10, Tablet=11, Default=10}" />
+        <Setter Property="CharacterSpacing" Value="3" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Subtitle under the title (web: text-[11px] font-mono uppercase tracking-widest) -->
+    <Style TargetType="Label" x:Key="PageSubtitle">
+        <Setter Property="FontFamily" Value="Mono" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=11, Tablet=12, Default=11}" />
+        <Setter Property="CharacterSpacing" Value="1" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+    </Style>
+
+    <!-- Short red bar beside the eyebrow (web: h-[2px] w-8 bg-[#C21E2E]) -->
     <Style TargetType="BoxView" x:Key="HeadingAccent">
         <Setter Property="Color" Value="{StaticResource Primary}" />
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-        <Setter Property="WidthRequest" Value="40" />
-        <Setter Property="HeightRequest" Value="3" />
+        <Setter Property="WidthRequest" Value="32" />
+        <Setter Property="HeightRequest" Value="2" />
         <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="VerticalOptions" Value="Center" />
     </Style>
 
-    <!-- Small uppercase grey label (web: text-[10px] uppercase tracking) -->
+    <!-- Small uppercase label above a field / value (web: text-[9px] uppercase tracking-[2px] font-bold) -->
     <Style TargetType="Label" x:Key="FieldLabel">
         <Setter Property="FontFamily" Value="MontserratBold" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="CharacterSpacing" Value="1.5" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="CharacterSpacing" Value="2" />
         <Setter Property="TextTransform" Value="Uppercase" />
-        <Setter Property="TextColor" Value="{StaticResource TextMuted}" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
     </Style>
 
-    <Style TargetType="Label" x:Key="CardTitle">
+    <!-- White capitals on the black section bar (web: text-[10px] uppercase tracking-[4px] text-white) -->
+    <Style TargetType="Label" x:Key="SectionBarText">
         <Setter Property="FontFamily" Value="MontserratBold" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=10, Tablet=11, Default=10}" />
+        <Setter Property="CharacterSpacing" Value="3" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Names in cards (web: font-serif font-bold text-sm text-gray-900) -->
+    <Style TargetType="Label" x:Key="CardTitle">
+        <Setter Property="FontFamily" Value="PlayfairBold" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=16, Tablet=18, Default=16}" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
     </Style>
 
     <Style TargetType="Label" x:Key="BodyText">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="TextColor" Value="{StaticResource Gray600}" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=14, Tablet=15, Default=14}" />
+        <Setter Property="TextColor" Value="{StaticResource TextBody}" />
     </Style>
 
     <Style TargetType="Label" x:Key="MutedText">
@@ -236,25 +277,48 @@
         <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
     </Style>
 
-    <!-- White rounded card -->
+    <!-- Small mono text: codes, dates, units (web: font-mono text-xs / text-[10px]) -->
+    <Style TargetType="Label" x:Key="MonoText">
+        <Setter Property="FontFamily" Value="Mono" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+    </Style>
+
+    <!-- Uppercase mono meta line (web: text-[10px] font-mono uppercase tracking-widest) -->
+    <Style TargetType="Label" x:Key="MonoCaps">
+        <Setter Property="FontFamily" Value="Mono" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="CharacterSpacing" Value="1.2" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
+    </Style>
+
+    <!-- Big figures in stat tiles (web: font-mono text-3xl font-bold) -->
+    <Style TargetType="Label" x:Key="StatValue">
+        <Setter Property="FontFamily" Value="MonoSemiBold" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=24, Tablet=30, Default=24}" />
+        <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
+    </Style>
+
+    <!-- White square card (web: bg-white border border-gray-100 shadow-sm) -->
     <Style TargetType="Border" x:Key="Card">
         <Setter Property="BackgroundColor" Value="{StaticResource CardBackground}" />
         <Setter Property="Stroke" Value="{StaticResource CardBorder}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 12" />
+        <Setter Property="StrokeShape" Value="Rectangle" />
         <Setter Property="Padding" Value="16" />
     </Style>
 
-    <!-- Main action: full-width red button, uppercase like the web -->
+    <!-- Main action: red, square, uppercase and letter-spaced like the web -->
     <Style TargetType="Button" x:Key="PrimaryButton">
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
         <Setter Property="TextColor" Value="{StaticResource White}" />
         <Setter Property="FontFamily" Value="MontserratBold" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=12, Tablet=13, Default=12}" />
+        <Setter Property="CharacterSpacing" Value="2.5" />
         <Setter Property="TextTransform" Value="Uppercase" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="HeightRequest" Value="54" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="HeightRequest" Value="{OnIdiom Phone=52, Tablet=56, Default=52}" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -275,26 +339,67 @@
         </Setter>
     </Style>
 
-    <!-- Secondary action: red outline button -->
-    <Style TargetType="Button" x:Key="SecondaryButton">
-        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="TextColor" Value="{StaticResource Primary}" />
-        <Setter Property="BorderColor" Value="{StaticResource Primary}" />
-        <Setter Property="BorderWidth" Value="2" />
-        <Setter Property="FontFamily" Value="MontserratBold" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="CharacterSpacing" Value="1" />
-        <Setter Property="TextTransform" Value="Uppercase" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="HeightRequest" Value="52" />
+    <!-- Black action (web: bg-[#1a1a1a] text-white uppercase tracking-[3px]) -->
+    <Style TargetType="Button" x:Key="DarkButton" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="BackgroundColor" Value="{StaticResource SectionBar}" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource Black}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource Gray300}" />
+                            <Setter Property="TextColor" Value="{StaticResource White}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
     </Style>
 
-    <!-- Text box with a visible border, easy to tap -->
+    <!-- Secondary action (web: bg-white border border-gray-300 text-gray-700 uppercase tracking-[2px]) -->
+    <Style TargetType="Button" x:Key="SecondaryButton">
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="TextColor" Value="{StaticResource Gray700}" />
+        <Setter Property="BorderColor" Value="{StaticResource Gray300}" />
+        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="FontFamily" Value="MontserratBold" />
+        <Setter Property="FontSize" Value="{OnIdiom Phone=12, Tablet=13, Default=12}" />
+        <Setter Property="CharacterSpacing" Value="2" />
+        <Setter Property="TextTransform" Value="Uppercase" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="HeightRequest" Value="{OnIdiom Phone=50, Tablet=54, Default=50}" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{StaticResource Gray400}" />
+                            <Setter Property="BorderColor" Value="{StaticResource Gray200}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Text box with a visible square border, easy to tap -->
     <Style TargetType="Border" x:Key="InputBox">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
         <Setter Property="Stroke" Value="{StaticResource Gray300}" />
         <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+        <Setter Property="StrokeShape" Value="Rectangle" />
         <Setter Property="Padding" Value="12,2" />
         <Setter Property="MinimumHeightRequest" Value="52" />
     </Style>
@@ -523,13 +628,15 @@
         <Setter Property="BackgroundColor" Value="{StaticResource PageBackground}" />
     </Style>
 
-    <!-- Red top bar with white title; white tab bar with red selected tab -->
+    <!-- White top bar with dark title (web: white header, red crest);
+         white tab bar with the red selected tab (web: red active
+         sidebar item) -->
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{StaticResource Primary}" />
-        <Setter Property="Shell.ForegroundColor" Value="{StaticResource White}" />
-        <Setter Property="Shell.TitleColor" Value="{StaticResource White}" />
+        <Setter Property="Shell.BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource Primary}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="Shell.DisabledColor" Value="{StaticResource Gray300}" />
-        <Setter Property="Shell.UnselectedColor" Value="{StaticResource Secondary}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource Gray500}" />
         <Setter Property="Shell.NavBarHasShadow" Value="False" />
         <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource White}" />
         <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource Primary}" />

@@ -45,6 +45,8 @@ namespace MhmsMobileApp.Views
             _scroll.Content = _root;
             Content = _scroll;
 
+            Responsive.Adapt(this, _root);
+
             // Same starting values as the web form: leave in 1 hour, back in 4
             var depart = DateTime.Now.AddHours(1);
             var back = DateTime.Now.AddHours(4);
@@ -76,7 +78,7 @@ namespace MhmsMobileApp.Views
         {
             var form = await _api.GetLeaveFormAsync();
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Request Leave", "Ask permission to leave the residence."));
+            _root.Children.Add(Ui.PageHeader("Request Leave", "Ask permission to leave the residence.", "Requests"));
 
             if (!form.Ok)
             {
@@ -116,14 +118,16 @@ namespace MhmsMobileApp.Views
             {
                 _root.Children.Add(Ui.Text("You have no leave requests yet.", "MutedText"));
             }
+            var requests = new AdaptiveGrid(320);
             foreach (var r in form.MyRequests)
             {
-                _root.Children.Add(RequestCard(r));
+                requests.Children.Add(RequestCard(r));
             }
+            _root.Children.Add(requests);
         }
 
         private static Label Label(string text) =>
-            new Label { Text = text, FontFamily = "MontserratBold", FontSize = 13, TextColor = Ui.Color("TextPrimary"), Margin = new Thickness(0, 6, 0, 0) };
+            new Label { Text = text, Style = Ui.Style("FieldLabel"), TextColor = Ui.Color("TextPrimary"), Margin = new Thickness(0, 6, 0, 0) };
 
         private static View DateTimeRow(DatePicker date, TimePicker time)
         {

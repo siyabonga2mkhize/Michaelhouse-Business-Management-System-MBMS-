@@ -1,9 +1,10 @@
-﻿@using Michaelhouse.Models.Cafeteria
+﻿@using Michaelhouse.Models.ViewModels
+@model List<SportSquadViewModel>
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Squad Status";
+    ViewBag.Title = "My Sports";
 
-    var sports = ViewBag.Sports as System.Collections.Generic.IEnumerable<System.Linq.IGrouping<string, StudentSportStatus>>;
+    int upcomingDays = ViewBag.UpcomingDays ?? 14;
 }
 
 <style>
@@ -60,7 +61,7 @@
 
     .sq-row {
         display: grid;
-        grid-template-columns: 1fr 180px 200px 200px;
+        grid-template-columns: minmax(150px, 1fr) 120px 100px minmax(120px, 1fr) auto;
         gap: 1rem;
         padding: .85rem 1.25rem;
         border-bottom: 1px solid #f3f4f6;
@@ -133,6 +134,48 @@
                 background: #f0fdf4;
             }
 
+    .sq-fixtures {
+        padding: .75rem 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: #fcfcfd;
+        font-size: .82rem;
+    }
+
+    .sq-fixture {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        align-items: baseline;
+        padding: .2rem 0;
+    }
+
+    .sq-fixture-type {
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        padding: .1rem .45rem;
+        border-radius: 4px;
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+        .sq-fixture-type.match {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+    @@media (max-width: 1280px) {
+        .sq-row {
+            grid-template-columns: 1fr 1fr;
+        }
+
+            .sq-row > .text-end {
+                grid-column: 1 / -1;
+                text-align: left !important;
+            }
+    }
+
     .sq-empty {
         padding: 2rem;
         text-align: center;
@@ -146,50 +189,81 @@
 
         <div class="sq-header">
             <div>
-                <h1>Squad Status</h1>
-                <div class="sq-meta">Mark players unavailable (injury, leave, suspension). Unavailable players are excluded from meal portions.</div>
+                <h1>My Sports</h1>
+                <div class="sq-meta">
+                    Players come from the sports parents select on their children's profiles &mdash; you don't keep a list.
+                    Mark a player unavailable (injury, leave, suspension) and they're left out of that sport's match and training
+                    meal recommendations until they're available again. They still get their normal meals.
+                </div>
             </div>
+            <a href="@Url.Action("Create", "Coach")" class="btn btn-primary btn-sm">+ Add Fixture</a>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
-
-        @if (sports == null || !sports.Any())
+        @if (Model == null || !Model.Any())
         {
             <div class="sq-sport sq-empty">
-                No students are currently registered to any sport.
+                No students have a sport on their profile yet.
             </div>
         }
         else
         {
-            foreach (var sportGroup in sports)
+            foreach (var sport in Model)
             {
-                var activeCount = sportGroup.Count(x => x.IsActive);
-
                 <div class="sq-sport">
                     <div class="sq-sport-header">
-                        <span class="sq-sport-name">@sportGroup.Key</span>
-                        <span class="sq-sport-count">@activeCount of @sportGroup.Count() active</span>
+                        <span class="sq-sport-name">@sport.Sport</span>
+                        <span class="sq-sport-count">@sport.AvailableCount of @sport.Players.Count available today</span>
                     </div>
 
-                    @foreach (var entry in sportGroup.OrderBy(x => x.Student.LastName))
+                    <div class="sq-fixtures">
+                        <div class="fw-semibold mb-1">Upcoming (next @upcomingDays days)</div>
+                        @if (!sport.Upcoming.Any())
+                        {
+                            <div class="text-muted">
+                                Nothing scheduled.
+                                <a href="@Url.Action("Create", "Coach")">Add a training or match</a>
+                            </div>
+                        }
+                        else
+                        {
+                            foreach (var f in sport.Upcoming)
+                            {
+                                <div class="sq-fixture">
+                                    <span class="sq-fixture-type @(f.EventType == "Match" ? "match" : "")">@f.EventType</span>
+                                    <span class="fw-semibold">@f.Date.ToString("ddd dd MMM")</span>
+                                    <span>@f.StartTime.ToString(@"hh\:mm")&ndash;@f.EndTime.ToString(@"hh\:mm")</span>
+                                    <span>@f.Label</span>
+                                    <span class="text-muted">
+                                        &middot; @f.Players player@(f.Players == 1 ? "" : "s")@(f.House != null ? " in " + f.House : "")
+                                    </span>
+                                    <a class="ms-auto small" href="@Url.Action("Edit", "Coach", new { id = f.Id })">Edit</a>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @if (!sport.Players.Any())
+                    {
+                        <div class="sq-empty">No students have @sport.Sport on their profile.</div>
+                    }
+
+                    @foreach (var player in sport.Players)
                     {
                         <div class="sq-row">
                             <div>
-                                <div class="sq-player">@entry.Student.FirstName @entry.Student.LastName</div>
-                                <div class="sq-number">@entry.Student.StudentNumber</div>
+                                <div class="sq-player">@player.Name</div>
+                                <div class="sq-number">@player.StudentNumber</div>
+                            </div>
+
+                            <div class="small">
+                                <div>@(player.Grade ?? "-")</div>
+                                <div class="sq-number">@(player.House ?? "No house")</div>
                             </div>
 
                             <div>
-                                @if (entry.IsActive)
+                                @if (player.IsAvailableToday)
                                 {
-                                    <span class="sq-badge ok">Active</span>
+                                    <span class="sq-badge ok">Available</span>
                                 }
                                 else
                                 {
@@ -198,39 +272,40 @@
                             </div>
 
                             <div class="sq-reason">
-                                @if (!string.IsNullOrEmpty(entry.StatusReason))
+                                @if (!player.IsAvailableToday && !string.IsNullOrEmpty(player.StatusReason))
                                 {
-                                    <span>@entry.StatusReason</span>
-                                    if (entry.UnavailableUntil.HasValue)
+                                    <span>@player.StatusReason</span>
+                                    if (player.UnavailableUntil.HasValue)
                                     {
-                                        <span> · until @entry.UnavailableUntil.Value.ToString("dd MMM")</span>
+                                        <span> &middot; until @player.UnavailableUntil.Value.ToString("dd MMM")</span>
                                     }
                                 }
                             </div>
 
                             <div class="text-end">
-                                @if (entry.IsActive)
+                                @if (player.IsAvailableToday)
                                 {
                                     <form action="@Url.Action("MarkUnavailable", "CoachSquad")" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@entry.Id" />
+                                        <input type="hidden" name="id" value="@player.StatusId" />
 
                                         <input type="text"
                                                name="reason"
                                                placeholder="Reason (e.g. Injured)"
-                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:130px;"
+                                               style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:120px;"
                                                required />
 
                                         <input type="date"
                                                name="until"
+                                               title="Available again on (optional)"
                                                style="font-size:.75rem; padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:4px; width:120px;" />
 
-                                        <button type="submit" class="sq-btn mark-out">Mark Unavailable</button>
+                                        <button type="submit" class="sq-btn mark-out">Unavailable</button>
                                     </form>
                                 }
                                 else
                                 {
-                                    <form action="@Url.Action("MarkAvailable", "CoachSquad", new { id = entry.Id })" method="post" style="display:inline;">
+                                    <form action="@Url.Action("MarkAvailable", "CoachSquad", new { id = player.StatusId })" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="sq-btn mark-in">Mark Available</button>
                                     </form>

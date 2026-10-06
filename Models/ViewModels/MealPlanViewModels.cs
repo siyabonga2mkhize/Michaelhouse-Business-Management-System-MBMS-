@@ -167,6 +167,10 @@ namespace Michaelhouse.Models.ViewModels
         // e.g. "Matches your Rugby match-day needs", "High protein"
         public List<string> Tags { get; set; }
 
+        // "Recommended for your Rugby match" — set on safe options in
+        // the category the student's day calls for; null otherwise
+        public string RecommendationLabel { get; set; }
+
         public MealPlanOptionViewModel()
         {
             Tags = new List<string>();

@@ -44,8 +44,7 @@ namespace MhmsMobileApp.Views
             _cameraFrame = new Border
             {
                 StrokeThickness = 0,
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
-                HeightRequest = 280,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
                 BackgroundColor = Colors.Black,
                 Content = _camera
             };
@@ -59,7 +58,7 @@ namespace MhmsMobileApp.Views
             manualRow.Add(lookup, 1, 0);
 
             var root = new VerticalStackLayout { Padding = new Thickness(16, 20, 16, 24), Spacing = 14 };
-            root.Children.Add(Ui.PageHeader("Residence Sign In / Out", "Scan the student's QR code."));
+            root.Children.Add(Ui.PageHeader("Residence Sign In / Out", "Scan the student's QR code.", "Residence"));
             root.Children.Add(_cameraFrame);
             root.Children.Add(new Label { Text = "Camera can't read it?", Style = Ui.Style("FieldLabel") });
             root.Children.Add(manualRow);
@@ -67,6 +66,9 @@ namespace MhmsMobileApp.Views
 
             _scroll.Content = root;
             Content = _scroll;
+
+            Responsive.Adapt(this, root);
+            Responsive.Square(_cameraFrame, this, 0.8, 220, 440, aspect: 1.25);
         }
 
         protected override async void OnAppearing()
@@ -139,7 +141,7 @@ namespace MhmsMobileApp.Views
                 card.Children.Add(Ui.Banner(BannerKind.Success, null, "✓ " + note));
             }
 
-            card.Children.Add(new Label { Text = r.Name, FontFamily = "PlayfairBold", FontSize = 24, TextColor = Ui.Color("TextPrimary") });
+            card.Children.Add(new Label { Text = r.Name, Style = Ui.Style("PageTitle") });
             if (!string.IsNullOrEmpty(r.StudentNumber))
                 card.Children.Add(Ui.Text("Student no. " + r.StudentNumber, "MutedText"));
 

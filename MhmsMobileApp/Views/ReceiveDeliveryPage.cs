@@ -64,11 +64,14 @@ namespace MhmsMobileApp.Views
             _confirmBar.StrokeThickness = 1;
             _confirmBar.Padding = new Thickness(16, 12, 16, 16);
             _confirmBar.Content = _confirm;
+            _confirm.MaximumWidthRequest = 560;
 
             var page = new Grid { RowDefinitions = { new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto) } };
             page.Add(_scroll, 0, 0);
             page.Add(_confirmBar, 0, 1);
             Content = page;
+
+            Responsive.Adapt(this, _root);
         }
 
         protected override async void OnAppearing()
@@ -101,7 +104,7 @@ namespace MhmsMobileApp.Views
             _root.Children.Clear();
             _errorHost.Content = null;
 
-            _root.Children.Add(Ui.PageHeader("Order " + form.PoNumber, form.Supplier));
+            _root.Children.Add(Ui.PageHeader("Order " + form.PoNumber, form.Supplier, "Record Delivery"));
             _root.Children.Add(Ui.Text("Check every item before confirming. Stock only changes when you confirm.", "MutedText"));
             _root.Children.Add(_errorHost);
 
@@ -113,15 +116,19 @@ namespace MhmsMobileApp.Views
             _root.Children.Add(form.FromScan ? InvoiceAttachedCard(form) : ScanCard(form));
             _root.Children.Add(InvoiceCard(form));
 
-            _root.Children.Add(new Label { Text = "Items received", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 6, 0, 0) });
+            _root.Children.Add(new Label { Text = "3 · Items received", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 6, 0, 0) });
             if (form.Lines.Count == 0)
             {
                 _root.Children.Add(Ui.Banner(BannerKind.Info, null, "Nothing is outstanding on this order."));
             }
+
+            // One card per item; side by side on wide screens
+            var lines = new AdaptiveGrid(340);
             foreach (var line in form.Lines)
             {
-                _root.Children.Add(LineCard(form, line));
+                lines.Children.Add(LineCard(form, line));
             }
+            _root.Children.Add(lines);
 
             _notes = new Editor { Text = form.Notes, AutoSize = EditorAutoSizeOption.TextChanges, MinimumHeightRequest = 70, MaxLength = 1000, Placeholder = "Optional" };
             _root.Children.Add(Section("Notes", Ui.InputBox(_notes)));
@@ -129,19 +136,16 @@ namespace MhmsMobileApp.Views
             _confirmBar.IsVisible = true;
         }
 
+        // Card with the web's black header bar
         private static Border Section(string title, View content)
         {
-            var stack = new VerticalStackLayout { Spacing = 8 };
-            stack.Children.Add(new Label { Text = title, Style = Ui.Style("FieldLabel") });
-            stack.Children.Add(content);
-            return Ui.Card(stack);
+            return Ui.Section(title, content);
         }
 
         // ── 1. Invoice photo ──
         private View ScanCard(DeliveryFormDto form)
         {
             var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = "📷 Scan the supplier's invoice", Style = Ui.Style("CardTitle") });
             stack.Children.Add(Ui.Text(form.ScanAvailable
                 ? "Optional. The items are read from the invoice and matched to ingredients for you to check. Nothing is saved until you confirm."
                 : "Optional. Invoice reading isn't set up on this server, but the invoice will still be attached to the delivery.", "MutedText"));
@@ -155,12 +159,12 @@ namespace MhmsMobileApp.Views
             }
             stack.Children.Add(take);
 
-            return Ui.Card(stack);
+            return Ui.Section("1 · Scan the supplier's invoice", stack);
         }
 
         private static View InvoiceAttachedCard(DeliveryFormDto form)
         {
-            var text = "📎 Invoice attached: " + form.InvoiceFileName;
+            var text = "Invoice attached: " + form.InvoiceFileName;
             if (!string.IsNullOrEmpty(form.DetectedSupplier)) text += "\nInvoice says: " + form.DetectedSupplier;
             return Ui.Banner(BannerKind.Success, null, text);
         }
@@ -238,7 +242,7 @@ namespace MhmsMobileApp.Views
             stack.Children.Add(dateRow);
             stack.Children.Add(Ui.InputBox(_invoiceDate));
 
-            return Ui.Card(stack);
+            return Ui.Section("2 · Invoice details", stack);
         }
 
         // ── 3. One item ──
@@ -251,12 +255,7 @@ namespace MhmsMobileApp.Views
 
             if (!string.IsNullOrEmpty(line.InvoiceDescription))
             {
-                stack.Children.Add(new Label
-                {
-                    Text = "Invoice: " + line.InvoiceDescription + " — detected " + Num(line.InvoiceQuantity) + " " + line.InvoiceUnit,
-                    FontSize = 12,
-                    TextColor = Ui.Color("TextSecondary")
-                });
+                stack.Children.Add(Ui.Mono("Invoice · " + line.InvoiceDescription + " · " + Num(line.InvoiceQuantity) + " " + line.InvoiceUnit, caps: true));
             }
             if (!string.IsNullOrEmpty(line.MatchMessage))
             {
@@ -272,8 +271,8 @@ namespace MhmsMobileApp.Views
 
             if (line.IsOnOrder)
             {
-                stack.Children.Add(new Label { Text = line.Ingredient, Style = Ui.Style("CardTitle"), FontSize = 17 });
-                stack.Children.Add(Ui.Text("Ordered " + Num(line.Ordered) + " " + line.Unit + " · outstanding " + Num(line.Outstanding) + " " + line.Unit, "MutedText"));
+                stack.Children.Add(new Label { Text = line.Ingredient, Style = Ui.Style("CardTitle") });
+                stack.Children.Add(Ui.Mono("Ordered " + Num(line.Ordered) + " " + line.Unit + " · outstanding " + Num(line.Outstanding) + " " + line.Unit, caps: true));
             }
             else
             {
@@ -297,7 +296,7 @@ namespace MhmsMobileApp.Views
 
             SetQuantityLabel();
             stack.Children.Add(quantityLabel);
-            editor.Quantity = new Entry { Text = Num(line.Quantity), Keyboard = Keyboard.Numeric, FontSize = 18, Placeholder = "0" };
+            editor.Quantity = new Entry { Text = Num(line.Quantity), Keyboard = Keyboard.Numeric, FontFamily = "MonoSemiBold", FontSize = 18, Placeholder = "0" };
             stack.Children.Add(Ui.InputBox(editor.Quantity));
 
             var card = Ui.Card(stack);
@@ -322,7 +321,7 @@ namespace MhmsMobileApp.Views
             note.TextChanged += (s, e) => line.Note = e.NewTextValue;
             extra.Children.Add(Ui.InputBox(note));
 
-            var more = new Label { Text = "More than ordered? ▾", FontSize = 13, TextColor = Ui.Color("Primary"), Padding = new Thickness(0, 6) };
+            var more = new Label { Text = "More than ordered? ▾", FontFamily = "MontserratBold", FontSize = 11, CharacterSpacing = 1, TextTransform = TextTransform.Uppercase, TextColor = Ui.Color("Primary"), Padding = new Thickness(0, 6) };
             more.OnTap(() =>
             {
                 extra.IsVisible = !extra.IsVisible;

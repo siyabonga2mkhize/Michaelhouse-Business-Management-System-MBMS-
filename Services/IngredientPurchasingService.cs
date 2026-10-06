@@ -33,6 +33,52 @@ namespace Michaelhouse.Services
         public decimal? UnitCost { get; set; }
     }
 
+    // Automatic ordering: one group (→ one purchase order) per supplier
+    public class AutoOrderPlan
+    {
+        public AutoOrderPlan()
+        {
+            Groups = new List<AutoOrderGroup>();
+            NoSupplier = new List<AutoOrderItem>();
+        }
+
+        public List<AutoOrderGroup> Groups { get; set; }
+
+        // Shown as "No supplier available" — not ordered
+        public List<AutoOrderItem> NoSupplier { get; set; }
+
+        // Suggested, but already on a draft order that hasn't been sent
+        // (drafts don't count as "on order" yet) — not ordered again
+        public List<AutoOrderItem> OnDraft { get; set; } = new List<AutoOrderItem>();
+    }
+
+    public class AutoOrderGroup
+    {
+        public AutoOrderGroup()
+        {
+            Items = new List<AutoOrderItem>();
+        }
+
+        public Supplier Supplier { get; set; }
+        public int LeadTimeDays { get; set; }
+        public List<AutoOrderItem> Items { get; set; }
+    }
+
+    public class AutoOrderItem
+    {
+        public Ingredient Ingredient { get; set; }
+        public decimal Quantity { get; set; }       // ingredient's own unit
+        public decimal Available { get; set; }
+        public decimal ReorderLevel { get; set; }
+        public decimal OnOrder { get; set; }
+        public decimal? UnitCost { get; set; }      // per kg / L
+        public bool IsPreferredSupplier { get; set; }
+        public string Why { get; set; }
+
+        // OnDraft only: the draft it's already on
+        public string DraftPoNumber { get; set; }
+    }
+
     public class IngredientPurchasingService
     {
         private readonly DBContextClass _db;
@@ -49,6 +95,16 @@ namespace Michaelhouse.Services
             _now = now ?? (() => SchoolClock.Now);
         }
 
+        // What happened to the order's test invoice in the last call
+        // (TestInvoiceService), for the manager; null if nothing
+        public string InvoiceMessage { get; private set; }
+
+        // Keep the test invoice in step after a change to a sent order
+        private void RefreshTestInvoice(int orderId)
+        {
+            InvoiceMessage = new TestInvoiceService(_db, _now).Refresh(orderId);
+        }
+
         public IngredientPurchaseOrder GetOrder(int orderId)
         {
             return _db.IngredientPurchaseOrders
@@ -61,6 +117,171 @@ namespace Michaelhouse.Services
         public List<Supplier> CafeteriaSuppliers()
         {
             return _db.Suppliers.Where(s => s.SuppliesCafeteria && s.IsActive).OrderBy(s => s.Name).ToList();
+        }
+
+        // ============================================================
+        // SUPPLIER CHOICE — one rule for automatic orders and shortfall
+        // re-orders: the ingredient's active links to active cafeteria
+        // suppliers, preferred first, then the shortest lead time.
+        // Null when none is available.
+        // ============================================================
+
+        public IngredientSupplier ChooseSupplier(int ingredientId, int? excludeSupplierId = null)
+        {
+            return _db.IngredientSuppliers
+                .Include(x => x.Supplier)
+                .Where(x => x.IngredientId == ingredientId && x.IsActive
+                            && (!excludeSupplierId.HasValue || x.SupplierId != excludeSupplierId.Value)
+                            && x.Supplier.IsActive && x.Supplier.SuppliesCafeteria)
+                .OrderByDescending(x => x.IsPreferred)
+                .ThenBy(x => x.LeadTimeDays)
+                .ThenBy(x => x.Supplier.Name)
+                .FirstOrDefault();
+        }
+
+        // ============================================================
+        // SUGGESTED ORDER — unchanged rules (moved from the order form):
+        // low / out of stock → top up to the target level (twice the
+        // reorder level when no target), allowing for what's on order;
+        // upcoming kitchen / event shortage → the shortfall after
+        // orders. The larger of the two. Quantities in the
+        // ingredient's own unit.
+        // ============================================================
+
+        public Dictionary<int, decimal> SuggestedQuantities(out List<IngredientStockLine> lines,
+            out Dictionary<int, UpcomingRequirement> upcoming)
+        {
+            var inventory = new IngredientInventoryService(_db);
+            lines = inventory.GetStockLines().Where(l => l.Ingredient.IsActive).ToList();
+            upcoming = inventory.UpcomingRequirements(14).ToDictionary(u => u.Ingredient.Id);
+
+            var suggested = new Dictionary<int, decimal>();
+            foreach (var l in lines)
+            {
+                decimal qty = 0m;
+                if (l.IsLowStock || l.IsOutOfStock) qty = l.SuggestedOrder;
+
+                UpcomingRequirement up;
+                if (upcoming.TryGetValue(l.Ingredient.Id, out up) && up.ShortfallAfterOrders > 0m)
+                    qty = Math.Max(qty, up.ShortfallAfterOrders);
+
+                if (qty > 0m) suggested[l.Ingredient.Id] = qty;
+            }
+
+            return suggested;
+        }
+
+        // ============================================================
+        // AUTOMATIC ORDERS — grouped by supplier
+        // Every suggested ingredient goes to its supplier (ChooseSupplier);
+        // one draft order per supplier. Ingredients without a supplier
+        // are listed for the manager, never put on an order.
+        // quantities: ingredient → quantity to order (own unit); null =
+        // all current suggestions.
+        // ============================================================
+
+        public AutoOrderPlan PlanAutomaticOrders(IDictionary<int, decimal> quantities = null)
+        {
+            List<IngredientStockLine> lines;
+            Dictionary<int, UpcomingRequirement> upcoming;
+            var suggested = SuggestedQuantities(out lines, out upcoming);
+            var wanted = quantities ?? suggested;
+
+            var byId = lines.ToDictionary(l => l.Ingredient.Id);
+            var plan = new AutoOrderPlan();
+
+            // Ingredient → a draft (unsent) order it's already on. Only
+            // the automatic suggestions skip these; ingredients the
+            // manager picked on purpose are ordered as asked.
+            var onDraft = quantities != null ? new Dictionary<int, string>() : _db.IngredientPurchaseOrderLines
+                .Where(l => l.PurchaseOrder.Status == IngredientOrderStatus.Draft)
+                .Select(l => new { l.IngredientId, l.PurchaseOrder.PoNumber })
+                .ToList()
+                .GroupBy(x => x.IngredientId)
+                .ToDictionary(g => g.Key, g => g.First().PoNumber);
+
+            foreach (var kv in wanted.Where(kv => kv.Value > 0m))
+            {
+                IngredientStockLine line;
+                if (!byId.TryGetValue(kv.Key, out line)) continue;     // inactive / unknown
+
+                UpcomingRequirement up;
+                upcoming.TryGetValue(kv.Key, out up);
+
+                var item = new AutoOrderItem
+                {
+                    Ingredient = line.Ingredient,
+                    Quantity = Math.Round(kv.Value, 2),
+                    Available = line.Available,
+                    ReorderLevel = line.ReorderLevel,
+                    OnOrder = line.OnOrder,
+                    Why = line.IsOutOfStock ? "Out of stock"
+                        : line.IsLowStock ? "Low stock"
+                        : up != null && up.ShortfallAfterOrders > 0m ? "Needed for " + string.Join(", ", up.NeededFor.Take(2))
+                        : "Selected"
+                };
+
+                string draft;
+                if (onDraft.TryGetValue(kv.Key, out draft))
+                {
+                    item.DraftPoNumber = draft;
+                    plan.OnDraft.Add(item);
+                    continue;
+                }
+
+                var link = ChooseSupplier(kv.Key);
+                if (link == null)
+                {
+                    plan.NoSupplier.Add(item);
+                    continue;
+                }
+
+                item.UnitCost = link.UnitCost;
+                item.IsPreferredSupplier = link.IsPreferred;
+
+                var group = plan.Groups.FirstOrDefault(g => g.Supplier.SupplierId == link.SupplierId);
+                if (group == null)
+                {
+                    group = new AutoOrderGroup { Supplier = link.Supplier };
+                    plan.Groups.Add(group);
+                }
+
+                group.LeadTimeDays = Math.Max(group.LeadTimeDays, link.LeadTimeDays);
+                group.Items.Add(item);
+            }
+
+            plan.Groups = plan.Groups.OrderBy(g => g.Supplier.Name).ToList();
+            foreach (var g in plan.Groups) g.Items = g.Items.OrderBy(i => i.Ingredient.Name).ToList();
+            plan.NoSupplier = plan.NoSupplier.OrderBy(i => i.Ingredient.Name).ToList();
+            return plan;
+        }
+
+        // Creates one draft per supplier (in one transaction) and returns them
+        public List<IngredientPurchaseOrder> CreateAutomaticOrders(IDictionary<int, decimal> quantities, int userId)
+        {
+            var plan = PlanAutomaticOrders(quantities);
+            if (plan.Groups.Count == 0)
+                throw new InventoryException(plan.NoSupplier.Count > 0
+                    ? "None of the selected ingredients has an active supplier. Link a supplier to each ingredient first."
+                    : "Nothing to order — choose at least one ingredient with a quantity.");
+
+            var created = new List<IngredientPurchaseOrder>();
+            using (var tx = _db.Database.BeginTransaction())
+            {
+                foreach (var group in plan.Groups)
+                {
+                    created.Add(CreateDraft(
+                        group.Supplier.SupplierId,
+                        group.Items.Select(i => new OrderLineInput { IngredientId = i.Ingredient.Id, Quantity = i.Quantity, UnitCost = i.UnitCost }),
+                        _now().Date.AddDays(Math.Max(1, group.LeadTimeDays)),
+                        "Automatic order (low stock / upcoming shortages)",
+                        userId));
+                }
+
+                tx.Commit();
+            }
+
+            return created;
         }
 
         // ============================================================
@@ -198,6 +419,9 @@ namespace Michaelhouse.Services
 
             UpdateStatusFromReceipts(order);
             _db.SaveChanges();
+
+            // Confirmed → the supplier's (test) invoice for what's coming
+            RefreshTestInvoice(order.Id);
         }
 
         // Manual amendment of a sent order's line: change what's ordered
@@ -229,6 +453,8 @@ namespace Michaelhouse.Services
 
             UpdateStatusFromReceipts(order);
             _db.SaveChanges();
+
+            RefreshTestInvoice(order.Id);
         }
 
         // The manager accepts the smaller quantity for these lines
@@ -243,6 +469,8 @@ namespace Michaelhouse.Services
 
             UpdateStatusFromReceipts(order);
             _db.SaveChanges();
+
+            RefreshTestInvoice(order.Id);
         }
 
         // Re-order the shortfall of these lines from another supplier.
@@ -268,14 +496,8 @@ namespace Michaelhouse.Services
                 }
                 else
                 {
-                    chosen = _db.IngredientSuppliers
-                        .Where(x => x.IngredientId == line.IngredientId && x.IsActive
-                                    && x.SupplierId != order.SupplierId
-                                    && x.Supplier.IsActive && x.Supplier.SuppliesCafeteria)
-                        .OrderByDescending(x => x.IsPreferred)
-                        .ThenBy(x => x.LeadTimeDays)
-                        .Select(x => (int?)x.SupplierId)
-                        .FirstOrDefault();
+                    var link = ChooseSupplier(line.IngredientId, order.SupplierId);
+                    chosen = link != null ? link.SupplierId : (int?)null;
 
                     if (!chosen.HasValue)
                     {

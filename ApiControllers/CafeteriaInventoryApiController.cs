@@ -80,6 +80,8 @@ namespace Michaelhouse.ApiControllers
                     supplier = o.Supplier != null ? o.Supplier.Name : "",
                     status = o.Status.ToString(),
                     requestedDelivery = o.RequestedDeliveryDate.HasValue ? o.RequestedDeliveryDate.Value.ToString("yyyy-MM-dd") : null,
+                    // Generated test invoice (download on the web: IngredientOrder/TestInvoice/{id})
+                    testInvoiceNumber = o.TestInvoiceNumber,
                     lines = o.Lines.Select(l => new
                     {
                         lineId = l.Id,

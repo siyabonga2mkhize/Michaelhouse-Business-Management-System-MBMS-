@@ -66,11 +66,14 @@ namespace MhmsMobileApp.Views
             _submitBar.StrokeThickness = 1;
             _submitBar.Padding = new Thickness(16, 12, 16, 16);
             _submitBar.Content = _submit;
+            _submit.MaximumWidthRequest = 560;
 
             var page = new Grid { RowDefinitions = { new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto) } };
             page.Add(_scroll, 0, 0);
             page.Add(_submitBar, 0, 1);
             Content = page;
+
+            Responsive.Adapt(this, _root, top: 16);
         }
 
         protected override async void OnAppearing()
@@ -120,13 +123,13 @@ namespace MhmsMobileApp.Views
                 var text = (d.ClosedReason ?? "This event is not currently accepting RSVPs.");
                 if (d.Response != null) text += "\n\nYour response: " + (d.Response.Attending ? "Attending" : "Not attending");
                 text += "\n\nContact the Michaelhouse cafeteria if you need to make changes.";
-                _root.Children.Add(Ui.Banner(BannerKind.Info, "🔒  RSVPs Closed", text));
+                _root.Children.Add(Ui.Banner(BannerKind.Info, "RSVPs closed", text));
                 return;
             }
 
             if (!d.Invitee.IsInvited)
             {
-                _root.Children.Add(Ui.Banner(BannerKind.Info, "🔒  Not invited", d.Invitee.NotInvitedReason));
+                _root.Children.Add(Ui.Banner(BannerKind.Info, "Not invited", d.Invitee.NotInvitedReason));
                 return;
             }
 
@@ -152,45 +155,41 @@ namespace MhmsMobileApp.Views
             _submitBar.IsVisible = true;
         }
 
-        // Event name, date, time and venue (web: .rv-hero)
+        // Event name, date, time and venue: dark panel with the red-bar
+        // eyebrow, like the web's headers
         private static View Hero(EventRsvpDetailDto d)
         {
-            var stack = new VerticalStackLayout { Spacing = 6 };
-            stack.Children.Add(new Label
-            {
-                Text = "You're invited",
-                FontFamily = "MontserratBold",
-                FontSize = 11,
-                CharacterSpacing = 2,
-                TextTransform = TextTransform.Uppercase,
-                TextColor = Color.FromArgb("#FFE4E6")
-            });
-            stack.Children.Add(new Label { Text = d.EventName, FontFamily = "PlayfairBold", FontSize = 26, TextColor = Colors.White });
-            stack.Children.Add(new Label
-            {
-                Text = d.DateLabel + "\n" + d.TimeLabel + (string.IsNullOrEmpty(d.VenueName) ? "" : " · " + d.VenueName) +
-                       (d.IsOpen && d.RsvpDeadline != null ? "\nRSVP by " + d.RsvpDeadline : ""),
-                FontSize = 14,
-                TextColor = Colors.White
-            });
+            var stack = new VerticalStackLayout { Spacing = 8 };
+
+            var eyebrow = new HorizontalStackLayout { Spacing = 10 };
+            eyebrow.Children.Add(new BoxView { Style = Ui.Style("HeadingAccent") });
+            eyebrow.Children.Add(new Label { Text = "You're invited", Style = Ui.Style("Eyebrow"), TextColor = Color.FromArgb("#B3FFFFFF") });
+            stack.Children.Add(eyebrow);
+
+            stack.Children.Add(new Label { Text = d.EventName, Style = Ui.Style("PageTitle"), TextColor = Colors.White });
+
+            void Meta(string text) => stack.Children.Add(new Label { Text = text, Style = Ui.Style("MonoCaps"), TextColor = Color.FromArgb("#CCFFFFFF") });
+            Meta(d.DateLabel);
+            Meta(d.TimeLabel + (string.IsNullOrEmpty(d.VenueName) ? "" : " · " + d.VenueName));
+            if (d.IsOpen && d.RsvpDeadline != null) Meta("RSVP by " + d.RsvpDeadline);
 
             return new Border
             {
-                BackgroundColor = Ui.Color("Primary"),
+                BackgroundColor = Ui.Color("SectionBar"),
                 StrokeThickness = 0,
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
-                Padding = new Thickness(18, 18),
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
+                Padding = new Thickness(20, 22),
                 Content = stack
             };
         }
 
+        // Card with the web's black header bar
         private static Border Section(string title, View content, string? help = null)
         {
             var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = title, Style = Ui.Style("FieldLabel") });
             if (!string.IsNullOrEmpty(help)) stack.Children.Add(Ui.Text(help, "MutedText"));
             stack.Children.Add(content);
-            return Ui.Card(stack);
+            return Ui.Section(title, stack);
         }
 
         // ── Attending? ──
@@ -200,8 +199,8 @@ namespace MhmsMobileApp.Views
             if (d.Response != null)
                 help += " You've answered: " + (d.Response.Attending ? "Attending" : "Not attending") + ". You can change it until RSVPs close.";
 
-            _yesTile = Ui.Tile("Yes", "🎉");
-            _noTile = Ui.Tile("No", "😔");
+            _yesTile = Ui.Tile("Yes, attending");
+            _noTile = Ui.Tile("Not attending");
             _yesTile.OnTap(() => SetAttending(true));
             _noTile.OnTap(() => SetAttending(false));
             Ui.SetTileSelected(_yesTile, _attending == true);
@@ -215,7 +214,7 @@ namespace MhmsMobileApp.Views
             stack.Children.Add(new Label { Text = d.Invitee.Name + ", will you be attending?", Style = Ui.Style("CardTitle") });
             stack.Children.Add(Ui.Text(help, "MutedText"));
             stack.Children.Add(tiles);
-            return Ui.Card(stack);
+            return Ui.Section("Attendance", stack);
         }
 
         private void SetAttending(bool attending)
@@ -291,14 +290,14 @@ namespace MhmsMobileApp.Views
         }
 
         private static Label SubLabel(string text) =>
-            new Label { Text = text, FontFamily = "MontserratBold", FontSize = 14, TextColor = Ui.Color("TextPrimary"), Margin = new Thickness(0, 10, 0, 0) };
+            new Label { Text = text, Style = Ui.Style("FieldLabel"), TextColor = Ui.Color("TextPrimary"), Margin = new Thickness(0, 12, 0, 2) };
 
         private static Label Line(string label, string? value)
         {
             var text = new FormattedString();
             text.Spans.Add(new Span { Text = label + ": ", FontFamily = "MontserratBold" });
             text.Spans.Add(new Span { Text = string.IsNullOrWhiteSpace(value) ? "None" : value });
-            return new Label { FormattedText = text, FontSize = 14, TextColor = Ui.Color("Gray600") };
+            return new Label { FormattedText = text, FontSize = 14, TextColor = Ui.Color("TextBody") };
         }
 
         private static View TextBox(string placeholder, string? value, int maxLength, Action<string> changed)
@@ -350,10 +349,13 @@ namespace MhmsMobileApp.Views
                 _menuItemId = null;
             }
 
+            // Side by side on wide screens
+            var grid = new AdaptiveGrid(260, 3);
             foreach (var meal in _meals)
             {
-                stack.Children.Add(MealCard(meal));
+                grid.Children.Add(MealCard(meal));
             }
+            stack.Children.Add(grid);
 
             _mealHost.Content = Section("Your meal", stack);
         }
@@ -374,22 +376,18 @@ namespace MhmsMobileApp.Views
                 var tags = new FlexLayout { Wrap = Microsoft.Maui.Layouts.FlexWrap.Wrap };
                 foreach (var tag in meal.SuitableFor)
                 {
-                    var chip = Ui.Chip(tag, "#D1FAE5", "#065F46", 10);
+                    var chip = Ui.Badge(tag, Tone.Ok);
                     chip.Margin = new Thickness(0, 2, 6, 2);
                     tags.Children.Add(chip);
                 }
                 stack.Children.Add(tags);
             }
 
-            stack.Children.Add(new Label
-            {
-                Text = string.IsNullOrEmpty(meal.Allergens) ? "No listed allergens" : "Contains: " + meal.Allergens,
-                Style = Ui.Style("MutedText")
-            });
+            stack.Children.Add(Ui.Mono(string.IsNullOrEmpty(meal.Allergens) ? "No listed allergens" : "Contains: " + meal.Allergens, caps: true));
 
             if (!meal.IsSuitable)
             {
-                stack.Children.Add(new Label { Text = "Not suitable: " + meal.UnsuitableReason, FontSize = 12, TextColor = Ui.Color("Danger") });
+                stack.Children.Add(new Label { Text = "Not suitable: " + meal.UnsuitableReason, FontFamily = "MontserratBold", FontSize = 11, TextColor = Ui.Color("Primary") });
             }
 
             var card = new Border { Style = Ui.Style("Card"), Padding = new Thickness(14), Content = stack };
@@ -417,7 +415,7 @@ namespace MhmsMobileApp.Views
         {
             var minus = new Button { Text = "–", Style = Ui.Style("SecondaryButton"), WidthRequest = 56, FontSize = 22, Padding = 0 };
             var plus = new Button { Text = "+", Style = Ui.Style("SecondaryButton"), WidthRequest = 56, FontSize = 22, Padding = 0 };
-            _guestCountLabel.FontFamily = "MontserratBold";
+            _guestCountLabel.FontFamily = "MonoSemiBold";
             _guestCountLabel.FontSize = 22;
             _guestCountLabel.TextColor = Ui.Color("TextPrimary");
             _guestCountLabel.VerticalOptions = LayoutOptions.Center;
@@ -433,7 +431,7 @@ namespace MhmsMobileApp.Views
             counter.Children.Add(plus);
 
             var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = "How many guests are you bringing?", Style = Ui.Style("CardTitle"), FontSize = 15 });
+            stack.Children.Add(new Label { Text = "How many guests are you bringing?", Style = Ui.Style("CardTitle") });
             stack.Children.Add(counter);
             stack.Children.Add(Ui.Text("Up to " + d.MaxGuests + ". Not including yourself.", "MutedText"));
             stack.Children.Add(_guestList);
@@ -491,7 +489,7 @@ namespace MhmsMobileApp.Views
             {
                 BackgroundColor = Ui.Color("PageBackground"),
                 Stroke = Ui.Color("CardBorder"),
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
                 Padding = new Thickness(12),
                 Content = stack
             };

@@ -32,6 +32,8 @@ namespace MhmsMobileApp.Views
                 _refresh.IsRefreshing = false;
             };
             Content = _refresh;
+
+            Responsive.Adapt(this, _root);
         }
 
         // Reload every time, so a completed job moves to "Completed"
@@ -52,24 +54,28 @@ namespace MhmsMobileApp.Views
 
             if (!result.Ok)
             {
-                _root.Children.Add(Ui.PageHeader("My Job Cards"));
+                _root.Children.Add(Ui.PageHeader("My Job Cards", null, "Maintenance"));
                 _root.Children.Add(Ui.Banner(BannerKind.Warning, "Jobs not available", result.Error));
                 return;
             }
 
-            _root.Children.Add(Ui.PageHeader("My Job Cards", result.Worker + (string.IsNullOrEmpty(result.Skill) ? "" : " · " + result.Skill)));
+            _root.Children.Add(Ui.PageHeader("My Job Cards", result.Worker + (string.IsNullOrEmpty(result.Skill) ? "" : " · " + result.Skill), "Maintenance"));
 
             _root.Children.Add(new Label { Text = "Open jobs", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 6, 0, 0) });
             if (result.OpenJobs.Count == 0)
                 _root.Children.Add(Ui.Banner(BannerKind.Success, null, "No open jobs. Well done!"));
+            var open = new AdaptiveGrid(320);
             foreach (var job in result.OpenJobs)
-                _root.Children.Add(JobCard(job, true));
+                open.Children.Add(JobCard(job, true));
+            _root.Children.Add(open);
 
             if (result.CompletedJobs.Count > 0)
             {
                 _root.Children.Add(new Label { Text = "Recently completed", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 10, 0, 0) });
+                var done = new AdaptiveGrid(320);
                 foreach (var job in result.CompletedJobs)
-                    _root.Children.Add(JobCard(job, false));
+                    done.Children.Add(JobCard(job, false));
+                _root.Children.Add(done);
             }
         }
 
@@ -154,6 +160,8 @@ namespace MhmsMobileApp.Views
             _scroll.Content = _root;
             Content = _scroll;
 
+            Responsive.Adapt(this, _root);
+
             _labour.TextChanged += (s, e) => UpdateCost();
             _complete.Clicked += async (s, e) => await CompleteAsync();
         }
@@ -178,7 +186,7 @@ namespace MhmsMobileApp.Views
             _detail = detail;
             var job = detail.Job;
 
-            _root.Children.Add(Ui.PageHeader(job.Title, job.JobReference));
+            _root.Children.Add(Ui.PageHeader(job.Title, job.JobReference, "Job Card"));
             _root.Children.Add(_messageHost);
 
             // ── The fault ──
@@ -242,10 +250,8 @@ namespace MhmsMobileApp.Views
 
         private static Border Section(string title, View content)
         {
-            var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = title, Style = Ui.Style("FieldLabel") });
-            stack.Children.Add(content);
-            return Ui.Card(stack);
+            // Card with the web's black header bar
+            return Ui.Section(title, content);
         }
 
         private static View PhotoView(byte[] bytes)
@@ -253,8 +259,8 @@ namespace MhmsMobileApp.Views
             return new Border
             {
                 StrokeThickness = 0,
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
-                HeightRequest = 200,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
+                HeightRequest = Responsive.Size(0.55, 180, 360),
                 Content = new Image { Source = ImageSource.FromStream(() => new MemoryStream(bytes)), Aspect = Aspect.AspectFill }
             };
         }

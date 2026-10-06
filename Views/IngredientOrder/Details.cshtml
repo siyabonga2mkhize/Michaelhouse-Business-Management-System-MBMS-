@@ -63,6 +63,28 @@
         {
             <div class="inv-note info">Review the order below. It isn't sent until you press <strong>Send to supplier</strong>.</div>
         }
+        @if (!string.IsNullOrEmpty(Model.TestInvoiceFilePath))
+        {
+            <div class="inv-note info" style="display:flex; flex-wrap:wrap; gap:.5rem 1rem; align-items:center;">
+                <span>
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    Test invoice <strong>@Model.TestInvoiceNumber</strong>
+                    @if (Model.TestInvoiceGeneratedAt.HasValue)
+                    {
+                        <span class="inv-muted">· updated @SchoolClock.FromUtc(Model.TestInvoiceGeneratedAt.Value).ToString("dd MMM HH:mm")</span>
+                    }
+                </span>
+                <a href="@Url.Action("TestInvoice", "IngredientOrder", new { id = Model.Id })" class="btn btn-sm btn-outline-secondary">Download PDF</a>
+                <span class="inv-help" style="flex-basis:100%;">
+                    Generated for testing: it lists what the supplier still has to deliver on this order. Print it or take a photo,
+                    then scan it on <a href="@Url.Action("Record", "IngredientDelivery", new { orderId = Model.Id })">Record delivery</a> (web or mobile).
+                </span>
+            </div>
+        }
+        else if (s == IngredientOrderStatus.Pending)
+        {
+            <div class="inv-note info">A test invoice is generated once the supplier's confirmed quantities are recorded below.</div>
+        }
         @if (openShortfalls.Count > 0)
         {
             <div class="inv-note bad">

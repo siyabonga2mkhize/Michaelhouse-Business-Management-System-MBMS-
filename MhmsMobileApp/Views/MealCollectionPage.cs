@@ -38,17 +38,18 @@ namespace MhmsMobileApp.Views
         {
             Title = "Meal Collection";
 
-            _todayLabel.Style = Ui.Style("MutedText");
-            _todayLabel.FontSize = 13;
+            _todayLabel.Style = Ui.Style("MonoCaps");
 
             var root = new VerticalStackLayout { Padding = new Thickness(16, 20, 16, 32), Spacing = 14 };
-            root.Children.Add(Ui.PageHeader("Meal Collection"));
+            root.Children.Add(Ui.PageHeader("Meal Collection", "Collection terminal", "Service"));
             root.Children.Add(_todayLabel);
             root.Children.Add(_statusHost);
             root.Children.Add(_stepHost);
 
             _scroll.Content = root;
             Content = _scroll;
+
+            Responsive.Adapt(this, root, bottom: 32);
 
             ShowStart();
         }
@@ -94,14 +95,18 @@ namespace MhmsMobileApp.Views
             _pendingToken = null;
 
             var stack = new VerticalStackLayout { Spacing = 14 };
-            stack.Children.Add(new Label { Text = "📷", FontSize = 56, HorizontalOptions = LayoutOptions.Center });
             stack.Children.Add(new Label
             {
                 Text = "Take a photo of the student's face",
                 Style = Ui.Style("CardTitle"),
                 HorizontalTextAlignment = TextAlignment.Center
             });
-            stack.Children.Add(Ui.Text("Hold the phone so the face fills the middle of the picture, in good light.", "MutedText"));
+            stack.Children.Add(new Label
+            {
+                Text = "Hold the phone so the face fills the middle of the picture, in good light.",
+                Style = Ui.Style("MutedText"),
+                HorizontalTextAlignment = TextAlignment.Center
+            });
 
             if (!string.IsNullOrEmpty(note))
             {
@@ -118,7 +123,7 @@ namespace MhmsMobileApp.Views
                 stack.Children.Add(Ui.Banner(BannerKind.Warning, null, "This device has no camera the app can use."));
             }
 
-            _stepHost.Content = Ui.Card(stack, new Thickness(20));
+            _stepHost.Content = Ui.Section("Face scan", stack, null, new Thickness(20));
         }
 
         private async Task TakePhotoAsync()
@@ -176,19 +181,21 @@ namespace MhmsMobileApp.Views
             ShowResult(result, photo);
         }
 
-        private static View PhotoPreview(byte[] photo)
+        // Height follows the screen width (bigger on tablets), within limits
+        private View PhotoPreview(byte[] photo, double fraction = 0.6)
         {
-            return new Border
+            var preview = new Border
             {
                 StrokeThickness = 0,
-                StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                HeightRequest = 220,
+                StrokeShape = new Rectangle(),
                 Content = new Image
                 {
                     Source = ImageSource.FromStream(() => new MemoryStream(photo)),
                     Aspect = Aspect.AspectFill
                 }
             };
+            Responsive.Square(preview, this, fraction, 140, 380, aspect: 1.0);
+            return preview;
         }
 
         // ============================================================
@@ -210,9 +217,7 @@ namespace MhmsMobileApp.Views
 
             if (photo != null && !r.IsCollected)
             {
-                var preview = PhotoPreview(photo);
-                preview.HeightRequest = 140;
-                stack.Children.Add(preview);
+                stack.Children.Add(PhotoPreview(photo, 0.35));
             }
 
             stack.Children.Add(new Label
@@ -227,19 +232,14 @@ namespace MhmsMobileApp.Views
 
             if (!string.IsNullOrEmpty(r.StudentName))
             {
-                stack.Children.Add(new Label { Text = r.StudentName, FontFamily = "PlayfairBold", FontSize = 26, TextColor = Ui.Color("TextPrimary") });
+                stack.Children.Add(new Label { Text = r.StudentName, Style = Ui.Style("PageTitle") });
             }
             if (!string.IsNullOrEmpty(r.StudentNumber))
             {
-                stack.Children.Add(Ui.Text("Student no. " + r.StudentNumber, "MutedText"));
+                stack.Children.Add(Ui.Mono("Student no. " + r.StudentNumber, caps: true));
             }
 
-            stack.Children.Add(new Label
-            {
-                Text = r.IsReady ? "Ready for collection." : r.Message,
-                FontSize = 15,
-                TextColor = Ui.Color("Gray600")
-            });
+            stack.Children.Add(Ui.Text(r.IsReady ? "Ready for collection." : r.Message));
 
             // Dietary warnings — shown; staff decide
             if (r.HasDietaryConflict)
@@ -284,7 +284,7 @@ namespace MhmsMobileApp.Views
             }
 
             var card = Ui.Card(stack, new Thickness(18));
-            card.Stroke = good ? Ui.Color("Success") : Ui.Color("Danger");
+            card.Stroke = good ? Ui.Color("Success") : Ui.Color("Primary");
             card.StrokeThickness = 2;
             _stepHost.Content = card;
 
@@ -295,7 +295,7 @@ namespace MhmsMobileApp.Views
         {
             var stack = new VerticalStackLayout { Spacing = 4 };
             stack.Children.Add(new Label { Text = r.MealDate ?? r.MealSlot, Style = Ui.Style("FieldLabel") });
-            stack.Children.Add(new Label { Text = r.MealName, Style = Ui.Style("CardTitle"), FontSize = 18 });
+            stack.Children.Add(new Label { Text = r.MealName, Style = Ui.Style("CardTitle") });
 
             void Info(string label, string? value)
             {
@@ -303,7 +303,7 @@ namespace MhmsMobileApp.Views
                 var text = new FormattedString();
                 text.Spans.Add(new Span { Text = label + ": ", FontFamily = "MontserratBold" });
                 text.Spans.Add(new Span { Text = value });
-                stack.Children.Add(new Label { FormattedText = text, FontSize = 13, TextColor = Ui.Color("TextSecondary") });
+                stack.Children.Add(new Label { FormattedText = text, FontSize = 13, TextColor = Ui.Color("TextBody") });
             }
 
             Info("Contains", r.Allergens);
@@ -316,7 +316,7 @@ namespace MhmsMobileApp.Views
             {
                 BackgroundColor = Ui.Color("PageBackground"),
                 Stroke = Ui.Color("CardBorder"),
-                StrokeShape = new RoundRectangle { CornerRadius = 10 },
+                StrokeShape = new Rectangle(),
                 Padding = new Thickness(12),
                 Content = stack
             };

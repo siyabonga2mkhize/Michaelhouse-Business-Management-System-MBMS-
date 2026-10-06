@@ -9,14 +9,18 @@ namespace Michaelhouse.Services
     // ============================================================
     // UC12 rework — Computes per-day, per-meal portion demand.
     //
-    // Portions = active students + staff meals + sports uplift.
+    // Portions = students + staff meals + sports uplift.
     //
-    // - Active students  : students with at least one active sport
-    //                      status on that date. Students with no
-    //                      sport records are counted as active.
+    // - Students         : every active student living in a house
+    //                      (residence allocation). A student the
+    //                      Coach marked unavailable (injury, leave)
+    //                      still eats — they are counted, and shown
+    //                      as "unavailable" for information only.
     // - Staff meals      : constant number, same for every meal.
-    // - Sports uplift    : +1 portion for each active student who
-    //                      has a scheduled match on that day.
+    // - Sports uplift    : +1 portion for each student playing in a
+    //                      scheduled match that day — their sport,
+    //                      available for it, and in the match's house
+    //                      if it names one (StudentSportService).
     //
     // This service is pure reads. It does not modify the database.
     // ============================================================
@@ -40,28 +44,13 @@ namespace Michaelhouse.Services
             var results = new List<MealDemand>();
 
             // ── Preload everything once ──────────────────────────────
-            var students = _db.Students.ToList();
+            var students = _db.Students.Where(s => s.IsActive).ToList();
 
-            var sportStatuses = _db.StudentSportStatuses.ToList();
-
-            // FIX: AddDays can't be translated to SQL by EF6.
-            // Compute the upper bound in C# first, then use the variable.
-            var upperBound = end.Date.AddDays(1);
-            var events = _db.SportEvents
-                .Where(e => e.ScheduledDate >= start
-                         && e.ScheduledDate < upperBound)
-                .ToList();
-
-            // Group sport statuses by student
-            var statusByStudent = sportStatuses
-                .GroupBy(s => s.StudentId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            // Group active students by the house they live in
+            // Group students by the house they live in
             // (residence allocation — see StudentHouseService)
             var houseByStudent = new StudentHouseService(_db).HouseByStudent();
             var studentsByResidence = students
-                .Where(s => s.IsActive && houseByStudent.ContainsKey(s.StudentId))
+                .Where(s => houseByStudent.ContainsKey(s.StudentId))
                 .GroupBy(s => houseByStudent[s.StudentId])
                 .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -69,24 +58,16 @@ namespace Michaelhouse.Services
             var residenceNames = _db.Residences
                 .ToDictionary(r => r.ResidenceId, r => r.Name);
 
+            var calendar = new StudentSportService(_db).LoadCalendar(start, end);
+
             // ── Loop through days and meals ──────────────────────────
             for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
             {
-                var dayEvents = events
-                    .Where(e => e.ScheduledDate.Date == date.Date)
-                    .Where(e => !e.IsCancelled)
-                    .Where(e => string.IsNullOrEmpty(e.Status)
-                             || e.Status == "Scheduled")
-                    .ToList();
+                var dayEvents = calendar.EventsOn(date);
+                var matches = dayEvents.Where(StudentSportService.IsMatch).ToList();
 
-                // FIX: A fixture like "Rugby vs Hilton College" is
-                // school-wide — every rugby player plays, not just the
-                // house nominally listed on the event. So we collect
-                // the set of sports playing today and match on that,
-                // ignoring ResidenceId entirely.
-                var todaysSports = new HashSet<string>(
-                    dayEvents.Select(e => e.Sport)
-                             .Where(s => !string.IsNullOrEmpty(s)));
+                // Students playing in any match today
+                var matchPlayers = new HashSet<int>(matches.SelectMany(calendar.PlayersFor));
 
                 foreach (var meal in MealSlots)
                 {
@@ -103,30 +84,8 @@ namespace Michaelhouse.Services
                         var residenceId = kvp.Key;
                         var houseStudents = kvp.Value;
 
-                        int active = 0;
-                        int unavailable = 0;
-
-                        foreach (var student in houseStudents)
-                        {
-                            if (IsStudentActiveOn(student.StudentId, date, statusByStudent))
-                                active++;
-                            else
-                                unavailable++;
-                        }
-
-                        // Match players from this house today.
-                        // +1 uplift per active student whose sport is
-                        // playing today, regardless of house.
-                        int matchPlayers = 0;
-                        foreach (var student in houseStudents)
-                        {
-                            if (!IsStudentActiveOn(student.StudentId, date, statusByStudent))
-                                continue;
-
-                            var sports = GetSportsForStudent(student.StudentId, statusByStudent);
-                            if (sports.Any(s => todaysSports.Contains(s)))
-                                matchPlayers++;
-                        }
+                        int unavailable = houseStudents.Count(s => IsUnavailableOn(calendar, s.StudentId, date));
+                        int players = houseStudents.Count(s => matchPlayers.Contains(s.StudentId));
 
                         demand.Houses.Add(new HouseBreakdown
                         {
@@ -134,23 +93,19 @@ namespace Michaelhouse.Services
                             ResidenceName = residenceNames.ContainsKey(residenceId)
                                 ? residenceNames[residenceId]
                                 : "Unknown",
-                            ActiveStudents = active,
+                            ActiveStudents = houseStudents.Count,
                             Unavailable = unavailable,
-                            MatchPlayers = matchPlayers
+                            MatchPlayers = players
                         });
 
-                        demand.HousePortions += active;
-                        demand.SportsUplift += matchPlayers;
+                        demand.HousePortions += houseStudents.Count;
+                        demand.SportsUplift += players;
                     }
 
                     // ── Event labels for display ─────────────────────
                     foreach (var evt in dayEvents)
                     {
-                        var label = evt.Sport;
-                        if (!string.IsNullOrEmpty(evt.Opponent))
-                            label += " vs " + evt.Opponent;
-
-                        demand.EventsThisMeal.Add(label);
+                        demand.EventsThisMeal.Add(StudentSportService.Label(evt));
                     }
 
                     results.Add(demand);
@@ -162,46 +117,12 @@ namespace Michaelhouse.Services
 
         // ── Helpers ──────────────────────────────────────────────────
 
-        private bool IsStudentActiveOn(
-            int studentId,
-            DateTime date,
-            Dictionary<int, List<StudentSportStatus>> statusByStudent)
+        // Every sport the student plays is marked unavailable today
+        // (information only — they still eat)
+        private static bool IsUnavailableOn(SportsCalendar calendar, int studentId, DateTime date)
         {
-            if (!statusByStudent.ContainsKey(studentId)) return true;
-            var statuses = statusByStudent[studentId];
-            if (statuses == null || statuses.Count == 0) return true;
-
-            // Active if ANY of their sports is available today
-            foreach (var s in statuses)
-            {
-                if (IsActiveOn(s, date)) return true;
-            }
-            return false;
-        }
-
-        private bool IsActiveOn(StudentSportStatus status, DateTime date)
-        {
-            // Auto-recover: if the return date has passed, treat as active
-            if (status.UnavailableUntil.HasValue
-                && status.UnavailableUntil.Value.Date <= date.Date)
-            {
-                return true;
-            }
-
-            return status.IsActive;
-        }
-
-        private List<string> GetSportsForStudent(
-            int studentId,
-            Dictionary<int, List<StudentSportStatus>> statusByStudent)
-        {
-            if (!statusByStudent.ContainsKey(studentId))
-                return new List<string>();
-
-            return statusByStudent[studentId]
-                .Select(s => s.Sport)
-                .Distinct()
-                .ToList();
+            var statuses = calendar.StatusesOf(studentId);
+            return statuses.Count > 0 && !statuses.Any(s => StudentSportService.IsAvailableOn(s, date));
         }
     }
 }

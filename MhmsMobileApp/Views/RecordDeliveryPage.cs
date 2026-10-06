@@ -32,6 +32,8 @@ namespace MhmsMobileApp.Views
                 _refresh.IsRefreshing = false;
             };
             Content = _refresh;
+
+            Responsive.Adapt(this, _root);
         }
 
         // Reload every time, so a recorded delivery drops off the list
@@ -50,7 +52,7 @@ namespace MhmsMobileApp.Views
             _loading = false;
 
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Record Delivery", "Choose the purchase order the delivery is for."));
+            _root.Children.Add(Ui.PageHeader("Record Delivery", "Choose the purchase order the delivery is for.", "Logistics & Supply"));
 
             if (!result.Ok)
             {
@@ -65,10 +67,13 @@ namespace MhmsMobileApp.Views
                 _root.Children.Add(Ui.Banner(BannerKind.Info, null, "No orders are waiting for a delivery."));
             }
 
+            // One card per order; 2–3 per row on wide screens
+            var grid = new AdaptiveGrid(320);
             foreach (var order in result.Orders)
             {
-                _root.Children.Add(OrderCard(order));
+                grid.Children.Add(OrderCard(order));
             }
+            _root.Children.Add(grid);
 
             _root.Children.Add(Ui.Text("A delivery that has no purchase order is recorded on the Michaelhouse website.", "MutedText"));
         }
@@ -77,24 +82,36 @@ namespace MhmsMobileApp.Views
         {
             var stack = new VerticalStackLayout { Spacing = 8 };
 
+            // Web order list: PO in mono, supplier in serif capitals, status badge
             var title = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }, ColumnSpacing = 8 };
-            title.Add(new Label { Text = order.PoNumber, FontFamily = "PlayfairBold", FontSize = 20, TextColor = Ui.Color("TextPrimary") }, 0, 0);
-            title.Add(Ui.Chip(StatusLabel(order.Status), "#FEF3C7", "#92400E"), 1, 0);
+            title.Add(new Label { Text = order.PoNumber, FontFamily = "MonoSemiBold", FontSize = 14, TextColor = Ui.Color("TextPrimary"), VerticalOptions = LayoutOptions.Center }, 0, 0);
+            title.Add(Ui.OrderStatus(order.Status), 1, 0);
             stack.Children.Add(title);
 
-            stack.Children.Add(new Label { Text = order.Supplier, Style = Ui.Style("CardTitle"), FontSize = 15 });
+            stack.Children.Add(new Label { Text = order.Supplier, Style = Ui.Style("CardTitle"), CharacterSpacing = 1, TextTransform = TextTransform.Uppercase });
 
             if (!string.IsNullOrEmpty(order.RequestedDelivery))
             {
-                stack.Children.Add(Ui.Text("Requested delivery: " + FormatDate(order.RequestedDelivery), "MutedText"));
+                stack.Children.Add(Ui.Mono("Requested delivery · " + FormatDate(order.RequestedDelivery), caps: true));
             }
 
-            // Same summary as the web page: what's still outstanding
-            var outstanding = order.Lines.Where(l => l.Outstanding > 0m)
-                .Select(l => l.Name + " " + l.Outstanding.ToString("0.###", CultureInfo.CurrentCulture) + " " + l.Unit);
-            stack.Children.Add(new Label { Text = string.Join(", ", outstanding), FontSize = 13, TextColor = Ui.Color("Gray600") });
+            if (!string.IsNullOrEmpty(order.TestInvoiceNumber))
+            {
+                stack.Children.Add(Ui.Mono("Test invoice · " + order.TestInvoiceNumber, caps: true));
+            }
 
-            var receive = new Button { Text = "Receive", Style = Ui.Style("PrimaryButton"), Margin = new Thickness(0, 4, 0, 0) };
+            stack.Children.Add(Ui.Divider());
+
+            // Same summary as the web page: what's still outstanding
+            foreach (var line in order.Lines.Where(l => l.Outstanding > 0m))
+            {
+                var row = new Grid { ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) }, ColumnSpacing = 8 };
+                row.Add(Ui.Text(line.Name), 0, 0);
+                row.Add(new Label { Text = line.Outstanding.ToString("0.###", CultureInfo.CurrentCulture) + " " + line.Unit, FontFamily = "MonoSemiBold", FontSize = 13, TextColor = Ui.Color("TextPrimary"), VerticalOptions = LayoutOptions.Center }, 1, 0);
+                stack.Children.Add(row);
+            }
+
+            var receive = new Button { Text = "Receive", Style = Ui.Style("PrimaryButton"), Margin = new Thickness(0, 6, 0, 0) };
             receive.Clicked += async (s, e) => await Navigation.PushAsync(new ReceiveDeliveryPage(order.Id));
             stack.Children.Add(receive);
 

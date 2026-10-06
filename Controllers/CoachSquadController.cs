@@ -1,5 +1,7 @@
 ﻿using Michaelhouse.Models;
 using Michaelhouse.Models.Cafeteria;
+using Michaelhouse.Models.ViewModels;
+using Michaelhouse.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,23 +68,86 @@ namespace Michaelhouse.Controllers
         // Squad status — mark injuries, availability
         // ============================================================
 
+        // Players come from the sports on students' profiles
+        // (StudentSportService keeps StudentSportStatus in step), so
+        // the Coach never maintains a player list — only availability.
         [HttpGet]
         public ActionResult Index()
         {
-            var allSports = _db.StudentSportStatuses
+            var today = SchoolClock.Today;
+            var until = today.AddDays(UpcomingDays);
+
+            var statuses = _db.StudentSportStatuses
                 .Include("Student")
-                .OrderBy(x => x.Sport)
-                .ThenBy(x => x.Student.LastName)
+                .Where(x => x.Student.IsActive)
                 .ToList();
 
-            // Group by sport for display
-            ViewBag.Sports = allSports
-                .GroupBy(x => x.Sport)
-                .OrderBy(g => g.Key)
+            var houseByStudent = new StudentHouseService(_db).HouseByStudent();
+            var houseNames = _db.Residences.ToDictionary(r => r.ResidenceId, r => r.Name);
+            Func<int?, string> houseName = id => id.HasValue && houseNames.ContainsKey(id.Value) ? houseNames[id.Value] : null;
+
+            var calendar = new StudentSportService(_db).LoadCalendar(today, until);
+            var fixtures = _db.SportEvents
+                .Where(e => e.ScheduledDate >= today && e.ScheduledDate <= until)
+                .ToList()
+                .Where(StudentSportService.IsScheduled)
+                .OrderBy(e => e.ScheduledDate)
+                .ThenBy(e => e.StartTime)
                 .ToList();
 
-            return View();
+            var sports = statuses.Select(s => s.Sport)
+                .Concat(fixtures.Select(e => e.Sport))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s)
+                .ToList();
+
+            var model = sports.Select(sport => new SportSquadViewModel
+            {
+                Sport = sport,
+                Archetype = SportCatalogue.ArchetypeOf(sport),
+                Players = statuses
+                    .Where(s => string.Equals(s.Sport, sport, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(s => s.Student.LastName)
+                    .ThenBy(s => s.Student.FirstName)
+                    .Select(s =>
+                    {
+                        int house;
+                        return new SquadPlayerViewModel
+                        {
+                            StatusId = s.Id,
+                            Name = s.Student.FirstName + " " + s.Student.LastName,
+                            StudentNumber = s.Student.StudentNumber,
+                            Grade = !string.IsNullOrWhiteSpace(s.Student.CurrentGrade)
+                                ? "Grade " + s.Student.CurrentGrade
+                                : (s.Student.GradeLevel > 0 ? "Grade " + s.Student.GradeLevel : null),
+                            House = houseByStudent.TryGetValue(s.StudentId, out house) ? houseName(house) : null,
+                            IsAvailableToday = StudentSportService.IsAvailableOn(s, today),
+                            StatusReason = s.StatusReason,
+                            UnavailableUntil = s.UnavailableUntil
+                        };
+                    })
+                    .ToList(),
+                Upcoming = fixtures
+                    .Where(e => string.Equals(e.Sport, sport, StringComparison.OrdinalIgnoreCase))
+                    .Select(e => new SquadFixtureViewModel
+                    {
+                        Id = e.Id,
+                        Date = e.ScheduledDate,
+                        StartTime = e.StartTime,
+                        EndTime = e.StartTime.Add(TimeSpan.FromMinutes(e.DurationMinutes)),
+                        EventType = e.EventType,
+                        Label = StudentSportService.Label(e),
+                        House = houseName(e.ResidenceId),
+                        Players = calendar.PlayersFor(e).Count
+                    })
+                    .ToList()
+            }).ToList();
+
+            ViewBag.UpcomingDays = UpcomingDays;
+            return View(model);
         }
+
+        private const int UpcomingDays = 14;
 
         // ============================================================
         // POST: CoachSquad/MarkUnavailable

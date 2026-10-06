@@ -34,6 +34,8 @@ namespace MhmsMobileApp.Views
                 _refresh.IsRefreshing = false;
             };
             Content = _refresh;
+
+            Responsive.Adapt(this, _root);
         }
 
         protected override async void OnAppearing()
@@ -54,7 +56,7 @@ namespace MhmsMobileApp.Views
             _loading = false;
 
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Residence Emergency"));
+            _root.Children.Add(Ui.PageHeader("Residence Emergency", null, "House Master"));
 
             // ── Emergency roll call ──
             _root.Children.Add(new Label { Text = "Emergency roll call", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 6, 0, 0) });
@@ -122,6 +124,8 @@ namespace MhmsMobileApp.Views
 
             _root.Children.Add(new ActivityIndicator { IsRunning = true, Margin = new Thickness(0, 40, 0, 0) });
             Content = new ScrollView { Content = _root };
+
+            Responsive.Adapt(this, _root);
         }
 
         protected override async void OnAppearing()
@@ -132,7 +136,7 @@ namespace MhmsMobileApp.Views
             var result = await _api.GetRollCallAsync(_residence.Id);
 
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Roll Call", _residence.Name));
+            _root.Children.Add(Ui.PageHeader("Roll Call", _residence.Name, "Emergency"));
 
             if (!result.Ok)
             {

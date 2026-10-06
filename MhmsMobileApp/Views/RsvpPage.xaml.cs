@@ -21,6 +21,7 @@ namespace MhmsMobileApp.Views
         public RsvpPage()
         {
             InitializeComponent();
+            Responsive.Adapt(this, Root);
         }
 
         // Reload every time, so an answer given on EventRsvpPage shows
@@ -46,7 +47,7 @@ namespace MhmsMobileApp.Views
 
             Root.Children.Clear();
             Root.Children.Add(Ui.PageHeader("My Event Invitations",
-                "Events you're invited to. Open one to RSVP or change your answer while RSVPs are open."));
+                "Events you're invited to. Open one to RSVP or change your answer while RSVPs are open.", "Invitations"));
 
             if (!result.Ok)
             {
@@ -60,38 +61,36 @@ namespace MhmsMobileApp.Views
                 return;
             }
 
+            // 2–3 per row on wide screens
+            var grid = new AdaptiveGrid(320);
             foreach (var evt in result.Events)
             {
-                Root.Children.Add(EventCard(evt));
+                grid.Children.Add(EventCard(evt));
             }
+            Root.Children.Add(grid);
         }
 
         private View EventCard(MyEventSummaryDto evt)
         {
             var stack = new VerticalStackLayout { Spacing = 8 };
 
-            stack.Children.Add(new Label { Text = evt.EventName, FontFamily = "PlayfairBold", FontSize = 20, TextColor = Ui.Color("TextPrimary") });
-            stack.Children.Add(new Label
-            {
-                Text = evt.DateLabel + "\n" + evt.TimeLabel + (string.IsNullOrEmpty(evt.VenueName) ? "" : " · " + evt.VenueName),
-                Style = Ui.Style("BodyText")
-            });
-
-            // RSVP status + their answer (web: .me-badge)
+            // RSVP status + their answer (web: square badges)
             var badges = new FlexLayout { Wrap = Microsoft.Maui.Layouts.FlexWrap.Wrap };
-            var status = evt.IsOpen ? Ui.Chip(evt.StatusLabel, "#D1FAE5", "#065F46")
-                       : evt.IsScheduled ? Ui.Chip(evt.StatusLabel, "#FEF3C7", "#92400E")
-                       : Ui.Chip(evt.StatusLabel, "#E5E7EB", "#374151");
+            var status = Ui.Badge(evt.StatusLabel, evt.IsOpen ? Tone.Ok : evt.IsScheduled ? Tone.Low : Tone.Muted);
             status.Margin = new Thickness(0, 2, 6, 2);
             badges.Children.Add(status);
 
             if (evt.Answer != null)
             {
-                var answer = Ui.Chip(evt.Answer, "#DBEAFE", "#1E40AF");
+                var answer = Ui.Badge(evt.Answer, Tone.Info);
                 answer.Margin = new Thickness(0, 2, 6, 2);
                 badges.Children.Add(answer);
             }
             stack.Children.Add(badges);
+
+            stack.Children.Add(new Label { Text = evt.EventName, Style = Ui.Style("CardTitle"), FontSize = 20 });
+            stack.Children.Add(Ui.Mono(evt.DateLabel, caps: true));
+            stack.Children.Add(Ui.Mono(evt.TimeLabel + (string.IsNullOrEmpty(evt.VenueName) ? "" : " · " + evt.VenueName), caps: true));
 
             // Same button wording as the web page
             var button = new Button

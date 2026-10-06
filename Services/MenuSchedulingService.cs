@@ -12,8 +12,6 @@ namespace Michaelhouse.Services
     {
         private readonly DBContextClass _db;
 
-        private const decimal SportsMultiplier = 1.30m;
-
         private static readonly MealSlot[] GeneratedMealSlots =
         {
             MealSlot.Breakfast,
@@ -42,13 +40,24 @@ namespace Michaelhouse.Services
         //
         // For every (day, slot) the generator picks up to
         // OptionsPerSlot dishes that together:
-        //   1. include a main option that suits the day's sports needs
-        //      (match day, day before a match, training, priority sport)
-        //   2. give every dietary group of students at least one
+        //   1. give every dietary group of students at least one
         //      suitable choice (vegetarian, vegan, halal, allergies,
         //      lactose / gluten / coeliac) — see MenuCoverageService
+        //   2. give the students with a sports need that day — from
+        //      the Coaches' fixtures: match day, day before a match,
+        //      training, priority week — an option in the needed
+        //      nutrition category that is ALSO safe for their diet
+        //      (e.g. a vegan high-protein dish for vegan rugby players
+        //      on match day). Sports never override dietary safety, and
+        //      the rest of the menu stays ordinary choices.
         //   3. stay varied (no repeats in a day, 2-day lunch/dinner
         //      cooldown, rotation across the catalogue)
+        //
+        // Who has a sports need comes from StudentSportService: the
+        // sports on their profile, available that day, and a scheduled
+        // fixture (or priority week) for that sport — not simply
+        // "plays rugby". A group that can't be accommodated shows as a
+        // warning on the Review page (MenuCoverageService).
         //
         // Stock is NOT used here; the Chef / stock / production steps
         // happen after students have chosen. Portions per option are
@@ -136,9 +145,10 @@ namespace Michaelhouse.Services
                 x => new HashSet<string>(groups.Where(g => coverage.Suits(g, x)).Select(g => g.Key)));
 
             // ─────────────────────────────────────────────────────────
-            // Sports context for every day in the range
+            // Athletes' needs for every day in the range, grouped by
+            // nutrition category and dietary group
             // ─────────────────────────────────────────────────────────
-            var sportsDays = BuildSportsDays(input, totalStudents);
+            var sportsGroupsByDate = coverage.LoadSportsGroups(input.StartDate, input.EndDate);
 
             var menu = new MealMenu
             {
@@ -179,8 +189,9 @@ namespace Michaelhouse.Services
                  date <= input.EndDate.Date;
                  date = date.AddDays(1))
             {
-                SportsDay sportsDay;
-                if (!sportsDays.TryGetValue(date, out sportsDay)) sportsDay = new SportsDay();
+                List<SportsGroup> sportsGroups;
+                if (!sportsGroupsByDate.TryGetValue(date, out sportsGroups)) sportsGroups = new List<SportsGroup>();
+                var sportsPrefix = SportsPrefix(sportsGroups);
 
                 var usedToday = new HashSet<int>();
 
@@ -192,7 +203,9 @@ namespace Michaelhouse.Services
                         generationIndex,
                         mealSlot,
                         date,
-                        sportsDay,
+                        sportsGroups,
+                        coverage,
+                        totalStudents,
                         groups,
                         suitability,
                         itemUsage,
@@ -218,7 +231,7 @@ namespace Michaelhouse.Services
                             MealSlot = mealSlot,
                             CalculatedPortions = portions[i],
                             ItemTagStatus = ItemTagStatus.Confirmed,
-                            TagReason = BuildOptionReason(option, sportsDay, groups, suitability, totalStudents),
+                            TagReason = BuildOptionReason(option, sportsPrefix, groups, suitability, totalStudents),
                             SubstitutionMenuItemId = null
                         });
 
@@ -270,7 +283,9 @@ namespace Michaelhouse.Services
             int generationIndex,
             MealSlot slot,
             DateTime date,
-            SportsDay sportsDay,
+            List<SportsGroup> sportsGroups,
+            MenuCoverageService coverage,
+            int totalStudents,
             List<DietaryGroup> groups,
             Dictionary<int, HashSet<string>> suitability,
             Dictionary<int, List<MealUsage>> itemUsage,
@@ -311,11 +326,31 @@ namespace Michaelhouse.Services
                 return list.Where(x => tier(x) == min).ToList();
             };
 
-            NutritionCategory? preferred = sportsDay.PreferredCategory;
+            // ── Sports groups (athletes by need + diet) ──
+            var sportsCovered = new HashSet<string>();
 
-            // A large share of students playing → two sports options
-            int sportsOptionsWanted = !preferred.HasValue ? 0
-                : (sportsDay.PlayerShare >= LargeSportsGroupShare && optionsPerSlot >= 3 ? 2 : 1);
+            // Does this dish meet the group's need, safely for its diet?
+            // The dietary check reuses the population's suitability
+            // (same grouping); the coverage service is the fallback.
+            Func<MenuItem, SportsGroup, bool> meetsNeed = (x, g) =>
+                x.NutritionCategory == g.Category
+                && (suitability[x.Id].Contains(g.Dietary.Key) || coverage.SuitsSports(g, x));
+
+            Func<MenuItem, int> sportsNewlyCovered = x => sportsGroups
+                .Where(g => !sportsCovered.Contains(g.Key) && meetsNeed(x, g))
+                .Sum(g => g.StudentCount);
+
+            // A large share of students with the same need → a second
+            // option in that category when there's room
+            var neededCategories = sportsGroups
+                .GroupBy(g => g.Category)
+                .Select(g => new { Category = g.Key, Students = g.Sum(x => x.StudentCount) })
+                .OrderByDescending(g => g.Students)
+                .ToList();
+
+            int sportsOptionsWanted = neededCategories.Count == 0 ? 0
+                : Math.Max(neededCategories.Count,
+                    totalStudents > 0 && (double)neededCategories[0].Students / totalStudents >= LargeSportsGroupShare && optionsPerSlot >= 3 ? 2 : 1);
 
             var chosen = new List<ChosenOption>();
             var covered = new HashSet<string>();
@@ -328,12 +363,12 @@ namespace Michaelhouse.Services
                 var fresh = bestTier(remaining);
 
                 int sportsChosen = chosen.Count(c => c.IsSportsOption);
-                bool wantSports = preferred.HasValue && sportsChosen < sportsOptionsWanted;
-
                 var chosenClassifications = new HashSet<string>(chosen.Select(c => c.Item.DietaryClassification ?? ""), StringComparer.OrdinalIgnoreCase);
                 var chosenCategories = new HashSet<NutritionCategory>(chosen.Select(c => c.Item.NutritionCategory));
 
-                Func<MenuItem, int> sportsFit = x => wantSports && x.NutritionCategory == preferred.Value ? 1 : 0;
+                // Filling up: another option in a needed category
+                Func<MenuItem, int> sportsFit = x =>
+                    sportsChosen < sportsOptionsWanted && neededCategories.Any(need => need.Category == x.NutritionCategory) ? 1 : 0;
                 Func<MenuItem, int> diversity = x =>
                     (chosenClassifications.Contains(x.DietaryClassification ?? "") ? 0 : 1)
                     + (chosenCategories.Contains(x.NutritionCategory) ? 0 : 1);
@@ -345,26 +380,29 @@ namespace Michaelhouse.Services
                 string role;
 
                 bool anyUncovered = groups.Any(g => !covered.Contains(g.Key) && g.StudentCount > 0);
+                bool anySportsUncovered = sportsGroups.Any(g => !sportsCovered.Contains(g.Key));
 
                 if (k == 0)
                 {
-                    // Main option: sports need first, then rotation
+                    // Main option: the dish that meets the most athletes'
+                    // needs safely, then rotation
                     pick = fresh
-                        .OrderByDescending(sportsFit)
+                        .OrderByDescending(sportsNewlyCovered)
                         .ThenBy(rotation)
                         .First();
 
-                    role = sportsFit(pick) == 1 ? SportsRole(sportsDay) : "Main option";
+                    role = sportsNewlyCovered(pick) > 0 ? SportsRole(pick, sportsGroups, sportsCovered, meetsNeed) : "Main option";
                 }
                 else if (anyUncovered && remaining.Any(x => newlyCovered(x) > 0))
                 {
                     // Dietary coverage: the dish that gives the most
-                    // still-uncovered students a suitable choice.
+                    // still-uncovered students a suitable choice — among
+                    // equals, one that also meets athletes' needs.
                     var coverCandidates = bestTier(remaining.Where(x => newlyCovered(x) > 0));
 
                     pick = coverCandidates
                         .OrderByDescending(newlyCovered)
-                        .ThenByDescending(sportsFit)
+                        .ThenByDescending(sportsNewlyCovered)
                         .ThenByDescending(diversity)
                         .ThenBy(rotation)
                         .First();
@@ -379,6 +417,25 @@ namespace Michaelhouse.Services
                     role = newGroups.Count > 0
                         ? "Added so these students have a choice: " + string.Join("; ", newGroups)
                         : "Additional choice";
+
+                    if (sportsNewlyCovered(pick) > 0)
+                    {
+                        role += ". " + SportsRole(pick, sportsGroups, sportsCovered, meetsNeed);
+                    }
+                }
+                else if (anySportsUncovered && remaining.Any(x => sportsNewlyCovered(x) > 0))
+                {
+                    // Athletes still without a suitable option for their
+                    // need (e.g. vegan rugby players on match day)
+                    var sportsCandidates = bestTier(remaining.Where(x => sportsNewlyCovered(x) > 0));
+
+                    pick = sportsCandidates
+                        .OrderByDescending(sportsNewlyCovered)
+                        .ThenByDescending(diversity)
+                        .ThenBy(rotation)
+                        .First();
+
+                    role = SportsRole(pick, sportsGroups, sportsCovered, meetsNeed);
                 }
                 else
                 {
@@ -389,14 +446,17 @@ namespace Michaelhouse.Services
                         .ThenBy(rotation)
                         .First();
 
-                    role = sportsFit(pick) == 1 ? SportsRole(sportsDay) : "Additional choice";
+                    role = sportsFit(pick) == 1
+                        ? string.Format("Sports option ({0})", MenuCoverageService.CategoryWords(pick.NutritionCategory))
+                        : "Additional choice";
                 }
 
-                bool isSports = sportsFit(pick) == 1;
+                bool isSports = sportsNewlyCovered(pick) > 0 || sportsFit(pick) == 1;
 
                 chosen.Add(new ChosenOption { Item = pick, Role = role, IsSportsOption = isSports });
 
                 foreach (var key in suitability[pick.Id]) covered.Add(key);
+                foreach (var g in sportsGroups.Where(g => meetsNeed(pick, g))) sportsCovered.Add(g.Key);
             }
 
             return chosen;
@@ -451,14 +511,14 @@ namespace Michaelhouse.Services
 
         private static string BuildOptionReason(
             ChosenOption option,
-            SportsDay sportsDay,
+            string sportsPrefix,
             List<DietaryGroup> groups,
             Dictionary<int, HashSet<string>> suitability,
             int totalStudents)
         {
-            // MealPlanService looks for "Match-day" / "Pre-match" at the
-            // start of the reason to rank options for athletes.
-            var prefix = sportsDay.ReasonPrefix ?? "";
+            // "Sports: Rugby vs Hilton (match day). " — kept by
+            // ModifyItem (SportsContextPrefix)
+            var prefix = sportsPrefix ?? "";
 
             var suited = groups
                 .Where(g => suitability[option.Item.Id].Contains(g.Key))
@@ -470,173 +530,61 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
-        // SPORTS CONTEXT
+        // SPORTS — helpers
         //
-        // Uses SportEvent fixtures (plus match dates entered on the
-        // Schedule form), StudentSportStatus and SportPriority.
+        // Who needs what each day comes from StudentSportService /
+        // MenuCoverageService.LoadSportsGroups (fixtures, squads from
+        // students' profiles, availability, priority weeks). The
+        // categories:
         //
-        //   Match day          → category from the playing sports'
-        //                        archetype: Power → HighProtein,
-        //                        Endurance → HighCarb, Skill → Light,
-        //                        Speed → Hydration
+        //   Match day          → the sport's archetype: Power →
+        //                        HighProtein, Endurance → HighCarb,
+        //                        Skill → Light, Speed → Hydration
         //   Day before a match → HighCarb (carb loading)
         //   Training day       → Power → HighProtein, Endurance → HighCarb
-        //   Priority sport week→ its archetype's category
+        //   Priority sport week→ same as training
         // ============================================================
 
-        // Share of students playing that justifies a second sports option
+        // Share of students with one need that justifies a second
+        // option in that category
         private const double LargeSportsGroupShare = 0.40;
 
-        private class SportsDay
+        // "Sports: Rugby vs Hilton (match day); Athletics training. "
+        private static string SportsPrefix(List<SportsGroup> sportsGroups)
         {
-            public NutritionCategory? PreferredCategory { get; set; }
+            var activities = sportsGroups
+                .SelectMany(g => g.Activities)
+                .Distinct()
+                .ToList();
 
-            // e.g. "Match-day recovery (Rugby vs Hilton). "
-            public string ReasonPrefix { get; set; }
-
-            // e.g. "Rugby vs Hilton"
-            public string Description { get; set; }
-
-            // Share of students involved (0..1)
-            public double PlayerShare { get; set; }
+            return activities.Count == 0 ? "" : SportsReasonStart + string.Join("; ", activities) + ". ";
         }
 
-        private static string SportsRole(SportsDay day)
+        private const string SportsReasonStart = "Sports: ";
+
+        // e.g. "Sports option (high-protein) for 28 players: Rugby vs
+        // Hilton (match day)"
+        private static string SportsRole(
+            MenuItem pick,
+            List<SportsGroup> sportsGroups,
+            HashSet<string> alreadyCovered,
+            Func<MenuItem, SportsGroup, bool> meetsNeed)
         {
-            return string.Format("Sports nutrition option ({0}{1})",
-                day.PreferredCategory,
-                string.IsNullOrEmpty(day.Description) ? "" : " — " + day.Description);
-        }
+            var met = sportsGroups.Where(g => !alreadyCovered.Contains(g.Key) && meetsNeed(pick, g)).ToList();
 
-        private Dictionary<DateTime, SportsDay> BuildSportsDays(ScheduleMenuInputViewModel input, int totalStudents)
-        {
-            var start = input.StartDate.Date;
-            var end = input.EndDate.Date;
-            var afterEnd = end.AddDays(2);   // day-before needs tomorrow's fixtures
-
-            var fixtures = _db.SportEvents
-                .Where(e => !e.IsCancelled && e.ScheduledDate >= start && e.ScheduledDate < afterEnd)
-                .ToList()
-                .Where(e => string.IsNullOrEmpty(e.Status) || e.Status == "Scheduled")
+            var diets = met
+                .Where(g => !g.Dietary.IsUnrestricted)
+                .Select(g => g.Dietary.Label)
+                .Distinct()
                 .ToList();
 
-            var statuses = _db.StudentSportStatuses.ToList();
-
-            var archetypeBySport = statuses
-                .GroupBy(s => s.Sport, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.First().Archetype, StringComparer.OrdinalIgnoreCase);
-
-            // Priority sports this week (existing UC12 behaviour)
-            var prioritySports = _db.SportPriorities
-                .Where(p => p.PriorityLevel == 2)
-                .Where(p => p.WeekStartDate <= end && p.WeekEndDate >= start)
-                .Select(p => p.Sport)
-                .ToList();
-
-            // Match dates entered / confirmed on the Schedule form
-            var formMatches = (input.BoardingHouses ?? new List<BoardingHouseScheduleOption>())
-                .Where(h => h != null && h.IsInSeason && h.MatchDate.HasValue && !string.IsNullOrWhiteSpace(h.ActiveSport))
-                .Select(h => new { Date = h.MatchDate.Value.Date, Sport = h.ActiveSport.Trim() })
-                .ToList();
-
-            Func<DateTime, List<string>> matchLabelsOn = d => fixtures
-                .Where(e => e.EventType == "Match" && e.ScheduledDate.Date == d)
-                .Select(e => string.IsNullOrEmpty(e.Opponent) ? e.Sport : e.Sport + " vs " + e.Opponent)
-                .Concat(formMatches.Where(m => m.Date == d).Select(m => m.Sport))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            Func<DateTime, List<string>> matchSportsOn = d => fixtures
-                .Where(e => e.EventType == "Match" && e.ScheduledDate.Date == d)
-                .Select(e => e.Sport)
-                .Concat(formMatches.Where(m => m.Date == d).Select(m => m.Sport))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            Func<DateTime, List<string>> trainingSportsOn = d => fixtures
-                .Where(e => e.EventType == "Training" && e.ScheduledDate.Date == d)
-                .Select(e => e.Sport)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            // Active players per sport on a date (injury-aware)
-            Func<DateTime, IEnumerable<string>, List<StudentSportStatus>> playersOn = (d, sports) =>
-            {
-                var set = new HashSet<string>(sports, StringComparer.OrdinalIgnoreCase);
-                return statuses
-                    .Where(s => set.Contains(s.Sport) && IsSportStatusActiveOn(s, d))
-                    .ToList();
-            };
-
-            Func<List<StudentSportStatus>, SportArchetype> dominantArchetype = players =>
-            {
-                var top = players
-                    .GroupBy(p => p.Archetype)
-                    .OrderByDescending(g => g.Select(p => p.StudentId).Distinct().Count())
-                    .FirstOrDefault();
-
-                return top != null ? top.Key : SportArchetype.None;
-            };
-
-            Func<List<StudentSportStatus>, double> shareOf = players =>
-                totalStudents > 0 ? (double)players.Select(p => p.StudentId).Distinct().Count() / totalStudents : 0;
-
-            var result = new Dictionary<DateTime, SportsDay>();
-
-            for (var date = start; date <= end; date = date.AddDays(1))
-            {
-                var day = new SportsDay();
-
-                var todaySports = matchSportsOn(date);
-                var tomorrowSports = matchSportsOn(date.AddDays(1));
-                var trainingSports = trainingSportsOn(date);
-
-                if (todaySports.Count > 0)
-                {
-                    var players = playersOn(date, todaySports);
-                    day.PreferredCategory = MatchDayCategory(dominantArchetype(players));
-                    day.Description = string.Join(", ", matchLabelsOn(date));
-                    day.ReasonPrefix = "Match-day recovery (" + day.Description + "). ";
-                    day.PlayerShare = shareOf(players);
-                }
-                else if (tomorrowSports.Count > 0)
-                {
-                    var players = playersOn(date.AddDays(1), tomorrowSports);
-                    day.PreferredCategory = NutritionCategory.HighCarb;
-                    day.Description = string.Join(", ", matchLabelsOn(date.AddDays(1)));
-                    day.ReasonPrefix = "Pre-match carb-loading (" + day.Description + "). ";
-                    day.PlayerShare = shareOf(players);
-                }
-                else if (trainingSports.Count > 0)
-                {
-                    var players = playersOn(date, trainingSports);
-                    var category = TrainingCategory(dominantArchetype(players));
-
-                    if (category.HasValue)
-                    {
-                        day.PreferredCategory = category;
-                        day.Description = "Training: " + string.Join(", ", trainingSports);
-                        day.PlayerShare = shareOf(players);
-                    }
-                }
-
-                if (!day.PreferredCategory.HasValue && prioritySports.Count > 0)
-                {
-                    var players = playersOn(date, prioritySports);
-                    var category = TrainingCategory(dominantArchetype(players));
-
-                    if (category.HasValue)
-                    {
-                        day.PreferredCategory = category;
-                        day.Description = "Priority: " + string.Join(", ", prioritySports.Distinct());
-                        day.PlayerShare = shareOf(players);
-                    }
-                }
-
-                result[date] = day;
-            }
-
-            return result;
+            return string.Format(
+                "Sports option ({0}) for {1} player{2}: {3}{4}",
+                MenuCoverageService.CategoryWords(pick.NutritionCategory),
+                met.Sum(g => g.StudentCount),
+                met.Sum(g => g.StudentCount) == 1 ? "" : "s",
+                string.Join("; ", met.SelectMany(g => g.Activities).Distinct()),
+                diets.Count > 0 ? " — incl. " + string.Join(", ", diets) : "");
         }
 
         // Also used by MealPlanService for a student's own fixtures.
@@ -660,19 +608,6 @@ namespace Michaelhouse.Services
                 default: return null;
             }
         }
-
-        // Same rule as DemandService: a return date in the past means
-        // the student is available again.
-        private static bool IsSportStatusActiveOn(StudentSportStatus status, DateTime date)
-        {
-            if (status.UnavailableUntil.HasValue && status.UnavailableUntil.Value.Date <= date.Date)
-            {
-                return true;
-            }
-
-            return status.IsActive;
-        }
-
 
         // ============================================================
         // MENU RETRIEVAL / ACCEPT / REJECT
@@ -895,13 +830,14 @@ namespace Michaelhouse.Services
             return scheduleItem;
         }
 
-        // "Match-day recovery (Rugby vs Hilton). " etc. — the leading
-        // sentence the generator writes for sports days.
+        // "Sports: Rugby vs Hilton (match day). " (older menus:
+        // "Match-day recovery (...). ") — the leading sentence the
+        // generator writes for sports days.
         private static string SportsContextPrefix(string reason)
         {
             if (string.IsNullOrEmpty(reason)) return "";
 
-            if (!reason.StartsWith("Match-day") && !reason.StartsWith("Pre-match")) return "";
+            if (!reason.StartsWith(SportsReasonStart) && !reason.StartsWith("Match-day") && !reason.StartsWith("Pre-match")) return "";
 
             int end = reason.IndexOf(". ");
             return end > 0 ? reason.Substring(0, end + 2) : "";
@@ -1041,45 +977,6 @@ namespace Michaelhouse.Services
                 .OrderByDescending(x => x.IsValid)
                 .ThenBy(x => x.Name)
                 .ToList();
-        }
-
-        // ============================================================
-        // PORTION CALCULATION (legacy)
-        // ============================================================
-
-        public int CalculateRequiredPortions(ScheduleMenuInputViewModel input)
-        {
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-
-            decimal total = input.StaffMeals;
-
-            if (input.BoardingHouses != null)
-            {
-                foreach (BoardingHouseScheduleOption house in input.BoardingHouses)
-                {
-                    if (house == null) continue;
-
-                    if (house.StudentCount < 0)
-                    {
-                        throw new InvalidOperationException(
-                            "Student count cannot be negative.");
-                    }
-
-                    if (house.IsInSeason && !string.IsNullOrWhiteSpace(house.ActiveSport))
-                    {
-                        total += house.StudentCount * SportsMultiplier;
-                    }
-                    else
-                    {
-                        total += house.StudentCount;
-                    }
-                }
-            }
-
-            return Math.Max(1, (int)Math.Ceiling(total));
         }
 
         // ============================================================

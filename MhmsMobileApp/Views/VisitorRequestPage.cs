@@ -47,6 +47,8 @@ namespace MhmsMobileApp.Views
             _scroll.Content = _root;
             Content = _scroll;
 
+            Responsive.Adapt(this, _root);
+
             _zone.SelectedIndexChanged += (s, e) => UpdateZoneNote();
             _submit.Clicked += async (s, e) => await SubmitAsync();
         }
@@ -61,7 +63,7 @@ namespace MhmsMobileApp.Views
         {
             var form = await _api.GetVisitorFormAsync();
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("Request a Visitor", "Ask for someone to visit you at school."));
+            _root.Children.Add(Ui.PageHeader("Request a Visitor", "Ask for someone to visit you at school.", "Requests"));
 
             if (!form.Ok)
             {
@@ -129,18 +131,18 @@ namespace MhmsMobileApp.Views
             // ── My visits ──
             _root.Children.Add(new Label { Text = "My visitor requests", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 10, 0, 0) });
             if (form.MyVisits.Count == 0) _root.Children.Add(Ui.Text("You have no visitor requests yet.", "MutedText"));
-            foreach (var v in form.MyVisits) _root.Children.Add(VisitCard(v));
+            var visits = new AdaptiveGrid(320);
+            foreach (var v in form.MyVisits) visits.Children.Add(VisitCard(v));
+            _root.Children.Add(visits);
         }
 
         private static Label Label(string text) =>
-            new Label { Text = text, FontFamily = "MontserratBold", FontSize = 13, TextColor = Ui.Color("TextPrimary") };
+            new Label { Text = text, Style = Ui.Style("FieldLabel"), TextColor = Ui.Color("TextPrimary") };
 
         private static Border Section(string title, View content)
         {
-            var stack = new VerticalStackLayout { Spacing = 10 };
-            stack.Children.Add(new Label { Text = title, Style = Ui.Style("FieldLabel") });
-            stack.Children.Add(content);
-            return Ui.Card(stack);
+            // Card with the web's black header bar
+            return Ui.Section(title, content);
         }
 
         // Same safeguarding rule the server applies

@@ -227,7 +227,8 @@ namespace Michaelhouse.Services
             int? userId,
             int? purchaseOrderId = null,
             int? deliveryId = null,
-            int? kitchenIssueId = null)
+            int? kitchenIssueId = null,
+            StockAdjustmentReason? adjustmentReason = null)
         {
             quantity = Math.Round(quantity, 2);
             if (quantity == 0m) return null;
@@ -259,6 +260,7 @@ namespace Michaelhouse.Services
                 IngredientId = ingredientId,
                 Type = type,
                 Source = source,
+                AdjustmentReason = type == StockTransactionType.Adjustment ? adjustmentReason : null,
                 Quantity = quantity,
                 SourceQuantityAfter = source == StockSource.Farm ? ingredient.FarmAvailableQuantity : ingredient.ExternalAvailableQuantity,
                 TotalAfter = ingredient.FarmAvailableQuantity + ingredient.ExternalAvailableQuantity,
@@ -289,7 +291,7 @@ namespace Michaelhouse.Services
         }
 
         // Stock count / correction: sets one source to the counted amount
-        public void Adjust(int ingredientId, StockSource source, decimal countedQuantity, string reason, int userId)
+        public IngredientStockTransaction Adjust(int ingredientId, StockSource source, decimal countedQuantity, string reason, int userId)
         {
             var ingredient = _db.Ingredients.Find(ingredientId);
             if (ingredient == null) throw new InventoryException("Ingredient not found.");
@@ -306,8 +308,58 @@ namespace Michaelhouse.Services
             if (change == 0m)
                 throw new InventoryException("The counted quantity is the same as the recorded stock.");
 
-            Apply(ingredient.Id, StockTransactionType.Adjustment, source, change,
-                "ADJ-" + _now().ToString("yyyyMMdd"), reason.Trim(), userId);
+            return AdjustBy(ingredientId, source, change, StockAdjustmentReason.StockCountCorrection, reason, userId);
+        }
+
+        // ============================================================
+        // MANUAL ADJUSTMENT — damaged, spoiled, lost, count correction…
+        // change: + adds, − removes (ingredient's own unit). Never
+        // overwrites stock: it goes through Apply like every other
+        // change, so the transaction records the reason, who and when.
+        // ============================================================
+
+        public IngredientStockTransaction AdjustBy(int ingredientId, StockSource source, decimal change,
+            StockAdjustmentReason reason, string notes, int userId)
+        {
+            var ingredient = _db.Ingredients.Find(ingredientId);
+            if (ingredient == null) throw new InventoryException("Ingredient not found.");
+
+            if (!Enum.IsDefined(typeof(StockAdjustmentReason), reason))
+                throw new InventoryException("Choose a reason for the adjustment.");
+
+            change = Math.Round(change, 2);
+            if (change == 0m)
+                throw new InventoryException("Enter the quantity to add or remove.");
+
+            notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+            if (reason == StockAdjustmentReason.Other && notes == null)
+                throw new InventoryException("Please describe the reason for an \"Other\" adjustment.");
+
+            decimal current = source == StockSource.Farm ? ingredient.FarmAvailableQuantity : ingredient.ExternalAvailableQuantity;
+            if (current + change < 0m)
+                throw new InventoryException(string.Format(
+                    "Adjustment would result in negative stock: {0} {1} stock is {2}.",
+                    ingredient.Name, source == StockSource.Farm ? "farm" : "bought-in",
+                    IngredientUnits.Format(current, ingredient.Unit)));
+
+            var label = ReasonLabel(reason);
+            return Apply(ingredient.Id, StockTransactionType.Adjustment, source, change,
+                "ADJ-" + _now().ToString("yyyyMMdd"),
+                notes == null ? label : label + ": " + notes,
+                userId,
+                adjustmentReason: reason);
+        }
+
+        public static string ReasonLabel(StockAdjustmentReason reason)
+        {
+            switch (reason)
+            {
+                case StockAdjustmentReason.Damaged: return "Damaged";
+                case StockAdjustmentReason.Spoiled: return "Spoiled / expired";
+                case StockAdjustmentReason.Lost: return "Lost";
+                case StockAdjustmentReason.StockCountCorrection: return "Stock count correction";
+                default: return "Other";
+            }
         }
 
         public void SetLevels(int ingredientId, decimal reorderLevel, decimal? targetLevel)

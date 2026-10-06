@@ -106,6 +106,19 @@ namespace Michaelhouse.Models.Cafeteria
         public int? ShortfallOfOrderId { get; set; }
         public virtual IngredientPurchaseOrder ShortfallOf { get; set; }
 
+        // ── Test supplier invoice (TestInvoiceService) ──
+        // Generated when the supplier confirms the order and kept in
+        // step with it, so the Record Delivery scan can be tested end
+        // to end. Not an accounting record.
+        [StringLength(40)]
+        public string TestInvoiceNumber { get; set; }
+
+        // Relative to DocumentStorage:UploadRoot (like delivery invoices)
+        [StringLength(300)]
+        public string TestInvoiceFilePath { get; set; }
+
+        public DateTime? TestInvoiceGeneratedAt { get; set; }
+
         public virtual ICollection<IngredientPurchaseOrderLine> Lines { get; set; }
 
         public IngredientPurchaseOrder()
@@ -260,6 +273,16 @@ namespace Michaelhouse.Models.Cafeteria
         External = 2
     }
 
+    // Why the Cafeteria Manager adjusted stock by hand
+    public enum StockAdjustmentReason
+    {
+        Damaged = 1,
+        Spoiled = 2,           // spoiled / expired
+        Lost = 3,
+        StockCountCorrection = 4,
+        Other = 5
+    }
+
     // The audit trail: why stock changed
     public class IngredientStockTransaction
     {
@@ -272,6 +295,9 @@ namespace Michaelhouse.Models.Cafeteria
 
         public StockTransactionType Type { get; set; }
         public StockSource Source { get; set; }
+
+        // Adjustments only: why (details in Notes)
+        public StockAdjustmentReason? AdjustmentReason { get; set; }
 
         // + received, − used (ingredient's own unit)
         public decimal Quantity { get; set; }

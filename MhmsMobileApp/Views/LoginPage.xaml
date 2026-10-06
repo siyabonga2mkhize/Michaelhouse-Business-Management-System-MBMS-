@@ -1,125 +1,176 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Same look as the web app's Account/Login page: crest, "Portal Login"
-     heading with red accent bar, small uppercase labels, red button -->
+<!-- Same look as the web app's Account/Login page: on wide screens a
+     dark brand panel ("Men of Principle Tomorrow.") beside the form;
+     on phones the form alone. Crest, "Portal Login" with the red bar,
+     small uppercase labels, square inputs, red button. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MhmsMobileApp.Views.LoginPage"
              Title="Log in"
              BackgroundColor="{StaticResource White}">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="28,48,28,28"
-                             Spacing="0"
-                             MaximumWidthRequest="440">
+    <Grid x:Name="LayoutGrid" ColumnDefinitions="0,*">
 
-            <Image Source="mh_crest.png"
-                   HeightRequest="130"
-                   WidthRequest="130"
-                   Aspect="AspectFit"
-                   HorizontalOptions="Center"
-                   SemanticProperties.Description="Michaelhouse crest" />
-
-            <Label Text="Michaelhouse"
-                   FontFamily="PlayfairBold"
-                   FontSize="20"
-                   TextColor="{StaticResource Primary}"
-                   HorizontalOptions="Center"
-                   Margin="0,12,0,28" />
-
-            <Label Text="Portal Login" Style="{StaticResource PageTitle}" FontSize="30" />
-            <BoxView Style="{StaticResource HeadingAccent}" Margin="0,12,0,0" />
-            <Label Text="Management Information System"
-                   Style="{StaticResource FieldLabel}"
-                   Margin="0,14,0,16" />
-
-            <!-- Server status while the web app is starting up -->
-            <Border x:Name="ConnectionBox"
-                    BackgroundColor="#EFF6FF"
-                    Stroke="#BFDBFE"
-                    StrokeShape="RoundRectangle 10"
-                    Padding="12,10"
-                    Margin="0,0,0,20">
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                    <ActivityIndicator x:Name="ConnectionSpinner"
-                                       IsRunning="True"
-                                       WidthRequest="20"
-                                       HeightRequest="20"
-                                       Color="#1E40AF"
-                                       VerticalOptions="Center" />
-                    <Label x:Name="ConnectionLabel"
-                           Grid.Column="1"
-                           Text="Connecting to the Michaelhouse server..."
-                           FontSize="13"
-                           TextColor="#1E40AF"
-                           VerticalOptions="Center" />
+        <!-- Brand panel (wide screens only — width set in code) -->
+        <Grid x:Name="BrandPanel" Grid.Column="0" IsVisible="False" Padding="48,56">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E8CFD3" Offset="0.0" />
+                    <GradientStop Color="#8E7B7E" Offset="0.45" />
+                    <GradientStop Color="#3A3436" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <VerticalStackLayout VerticalOptions="End" Spacing="0">
+                <Label Text="Men of"
+                       FontFamily="PlayfairBold"
+                       FontSize="40"
+                       TextColor="{StaticResource White}" />
+                <Label Text="Principle"
+                       FontFamily="PlayfairBold"
+                       FontSize="40"
+                       TextColor="{StaticResource White}" />
+                <Label Text="Tomorrow."
+                       FontFamily="PlayfairBold"
+                       FontAttributes="Italic"
+                       FontSize="40"
+                       TextColor="{StaticResource White}" />
+                <Grid ColumnDefinitions="2,*" Margin="0,24,0,0" ColumnSpacing="14">
+                    <BoxView Color="#80FFFFFF" />
+                    <Label Grid.Column="1"
+                           Text="&quot;Our aim is to make, not accountants, not clerks, not clergymen, but men; men of understanding, thought and culture.&quot;"
+                           FontFamily="PlayfairBold"
+                           FontAttributes="Italic"
+                           FontSize="14"
+                           TextColor="#E6FFFFFF" />
                 </Grid>
-            </Border>
+                <Label Text="Established 1896"
+                       Style="{StaticResource Eyebrow}"
+                       TextColor="#B3FFFFFF"
+                       Margin="0,24,0,0" />
+            </VerticalStackLayout>
+        </Grid>
 
-            <Label Text="Email Address" Style="{StaticResource FieldLabel}" Margin="0,0,0,8" />
-            <Border x:Name="EmailBox" Style="{StaticResource InputBox}">
-                <Entry x:Name="EmailEntry"
-                       Keyboard="Email"
-                       FontSize="16"
-                       Placeholder="you@michaelhouse.co.za"
-                       IsSpellCheckEnabled="False"
-                       IsTextPredictionEnabled="False"
-                       ReturnType="Next"
-                       Completed="OnEmailCompleted"
-                       Focused="OnEntryFocused"
-                       Unfocused="OnEntryUnfocused" />
-            </Border>
+        <!-- Form -->
+        <ScrollView Grid.Column="1">
+            <VerticalStackLayout x:Name="FormStack"
+                                 Padding="28,48,28,28"
+                                 Spacing="0"
+                                 MaximumWidthRequest="460"
+                                 VerticalOptions="Center">
 
-            <Label Text="Password" Style="{StaticResource FieldLabel}" Margin="0,20,0,8" />
-            <Border x:Name="PasswordBox" Style="{StaticResource InputBox}">
-                <Entry x:Name="PasswordEntry"
-                       IsPassword="True"
-                       FontSize="16"
-                       ReturnType="Go"
-                       Completed="OnLoginClicked"
-                       Focused="OnEntryFocused"
-                       Unfocused="OnEntryUnfocused" />
-            </Border>
+                <Image Source="mh_crest.png"
+                       HeightRequest="{OnIdiom Phone=110, Tablet=140, Default=110}"
+                       WidthRequest="{OnIdiom Phone=110, Tablet=140, Default=110}"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       SemanticProperties.Description="Michaelhouse crest" />
 
-            <!-- Error box, like the web's red left-border alert -->
-            <Border x:Name="ErrorBox"
-                    IsVisible="False"
-                    BackgroundColor="{StaticResource DangerBackground}"
-                    StrokeThickness="0"
-                    Padding="0"
-                    Margin="0,20,0,0">
-                <Grid ColumnDefinitions="4,*">
-                    <BoxView Color="{StaticResource Primary}" />
-                    <Label x:Name="ErrorLabel"
-                           Grid.Column="1"
-                           Padding="14,12"
-                           FontSize="13"
-                           TextColor="{StaticResource Danger}" />
-                </Grid>
-            </Border>
+                <Label Text="Portal Login"
+                       Style="{StaticResource PageTitle}"
+                       FontSize="{OnIdiom Phone=26, Tablet=30, Default=26}"
+                       HorizontalOptions="Center"
+                       Margin="0,20,0,0" />
+                <BoxView Style="{StaticResource HeadingAccent}" HorizontalOptions="Center" Margin="0,12,0,0" />
+                <Label Text="Management Information System"
+                       Style="{StaticResource FieldLabel}"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalOptions="Center"
+                       Margin="0,12,0,28" />
 
-            <Button x:Name="LoginButton"
-                    Text="Sign Into Portal"
-                    Style="{StaticResource PrimaryButton}"
-                    Margin="0,28,0,0"
-                    Clicked="OnLoginClicked" />
+                <!-- Server status while the web app is starting up -->
+                <Border x:Name="ConnectionBox"
+                        BackgroundColor="{StaticResource InfoBackground}"
+                        StrokeThickness="0"
+                        StrokeShape="Rectangle"
+                        Padding="0"
+                        Margin="0,0,0,20">
+                    <Grid ColumnDefinitions="4,Auto,*" ColumnSpacing="0">
+                        <BoxView Color="{StaticResource Info}" />
+                        <ActivityIndicator x:Name="ConnectionSpinner"
+                                           Grid.Column="1"
+                                           IsRunning="True"
+                                           WidthRequest="20"
+                                           HeightRequest="20"
+                                           Margin="12,10,0,10"
+                                           Color="{StaticResource Info}"
+                                           VerticalOptions="Center" />
+                        <Label x:Name="ConnectionLabel"
+                               Grid.Column="2"
+                               Text="Connecting to the Michaelhouse server..."
+                               FontSize="13"
+                               Padding="10,10,12,10"
+                               TextColor="{StaticResource Info}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Border>
 
-            <ActivityIndicator x:Name="LoadingSpinner"
-                               IsRunning="False"
-                               IsVisible="False"
-                               Margin="0,16,0,0" />
+                <Label Text="Email Address" Style="{StaticResource FieldLabel}" Margin="0,0,0,8" />
+                <Border x:Name="EmailBox" Style="{StaticResource InputBox}">
+                    <Entry x:Name="EmailEntry"
+                           Keyboard="Email"
+                           FontSize="16"
+                           Placeholder="you@michaelhouse.co.za"
+                           IsSpellCheckEnabled="False"
+                           IsTextPredictionEnabled="False"
+                           ReturnType="Next"
+                           Completed="OnEmailCompleted"
+                           Focused="OnEntryFocused"
+                           Unfocused="OnEntryUnfocused" />
+                </Border>
 
-            <Label x:Name="SlowLabel"
-                   Text="The server is still starting up. The first sign-in after starting the website can take up to a minute."
-                   Style="{StaticResource MutedText}"
-                   HorizontalTextAlignment="Center"
-                   IsVisible="False"
-                   Margin="0,8,0,0" />
+                <Label Text="Password" Style="{StaticResource FieldLabel}" Margin="0,20,0,8" />
+                <Border x:Name="PasswordBox" Style="{StaticResource InputBox}">
+                    <Entry x:Name="PasswordEntry"
+                           IsPassword="True"
+                           FontSize="16"
+                           ReturnType="Go"
+                           Completed="OnLoginClicked"
+                           Focused="OnEntryFocused"
+                           Unfocused="OnEntryUnfocused" />
+                </Border>
 
-            <Label Text="Use the same email and password as the Michaelhouse website."
-                   Style="{StaticResource MutedText}"
-                   HorizontalTextAlignment="Center"
-                   Margin="0,24,0,0" />
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- Error box, like the web's red left-border alert -->
+                <Border x:Name="ErrorBox"
+                        IsVisible="False"
+                        BackgroundColor="{StaticResource DangerBackground}"
+                        StrokeThickness="0"
+                        StrokeShape="Rectangle"
+                        Padding="0"
+                        Margin="0,20,0,0">
+                    <Grid ColumnDefinitions="4,*">
+                        <BoxView Color="{StaticResource Primary}" />
+                        <Label x:Name="ErrorLabel"
+                               Grid.Column="1"
+                               Padding="14,12"
+                               FontSize="13"
+                               TextColor="{StaticResource Danger}" />
+                    </Grid>
+                </Border>
+
+                <Button x:Name="LoginButton"
+                        Text="Sign Into Portal"
+                        Style="{StaticResource PrimaryButton}"
+                        Margin="0,28,0,0"
+                        Clicked="OnLoginClicked" />
+
+                <ActivityIndicator x:Name="LoadingSpinner"
+                                   IsRunning="False"
+                                   IsVisible="False"
+                                   Margin="0,16,0,0" />
+
+                <Label x:Name="SlowLabel"
+                       Text="The server is still starting up. The first sign-in after starting the website can take up to a minute."
+                       Style="{StaticResource MutedText}"
+                       HorizontalTextAlignment="Center"
+                       IsVisible="False"
+                       Margin="0,8,0,0" />
+
+                <Label Text="Use the same email and password as the Michaelhouse website."
+                       Style="{StaticResource MonoCaps}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,24,0,0" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 
 </ContentPage>

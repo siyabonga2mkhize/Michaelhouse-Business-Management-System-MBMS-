@@ -28,7 +28,7 @@
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" value="@Model.Id" />
 
-                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                @Html.ValidationSummary(false, "", new { @class = "alert alert-danger" })
 
                 <div class="row g-3">
 
@@ -53,15 +53,17 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Residence</label>
-                        <select name="ResidenceId" class="form-select" required>
+                        <label class="form-label">House <span class="text-muted small">(optional)</span></label>
+                        <select name="ResidenceId" class="form-select">
+                            <option value="" @(Model.ResidenceId == null ? "selected" : "")>Every player of the sport (school fixture)</option>
                             @foreach (var r in residences)
                             {
                                 <option value="@r.ResidenceId" @(Model.ResidenceId == r.ResidenceId ? "selected" : "")>
-                                    @r.Name
+                                    Only players in @r.Name
                                 </option>
                             }
                         </select>
+                        <div class="form-text">Players come from the sports on students' profiles — you don't list them.</div>
                     </div>
 
                     <div class="col-md-6">
@@ -88,17 +90,17 @@
                         <input type="time"
                                name="StartTime"
                                value="@Model.StartTime.ToString(@"hh\:mm")"
-                               class="form-control" />
+                               class="form-control"
+                               required />
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Duration (minutes)</label>
-                        <input type="number"
-                               name="DurationMinutes"
-                               value="@Model.DurationMinutes"
-                               min="0"
-                               max="600"
-                               class="form-control" />
+                        <label class="form-label">End Time</label>
+                        <input type="time"
+                               name="endTime"
+                               value="@ViewBag.EndTime"
+                               class="form-control"
+                               required />
                     </div>
 
                     <div class="col-md-8">

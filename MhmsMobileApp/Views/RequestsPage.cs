@@ -14,13 +14,15 @@ namespace MhmsMobileApp.Views
             Title = "Requests";
 
             var root = new VerticalStackLayout { Padding = new Thickness(16, 20, 16, 24), Spacing = 14 };
-            root.Children.Add(Ui.PageHeader("Requests", "Ask for permission, or report something broken."));
+            root.Children.Add(Ui.PageHeader("Requests", "Ask for permission, or report something broken.", "Student"));
 
             root.Children.Add(Item("🧳", "Request Leave", "Ask permission to leave the residence. Your parent, then your house master, approve it.", () => new LeaveRequestPage()));
             root.Children.Add(Item("👋", "Request a Visitor", "Ask for someone to visit you. Your house master approves it, then they get a gate pass.", () => new VisitorRequestPage()));
             root.Children.Add(Item("🛠", "Report a Fault", "Something broken in your residence or around school.", () => new ReportFaultPage()));
 
             Content = new ScrollView { Content = root };
+
+            Responsive.Adapt(this, root);
         }
 
         private View Item(string icon, string title, string description, Func<Page> open)

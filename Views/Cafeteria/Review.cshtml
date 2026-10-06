@@ -178,7 +178,7 @@
             <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 shadow-sm flex flex-col gap-2">
                 <div class="flex items-center text-yellow-800">
                     <i class="bi bi-exclamation-triangle-fill me-3 text-xl"></i>
-                    <strong class="text-sm font-serif">@slotsWithWarnings meal(s) don't give every dietary group a suitable option.</strong>
+                    <strong class="text-sm font-serif">@slotsWithWarnings meal(s) don't give every dietary group — or every group of players with a match or training that day — a suitable option.</strong>
                 </div>
                 <p class="text-xs font-mono text-yellow-700 uppercase tracking-widest mb-0 ms-8">Review the warnings below and modify options as needed.</p>
 
@@ -204,7 +204,7 @@
         {
             <div class="bg-green-50 border-l-4 border-green-500 p-4 text-green-800 shadow-sm flex items-center">
                 <i class="bi bi-check-circle-fill me-3 text-xl"></i>
-                <span class="text-sm font-serif font-bold">Every meal gives every dietary group at least one suitable option.</span>
+                <span class="text-sm font-serif font-bold">Every meal gives every dietary group, and every group of players with a match or training, at least one suitable option.</span>
             </div>
         }
 
@@ -364,7 +364,7 @@
                 <form action="@Url.Action("Accept", "Cafeteria")" method="post" class="m-0 h-full">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="w-full h-full bg-[#10b981] text-white px-8 py-5 text-[11px] font-bold uppercase tracking-[3px] hover:bg-green-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled="@(!canAccept)" onclick="return confirm('@(slotsWithWarnings > 0 ? "Some meals do not give every dietary group a suitable option. Accept anyway?" : "Accept this menu?")');">
+                    <button type="submit" class="w-full h-full bg-[#10b981] text-white px-8 py-5 text-[11px] font-bold uppercase tracking-[3px] hover:bg-green-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled="@(!canAccept)" onclick="return confirm('@(slotsWithWarnings > 0 ? "Some meals do not give every dietary or sports group a suitable option. Accept anyway?" : "Accept this menu?")');">
                         <i class="bi bi-check-circle me-2 text-lg align-middle"></i> Accept Menu
                     </button>
                 </form>

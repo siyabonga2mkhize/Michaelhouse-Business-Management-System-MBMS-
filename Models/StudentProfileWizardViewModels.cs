@@ -73,6 +73,10 @@ namespace Michaelhouse.Models
         [Display(Name = "Sport")]
         public string Sports { get; set; }
 
+        // The sports ticked on the form; saved to StudentProfile.Sports
+        // as "Rugby, Athletics"
+        public List<string> SportsSelected { get; set; } = new List<string>();
+
         // Existing database value is still stored in StudentProfile.ClubsAndSocieties
         public string Clubs { get; set; }
 

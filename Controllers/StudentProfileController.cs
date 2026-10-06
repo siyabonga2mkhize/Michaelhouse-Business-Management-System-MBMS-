@@ -254,6 +254,9 @@ namespace Michaelhouse.Controllers
 
                 Sports = profile.Sports,
 
+                SportsSelected =
+                    Michaelhouse.Models.Cafeteria.SportCatalogue.Parse(profile.Sports),
+
                 Clubs = profile.ClubsAndSocieties,
 
                 ClubsSelected = selectedClubs,
@@ -279,8 +282,10 @@ namespace Michaelhouse.Controllers
 
             var profile = EnsureProfile(reg);
 
+            // Every sport ticked, e.g. "Rugby, Athletics" — the source
+            // of the student's squads (StudentSportService)
             profile.Sports =
-                model.Sports;
+                Michaelhouse.Models.Cafeteria.SportCatalogue.Join(model.SportsSelected);
 
             /*
              * The Activities view posts:
@@ -308,6 +313,9 @@ namespace Michaelhouse.Controllers
                 Math.Max(profile.CompletedStep, 3);
 
             db.SaveChanges();
+
+            // The Coach's squads follow the profile automatically
+            new StudentSportService(db).SyncFromProfile(reg.StudentId);
 
             return RedirectToAction(
                 "Medical",

@@ -683,75 +683,14 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             context.SaveChanges();
 
             // =============================================================
-            // UC12 rework: Seed StudentSportStatus from existing Sports strings
-            // Populates the new structured sport table so the generator and
-            // Coach pages have data from day one.
+            // Students' squads (StudentSportStatus) follow the sports on
+            // their profiles — adds missing sports, removes dropped ones,
+            // keeps the Coach's availability flags. Safe to run every time.
             // =============================================================
 
-            // =============================================================
-            // UC12 rework: Seed StudentSportStatus (one-time only)
-            // Runs only if the table is empty — prevents duplicates.
-            // =============================================================
+            new Michaelhouse.Services.StudentSportService(context).SyncAll();
 
-            if (!context.StudentSportStatuses.Any())
             {
-                var archetypeMap = new Dictionary<string, SportArchetype>
-            {
-                // Power
-                { "Rugby",           SportArchetype.Power },
-                { "Water Polo",      SportArchetype.Power },
-                { "Hockey",          SportArchetype.Power },
-                { "Basketball",      SportArchetype.Power },
-
-                // Endurance
-                { "Athletics",       SportArchetype.Endurance },
-                { "Swimming",        SportArchetype.Endurance },
-                { "Cross Country",   SportArchetype.Endurance },
-                { "Cycling",         SportArchetype.Endurance },
-
-                // Skill
-                { "Cricket",         SportArchetype.Skill },
-                { "Tennis",          SportArchetype.Skill },
-                { "Squash",          SportArchetype.Skill },
-
-                // Speed
-                { "Sprinting",       SportArchetype.Speed },
-                { "Sprint Swimming", SportArchetype.Speed }
-            };
-
-                var profilesWithSports = context.StudentProfiles
-                    .Where(p => p.Sports != null && p.Sports != "")
-                    .ToList();
-
-                foreach (var sportProfile in profilesWithSports)
-                {
-                    var sports = sportProfile.Sports
-                        .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(s => s.Trim())
-                        .Where(s => s.Length > 0)
-                        .Distinct()
-                        .ToList();
-
-                    foreach (var sport in sports)
-                    {
-                        SportArchetype archetype;
-                        if (!archetypeMap.TryGetValue(sport, out archetype))
-                        {
-                            archetype = SportArchetype.None;
-                        }
-
-                        context.StudentSportStatuses.Add(new StudentSportStatus
-                        {
-                            StudentId = sportProfile.StudentId,
-                            Sport = sport,
-                            Archetype = archetype,
-                            IsActive = true,
-                            CreatedAt = DateTime.UtcNow
-                        });
-                    }
-                }
-
-                context.SaveChanges();
                             
                               
                 if (!context.EventMenuTemplates.Any())
