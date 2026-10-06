@@ -1,0 +1,123 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Cultural Favourites";
+    var rows = ViewBag.Rows as List<FavouriteRow> ?? new List<FavouriteRow>();
+    bool canEdit = ViewBag.CanEdit == true;
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 3)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    <div class="mb-3">
+        <h2 class="h4 mb-1">Step 3 — Cultural favourites against projected stock</h2>
+        <p class="text-muted mb-0">
+            Each cultural favourite dish a guest entered on their RSVP is matched to a meal in the meal library and its
+            ingredients are checked against the stock <strong>projected for @Model.Event.EventDate.ToString("dd MMM yyyy")</strong>:
+            stock on hand + deliveries due before the event − stock already allocated.
+            You choose which available favourites to add to the plan.
+        </p>
+    </div>
+
+    @if (rows.Count == 0)
+    {
+        <div class="alert alert-secondary">
+            No guest entered a cultural favourite dish on their RSVP, so there is nothing to add.
+        </div>
+    }
+
+    @using (Html.BeginForm("Favourites", "FeastPlan", new { id = Model.Id }, FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        if (rows.Count > 0)
+        {
+            <div class="card shadow-sm mb-4">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:4rem">Add</th>
+                                <th>Favourite dish</th>
+                                <th class="text-end">Guests</th>
+                                <th>Matched meal</th>
+                                <th>Projected stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in rows)
+                            {
+                                bool canAdd = r.Status == FavouriteStatus.Available && r.MenuItemId.HasValue && !r.AlreadyOnPlan;
+                                <tr>
+                                    <td>
+                                        @if (canAdd)
+                                        {
+                                            <input type="checkbox" class="form-check-input" name="selected" value="@r.MenuItemId"
+                                                   @(r.Selected ? "checked" : "") @(canEdit ? "" : "disabled") />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">@r.Dish</div>
+                                        <div class="small text-muted">asked for by @string.Join(", ", r.RequestedBy)</div>
+                                    </td>
+                                    <td class="text-end">@r.Guests</td>
+                                    <td>@(r.MatchedMeal ?? "—")</td>
+                                    <td>
+                                        @if (r.Status == FavouriteStatus.Available)
+                                        {
+                                            <span class="badge bg-success">Available</span>
+                                            if (r.AlreadyOnPlan)
+                                            {
+                                                <div class="small text-muted">Already on the event's buffet.</div>
+                                            }
+                                            else if (r.Selected)
+                                            {
+                                                <div class="small text-muted">Added to the plan.</div>
+                                            }
+                                        }
+                                        else if (r.Status == FavouriteStatus.NotAvailable)
+                                        {
+                                            <span class="badge bg-danger">Not available</span>
+                                            <ul class="small mb-0 mt-1">
+                                                @foreach (var s in r.Shortages)
+                                                {
+                                                    <li>@s.Ingredient: need @s.Required.ToString("0.##") @s.Unit, projected @s.Projected.ToString("0.##") @s.Unit (short by <strong>@s.Short.ToString("0.##") @s.Unit</strong>)</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not listed</span>
+                                            <div class="small text-muted">Could not be matched to a meal in the meal library.</div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+                <i class="bi bi-arrow-left"></i> Feast plans
+            </a>
+            @if (canEdit)
+            {
+                <button type="submit" class="btn btn-primary">
+                    Save selection and continue <i class="bi bi-arrow-right"></i>
+                </button>
+            }
+        </div>
+    }
+</div>

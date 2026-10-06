@@ -730,6 +730,9 @@ namespace Michaelhouse.Services
                 if ((g.DietaryNotes ?? "").Trim().Length > 200)
                     errors.Add(label + ": the dietary note must be 200 characters or fewer.");
 
+                if ((g.CulturalFavoriteDish ?? "").Trim().Length > 150)
+                    errors.Add(label + ": the cultural favourite dish must be 150 characters or fewer.");
+
                 if (evt.OffersMealChoice && buffetMeals.Count > 0)
                 {
                     MenuItem meal;
@@ -799,7 +802,8 @@ namespace Michaelhouse.Services
                 {
                     DietaryPreference = GuestDietary(g.DietaryPreference, null).Preference,
                     DietaryNotes = string.IsNullOrWhiteSpace(g.DietaryNotes) ? null : g.DietaryNotes.Trim(),
-                    MenuItemId = evt.OffersMealChoice ? g.MenuItemId : null
+                    MenuItemId = evt.OffersMealChoice ? g.MenuItemId : null,
+                    CulturalFavoriteDish = string.IsNullOrWhiteSpace(g.CulturalFavoriteDish) ? null : g.CulturalFavoriteDish.Trim()
                 });
             }
 
@@ -1157,6 +1161,10 @@ namespace Michaelhouse.Services
         public string DietaryPreference { get; set; }
         public string DietaryNotes { get; set; }
         public int? MenuItemId { get; set; }
+
+        // Optional cultural favourite dish (UC18 step 6), checked against
+        // the meal library and stock when the feast plan is generated (UC19 step 3)
+        public string CulturalFavoriteDish { get; set; }
     }
 
     public class RsvpMealOption

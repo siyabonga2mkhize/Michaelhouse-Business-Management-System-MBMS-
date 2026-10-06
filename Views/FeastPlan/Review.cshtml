@@ -1,0 +1,140 @@
+﻿@using Michaelhouse.Models.Cafeteria
+@using Michaelhouse.Services
+@model EventFeastPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — Review";
+
+    bool canCoordinate = ViewBag.CanCoordinate == true;
+    bool canApprove = ViewBag.CanApprove == true;
+    var check = ViewBag.Check as FeastPlanCheck ?? new FeastPlanCheck();
+    string rowVersion = Model.RowVersion != null ? Convert.ToBase64String(Model.RowVersion) : "";
+
+    // The review step repeats after changes (step 7 → step 5)
+    int step = FeastPlanService.StepFor(Model);
+    var summary = ViewBag.Summary as FeastReviewSummary ?? new FeastReviewSummary();
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", step)
+
+    @Html.Partial("_PlanHeader", Model)
+
+    @if (Model.Status == FeastPlanStatus.Drafting && Model.Stage < FeastStage.ReadyForReview)
+    {
+        <div class="alert alert-primary d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>
+                <strong>This plan is still being drafted.</strong>
+                The Meal Coordinator is on step @Model.Stage of 10. Steps 3 to 7 must be finished before the plan can be reviewed.
+            </span>
+            @if (canCoordinate)
+            {
+                string resume = Model.Stage == FeastStage.Favourites ? "Favourites"
+                    : Model.Stage == FeastStage.Quantities ? "Quantities"
+                    : Model.Stage == FeastStage.Fatigue ? "Fatigue"
+                    : Model.Stage == FeastStage.Balance ? "Balance" : "Waste";
+                <a class="btn btn-sm btn-primary" href="@Url.Action(resume, "FeastPlan", new { id = Model.Id })">Continue at step @Model.Stage</a>
+            }
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.Drafting || Model.Status == FeastPlanStatus.Proposed)
+    {
+        <div class="alert alert-secondary">
+            <strong>Step 8 — Meal Coordinator and Cafeteria Manager review.</strong>
+            Check the quantities, the cultural favourites, stock, menu fatigue, buffet balance and waste below. Generating the plan is not approval.
+            Edit and recalculate if anything needs changing, then send the plan to the Cafeteria Manager.
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.ChangesRequested)
+    {
+        <div class="alert alert-info">
+            <strong>The Cafeteria Manager asked for changes.</strong>
+            <div class="mt-1">@Model.ManagerComments</div>
+            <div class="small mt-2">Edit and recalculate the plan, review it again here, then send it back for approval.</div>
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.AwaitingApproval)
+    {
+        <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span><strong>Waiting for the Cafeteria Manager</strong> to approve, reject or request changes.</span>
+            @if (canApprove)
+            {
+                <a class="btn btn-sm btn-dark" href="@Url.Action("Decision", "FeastPlan", new { id = Model.Id })">
+                    Step 9: make a decision <i class="bi bi-arrow-right"></i>
+                </a>
+            }
+        </div>
+    }
+    else if (Model.Status == FeastPlanStatus.Rejected)
+    {
+        <div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>
+                <strong>Rejected by the Cafeteria Manager.</strong> @Model.ManagerComments
+            </span>
+            @if (canCoordinate)
+            {
+                <a class="btn btn-sm btn-outline-danger" href="@Url.Action("Rsvps", "FeastPlan", new { id = Model.EventId })">
+                    Start a new plan for this event
+                </a>
+            }
+        </div>
+    }
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    @if (Model.Stage >= FeastStage.ReadyForReview || Model.Status != FeastPlanStatus.Drafting)
+    {
+        @Html.Partial("_Summary", summary)
+    }
+
+    @if (Model.IsEditable || Model.Status == FeastPlanStatus.AwaitingApproval)
+    {
+        @Html.Partial("_Check", check)
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            @Html.Partial("_Items", Model.Items)
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.CoordinatorNotes))
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">Meal Coordinator's notes</div>
+            <div class="card-body">@Model.CoordinatorNotes</div>
+        </div>
+    }
+
+    @if (canCoordinate && Model.IsEditable && Model.Stage >= FeastStage.ReadyForReview)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="post" action="@Url.Action("Submit", "FeastPlan")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="rowVersion" value="@rowVersion" />
+
+                    <label for="notes" class="form-label fw-semibold">Note for the Cafeteria Manager (optional)</label>
+                    <textarea class="form-control mb-3" id="notes" name="notes" rows="2" maxlength="1000"></textarea>
+
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        <a class="btn btn-outline-primary" href="@Url.Action("Edit", "FeastPlan", new { id = Model.Id })">
+                            <i class="bi bi-pencil"></i> Edit and recalculate
+                        </a>
+                        <button type="submit" class="btn btn-primary" @(check.Problems.Count > 0 ? "disabled" : "")>
+                            <i class="bi bi-send"></i> Send to Cafeteria Manager for approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+        <i class="bi bi-arrow-left"></i> Feast plans
+    </a>
+
+    @Html.Partial("_History", Model.History)
+</div>

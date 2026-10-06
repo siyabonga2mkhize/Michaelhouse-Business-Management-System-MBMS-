@@ -1,0 +1,48 @@
+﻿@model int[]
+@*
+    UC19 headcount from the RSVPs.
+    Model = { total, vegetarian (incl. vegan), vegan, halal, standard, other requirement }
+*@
+@{
+    int total = Model[0], vegetarian = Model[1], vegan = Model[2], halal = Model[3], standard = Model[4], other = Model[5];
+}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted text-uppercase">Attending guests</div>
+                <div class="display-6">@total</div>
+                <div class="small text-muted">one portion each</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted text-uppercase">Vegetarian</div>
+                <div class="display-6 text-success">@vegetarian</div>
+                <div class="small text-muted">@(vegan > 0 ? "includes " + vegan + " vegan" : "from the RSVPs")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted text-uppercase">Halal</div>
+                <div class="display-6 text-primary">@halal</div>
+                <div class="small text-muted">from the RSVPs</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-muted text-uppercase">Standard</div>
+                <div class="display-6">@standard</div>
+                <div class="small text-muted">
+                    everyone else@(other > 0 ? " (incl. " + other + " with another requirement)" : "")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

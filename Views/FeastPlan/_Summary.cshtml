@@ -1,0 +1,60 @@
+﻿@using Michaelhouse.Services
+@model FeastReviewSummary
+@*
+    UC19 step 8 — what the reviewers should look at from steps 3 to 7.
+*@
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white fw-semibold">Checked in steps 3 to 7</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between">
+            <span>Step 3 · Cultural favourites asked for</span>
+            <span>
+                <strong>@Model.FavouriteRequests</strong> requested,
+                <strong>@Model.FavouritesAdded</strong> added,
+                <strong>@Model.FavouritesNotAdded</strong> not added (not available, not listed or left out)
+            </span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <span>Step 5 · Menu fatigue</span>
+            <span>
+                @if (Model.FlaggedDishes == 0)
+                {
+                    <span class="text-success">No dish is flagged</span>
+                }
+                else
+                {
+                    <span class="text-warning-emphasis"><strong>@Model.FlaggedDishes</strong> dish@(Model.FlaggedDishes == 1 ? "" : "es") still flagged</span>
+                }
+                · @Model.SwapsMade swap@(Model.SwapsMade == 1 ? "" : "s") accepted
+            </span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <span>Step 6 · Colour and texture balance</span>
+            <span>
+                @if (Model.OpenBalanceFindings == 0 && Model.UntaggedDishes == 0)
+                {
+                    <span class="text-success">Every section is balanced</span>
+                }
+                else
+                {
+                    <span class="text-warning-emphasis">
+                        @Model.OpenBalanceFindings imbalance@(Model.OpenBalanceFindings == 1 ? "" : "s") left@(Model.UntaggedDishes > 0 ? ", " + Model.UntaggedDishes + " untagged" : "")
+                    </span>
+                }
+            </span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <span>Step 7 · Consumption and waste</span>
+            <span>
+                @if (Model.DishesTrimmed == 0)
+                {
+                    <span>No dish was trimmed (no leftover history)</span>
+                }
+                else
+                {
+                    <span><strong>@Model.DishesTrimmed</strong> dish@(Model.DishesTrimmed == 1 ? "" : "es") trimmed from leftover history</span>
+                }
+            </span>
+        </li>
+    </ul>
+</div>

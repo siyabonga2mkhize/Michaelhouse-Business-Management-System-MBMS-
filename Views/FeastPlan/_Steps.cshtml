@@ -1,0 +1,31 @@
+﻿@model int
+@*
+    UC19 step indicator. Model = the current SRS step (1–10).
+*@
+@{
+    var steps = new[]
+    {
+        "Collect RSVPs",
+        "Combine with event",
+        "Cultural favourites",
+        "Quantities",
+        "Menu fatigue",
+        "Colour & texture",
+        "Consumption & waste",
+        "Review",
+        "Manager decision",
+        "Saved & sent"
+    };
+}
+<ol class="list-unstyled d-flex flex-wrap gap-2 mb-4 small">
+    @for (int i = 0; i < steps.Length; i++)
+    {
+        int n = i + 1;
+        string css = n == Model
+            ? "bg-primary text-white border-primary fw-semibold"
+            : n < Model
+                ? "bg-success-subtle text-success-emphasis border-success-subtle"
+                : "bg-body-tertiary text-body-secondary";
+        <li class="border rounded-pill px-3 py-1 @css">@n. @steps[i]</li>
+    }
+</ol>

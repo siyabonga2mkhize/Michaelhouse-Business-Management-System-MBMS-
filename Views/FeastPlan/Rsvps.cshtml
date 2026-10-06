@@ -1,0 +1,123 @@
+﻿@using Michaelhouse.Services
+@model FeastPlanSource
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Feast Plan — RSVP Responses";
+    var evt = Model.Event;
+}
+
+<div class="container-fluid py-4">
+
+    @Html.Partial("_Steps", 1)
+
+    <div class="mb-4">
+        <h1 class="h3 mb-1">Step 1 — RSVP responses</h1>
+        <p class="text-muted mb-0">
+            @evt.EventName · @evt.EventDate.ToString("dddd dd MMMM yyyy").
+            The system has retrieved every accepted RSVP for this event.
+        </p>
+    </div>
+
+    @if (!Model.CanGenerate)
+    {
+        <div class="alert alert-danger">
+            <strong><i class="bi bi-x-octagon me-1"></i>A feast plan can't be generated for this event.</strong>
+            <div>@Model.Refusal</div>
+        </div>
+    }
+
+    @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between">
+            <span class="fw-semibold">Accepted RSVPs (@Model.Rsvps.Count)</span>
+            <span class="small text-muted">@Model.DeclinedResponses declined</span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Rsvps.Count == 0)
+            {
+                <p class="text-muted p-3 mb-0">Nobody has accepted yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Responder</th>
+                                <th>Type</th>
+                                <th class="text-end">People</th>
+                                <th class="text-end">Vegetarian</th>
+                                <th class="text-end">Halal</th>
+                                <th class="text-end">Standard</th>
+                                <th>Responded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.Rsvps)
+                            {
+                                <tr>
+                                    <td>@r.Name</td>
+                                    <td>@r.Group</td>
+                                    <td class="text-end">@r.People</td>
+                                    <td class="text-end">@r.Vegetarian</td>
+                                    <td class="text-end">@r.Halal</td>
+                                    <td class="text-end">@r.Standard</td>
+                                    <td class="small text-muted">@SchoolClock.FromUtc(r.RespondedAt).ToString("dd MMM HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @{
+        var favouriteRequests = ViewBag.Favourites as List<FavouriteRequest> ?? new List<FavouriteRequest>();
+    }
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-semibold">Cultural favourite dishes entered on the RSVPs</div>
+        <div class="card-body p-0">
+            @if (favouriteRequests.Count == 0)
+            {
+                <p class="text-muted p-3 mb-0">No guest entered a cultural favourite dish.</p>
+            }
+            else
+            {
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr><th>Dish</th><th class="text-end">Guests</th><th>Asked for by</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in favouriteRequests)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@f.Dish</td>
+                                <td class="text-end">@f.Guests</td>
+                                <td>@string.Join(", ", f.RequestedBy)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <p class="small text-muted">
+        Students' dietary needs come from their profile; parents, staff and their guests give theirs on the RSVP;
+        public-form responses give vegetarian counts. Vegans are counted as vegetarian.
+    </p>
+
+    <div class="d-flex justify-content-between">
+        <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
+            <i class="bi bi-arrow-left"></i> Feast plans
+        </a>
+        @if (Model.CanGenerate)
+        {
+            <a class="btn btn-primary" href="@Url.Action("EventDetails", "FeastPlan", new { id = evt.Id })">
+                Next: combine with event details <i class="bi bi-arrow-right"></i>
+            </a>
+        }
+    </div>
+</div>
