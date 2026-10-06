@@ -22,6 +22,11 @@ namespace MhmsMobileApp
                     fonts.AddFont("Montserrat-SemiBold.ttf", "MontserratSemiBold");
                     fonts.AddFont("Montserrat-Bold.ttf", "MontserratBold");
                     fonts.AddFont("PlayfairDisplay-Bold.ttf", "PlayfairBold");
+
+                    // Web: font-mono (small uppercase labels, figures, codes).
+                    // Source Code Pro, SIL Open Font License — Licenses/SourceCodePro-OFL.txt
+                    fonts.AddFont("SourceCodePro-Regular.ttf", "Mono");
+                    fonts.AddFont("SourceCodePro-SemiBold.ttf", "MonoSemiBold");
                 });
 
             // Text boxes sit inside our own rounded border, so hide

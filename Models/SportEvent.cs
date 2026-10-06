@@ -31,9 +31,10 @@ namespace Michaelhouse.Models
         [StringLength(20)]
         public string Intensity { get; set; }
 
-        [Required]
+        // Null = every player of the sport (school fixtures).
+        // Set = only players living in this house (inter-house).
         [ForeignKey("Residence")]
-        public int ResidenceId { get; set; }
+        public int? ResidenceId { get; set; }
 
         // Null for training sessions
         [StringLength(200)]

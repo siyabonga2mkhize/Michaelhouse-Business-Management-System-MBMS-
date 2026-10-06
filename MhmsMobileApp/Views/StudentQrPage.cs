@@ -21,6 +21,8 @@ namespace MhmsMobileApp.Views
             Title = "My QR";
             _root.Children.Add(new ActivityIndicator { IsRunning = true, Margin = new Thickness(0, 40, 0, 0) });
             Content = new ScrollView { Content = _root };
+
+            Responsive.Adapt(this, _root);
         }
 
         protected override async void OnAppearing()
@@ -30,7 +32,7 @@ namespace MhmsMobileApp.Views
 
             var user = UserSession.CurrentUser;
             _root.Children.Clear();
-            _root.Children.Add(Ui.PageHeader("My Residence QR", user?.Name));
+            _root.Children.Add(Ui.PageHeader("My Residence QR", user?.Name, "Residence"));
 
             if (user?.StudentId == null)
             {
@@ -57,10 +59,9 @@ namespace MhmsMobileApp.Views
             {
                 Source = ImageSource.FromStream(() => new MemoryStream(bytes)),
                 Aspect = Aspect.AspectFit,
-                HeightRequest = 300,
-                WidthRequest = 300,
                 HorizontalOptions = LayoutOptions.Center
             };
+            Responsive.Square(image, this, 0.75, 200, 420);
 
             var card = Ui.Card(image, new Thickness(20));
             card.BackgroundColor = Microsoft.Maui.Graphics.Colors.White;

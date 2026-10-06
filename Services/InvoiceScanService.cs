@@ -119,6 +119,21 @@ namespace Michaelhouse.Services
             return relative;
         }
 
+        // Stores a generated invoice (TestInvoiceService) exactly like an
+        // upload, so viewing / scanning it uses the same paths and checks
+        public string SaveGenerated(byte[] content, string extension)
+        {
+            var ext = (extension ?? "").ToLowerInvariant();
+            if (content == null || content.Length == 0 || !AllowedExtensions.Contains(ext) || string.IsNullOrEmpty(_uploadRoot))
+                return null;
+
+            string relative = Folder + "/" + DateTime.UtcNow.Year + "/" + Guid.NewGuid().ToString("N") + ext;
+            string full = FullPath(relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(full));
+            File.WriteAllBytes(full, content);
+            return relative;
+        }
+
         // Absolute path for a stored invoice; null if the path isn't one
         // this service created
         public string FullPath(string relative)

@@ -1,0 +1,172 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model AutoOrderPlan
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Automatic Orders";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    int itemCount = Model.Groups.Sum(g => g.Items.Count);
+}
+
+@* --- FULL SCREEN VIEWPORT CONTAINER --- *@
+<div class="flex flex-col h-full w-full overflow-hidden bg-gray-50/30">
+
+    @* --- INSTITUTIONAL HEADER --- *@
+    <div class="mb-6 d-flex justify-content-between align-items-end border-b border-gray-200 pb-6 flex-shrink-0 px-8 pt-8 bg-white shadow-sm relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="h-[2px] w-8 bg-[#C21E2E]"></div>
+                <h5 class="text-[10px] uppercase tracking-[4px] font-bold text-gray-400">Logistics & Supply</h5>
+            </div>
+            <h2 class="text-5xl font-serif font-bold text-gray-900 tracking-tight mb-0">Automatic Orders</h2>
+            <p class="text-[11px] font-mono text-gray-400 uppercase tracking-widest mt-2 mb-0">One purchase order per supplier for low stock and upcoming shortages.</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("Index", "CafeteriaInventory")" class="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-6 py-3 text-[9px] font-bold uppercase tracking-[2px] hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 shadow-sm">
+                <i class="bi bi-arrow-left me-2 text-sm"></i> Back To Inventory
+            </a>
+        </div>
+    </div>
+
+    @* --- SCROLLABLE DATA SECTION --- *@
+    <div class="flex-grow min-h-0 overflow-y-auto custom-scrollbar px-8 pb-10 pt-4 flex flex-col gap-6">
+
+        <div class="bg-white border-l-4 border-gray-900 p-4 text-gray-700 shadow-sm text-[11px] font-mono uppercase tracking-widest leading-relaxed">
+            Each ingredient goes to its preferred active supplier (or the next active one linked to it). Quantities top stock up to its
+            target level, or cover the upcoming shortage. Untick or change anything, then create the drafts — nothing is sent to a
+            supplier until you send each order.
+        </div>
+
+        @if (Model.NoSupplier.Any())
+        {
+            <div class="bg-white shadow-sm border border-[#C21E2E]">
+                <div class="p-5 border-b border-red-100 bg-red-50 flex justify-between items-center">
+                    <strong class="text-[10px] uppercase tracking-[4px] font-bold text-[#C21E2E]"><i class="bi bi-exclamation-triangle-fill me-2"></i>No supplier available</strong>
+                    <span class="text-[9px] font-mono text-[#C21E2E] uppercase tracking-widest">Not ordered — link a supplier first</span>
+                </div>
+                <table class="table align-middle mb-0 w-full">
+                    <tbody class="text-gray-700">
+                        @foreach (var i in Model.NoSupplier)
+                        {
+                            <tr class="border-b border-gray-50 last:border-0">
+                                <td class="ps-6 py-3">
+                                    <strong class="font-serif text-sm text-gray-900">@i.Ingredient.Name</strong>
+                                    <div class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">@i.Why · needs @IngredientUnits.Format(i.Quantity, i.Ingredient.Unit)</div>
+                                </td>
+                                <td class="pe-6 text-end">
+                                    <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = i.Ingredient.Id })" class="text-[10px] font-bold uppercase tracking-[2px] text-[#C21E2E] hover:underline">Set supplier</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.OnDraft.Any())
+        {
+            <div class="bg-white border-l-4 border-blue-500 p-4 text-gray-700 shadow-sm text-[11px] font-mono uppercase tracking-widest leading-relaxed">
+                Already on a draft that hasn't been sent, so not ordered again:
+                @foreach (var i in Model.OnDraft)
+                {
+                    <span class="inline-block me-3">
+                        @i.Ingredient.Name (<a href="@Url.Action("Index", "IngredientOrder", new { status = "draft" })" class="text-[#C21E2E] hover:underline">@i.DraftPoNumber</a>)
+                    </span>
+                }
+            </div>
+        }
+
+        @if (!Model.Groups.Any())
+        {
+            <div class="bg-white shadow-sm border border-gray-100 p-10 text-center">
+                <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
+                    @(Model.NoSupplier.Any() ? "Nothing can be ordered until the ingredients above have a supplier."
+                        : Model.OnDraft.Any() ? "Everything that needs ordering is already on a draft order — send the drafts to the suppliers."
+                        : "Nothing needs ordering right now — stock is above reorder levels and covers upcoming plans.")
+                </span>
+            </div>
+        }
+        else
+        {
+            <form method="post" action="@Url.Action("Auto", "IngredientOrder")" class="flex flex-col gap-6 m-0">
+                @Html.AntiForgeryToken()
+
+                @{ int n = 0; }
+                @foreach (var g in Model.Groups)
+                {
+                    n++;
+                    <div class="bg-white shadow-sm border border-gray-100">
+                        <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] flex justify-between items-center flex-wrap gap-2">
+                            <strong class="text-[10px] uppercase tracking-[4px] font-bold text-white">Purchase order @n · @g.Supplier.Name</strong>
+                            <span class="text-[9px] font-mono text-white/70 uppercase tracking-widest">
+                                @g.Items.Count item@(g.Items.Count == 1 ? "" : "s") · requested delivery @SchoolClock.Today.AddDays(Math.Max(1, g.LeadTimeDays)).ToString("ddd dd MMM")
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0 w-full">
+                                <thead class="bg-white">
+                                    <tr class="text-[9px] uppercase tracking-[3px] font-bold text-gray-500 border-b border-gray-100">
+                                        <th class="ps-6 py-3">Ingredient</th>
+                                        <th class="text-center">In stock</th>
+                                        <th class="text-center">Reorder</th>
+                                        <th class="text-center">On order</th>
+                                        <th class="text-center">Cost</th>
+                                        <th class="pe-6 text-end">Order</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-700">
+                                    @foreach (var i in g.Items)
+                                    {
+                                        var id = i.Ingredient.Id;
+                                        <tr class="border-b border-gray-50 last:border-0">
+                                            <td class="ps-6 py-3">
+                                                <label class="flex items-start gap-3 m-0 cursor-pointer">
+                                                    <input type="checkbox" name="include_@id" value="true" checked class="mt-1 w-4 h-4 text-[#C21E2E] border-gray-300 rounded" />
+                                                    <span>
+                                                        <strong class="font-serif text-sm text-gray-900 block">@i.Ingredient.Name</strong>
+                                                        <span class="text-[8px] font-bold uppercase tracking-widest @(i.Why == "Out of stock" ? "text-[#C21E2E]" : i.Why == "Low stock" ? "text-yellow-600" : "text-blue-700")">@i.Why</span>
+                                                        @if (!i.IsPreferredSupplier)
+                                                        {
+                                                            <span class="text-[8px] font-mono text-gray-400 uppercase tracking-widest ms-1">not the preferred supplier</span>
+                                                        }
+                                                    </span>
+                                                </label>
+                                            </td>
+                                            <td class="text-center font-mono text-xs">@IngredientUnits.Format(i.Available, i.Ingredient.Unit)</td>
+                                            <td class="text-center font-mono text-xs text-gray-500">@IngredientUnits.Format(i.ReorderLevel, i.Ingredient.Unit)</td>
+                                            <td class="text-center font-mono text-xs text-gray-500">@(i.OnOrder > 0m ? IngredientUnits.Format(i.OnOrder, i.Ingredient.Unit) : "—")</td>
+                                            <td class="text-center font-mono text-xs text-gray-500">@(i.UnitCost.HasValue ? "R " + i.UnitCost.Value.ToString("0.00", inv) + " / " + IngredientUnits.DisplayUnit(i.Ingredient.Unit) : "—")</td>
+                                            <td class="pe-6 text-end">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    <input name="qty_@id" class="w-20 border border-gray-300 py-2 px-2 text-center font-mono text-sm font-bold text-gray-900 outline-none focus:border-[#C21E2E] bg-white shadow-sm" inputmode="decimal"
+                                                           value="@IngredientUnits.ToDisplay(i.Quantity, i.Ingredient.Unit).ToString("0.###", inv)" />
+                                                    <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest w-8 text-left">@IngredientUnits.DisplayUnit(i.Ingredient.Unit)</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-[#C21E2E] text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[3px] hover:bg-red-700 transition-all shadow-sm">
+                        <i class="bi bi-file-earmark-check me-2"></i> Create @Model.Groups.Count draft order@(Model.Groups.Count == 1 ? "" : "s") (@itemCount item@(itemCount == 1 ? "" : "s"))
+                    </button>
+                </div>
+            </form>
+        }
+    </div>
+</div>
+
+<style>
+    .font-serif {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    .font-mono {
+        font-family: 'Source Code Pro', monospace !important;
+    }
+</style>

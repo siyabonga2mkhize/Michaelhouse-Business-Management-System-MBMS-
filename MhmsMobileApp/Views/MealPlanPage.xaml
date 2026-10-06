@@ -28,11 +28,12 @@
                 Padding="16,12,16,16">
             <VerticalStackLayout Spacing="8">
                 <Label x:Name="SubmitInfoLabel"
-                       Style="{StaticResource MutedText}"
+                       Style="{StaticResource MonoCaps}"
                        HorizontalTextAlignment="Center" />
                 <Button x:Name="SubmitButton"
                         Text="Submit Meal Plan"
                         Style="{StaticResource PrimaryButton}"
+                        MaximumWidthRequest="560"
                         Clicked="OnSubmitClicked" />
             </VerticalStackLayout>
         </Border>

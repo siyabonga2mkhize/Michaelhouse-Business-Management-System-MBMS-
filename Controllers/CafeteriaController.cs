@@ -61,13 +61,17 @@ namespace Michaelhouse.Controllers
         // ============================================================
 
         [HttpGet]
-        public ActionResult Schedule()
+        public ActionResult Schedule(DateTime? startDate, DateTime? endDate)
         {
-           
+            // Dates can be passed in so the Coaches' fixtures shown match
+            // the range being planned
+            var start = (startDate ?? SchoolClock.Today).Date;
+            var end = endDate.HasValue && endDate.Value.Date >= start ? endDate.Value.Date : start.AddDays(6);
+
             var model = new ScheduleMenuInputViewModel
             {
-                StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddDays(6),
+                StartDate = start,
+                EndDate = end,
                 StaffMeals = 0
             };
 
@@ -654,75 +658,31 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
-        // BOARDING HOUSE / RESIDENCE DATA
+        // BOARDING HOUSES AND SPORT FIXTURES (Schedule form)
+        //
+        // Houses show how many students live in them (residence
+        // allocation). Sport comes only from the Coaches' fixtures —
+        // shown read-only here; the generator works out who is
+        // affected (StudentSportService).
         // ============================================================
 
         private void PopulateBoardingHouses(ScheduleMenuInputViewModel model)
         {
-            // The date range the coordinator is planning for
-            var rangeStart = model.StartDate.Date;
-            var rangeEnd = model.EndDate.Date;
+            var counts = HouseStudentCounts();
 
-            // Load all fixtures in the range (once, not per house)
-            var fixturesInRange = _db.SportEvents
-                .Where(x => !x.IsCancelled
-                            && x.ScheduledDate >= rangeStart
-                            && x.ScheduledDate <= rangeEnd)
-                .ToList();
-
-            // Load houses
-            var houses = _db.Residences
+            model.BoardingHouses = _db.Residences
+                .Where(x => !x.IsArchived)
                 .OrderBy(x => x.Name)
-                .ToList();
-
-            model.BoardingHouses = new List<BoardingHouseScheduleOption>();
-
-            foreach (var house in houses)
-            {
-                // Fixtures for this specific house in the planning week
-                var houseFixtures = fixturesInRange
-                    .Where(x => x.ResidenceId == house.ResidenceId)
-                    .ToList();
-
-                var trainingCount = houseFixtures.Count(x => x.EventType == "Training");
-
-                var matches = houseFixtures
-                    .Where(x => x.EventType == "Match")
-                    .OrderBy(x => x.ScheduledDate)
-                    .ToList();
-
-                // Business rule: in-season = at least 2 trainings OR at least 1 match this week.
-                bool isInSeason = trainingCount >= 2 || matches.Any();
-
-                // Sport name — take it from the first fixture in the week
-                string activeSport = "";
-
-                if (houseFixtures.Any())
-                {
-                    activeSport = houseFixtures
-                        .OrderBy(x => x.ScheduledDate)
-                        .First()
-                        .Sport;
-                }
-
-                // First match date in the week, if any
-                DateTime? matchDate = null;
-
-                if (matches.Any())
-                {
-                    matchDate = matches.First().ScheduledDate;
-                }
-
-                model.BoardingHouses.Add(new BoardingHouseScheduleOption
+                .ToList()
+                .Select(house => new BoardingHouseScheduleOption
                 {
                     Id = house.ResidenceId,
                     Name = house.Name,
-                    StudentCount = house.Capacity,
-                    IsInSeason = isInSeason,
-                    ActiveSport = activeSport,
-                    MatchDate = matchDate
-                });
-            }
+                    StudentCount = counts.ContainsKey(house.ResidenceId) ? counts[house.ResidenceId] : 0
+                })
+                .ToList();
+
+            PopulateScheduledSports(model);
         }
 
         private void PopulateBoardingHousesFromPostedValues(ScheduleMenuInputViewModel input)
@@ -730,7 +690,6 @@ namespace Michaelhouse.Controllers
             if (input.BoardingHouses == null)
             {
                 input.BoardingHouses = new List<BoardingHouseScheduleOption>();
-                return;
             }
 
             var ids = input.BoardingHouses
@@ -742,6 +701,8 @@ namespace Michaelhouse.Controllers
                 .Where(x => ids.Contains(x.ResidenceId))
                 .ToDictionary(x => x.ResidenceId);
 
+            var counts = HouseStudentCounts();
+
             foreach (var posted in input.BoardingHouses)
             {
                 if (!houses.ContainsKey(posted.Id))
@@ -751,11 +712,89 @@ namespace Michaelhouse.Controllers
                     continue;
                 }
 
-                var house = houses[posted.Id];
-
-                posted.Name = house.Name;
-                posted.StudentCount = house.Capacity;
+                posted.Name = houses[posted.Id].Name;
+                posted.StudentCount = counts.ContainsKey(posted.Id) ? counts[posted.Id] : 0;
             }
+
+            PopulateScheduledSports(input);
+        }
+
+        // ResidenceId → active students living there
+        private Dictionary<int, int> HouseStudentCounts()
+        {
+            var activeIds = new HashSet<int>(_db.Students.Where(s => s.IsActive).Select(s => s.StudentId));
+
+            return new StudentHouseService(_db).HouseByStudent()
+                .Where(kv => activeIds.Contains(kv.Key))
+                .GroupBy(kv => kv.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        // The Coaches' fixtures in the planning range, with the players
+        // each affects and what it means for meals
+        private void PopulateScheduledSports(ScheduleMenuInputViewModel model)
+        {
+            var start = model.StartDate.Date;
+            var end = model.EndDate.Date < start ? start : model.EndDate.Date;
+
+            var calendar = new StudentSportService(_db).LoadCalendar(start, end);
+            var houseNames = _db.Residences.ToDictionary(r => r.ResidenceId, r => r.Name);
+
+            var rows = new List<ScheduledSportViewModel>();
+            int peak = 0;
+
+            // The day after the range too: a match then makes the last
+            // day a pre-match day
+            for (var date = start; date <= end.AddDays(1); date = date.AddDays(1))
+            {
+                var events = calendar.EventsOn(date);
+                var matchPlayers = new HashSet<int>();
+
+                foreach (var e in events)
+                {
+                    var players = calendar.PlayersFor(e);
+                    var archetype = SportCatalogue.ArchetypeOf(e.Sport);
+                    bool isMatch = StudentSportService.IsMatch(e);
+
+                    if (isMatch) matchPlayers.UnionWith(players);
+
+                    string need;
+                    if (isMatch)
+                    {
+                        need = Capitalise(MenuCoverageService.CategoryWords(MenuSchedulingService.MatchDayCategory(archetype)))
+                            + " on match day, high-carb the day before";
+                    }
+                    else
+                    {
+                        var category = MenuSchedulingService.TrainingCategory(archetype);
+                        need = category.HasValue
+                            ? Capitalise(MenuCoverageService.CategoryWords(category.Value)) + " on training day"
+                            : "No particular meal need";
+                    }
+
+                    rows.Add(new ScheduledSportViewModel
+                    {
+                        Date = e.ScheduledDate,
+                        StartTime = e.StartTime,
+                        EndTime = e.StartTime.Add(TimeSpan.FromMinutes(e.DurationMinutes)),
+                        EventType = e.EventType,
+                        Label = StudentSportService.Label(e),
+                        House = e.ResidenceId.HasValue && houseNames.ContainsKey(e.ResidenceId.Value) ? houseNames[e.ResidenceId.Value] : null,
+                        Players = players.Count,
+                        MealNeed = need
+                    });
+                }
+
+                if (date <= end) peak = Math.Max(peak, matchPlayers.Count);
+            }
+
+            model.ScheduledSports = rows;
+            model.PeakMatchPlayers = peak;
+        }
+
+        private static string Capitalise(string text)
+        {
+            return string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
         }
     }
 }

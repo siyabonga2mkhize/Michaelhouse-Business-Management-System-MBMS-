@@ -12,7 +12,10 @@ namespace Michaelhouse.Services
     //
     // A generated menu offers several options per meal slot. This
     // service checks whether, together, the options give every
-    // dietary group of students at least one suitable choice.
+    // dietary group of students at least one suitable choice — and
+    // every group of athletes with a sports need that day (match,
+    // day before a match, training) an option in the needed
+    // nutrition category that is also safe for their diet.
     //
     // Students are grouped by the requirements that actually filter
     // meals (DietaryProfileService.IsSafe): vegetarian / vegan / halal,
@@ -51,6 +54,45 @@ namespace Michaelhouse.Services
         public string Label
         {
             get { return IsUnrestricted ? "No dietary restrictions" : string.Join(", ", Requirements); }
+        }
+    }
+
+    // ============================================================
+    // Students who share a sports need AND a dietary group on one
+    // day, e.g. 3 vegan rugby players on a match day. A meal covers
+    // them when it is in the need's category (e.g. HighProtein) and
+    // safe for their diet. Sports never override dietary safety.
+    // ============================================================
+    public class SportsGroup
+    {
+        public SportsGroup()
+        {
+            Activities = new List<string>();
+        }
+
+        public DateTime Date { get; set; }
+        public NutritionCategory Category { get; set; }
+
+        // The dietary group these students belong to
+        public DietaryGroup Dietary { get; set; }
+
+        public int StudentCount { get; set; }
+
+        // e.g. "Rugby vs Hilton (match day)", "Athletics training"
+        public List<string> Activities { get; set; }
+
+        public string Key
+        {
+            get { return Category + "#" + Dietary.Key; }
+        }
+
+        // e.g. "3 players for Rugby vs Hilton (match day) — Vegan"
+        public string Describe()
+        {
+            return string.Format("{0} player{1} for {2}{3}",
+                StudentCount, StudentCount == 1 ? "" : "s",
+                string.Join("; ", Activities),
+                Dietary.IsUnrestricted ? "" : " (" + Dietary.Label + ")");
         }
     }
 
@@ -228,14 +270,103 @@ namespace Michaelhouse.Services
         }
 
         // ============================================================
+        // SPORTS GROUPS
+        // For every day: the students whose day calls for a nutrition
+        // category (match day, day before a match, training, priority
+        // week — SportsCalendar.NeedOn), grouped by that category and
+        // their dietary group. Same students as LoadPopulation unless
+        // given.
+        // ============================================================
+
+        public Dictionary<DateTime, List<SportsGroup>> LoadSportsGroups(
+            DateTime start, DateTime end, ICollection<int> studentIds = null)
+        {
+            var result = new Dictionary<DateTime, List<SportsGroup>>();
+            for (var d = start.Date; d <= end.Date; d = d.AddDays(1)) result[d] = new List<SportsGroup>();
+
+            var ids = studentIds ?? new StudentHouseService(_db).BoardingStudentIds();
+            if (ids.Count == 0) return result;
+
+            var calendar = new StudentSportService(_db).LoadCalendar(start, end, ids);
+            var athleteIds = calendar.StudentsWithSports.ToList();
+            if (athleteIds.Count == 0) return result;
+
+            // Each athlete's dietary group (same grouping as LoadPopulation)
+            var dietaryByStudent = _db.Students
+                .Include(s => s.StudentProfile)
+                .Where(s => athleteIds.Contains(s.StudentId))
+                .ToList()
+                .ToDictionary(s => s.StudentId, s => DietaryProfileService.FromStudentProfile(s.StudentProfile));
+
+            foreach (var date in result.Keys.ToList())
+            {
+                var groups = new Dictionary<string, SportsGroup>();
+
+                foreach (var studentId in athleteIds)
+                {
+                    var need = calendar.NeedOn(studentId, date);
+                    if (!need.Category.HasValue) continue;
+
+                    StudentDietaryProfile profile;
+                    if (!dietaryByStudent.TryGetValue(studentId, out profile)) continue;
+
+                    var requirements = FilteringRequirements(profile);
+                    var dietaryKey = string.Join("|", requirements).ToLowerInvariant();
+                    var key = need.Category.Value + "#" + dietaryKey;
+
+                    SportsGroup group;
+                    if (!groups.TryGetValue(key, out group))
+                    {
+                        group = new SportsGroup
+                        {
+                            Date = date,
+                            Category = need.Category.Value,
+                            Dietary = new DietaryGroup { Key = dietaryKey, Requirements = requirements, Profile = profile }
+                        };
+                        groups.Add(key, group);
+                    }
+
+                    group.StudentCount++;
+                    group.Dietary.StudentCount++;
+                    if (!group.Activities.Contains(need.ManagerLabel)) group.Activities.Add(need.ManagerLabel);
+                }
+
+                result[date] = groups.Values.OrderByDescending(g => g.StudentCount).ToList();
+            }
+
+            return result;
+        }
+
+        // In the group's category and safe for their diet
+        public bool SuitsSports(SportsGroup group, MenuItem item)
+        {
+            return item.NutritionCategory == group.Category && _dietary.IsSafe(group.Dietary.Profile, item);
+        }
+
+        public static string CategoryWords(NutritionCategory category)
+        {
+            switch (category)
+            {
+                case NutritionCategory.HighProtein: return "high-protein";
+                case NutritionCategory.HighCarb: return "high-carb";
+                case NutritionCategory.Light: return "light";
+                case NutritionCategory.Hydration: return "hydration-focused";
+                default: return "standard";
+            }
+        }
+
+        // ============================================================
         // EVALUATE ONE SLOT
         // ============================================================
 
+        // sportsGroups: that day's sports groups (LoadSportsGroups);
+        // each must have an option in its category that suits its diet
         public SlotCoverage Evaluate(
             DateTime date,
             MealSlot slot,
             IList<MenuScheduleItem> scheduled,
-            List<DietaryGroup> groups)
+            List<DietaryGroup> groups,
+            List<SportsGroup> sportsGroups = null)
         {
             var result = new SlotCoverage
             {
@@ -283,6 +414,20 @@ namespace Michaelhouse.Services
 
             result.StudentsWithOption = groups.Where(g => covered.Contains(g.Key)).Sum(g => g.StudentCount);
             result.Warnings = BuildWarnings(date, slot, scheduled.Count, groups.Where(g => !covered.Contains(g.Key)).ToList());
+
+            // Sports needs — only meaningful once there are options
+            if (scheduled.Count > 0 && sportsGroups != null)
+            {
+                var slotLabel = date.ToString("dddd dd MMM") + " " + slot;
+                var items = scheduled.Where(s => s.MenuItem != null).Select(s => s.MenuItem).ToList();
+
+                foreach (var group in sportsGroups.Where(g => g.StudentCount > 0 && !items.Any(i => SuitsSports(g, i))))
+                {
+                    result.Warnings.Add(string.Format(
+                        "No {0} option for {1}: {2}.",
+                        CategoryWords(group.Category), slotLabel, group.Describe()));
+                }
+            }
 
             return result;
         }
@@ -353,6 +498,10 @@ namespace Michaelhouse.Services
 
             var groups = LoadPopulation();
 
+            // Fixtures as they are now, so a match added or cancelled
+            // after generation shows up here
+            var sportsGroups = LoadSportsGroups(menu.StartDate, menu.EndDate);
+
             var report = new MenuCoverageReport
             {
                 Groups = groups,
@@ -368,7 +517,7 @@ namespace Michaelhouse.Services
                         .OrderBy(s => s.Id)
                         .ToList();
 
-                    report.Slots.Add(Evaluate(date, slot, scheduled, groups));
+                    report.Slots.Add(Evaluate(date, slot, scheduled, groups, sportsGroups[date]));
                 }
             }
 

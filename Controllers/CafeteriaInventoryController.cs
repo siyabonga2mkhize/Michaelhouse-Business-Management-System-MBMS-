@@ -132,6 +132,81 @@ namespace Michaelhouse.Controllers
             });
         }
 
+        // ============================================================
+        // GET / POST: CafeteriaInventory/AdjustStock/5
+        // Damaged, spoiled, lost, count correction… Add or remove an
+        // amount (or, for a count, enter what was counted). Goes
+        // through IngredientInventoryService.AdjustBy → Apply, so the
+        // transaction records the reason, who and when.
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = ManagerRoles)]
+        public ActionResult AdjustStock(int id)
+        {
+            var line = _inventory.GetStockLine(id);
+            if (line == null) return HttpNotFound();
+
+            ViewBag.Recent = _inventory.History(id, 10)
+                .Where(t => t.Type == StockTransactionType.Adjustment)
+                .ToList();
+            return View(line);
+        }
+
+        // mode = "change" (direction + quantity) | "count" (countedQuantity)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = ManagerRoles)]
+        public ActionResult AdjustStock(int id, string source, string mode, string direction,
+            string quantity, string countedQuantity, string reason, string notes)
+        {
+            var ingredient = _db.Ingredients.Find(id);
+            if (ingredient == null) return HttpNotFound();
+
+            try
+            {
+                StockSource src = source == "Farm" ? StockSource.Farm : StockSource.External;
+
+                StockAdjustmentReason why;
+                if (!Enum.TryParse(reason, out why) || !Enum.IsDefined(typeof(StockAdjustmentReason), why))
+                    throw new InventoryException("Choose a reason for the adjustment.");
+
+                decimal before = src == StockSource.Farm ? ingredient.FarmAvailableQuantity : ingredient.ExternalAvailableQuantity;
+                decimal change;
+
+                if (mode == "count")
+                {
+                    var counted = Quantity(countedQuantity, ingredient, "counted quantity", allowZero: true);
+                    change = Math.Round(counted, 2) - before;
+                    if (change == 0m) throw new InventoryException("The counted quantity is the same as the recorded stock.");
+                }
+                else
+                {
+                    var amount = Quantity(quantity, ingredient, "quantity to " + (direction == "remove" ? "remove" : "add"));
+                    change = direction == "remove" ? -amount : amount;
+                }
+
+                var tx = _inventory.AdjustBy(id, src, change, why, Clip(notes, 400), ResolveUserId());
+
+                TempData["Success"] = string.Format(
+                    "{0}: {1}{2} ({3}). {4} stock {5} → {6}.",
+                    ingredient.Name,
+                    change > 0m ? "+" : "−",
+                    IngredientUnits.Format(Math.Abs(change), ingredient.Unit),
+                    IngredientInventoryService.ReasonLabel(why),
+                    src == StockSource.Farm ? "Farm" : "Bought-in",
+                    IngredientUnits.Format(before, ingredient.Unit),
+                    IngredientUnits.Format(tx.SourceQuantityAfter, ingredient.Unit));
+
+                return RedirectToAction("Ingredient", new { id });
+            }
+            catch (InventoryException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("AdjustStock", new { id });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = ManagerRoles)]

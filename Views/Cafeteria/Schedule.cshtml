@@ -107,8 +107,8 @@
 
                             @* Sports Uplift *@
                             <div class="bg-gray-50 border border-gray-200 p-4 text-center">
-                                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 block mb-1">Sports uplift</div>
-                                <div id="sportsUplift" class="font-mono text-3xl font-bold text-gray-900">0</div>
+                                <div class="text-[9px] uppercase tracking-[2px] font-bold text-gray-500 block mb-1">Sports uplift (busiest match day)</div>
+                                <div id="sportsUplift" class="font-mono text-3xl font-bold text-gray-900" data-peak-match-players="@Model.PeakMatchPlayers">@Model.PeakMatchPlayers</div>
                             </div>
 
                             @* Total Portions *@
@@ -125,7 +125,7 @@
             @* --- BOTTOM: BOARDING HOUSES & SPORTS --- *@
             <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden group mt-4">
                 <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] relative z-10 flex justify-between items-center">
-                    <strong class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Boarding Houses & Sports</strong>
+                    <strong class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Boarding Houses</strong>
                 </div>
 
                 <div class="table-responsive relative z-10">
@@ -133,10 +133,7 @@
                         <thead class="bg-gray-50/80 border-b border-gray-200">
                             <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400">
                                 <th class="ps-8 py-4">Boarding House</th>
-                                <th class="border-l border-gray-100 ps-4 text-center">Students</th>
-                                <th class="border-l border-gray-100 ps-4 text-center">In Season</th>
-                                <th class="border-l border-gray-100 ps-4">Active Sport</th>
-                                <th class="border-l border-gray-100 pe-8 ps-4">Match Date</th>
+                                <th class="border-l border-gray-100 ps-4 pe-8 text-center">Students</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-700">
@@ -157,30 +154,81 @@
                                             </span>
                                             @Html.HiddenFor(x => x.BoardingHouses[i].StudentCount)
                                         </td>
-
-                                        <td class="border-l border-gray-50 ps-4 text-center">
-                                            <div class="flex justify-center items-center h-full">
-                                                @Html.CheckBoxFor(x => x.BoardingHouses[i].IsInSeason, new { @class = "w-5 h-5 text-[#C21E2E] focus:ring-[#C21E2E] border-gray-300 rounded cursor-pointer sports-toggle", data_house = Model.BoardingHouses[i].Id })
-                                            </div>
-                                        </td>
-
-                                        <td class="border-l border-gray-50 ps-4">
-                                            @Html.TextBoxFor(x => x.BoardingHouses[i].ActiveSport, new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-serif text-sm text-gray-900 transition-colors bg-transparent disabled:opacity-30 sport-name", placeholder = "e.g. Rugby, Cricket, Water Polo", disabled = !Model.BoardingHouses[i].IsInSeason ? "disabled" : null })
-                                        </td>
-
-                                        <td class="border-l border-gray-50 pe-8 ps-4">
-                                            @Html.TextBoxFor(x => x.BoardingHouses[i].MatchDate, "{0:yyyy-MM-dd}", new { @class = "w-full border-b-2 border-gray-200 py-2 outline-none focus:border-[#C21E2E] font-mono text-sm text-gray-900 transition-colors bg-transparent disabled:opacity-30 match-date", type = "date", disabled = !Model.BoardingHouses[i].IsInSeason ? "disabled" : null })
-                                        </td>
                                     </tr>
                                 }
                             }
                             else
                             {
                                 <tr>
-                                    <td colspan="5" class="text-center py-10 text-muted">
+                                    <td colspan="2" class="text-center py-10 text-muted">
                                         <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No boarding houses are available.</span>
                                     </td>
                                 </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @* --- SPORT FIXTURES (from the Coaches) --- *@
+            <div class="bg-white shadow-sm border border-gray-100 flex flex-col relative overflow-hidden">
+                <div class="p-5 border-b border-gray-100 bg-[#1a1a1a] relative z-10 flex justify-between items-center flex-wrap gap-2">
+                    <strong class="text-[10px] uppercase tracking-[4px] font-bold text-white mb-0">Sport Fixtures From Coaches</strong>
+                    <a id="refreshFixtures" href="@Url.Action("Schedule", "Cafeteria")" class="text-[10px] font-bold uppercase tracking-[2px] text-white/80 hover:text-white">
+                        <i class="bi bi-arrow-repeat me-1"></i> Show fixtures for these dates
+                    </a>
+                </div>
+
+                <div class="px-8 pt-4 text-[11px] font-mono text-gray-500 leading-relaxed">
+                    Players come from the sports on students' profiles. The generated menu adds options in the needed category
+                    that are also safe for each player's diet; any group that can't be accommodated is listed as a warning on the review page.
+                </div>
+
+                <div class="table-responsive relative z-10">
+                    <table class="table table-hover mb-0 align-middle w-full">
+                        <thead class="bg-gray-50/80 border-b border-gray-200">
+                            <tr class="text-[9px] uppercase tracking-[4px] font-bold text-gray-400">
+                                <th class="ps-8 py-4">Date</th>
+                                <th class="border-l border-gray-100 ps-4">Fixture</th>
+                                <th class="border-l border-gray-100 ps-4 text-center">Players</th>
+                                <th class="border-l border-gray-100 pe-8 ps-4">Meals</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            @if (Model.ScheduledSports == null || !Model.ScheduledSports.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-10 text-muted">
+                                        <span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">No trainings or matches are scheduled for these dates.</span>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var f in Model.ScheduledSports)
+                                {
+                                    bool afterRange = f.Date.Date > Model.EndDate.Date;
+                                    <tr class="border-b border-gray-50 last:border-0 @(afterRange ? "opacity-60" : "")">
+                                        <td class="ps-8 py-3">
+                                            <div class="font-serif text-sm text-gray-900 font-bold">@f.Date.ToString("ddd dd MMM")</div>
+                                            <div class="text-[10px] font-mono text-gray-500">@f.StartTime.ToString(@"hh\:mm")&ndash;@f.EndTime.ToString(@"hh\:mm")</div>
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4">
+                                            <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 border @(f.EventType == "Match" ? "bg-red-50 text-[#C21E2E] border-red-200" : "bg-gray-100 text-gray-700 border-gray-200")">@f.EventType</span>
+                                            <span class="font-serif text-sm text-gray-900 ms-2">@f.Label</span>
+                                            @if (f.House != null)
+                                            {
+                                                <span class="text-[10px] font-mono text-gray-500 ms-1">(@f.House only)</span>
+                                            }
+                                            @if (afterRange)
+                                            {
+                                                <div class="text-[10px] font-mono text-gray-500">Day after this menu &mdash; makes the last day a pre-match day</div>
+                                            }
+                                        </td>
+                                        <td class="border-l border-gray-50 ps-4 text-center font-mono font-bold">@f.Players</td>
+                                        <td class="border-l border-gray-50 pe-8 ps-4 text-[11px] text-gray-600">@f.MealNeed</td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -234,60 +282,35 @@
                 var staffInput = document.getElementById("StaffMeals");
                 var staffMeals = parseInt(staffInput ? staffInput.value : "0", 10) || 0;
 
-                var normalStudents = 0;
-                var sportsStudents = 0;
-
-                document.querySelectorAll(".sports-toggle").forEach(function (checkbox) {
-                    var row = checkbox.closest("tr");
-                    if (!row) return;
-
-                    var studentElement = row.querySelector(".student-count");
-                    var students = parseInt(studentElement ? studentElement.getAttribute("data-student-count") : "0", 10) || 0;
-
-                    if (checkbox.checked) {
-                        sportsStudents += students;
-                    } else {
-                        normalStudents += students;
-                    }
+                // Every student who lives in a house eats
+                var students = 0;
+                document.querySelectorAll(".student-count").forEach(function (el) {
+                    students += parseInt(el.getAttribute("data-student-count") || "0", 10) || 0;
                 });
 
-                /*
-                 * 1.3x means the squad requires an additional 30%.
-                 * Base: staff + normal students + sports students
-                 * Uplift: sports students * 0.30
-                 */
-                var base = staffMeals + normalStudents + sportsStudents;
-                var uplift = Math.ceil(sportsStudents * 0.30);
-                var total = base + uplift;
+                // +1 portion per match player, on the busiest match day
+                var upliftEl = document.getElementById("sportsUplift");
+                var uplift = parseInt(upliftEl ? upliftEl.getAttribute("data-peak-match-players") : "0", 10) || 0;
 
+                var base = staffMeals + students;
                 document.getElementById("basePortions").textContent = base;
                 document.getElementById("sportsUplift").textContent = uplift;
-                document.getElementById("totalPortions").textContent = total;
+                document.getElementById("totalPortions").textContent = base + uplift;
             }
 
-            document.querySelectorAll(".sports-toggle").forEach(function (checkbox) {
-                checkbox.addEventListener("change", function () {
-                    var row = checkbox.closest("tr");
-                    var sportInput = row.querySelector(".sport-name");
-                    var dateInput = row.querySelector(".match-date");
-
-                    if (checkbox.checked) {
-                        sportInput.disabled = false;
-                        sportInput.focus();
-                        if (dateInput) {
-                            dateInput.disabled = false;
-                        }
-                    } else {
-                        sportInput.disabled = true;
-                        sportInput.value = "";
-                        if (dateInput) {
-                            dateInput.disabled = true;
-                            dateInput.value = "";
-                        }
-                    }
-                    calculatePortions();
+            // Re-list the Coaches' fixtures for the dates being planned
+            var refresh = document.getElementById("refreshFixtures");
+            if (refresh) {
+                refresh.addEventListener("click", function (e) {
+                    var start = document.getElementById("StartDate");
+                    var end = document.getElementById("EndDate");
+                    if (!start || !end || !start.value || !end.value) return;
+                    e.preventDefault();
+                    window.location = refresh.getAttribute("href")
+                        + "?startDate=" + encodeURIComponent(start.value)
+                        + "&endDate=" + encodeURIComponent(end.value);
                 });
-            });
+            }
 
             var staffInput = document.getElementById("StaffMeals");
             if (staffInput) {

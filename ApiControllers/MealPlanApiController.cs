@@ -195,7 +195,8 @@ namespace Michaelhouse.ApiControllers
                             carbohydrate = o.CarbohydrateGramsPerPortion,
                             fat = o.FatGramsPerPortion,
                             isDefault = o.IsDefault,
-                            tags = o.Tags
+                            tags = o.Tags,
+                            recommendation = o.RecommendationLabel
                         }).ToList()
                     }).ToList()
                 }).ToList()

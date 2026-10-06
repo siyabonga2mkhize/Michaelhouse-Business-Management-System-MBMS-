@@ -16,12 +16,20 @@
     <Color x:Key="SecondaryDarkText">#C21E2E</Color>
     <Color x:Key="Tertiary">#1A1A1A</Color>         <!-- web: mh-dark -->
 
-    <Color x:Key="PageBackground">#F8F9FA</Color>
+    <!-- Web (Tailwind redesign): bg-gray-50/30 page, white square cards
+         with border-gray-100/200, black (#1a1a1a) section bars -->
+    <Color x:Key="PageBackground">#FAFAFB</Color>
     <Color x:Key="CardBackground">#FFFFFF</Color>
     <Color x:Key="CardBorder">#E5E7EB</Color>
-    <Color x:Key="TextPrimary">#111827</Color>
-    <Color x:Key="TextSecondary">#6B7280</Color>
-    <Color x:Key="TextMuted">#9CA3AF</Color>
+    <Color x:Key="Divider">#F3F4F6</Color>          <!-- web: border-gray-50/100 rows -->
+    <Color x:Key="SectionBar">#1A1A1A</Color>       <!-- web: bg-[#1a1a1a] card headers -->
+    <Color x:Key="TextPrimary">#111827</Color>      <!-- web: text-gray-900 -->
+    <Color x:Key="TextBody">#374151</Color>         <!-- web: text-gray-700 -->
+    <Color x:Key="TextSecondary">#6B7280</Color>    <!-- web: text-gray-500 -->
+    <Color x:Key="TextMuted">#9CA3AF</Color>        <!-- web: text-gray-400 -->
+    <Color x:Key="Info">#1E40AF</Color>
+    <Color x:Key="InfoBackground">#EFF6FF</Color>
+    <Color x:Key="Accent">#10B981</Color>           <!-- web: green "generate / confirm" buttons -->
 
     <Color x:Key="Success">#065F46</Color>
     <Color x:Key="SuccessBackground">#ECFDF5</Color>
@@ -42,6 +50,8 @@
     <Color x:Key="Gray400">#9CA3AF</Color>
     <Color x:Key="Gray500">#6B7280</Color>
     <Color x:Key="Gray600">#4B5563</Color>
+    <Color x:Key="Gray700">#374151</Color>
+    <Color x:Key="Gray800">#1F2937</Color>
     <Color x:Key="Gray900">#111827</Color>
     <Color x:Key="Gray950">#1A1A1A</Color>
 

@@ -35,7 +35,7 @@ namespace MhmsMobileApp.Views
         {
             Title = "Safety";
 
-            _root.Children.Add(Ui.PageHeader("Emergency Safety"));
+            _root.Children.Add(Ui.PageHeader("Emergency Safety", null, "Residence"));
             _root.Children.Add(_emergencyHost);
             _root.Children.Add(new Label { Text = "Emergency alerts", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 8, 0, 0) });
             _root.Children.Add(_alerts);
@@ -49,6 +49,8 @@ namespace MhmsMobileApp.Views
                 _refresh.IsRefreshing = false;
             };
             Content = _refresh;
+
+            Responsive.Adapt(this, _root);
         }
 
         protected override async void OnAppearing()
@@ -113,7 +115,7 @@ namespace MhmsMobileApp.Views
             {
                 BackgroundColor = Ui.Color("Primary"),
                 StrokeThickness = 0,
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.Rectangle(),
                 Padding = new Thickness(18),
                 Content = stack
             };

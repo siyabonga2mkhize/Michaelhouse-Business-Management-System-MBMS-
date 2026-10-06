@@ -23,7 +23,8 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress>true</Use64BitIISExpress>
+    <Use64BitIISExpress>
+    </Use64BitIISExpress>
     <IISExpressSSLPort>44321</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
@@ -376,93 +377,13 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101337415_initialcreate.cs" />
-    <Compile Include="Migrations\202608101337415_initialcreate.Designer.cs">
-      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    <Compile Include="Migrations\202610060035367_CoachUpdate.cs" />
+    <Compile Include="Migrations\202610060035367_CoachUpdate.Designer.cs">
+      <DependentUpon>202610060035367_CoachUpdate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.cs" />
-    <Compile Include="Migrations\202608101735353_AddVisitorScanLog.Designer.cs">
-      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.cs" />
-    <Compile Include="Migrations\202609212014436_AddCafeteriaModels.Designer.cs">
-      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.cs" />
-    <Compile Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.Designer.cs">
-      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.cs" />
-    <Compile Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.Designer.cs">
-      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.cs" />
-    <Compile Include="Migrations\202609221006413_AddRecipeIngredientFoundation.Designer.cs">
-      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.cs" />
-    <Compile Include="Migrations\202609221749265_AddIngredientStockQuantities.Designer.cs">
-      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.cs" />
-    <Compile Include="Migrations\202609222004308_AddMenuItemNutritionCategory.Designer.cs">
-      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609231900592_SyncMissingTables.cs" />
-    <Compile Include="Migrations\202609231900592_SyncMissingTables.Designer.cs">
-      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.cs" />
-    <Compile Include="Migrations\202609231931106_AddKitchenReadyFlag.Designer.cs">
-      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609232107354_AddSportEvents.cs" />
-    <Compile Include="Migrations\202609232107354_AddSportEvents.Designer.cs">
-      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.cs" />
-    <Compile Include="Migrations\202609232310141_AddChefChallengeFields.Designer.cs">
-      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.cs" />
-    <Compile Include="Migrations\202609240044568_AddIngredientAllergens.Designer.cs">
-      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240101119_AddMealPlans.cs" />
-    <Compile Include="Migrations\202609240101119_AddMealPlans.Designer.cs">
-      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.cs" />
-    <Compile Include="Migrations\202609240318188_AddRecipeKitchenTiming.Designer.cs">
-      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.cs" />
-    <Compile Include="Migrations\202609240340578_AddProductionConfirmation.Designer.cs">
-      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.cs" />
-    <Compile Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.Designer.cs">
-      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.cs" />
-    <Compile Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.Designer.cs">
-      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.cs" />
-    <Compile Include="Migrations\202609242027162_AddEventSchedulingSchema.Designer.cs">
-      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.cs" />
-    <Compile Include="Migrations\202609242224425_AddRsvpLifecycleFields.Designer.cs">
-      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609250713262_AddEventAudience.cs" />
-    <Compile Include="Migrations\202609250713262_AddEventAudience.Designer.cs">
-      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610030824228_CafeteriaUpdate.cs" />
-    <Compile Include="Migrations\202610030824228_CafeteriaUpdate.Designer.cs">
-      <DependentUpon>202610030824228_CafeteriaUpdate.cs</DependentUpon>
+    <Compile Include="Migrations\202610060133551_InventoryUpdate.cs" />
+    <Compile Include="Migrations\202610060133551_InventoryUpdate.Designer.cs">
+      <DependentUpon>202610060133551_InventoryUpdate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -497,6 +418,7 @@
     <Compile Include="Models\Cafeteria\Recipe.cs" />
     <Compile Include="Models\Cafeteria\RecipeIngredient.cs" />
     <Compile Include="Models\Cafeteria\SportArchetype.cs" />
+    <Compile Include="Models\Cafeteria\SportCatalogue.cs" />
     <Compile Include="Models\Cafeteria\SportPriority.cs" />
     <Compile Include="Models\Cafeteria\StudentFaceSignature.cs" />
     <Compile Include="Models\Cafeteria\StudentSportStatus.cs" />
@@ -637,6 +559,8 @@
     <Compile Include="Services\EventRsvpService.cs" />
     <Compile Include="Services\EventBuffetService.cs" />
     <Compile Include="Services\StudentHouseService.cs" />
+    <Compile Include="Services\StudentSportService.cs" />
+    <Compile Include="Services\TestInvoiceService.cs" />
     <Compile Include="Models\Cafeteria\IngredientInventoryModels.cs" />
     <Compile Include="Models\Cafeteria\CafeteriaInventorySeed.cs" />
     <Compile Include="Models\ViewModels\IngredientInventoryViewModels.cs" />
@@ -889,6 +813,7 @@
     <Content Include="Views\Rsvp\ThankYou.cshtml" />
     <Content Include="Views\Rsvp\MyEvents.cshtml" />
     <Content Include="Views\CafeteriaInventory\Index.cshtml" />
+    <Content Include="Views\CafeteriaInventory\AdjustStock.cshtml" />
     <Content Include="Views\CafeteriaInventory\Ingredient.cshtml" />
     <Content Include="Views\CafeteriaInventory\Stock.cshtml" />
     <Content Include="Views\CafeteriaInventory\SupplierEdit.cshtml" />
@@ -896,6 +821,7 @@
     <Content Include="Views\IngredientDelivery\Details.cshtml" />
     <Content Include="Views\IngredientDelivery\Index.cshtml" />
     <Content Include="Views\IngredientDelivery\Record.cshtml" />
+    <Content Include="Views\IngredientOrder\Auto.cshtml" />
     <Content Include="Views\IngredientOrder\Create.cshtml" />
     <Content Include="Views\IngredientOrder\Details.cshtml" />
     <Content Include="Views\IngredientOrder\Index.cshtml" />
@@ -1094,71 +1020,11 @@
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202608101337415_initialcreate.resx">
-      <DependentUpon>202608101337415_initialcreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610060035367_CoachUpdate.resx">
+      <DependentUpon>202610060035367_CoachUpdate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608101735353_AddVisitorScanLog.resx">
-      <DependentUpon>202608101735353_AddVisitorScanLog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609212014436_AddCafeteriaModels.resx">
-      <DependentUpon>202609212014436_AddCafeteriaModels.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609220140181_FixCafeteriaMenuRelationships.resx">
-      <DependentUpon>202609220140181_FixCafeteriaMenuRelationships.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609220923099_AddMenuItemMealSlotFlags.resx">
-      <DependentUpon>202609220923099_AddMenuItemMealSlotFlags.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609221006413_AddRecipeIngredientFoundation.resx">
-      <DependentUpon>202609221006413_AddRecipeIngredientFoundation.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609221749265_AddIngredientStockQuantities.resx">
-      <DependentUpon>202609221749265_AddIngredientStockQuantities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609222004308_AddMenuItemNutritionCategory.resx">
-      <DependentUpon>202609222004308_AddMenuItemNutritionCategory.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609231900592_SyncMissingTables.resx">
-      <DependentUpon>202609231900592_SyncMissingTables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609231931106_AddKitchenReadyFlag.resx">
-      <DependentUpon>202609231931106_AddKitchenReadyFlag.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609232107354_AddSportEvents.resx">
-      <DependentUpon>202609232107354_AddSportEvents.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609232310141_AddChefChallengeFields.resx">
-      <DependentUpon>202609232310141_AddChefChallengeFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240044568_AddIngredientAllergens.resx">
-      <DependentUpon>202609240044568_AddIngredientAllergens.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240101119_AddMealPlans.resx">
-      <DependentUpon>202609240101119_AddMealPlans.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240318188_AddRecipeKitchenTiming.resx">
-      <DependentUpon>202609240318188_AddRecipeKitchenTiming.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240340578_AddProductionConfirmation.resx">
-      <DependentUpon>202609240340578_AddProductionConfirmation.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609240455339_AddFaceSignaturesAndMealCollections.resx">
-      <DependentUpon>202609240455339_AddFaceSignaturesAndMealCollections.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609241248240_AddSportsArchetypeAndPriorities.resx">
-      <DependentUpon>202609241248240_AddSportsArchetypeAndPriorities.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609242027162_AddEventSchedulingSchema.resx">
-      <DependentUpon>202609242027162_AddEventSchedulingSchema.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609242224425_AddRsvpLifecycleFields.resx">
-      <DependentUpon>202609242224425_AddRsvpLifecycleFields.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609250713262_AddEventAudience.resx">
-      <DependentUpon>202609250713262_AddEventAudience.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610030824228_CafeteriaUpdate.resx">
-      <DependentUpon>202610030824228_CafeteriaUpdate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610060133551_InventoryUpdate.resx">
+      <DependentUpon>202610060133551_InventoryUpdate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

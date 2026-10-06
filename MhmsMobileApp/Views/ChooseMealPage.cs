@@ -38,13 +38,14 @@ namespace MhmsMobileApp.Views
 
             var root = new VerticalStackLayout { Padding = new Thickness(16, 20, 16, 32), Spacing = 14 };
 
-            root.Children.Add(Ui.PageHeader(slot.MealSlot, day.DayLabel + ", " + day.DateLabel));
+            root.Children.Add(Ui.PageHeader(slot.MealSlot, day.DayLabel + ", " + day.DateLabel, "My Meal Plan"));
 
-            var tags = new HorizontalStackLayout { Spacing = 8 };
-            if (slot.IsMatchDay) tags.Children.Add(Ui.Chip("Match day: " + slot.MatchDescription, "#DBEAFE", "#1E40AF"));
-            else if (slot.IsDayBeforeMatch) tags.Children.Add(Ui.Chip("Pre-match: " + slot.MatchDescription, "#FEF3C7", "#92400E"));
-            else if (slot.IsTrainingDay) tags.Children.Add(Ui.Chip(slot.MatchDescription ?? "Training", "#FEF3C7", "#92400E"));
-            tags.Children.Add(Ui.Chip("Choose by end of " + slot.ChooseByLabel, "#F3F4F6", "#4B5563"));
+            var tags = new FlexLayout { Wrap = Microsoft.Maui.Layouts.FlexWrap.Wrap };
+            void Tag(View chip) { chip.Margin = new Thickness(0, 2, 8, 2); tags.Children.Add(chip); }
+            if (slot.IsMatchDay) Tag(Ui.Badge("Match day: " + slot.MatchDescription, Tone.Info));
+            else if (slot.IsDayBeforeMatch) Tag(Ui.Badge("Pre-match: " + slot.MatchDescription, Tone.Low));
+            else if (slot.IsTrainingDay) Tag(Ui.Badge(slot.MatchDescription ?? "Training", Tone.Low));
+            Tag(Ui.Badge("Choose by end of " + slot.ChooseByLabel, Tone.Muted));
             root.Children.Add(tags);
 
             // Same notes as the web page
@@ -69,16 +70,21 @@ namespace MhmsMobileApp.Views
             var available = slot.Options.Where(o => o.IsAvailable).ToList();
             var unavailable = slot.Options.Where(o => !o.IsAvailable).ToList();
 
+            // Options side by side on wide screens (web: lg:grid-cols-3)
             if (available.Count > 0)
             {
                 root.Children.Add(new Label { Text = "Tap a meal to choose it", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 6, 0, 0) });
-                foreach (var opt in available) root.Children.Add(OptionCard(opt, true));
+                var grid = new AdaptiveGrid(280, 3);
+                foreach (var opt in available) grid.Children.Add(OptionCard(opt, true));
+                root.Children.Add(grid);
             }
 
             if (unavailable.Count > 0)
             {
                 root.Children.Add(new Label { Text = "Not available to you", Style = Ui.Style("FieldLabel"), Margin = new Thickness(0, 10, 0, 0) });
-                foreach (var opt in unavailable) root.Children.Add(OptionCard(opt, false));
+                var grid = new AdaptiveGrid(280, 3);
+                foreach (var opt in unavailable) grid.Children.Add(OptionCard(opt, false));
+                root.Children.Add(grid);
             }
 
             if (slot.Options.Count == 0)
@@ -87,6 +93,8 @@ namespace MhmsMobileApp.Views
             }
 
             Content = new ScrollView { Content = root };
+
+            Responsive.Adapt(this, root, bottom: 32);
         }
 
         private View OptionCard(MealPlanOptionDto opt, bool canChoose)
@@ -95,12 +103,18 @@ namespace MhmsMobileApp.Views
 
             var stack = new VerticalStackLayout { Spacing = 6 };
 
+            // "Recommended for your Rugby match" (web: blue label on top)
+            if (canChoose && !string.IsNullOrEmpty(opt.Recommendation))
+            {
+                stack.Children.Add(Ui.Chip("★ " + opt.Recommendation, "#2563EB", "#FFFFFF"));
+            }
+
             var titleRow = new Grid
             {
                 ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
                 ColumnSpacing = 10
             };
-            titleRow.Add(new Label { Text = opt.Name, Style = Ui.Style("CardTitle"), FontSize = 17 }, 0, 0);
+            titleRow.Add(new Label { Text = opt.Name, Style = Ui.Style("CardTitle") }, 0, 0);
             if (isSelected)
             {
                 titleRow.Add(Ui.Chip("✓ Your pick", "#C21E2E", "#FFFFFF"), 1, 0);
@@ -109,18 +123,15 @@ namespace MhmsMobileApp.Views
 
             if (!string.IsNullOrEmpty(opt.DietaryClassification))
             {
-                stack.Children.Add(new Label { Text = opt.DietaryClassification, Style = Ui.Style("MutedText") });
+                stack.Children.Add(Ui.Mono(opt.DietaryClassification, caps: true));
             }
 
-            stack.Children.Add(new Label
-            {
-                Text = opt.Calories.ToString("0") + " kcal · " +
-                       opt.Protein.ToString("0") + " g protein · " +
-                       opt.Carbohydrate.ToString("0") + " g carbs · " +
-                       opt.Fat.ToString("0") + " g fat",
-                FontSize = 12,
-                TextColor = Ui.Color("Gray600")
-            });
+            // Web: "500 kcal · 30g pro · 60g carb · 12g fat" in mono
+            var nutrition = new FormattedString();
+            nutrition.Spans.Add(new Span { Text = opt.Calories.ToString("0") + " kcal · ", FontFamily = "Mono" });
+            nutrition.Spans.Add(new Span { Text = opt.Protein.ToString("0") + "g pro", FontFamily = "MonoSemiBold", TextColor = Color.FromArgb("#2563EB") });
+            nutrition.Spans.Add(new Span { Text = " · " + opt.Carbohydrate.ToString("0") + "g carb · " + opt.Fat.ToString("0") + "g fat", FontFamily = "Mono" });
+            stack.Children.Add(new Label { FormattedText = nutrition, FontFamily = "Mono", FontSize = 11, TextColor = Ui.Color("TextSecondary") });
 
             if (canChoose)
             {
@@ -131,9 +142,10 @@ namespace MhmsMobileApp.Views
             {
                 stack.Children.Add(new Label
                 {
-                    Text = "⊘ Not available to you: " + opt.UnavailableReason,
-                    FontSize = 12,
-                    TextColor = Ui.Color("Danger")
+                    Text = "Not available: " + opt.UnavailableReason,
+                    FontFamily = "MontserratBold",
+                    FontSize = 11,
+                    TextColor = Ui.Color("Primary")
                 });
             }
 
@@ -171,14 +183,16 @@ namespace MhmsMobileApp.Views
 
             void Add(string text, string bg, string fg)
             {
-                var chip = Ui.Chip(text, bg, fg, 10);
+                var chip = Ui.Chip(text, bg, fg, 9);
                 chip.Margin = new Thickness(0, 2, 6, 2);
                 flex.Children.Add(chip);
             }
 
+            // The sport label is shown on top (Recommendation) when the
+            // server sends one; older servers only send the tag
             var sportTag = opt.Tags.FirstOrDefault(t =>
                 t == "Match-day recovery" || t == "Pre-match loading" || t == "Training fuel" || t == "Priority sport");
-            if (sportTag != null) Add(sportTag, "#C7D2FE", "#3730A3");
+            if (sportTag != null && string.IsNullOrEmpty(opt.Recommendation)) Add(sportTag, "#DBEAFE", "#1E40AF");
             if (opt.Tags.Contains("High protein")) Add("High protein", "#DBEAFE", "#1E40AF");
             if (opt.Tags.Contains("High carb")) Add("High carb", "#FEF3C7", "#92400E");
             if (opt.Tags.Contains("Light")) Add("Light", "#FEE2E2", "#991B1B");

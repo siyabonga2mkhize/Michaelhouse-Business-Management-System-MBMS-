@@ -27,6 +27,11 @@ namespace MhmsMobileApp.Models
         public string Supplier { get; set; } = "";
         public string Status { get; set; } = "";
         public string? RequestedDelivery { get; set; }
+
+        // Test invoice generated when the supplier confirmed (web:
+        // IngredientOrder/TestInvoice/{id}); null if none yet
+        public string? TestInvoiceNumber { get; set; }
+
         public List<OpenOrderLineDto> Lines { get; set; } = new List<OpenOrderLineDto>();
     }
 

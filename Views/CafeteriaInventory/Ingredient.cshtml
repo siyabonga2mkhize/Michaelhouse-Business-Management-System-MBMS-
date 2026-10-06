@@ -94,28 +94,14 @@
                 </form>
 
                 <!-- ADJUST -->
-                <form class="inv-card inv-form" method="post" action="@Url.Action("Adjust", "CafeteriaInventory", new { id = ing.Id })">
-                    @Html.AntiForgeryToken()
-                    <h2>Stock count / correction</h2>
-                    <div class="inv-row" style="margin-bottom:.6rem;">
-                        <div>
-                            <label>Stock</label>
-                            <select name="source" class="inv-input">
-                                <option value="External">Bought-in</option>
-                                <option value="Farm">Farm</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Counted (@unit)</label>
-                            <input name="countedQuantity" class="inv-input" inputmode="decimal" required />
-                        </div>
+                <div class="inv-card inv-form">
+                    <h2>Adjust stock</h2>
+                    <div class="inv-help" style="margin-bottom:.75rem;">
+                        Damaged, spoiled or lost stock, or a stock count that doesn't match.
+                        Every adjustment is recorded with its reason, who made it and when.
                     </div>
-                    <div style="margin-bottom:.6rem;">
-                        <label>Reason</label>
-                        <input name="reason" class="inv-input" maxlength="500" required placeholder="e.g. Opening balance, stock take, spoilage" />
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary">Set stock</button>
-                </form>
+                    <a href="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-sm btn-outline-secondary">Adjust stock</a>
+                </div>
             </div>
         }
 
@@ -237,6 +223,7 @@
                             {
                                 string what = t.Type == StockTransactionType.KitchenIssue ? "Kitchen issue"
                                     : t.Type == StockTransactionType.FarmProduce ? "Farm produce"
+                                    : t.Type == StockTransactionType.Adjustment && t.AdjustmentReason.HasValue ? "Adjustment · " + IngredientInventoryService.ReasonLabel(t.AdjustmentReason.Value)
                                     : t.Type.ToString();
                                 <tr>
                                     <td style="white-space:nowrap;">@SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM HH:mm")</td>

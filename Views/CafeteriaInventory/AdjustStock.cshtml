@@ -1,0 +1,186 @@
+﻿@using Michaelhouse.Services
+@using Michaelhouse.Models.Cafeteria
+@model IngredientStockLine
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ing = Model.Ingredient;
+    ViewBag.Title = "Adjust stock — " + ing.Name;
+
+    var recent = ViewBag.Recent as List<IngredientStockTransaction> ?? new List<IngredientStockTransaction>();
+    string unit = IngredientUnits.DisplayUnit(ing.Unit);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    Func<decimal, string> shown = q => IngredientUnits.ToDisplay(q, ing.Unit).ToString("0.###", inv);
+
+    // Default to where the stock is (bought-in unless only farm stock)
+    bool farmDefault = Model.External <= 0m && Model.Farm > 0m;
+}
+
+@Html.Partial("_InventoryStyles")
+
+<div class="container-fluid py-4">
+    <div class="inv-shell" style="max-width:760px;">
+
+        <div class="inv-header">
+            <div>
+                <h1>Adjust stock</h1>
+                <div class="inv-meta">@ing.Name · measured in @unit</div>
+            </div>
+            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-outline-secondary">← @ing.Name</a>
+        </div>
+
+        <div class="inv-stats">
+            <div class="inv-stat"><div class="label">Bought-in</div><div class="value">@IngredientUnits.Format(Model.External, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">Farm</div><div class="value">@IngredientUnits.Format(Model.Farm, ing.Unit)</div></div>
+            <div class="inv-stat"><div class="label">Total available</div><div class="value">@IngredientUnits.Format(Model.Available, ing.Unit)</div></div>
+        </div>
+
+        <form class="inv-card inv-form" method="post" action="@Url.Action("AdjustStock", "CafeteriaInventory", new { id = ing.Id })" id="adjustForm">
+            @Html.AntiForgeryToken()
+
+            <div class="inv-row" style="margin-bottom:.75rem;">
+                <div>
+                    <label>Stock</label>
+                    <select name="source" id="source" class="inv-input">
+                        <option value="External" data-current="@shown(Model.External)" @(farmDefault ? "" : "selected")>Bought-in (@IngredientUnits.Format(Model.External, ing.Unit))</option>
+                        <option value="Farm" data-current="@shown(Model.Farm)" @(farmDefault ? "selected" : "")>Farm (@IngredientUnits.Format(Model.Farm, ing.Unit))</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Reason</label>
+                    <select name="reason" id="reason" class="inv-input" required>
+                        <option value="">— Choose —</option>
+                        @foreach (StockAdjustmentReason r in Enum.GetValues(typeof(StockAdjustmentReason)))
+                        {
+                            <option value="@r">@IngredientInventoryService.ReasonLabel(r)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom:.75rem;">
+                <label style="display:inline-flex; gap:.35rem; align-items:center; font-weight:400; margin-right:1.25rem;">
+                    <input type="radio" name="mode" value="change" checked /> Add or remove an amount
+                </label>
+                <label style="display:inline-flex; gap:.35rem; align-items:center; font-weight:400;">
+                    <input type="radio" name="mode" value="count" /> Enter what was counted
+                </label>
+            </div>
+
+            <div class="inv-row" id="changeFields" style="margin-bottom:.75rem;">
+                <div>
+                    <label>Adjustment</label>
+                    <select name="direction" id="direction" class="inv-input">
+                        <option value="remove">Remove (−)</option>
+                        <option value="add">Add (+)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Quantity (@unit)</label>
+                    <input name="quantity" id="quantity" class="inv-input" inputmode="decimal" placeholder="e.g. 10" />
+                </div>
+            </div>
+
+            <div id="countFields" style="margin-bottom:.75rem; display:none;">
+                <label>Counted quantity (@unit)</label>
+                <input name="countedQuantity" id="counted" class="inv-input" inputmode="decimal" placeholder="What is physically there" />
+                <div class="inv-help">The difference from the recorded stock is the adjustment.</div>
+            </div>
+
+            <div style="margin-bottom:.75rem;">
+                <label>Notes <span class="inv-muted" id="notesHint">(optional)</span></label>
+                <input name="notes" id="notes" class="inv-input" maxlength="400" placeholder="e.g. Freezer failure overnight" />
+            </div>
+
+            <div class="inv-note info" id="preview" style="margin-bottom:.75rem;">
+                Current <strong id="pvCurrent">—</strong> @unit →
+                adjustment <strong id="pvChange">—</strong> @unit →
+                new <strong id="pvNew">—</strong> @unit
+            </div>
+            <div class="inv-note bad" id="pvError" style="display:none; margin-bottom:.75rem;">Adjustment would result in negative stock.</div>
+
+            <button class="btn btn-primary" id="confirmBtn">Confirm adjustment</button>
+            <a href="@Url.Action("Ingredient", "CafeteriaInventory", new { id = ing.Id })" class="btn btn-link">Cancel</a>
+        </form>
+
+        @if (recent.Any())
+        {
+            <div class="inv-card">
+                <h2>Recent adjustments</h2>
+                <div class="inv-table-wrap">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>Reason</th>
+                                <th class="num">Change</th>
+                                <th class="num">Stock after</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in recent)
+                            {
+                                <tr>
+                                    <td style="white-space:nowrap;">@SchoolClock.FromUtc(t.CreatedAt).ToString("dd MMM HH:mm")</td>
+                                    <td>@(t.Notes ?? "—")</td>
+                                    <td class="num" style="color:@(t.Quantity < 0 ? "#b91c1c" : "#065f46");">@(t.Quantity > 0 ? "+" : "")@IngredientUnits.Format(t.Quantity, ing.Unit)</td>
+                                    <td class="num">@IngredientUnits.Format(t.TotalAfter, ing.Unit)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+<script>
+    (function () {
+        var form = document.getElementById('adjustForm');
+        var source = document.getElementById('source');
+        var direction = document.getElementById('direction');
+        var quantity = document.getElementById('quantity');
+        var counted = document.getElementById('counted');
+        var reason = document.getElementById('reason');
+        var notesHint = document.getElementById('notesHint');
+
+        // Accepts "12.5" and "12,5"
+        function num(v) {
+            v = (v || '').trim().replace(',', '.');
+            return v === '' || isNaN(v) ? null : parseFloat(v);
+        }
+        function fmt(v) { return (Math.round(v * 1000) / 1000).toString(); }
+        function mode() { return form.querySelector('input[name="mode"]:checked').value; }
+
+        function update() {
+            var isCount = mode() === 'count';
+            document.getElementById('changeFields').style.display = isCount ? 'none' : '';
+            document.getElementById('countFields').style.display = isCount ? '' : 'none';
+            if (isCount && !reason.value) reason.value = 'StockCountCorrection';
+            notesHint.textContent = reason.value === 'Other' ? '(required)' : '(optional)';
+
+            var current = parseFloat(source.options[source.selectedIndex].getAttribute('data-current')) || 0;
+            var change = null;
+            if (isCount) {
+                var c = num(counted.value);
+                if (c !== null) change = c - current;
+            } else {
+                var q = num(quantity.value);
+                if (q !== null) change = direction.value === 'remove' ? -q : q;
+            }
+
+            document.getElementById('pvCurrent').textContent = fmt(current);
+            document.getElementById('pvChange').textContent = change === null ? '—' : (change > 0 ? '+' : '') + fmt(change);
+            document.getElementById('pvNew').textContent = change === null ? '—' : fmt(current + change);
+
+            var negative = change !== null && current + change < 0;
+            document.getElementById('pvError').style.display = negative ? '' : 'none';
+            document.getElementById('confirmBtn').disabled = negative;
+        }
+
+        form.addEventListener('input', update);
+        form.addEventListener('change', update);
+        update();
+    })();
+</script>

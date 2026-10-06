@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Michaelhouse.Models.ViewModels
 {
@@ -11,25 +12,30 @@ namespace Michaelhouse.Models.ViewModels
 
         public string Name { get; set; }
 
+        // Active students living in the house (residence allocation)
         [Range(0, 100000)]
         public int StudentCount { get; set; }
+    }
 
-        public bool IsInSeason { get; set; }
+    // A Coach's fixture in the planning range, shown (read-only) on
+    // the Schedule form — sports come from the Coaches, not this form
+    public class ScheduledSportViewModel
+    {
+        public DateTime Date { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public string EventType { get; set; }
 
-        [StringLength(100)]
-        public string ActiveSport { get; set; }
+        // e.g. "Rugby vs Hilton"
+        public string Label { get; set; }
 
+        // Null = every player of the sport
+        public string House { get; set; }
 
-        // ────────────────────────────────────────────────────────
-        // UC12: optional match date for this house's squad.
-        // Null = no match this week (normal rotation).
-        // Set  = generator will steer Fri (day-before) to high-carb
-        //        and Sat (match day) to high-protein for this house.
-        // ────────────────────────────────────────────────────────
-        [DataType(DataType.Date)]
-        [Display(Name = "Next match date")]
-        public DateTime? MatchDate { get; set; }
+        public int Players { get; set; }
 
+        // e.g. "High-protein on match day, high-carb the day before"
+        public string MealNeed { get; set; }
     }
 
     public class ScheduleMenuInputViewModel
@@ -61,8 +67,14 @@ namespace Michaelhouse.Models.ViewModels
 
         public IList<BoardingHouseScheduleOption> BoardingHouses { get; set; }
 
+        // Display only (not posted): the Coaches' fixtures in the
+        // range, and the most match players on any one day
+        public IList<ScheduledSportViewModel> ScheduledSports { get; set; }
+        public int PeakMatchPlayers { get; set; }
+
         public ScheduleMenuInputViewModel()
         {
+            ScheduledSports = new List<ScheduledSportViewModel>();
             BoardingHouses = new List<BoardingHouseScheduleOption>();
             OptionsPerSlot = 3;
         }
@@ -164,5 +176,54 @@ namespace Michaelhouse.Models.ViewModels
         public bool IsInStock { get; set; }
         public bool IsCooldownOk { get; set; }
         public string Reason { get; set; }
+    }
+
+    // ============================================================
+    // Coach — My Sports (CoachSquad/Index): each sport's players,
+    // from students' profiles, and its upcoming fixtures
+    // ============================================================
+
+    public class SportSquadViewModel
+    {
+        public SportSquadViewModel()
+        {
+            Players = new List<SquadPlayerViewModel>();
+            Upcoming = new List<SquadFixtureViewModel>();
+        }
+
+        public string Sport { get; set; }
+        public SportArchetype Archetype { get; set; }
+        public List<SquadPlayerViewModel> Players { get; set; }
+        public List<SquadFixtureViewModel> Upcoming { get; set; }
+
+        public int AvailableCount
+        {
+            get { return Players.Count(p => p.IsAvailableToday); }
+        }
+    }
+
+    public class SquadPlayerViewModel
+    {
+        // StudentSportStatus.Id — what Mark (un)available posts
+        public int StatusId { get; set; }
+        public string Name { get; set; }
+        public string StudentNumber { get; set; }
+        public string Grade { get; set; }
+        public string House { get; set; }
+        public bool IsAvailableToday { get; set; }
+        public string StatusReason { get; set; }
+        public DateTime? UnavailableUntil { get; set; }
+    }
+
+    public class SquadFixtureViewModel
+    {
+        public int Id { get; set; }
+        public DateTime Date { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public string EventType { get; set; }
+        public string Label { get; set; }
+        public string House { get; set; }
+        public int Players { get; set; }
     }
 }

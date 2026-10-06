@@ -75,37 +75,25 @@ namespace Michaelhouse.Controllers
         [HttpGet]
         public ActionResult Create(int? supplierId, string from, int[] ingredientIds)
         {
-            var lines = _inventory.GetStockLines().Where(l => l.Ingredient.IsActive).ToList();
-            var upcoming = _inventory.UpcomingRequirements(14).ToDictionary(u => u.Ingredient.Id);
-
-            var suggested = new Dictionary<int, decimal>();
-            foreach (var l in lines)
-            {
-                decimal qty = 0m;
-                if (l.IsLowStock || l.IsOutOfStock) qty = l.SuggestedOrder;
-
-                UpcomingRequirement up;
-                if (upcoming.TryGetValue(l.Ingredient.Id, out up) && up.ShortfallAfterOrders > 0m)
-                    qty = Math.Max(qty, up.ShortfallAfterOrders);
-
-                if (qty > 0m) suggested[l.Ingredient.Id] = qty;
-            }
+            List<IngredientStockLine> lines;
+            Dictionary<int, UpcomingRequirement> upcoming;
+            var suggested = _purchasing.SuggestedQuantities(out lines, out upcoming);
 
             List<int> preselect;
             if (ingredientIds != null && ingredientIds.Length > 0)
             {
                 preselect = ingredientIds.Distinct().ToList();
             }
+            else if (supplierId.HasValue)
+            {
+                // Only what this supplier supplies. (Everything that needs
+                // ordering, across suppliers, is Automatic orders.)
+                var supplied = _db.IngredientSuppliers.Where(x => x.SupplierId == supplierId.Value && x.IsActive).Select(x => x.IngredientId).ToList();
+                preselect = suggested.Keys.Where(supplied.Contains).ToList();
+            }
             else
             {
-                preselect = suggested.Keys.ToList();
-
-                // Only what this supplier supplies, when one is chosen
-                if (supplierId.HasValue)
-                {
-                    var supplied = _db.IngredientSuppliers.Where(x => x.SupplierId == supplierId.Value && x.IsActive).Select(x => x.IngredientId).ToList();
-                    preselect = preselect.Where(supplied.Contains).ToList();
-                }
+                preselect = new List<int>();
             }
 
             ViewBag.Suggested = suggested;
@@ -131,6 +119,98 @@ namespace Michaelhouse.Controllers
                 TempData["Error"] = ex.Message;
                 return RedirectToAction("Create", new { supplierId });
             }
+        }
+
+        // ============================================================
+        // GET: IngredientOrder/Auto?ingredientIds=1&ingredientIds=2
+        // Automatic orders: every ingredient that needs ordering (or the
+        // ones ticked on the stock page) goes to its supplier — one
+        // purchase order per supplier. Shown for review first;
+        // ingredients with no supplier are listed, not ordered.
+        // POST: creates the drafts (quantities may be changed / unticked).
+        // ============================================================
+
+        [HttpGet]
+        public ActionResult Auto(int[] ingredientIds)
+        {
+            IDictionary<int, decimal> quantities = null;
+
+            if (ingredientIds != null && ingredientIds.Length > 0)
+            {
+                // Ticked on the stock page: their suggestion, else the
+                // amount needed to reach the target level
+                List<IngredientStockLine> lines;
+                Dictionary<int, UpcomingRequirement> upcoming;
+                var suggested = _purchasing.SuggestedQuantities(out lines, out upcoming);
+                var byId = lines.ToDictionary(l => l.Ingredient.Id);
+
+                quantities = ingredientIds.Distinct()
+                    .Where(byId.ContainsKey)
+                    .ToDictionary(id => id, id => suggested.ContainsKey(id) ? suggested[id] : byId[id].SuggestedOrder);
+            }
+
+            return View(_purchasing.PlanAutomaticOrders(quantities));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("Auto")]
+        public ActionResult AutoCreate()
+        {
+            try
+            {
+                // include_{ingredientId}=true + qty_{ingredientId} (kg / L)
+                var ids = Request.Form.AllKeys
+                    .Where(k => k != null && k.StartsWith("include_") && Request.Form[k].Split(',').Contains("true"))
+                    .Select(k => { int i; return int.TryParse(k.Substring(8), out i) ? i : 0; })
+                    .Where(i => i > 0)
+                    .Distinct()
+                    .ToList();
+
+                var ingredients = _db.Ingredients.Where(i => ids.Contains(i.Id)).ToDictionary(i => i.Id);
+                var quantities = new Dictionary<int, decimal>();
+
+                foreach (var id in ids.Where(ingredients.ContainsKey))
+                {
+                    var qty = IngredientUnits.ParseQuantity(Request.Form["qty_" + id]);
+                    if (!qty.HasValue || qty.Value <= 0m)
+                        throw new InventoryException(ingredients[id].Name + ": enter the quantity to order in " + IngredientUnits.DisplayUnit(ingredients[id].Unit) + ".");
+                    quantities[id] = IngredientUnits.ToBase(qty.Value, ingredients[id].Unit);
+                }
+
+                var created = _purchasing.CreateAutomaticOrders(quantities, ResolveUserId());
+
+                TempData["Success"] = string.Format(
+                    "{0} draft order{1} created, one per supplier: {2}. Check each, then send it to the supplier.",
+                    created.Count, created.Count == 1 ? "" : "s",
+                    string.Join(", ", created.Select(o => o.PoNumber)));
+
+                return created.Count == 1
+                    ? RedirectToAction("Details", new { id = created[0].Id })
+                    : RedirectToAction("Index", new { status = "draft" });
+            }
+            catch (InventoryException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Auto");
+            }
+        }
+
+        // ============================================================
+        // GET: IngredientOrder/TestInvoice/5 — the order's generated
+        // test invoice (PDF). Use it on Record Delivery to test the scan.
+        // ============================================================
+
+        [HttpGet]
+        public ActionResult TestInvoice(int id)
+        {
+            var order = _db.IngredientPurchaseOrders.FirstOrDefault(o => o.Id == id);
+            if (order == null || string.IsNullOrEmpty(order.TestInvoiceFilePath)) return HttpNotFound();
+
+            var full = new InvoiceScanService().FullPath(order.TestInvoiceFilePath);
+            if (full == null || !System.IO.File.Exists(full)) return HttpNotFound();
+
+            return File(full, "application/pdf", order.TestInvoiceNumber + ".pdf");
         }
 
         // ============================================================
@@ -244,9 +324,10 @@ namespace Michaelhouse.Controllers
 
                 var updated = RequireOrder(id);
                 var shortfalls = updated.Lines.Where(l => l.Shortfall > 0m && l.ShortfallAction == ShortfallAction.None).ToList();
-                return shortfalls.Count == 0
+                var message = shortfalls.Count == 0
                     ? "Supplier confirmation recorded."
                     : string.Format("Supplier confirmation recorded. {0} item(s) are short — choose what to do with the shortfall below.", shortfalls.Count);
+                return WithInvoice(message);
             });
         }
 
@@ -263,7 +344,7 @@ namespace Michaelhouse.Controllers
                 if (!qty.HasValue) throw new InventoryException("Enter the new quantity in " + IngredientUnits.DisplayUnit(line.Ingredient.Unit) + ".");
 
                 _purchasing.AmendLine(id, lineId, IngredientUnits.ToBase(qty.Value, line.Ingredient.Unit), note);
-                return line.Ingredient.Name + " amended.";
+                return WithInvoice(line.Ingredient.Name + " amended.");
             });
         }
 
@@ -277,12 +358,12 @@ namespace Michaelhouse.Controllers
                 if (shortfallAction == "accept")
                 {
                     _purchasing.AcceptShortfall(id, lineIds, note);
-                    return "Shortfall accepted.";
+                    return WithInvoice("Shortfall accepted.");
                 }
 
                 var created = _purchasing.ReorderShortfall(id, lineIds, supplierId, ResolveUserId());
                 return "Shortfall re-ordered on " + string.Join(", ", created.Select(o => o.PoNumber))
-                    + " (draft — check and send it).";
+                    + " (draft — check and send it). That order gets its own test invoice once its supplier confirms it.";
             });
         }
 
@@ -377,6 +458,12 @@ namespace Michaelhouse.Controllers
             }
 
             return RedirectToAction("Details", new { id });
+        }
+
+        // "… Test invoice INV-TEST-… updated to match the order."
+        private string WithInvoice(string message)
+        {
+            return string.IsNullOrEmpty(_purchasing.InvoiceMessage) ? message : message + " " + _purchasing.InvoiceMessage;
         }
 
         private int ResolveUserId()

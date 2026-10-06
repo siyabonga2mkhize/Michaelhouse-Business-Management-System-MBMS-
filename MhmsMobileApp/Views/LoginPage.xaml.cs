@@ -26,6 +26,15 @@ namespace MhmsMobileApp.Views
             }
 
             ConnectionBox.IsVisible = !_serverReached;
+
+            // Wide screens (tablet / landscape): brand panel beside the
+            // form, like the web login; phones: the form alone
+            SizeChanged += (s, e) =>
+            {
+                bool wide = Width >= 800;
+                BrandPanel.IsVisible = wide;
+                LayoutGrid.ColumnDefinitions[0].Width = wide ? new GridLength(Width * 0.42) : new GridLength(0);
+            };
         }
 
         protected override void OnAppearing()

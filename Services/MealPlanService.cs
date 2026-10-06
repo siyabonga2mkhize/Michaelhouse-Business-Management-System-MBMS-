@@ -525,15 +525,17 @@ namespace Michaelhouse.Services
                 .Where(s => s.MealMenuId == acceptedMenu.Id)
                 .ToList();
 
-            // The student's own sports context for every day
-            var sportDays = BuildSportContexts(sportStatuses, plan.WeekStartDate.Date, plan.WeekEndDate.Date);
+            // The student's own sports needs for every day: their
+            // sports, availability and the Coaches' fixtures
+            var calendar = new StudentSportService(_db).LoadCalendar(
+                plan.WeekStartDate.Date, plan.WeekEndDate.Date, new[] { student.StudentId });
 
             for (var date = plan.WeekStartDate.Date;
                  date <= plan.WeekEndDate.Date;
                  date = date.AddDays(1))
             {
                 var dayVm = new MealPlanDayViewModel { Date = date };
-                var sportCtx = sportDays[date];
+                var sportCtx = StudentSportContext.From(calendar.NeedOn(student.StudentId, date));
 
                 foreach (var slot in Slots)
                 {
@@ -566,24 +568,26 @@ namespace Michaelhouse.Services
         // ============================================================
         // SPORT CONTEXT — for THIS student, per day
         // ------------------------------------------------------------
-        // Uses the student's StudentSportStatus rows (injury-aware),
-        // SportEvent fixtures for their sports and SportPriority, with
-        // the same category rules as the menu scheduler:
+        // From SportsCalendar.NeedOn (StudentSportService): the
+        // student's sports, whether they're available, and the
+        // Coaches' fixtures — the same rules the menu generator uses:
         //
-        //   Match day          → archetype category (Power → HighProtein,
-        //                        Endurance → HighCarb, Skill → Light,
-        //                        Speed → Hydration)
+        //   Match day          → the sport's category (Power →
+        //                        HighProtein, Endurance → HighCarb,
+        //                        Skill → Light, Speed → Hydration)
         //   Day before a match → HighCarb
         //   Training day       → Power → HighProtein, Endurance → HighCarb
         //   Priority sport week→ same as training
         //
-        // Every day also keeps the archetype baseline (Power → protein,
-        // Endurance → carb). If every sport is marked unavailable on a
-        // date, the student is "recovering" — no athletic push.
+        // Only days with an activity count: playing rugby doesn't make
+        // every day a high-protein day. If every sport is marked
+        // unavailable, the student is "recovering" — no sports push.
+        // Sports only RANK safe options; they never hide one.
         // ============================================================
 
         private class StudentSportContext
         {
+            // A match, the day before one, training or a priority week
             public bool HasActiveSport { get; set; }
             public bool PrefersProtein { get; set; }
             public bool PrefersCarb { get; set; }
@@ -599,121 +603,29 @@ namespace Michaelhouse.Services
 
             // e.g. "Rugby vs Hilton"
             public string Description { get; set; }
-        }
 
-        private Dictionary<DateTime, StudentSportContext> BuildSportContexts(
-            List<StudentSportStatus> statuses,
-            DateTime weekStart,
-            DateTime weekEnd)
-        {
-            var result = new Dictionary<DateTime, StudentSportContext>();
-            var afterEnd = weekEnd.AddDays(2);   // day-before needs tomorrow's fixtures
+            // e.g. "Recommended for your Rugby match"
+            public string RecommendationLabel { get; set; }
 
-            var mySports = new HashSet<string>(statuses.Select(s => s.Sport), StringComparer.OrdinalIgnoreCase);
-
-            var fixtures = mySports.Count == 0
-                ? new List<SportEvent>()
-                : _db.SportEvents
-                    .Where(e => !e.IsCancelled && e.ScheduledDate >= weekStart && e.ScheduledDate < afterEnd)
-                    .ToList()
-                    .Where(e => (string.IsNullOrEmpty(e.Status) || e.Status == "Scheduled") && mySports.Contains(e.Sport))
-                    .ToList();
-
-            var prioritySports = mySports.Count == 0
-                ? new List<string>()
-                : _db.SportPriorities
-                    .Where(p => p.PriorityLevel == 2 && p.WeekStartDate <= weekEnd && p.WeekEndDate >= weekStart)
-                    .Select(p => p.Sport)
-                    .ToList();
-
-            for (var date = weekStart; date <= weekEnd; date = date.AddDays(1))
+            public static StudentSportContext From(SportNeed need)
             {
-                var ctx = new StudentSportContext();
-                result[date] = ctx;
+                bool active = need.Kind != SportNeedKind.None;
 
-                if (statuses.Count == 0) continue;
-
-                var active = statuses.Where(s => IsStatusActiveOn(s, date)).ToList();
-
-                if (active.Count == 0)
+                return new StudentSportContext
                 {
-                    ctx.IsRecovering = true;
-                    continue;
-                }
-
-                ctx.HasActiveSport = true;
-                ctx.PrefersProtein = active.Any(s => s.Archetype == SportArchetype.Power);
-                ctx.PrefersCarb = active.Any(s => s.Archetype == SportArchetype.Endurance);
-
-                var activeTomorrow = statuses.Where(s => IsStatusActiveOn(s, date.AddDays(1))).ToList();
-
-                var matchToday = fixtures.FirstOrDefault(e =>
-                    e.EventType == "Match" && e.ScheduledDate.Date == date && active.Any(s => SameSport(s, e)));
-
-                var matchTomorrow = fixtures.FirstOrDefault(e =>
-                    e.EventType == "Match" && e.ScheduledDate.Date == date.AddDays(1) && activeTomorrow.Any(s => SameSport(s, e)));
-
-                var training = fixtures.FirstOrDefault(e =>
-                    e.EventType == "Training" && e.ScheduledDate.Date == date && active.Any(s => SameSport(s, e)));
-
-                var priority = active.FirstOrDefault(s =>
-                    prioritySports.Any(p => string.Equals(p, s.Sport, StringComparison.OrdinalIgnoreCase)));
-
-                if (matchToday != null)
-                {
-                    ctx.IsMatchDay = true;
-                    ctx.Description = MatchLabel(matchToday);
-                    ctx.PreferredCategory = MenuSchedulingService.MatchDayCategory(ArchetypeFor(active, matchToday));
-                }
-                else if (matchTomorrow != null)
-                {
-                    ctx.IsDayBeforeMatch = true;
-                    ctx.Description = MatchLabel(matchTomorrow);
-                    ctx.PreferredCategory = NutritionCategory.HighCarb;
-                }
-                else if (training != null)
-                {
-                    ctx.IsTrainingDay = true;
-                    ctx.Description = training.Sport + " training";
-                    ctx.PreferredCategory = MenuSchedulingService.TrainingCategory(ArchetypeFor(active, training));
-                }
-                else if (priority != null)
-                {
-                    ctx.IsPriorityWeek = true;
-                    ctx.Description = priority.Sport + " priority week";
-                    ctx.PreferredCategory = MenuSchedulingService.TrainingCategory(priority.Archetype);
-                }
+                    HasActiveSport = active,
+                    IsRecovering = need.IsRecovering,
+                    PrefersProtein = active && need.Archetype == SportArchetype.Power,
+                    PrefersCarb = active && need.Archetype == SportArchetype.Endurance,
+                    IsMatchDay = need.Kind == SportNeedKind.MatchDay,
+                    IsDayBeforeMatch = need.Kind == SportNeedKind.DayBeforeMatch,
+                    IsTrainingDay = need.Kind == SportNeedKind.Training,
+                    IsPriorityWeek = need.Kind == SportNeedKind.PriorityWeek,
+                    PreferredCategory = need.Category,
+                    Description = need.Description,
+                    RecommendationLabel = need.RecommendationLabel
+                };
             }
-
-            return result;
-        }
-
-        private static bool SameSport(StudentSportStatus status, SportEvent e)
-        {
-            return string.Equals(status.Sport, e.Sport, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static SportArchetype ArchetypeFor(List<StudentSportStatus> statuses, SportEvent e)
-        {
-            var status = statuses.FirstOrDefault(s => SameSport(s, e));
-            return status != null ? status.Archetype : SportArchetype.None;
-        }
-
-        private static string MatchLabel(SportEvent e)
-        {
-            return string.IsNullOrEmpty(e.Opponent) ? e.Sport + " match" : e.Sport + " vs " + e.Opponent;
-        }
-
-        private bool IsStatusActiveOn(StudentSportStatus status, DateTime date)
-        {
-            // Auto-recover: return date has passed → treat as active.
-            if (status.UnavailableUntil.HasValue &&
-                status.UnavailableUntil.Value.Date <= date.Date)
-            {
-                return true;
-            }
-
-            return status.IsActive;
         }
 
         // ============================================================
@@ -790,7 +702,7 @@ namespace Michaelhouse.Services
                 && !suitable.Any(c => c.NutritionCategory == sportCtx.PreferredCategory.Value))
             {
                 vm.SportsNote = string.Format(
-                    "No {0} option on this menu suits your dietary profile for {1} — choose the closest match.",
+                    "No {0} option on this menu suits your dietary profile for your {1} — choose whichever suits you best.",
                     CategoryWords(sportCtx.PreferredCategory.Value),
                     sportCtx.Description);
             }
@@ -837,20 +749,17 @@ namespace Michaelhouse.Services
                 IsDefault = false,
 
                 // Sports tags only make sense on meals they can choose
-                Tags = available ? BuildOptionTags(item, sportCtx) : new List<string>()
+                Tags = available ? BuildOptionTags(item, sportCtx) : new List<string>(),
+
+                // "Recommended for your Rugby match" — safe options in
+                // the category the day calls for
+                RecommendationLabel = available && FitsToday(item, sportCtx) ? sportCtx.RecommendationLabel : null
             };
         }
 
         private static string CategoryWords(NutritionCategory category)
         {
-            switch (category)
-            {
-                case NutritionCategory.HighProtein: return "high-protein";
-                case NutritionCategory.HighCarb: return "high-carb";
-                case NutritionCategory.Light: return "light";
-                case NutritionCategory.Hydration: return "hydration-focused";
-                default: return "standard";
-            }
+            return MenuCoverageService.CategoryWords(category);
         }
 
         // ============================================================
@@ -949,7 +858,8 @@ namespace Michaelhouse.Services
                     score += 10;
                 }
 
-                // UC12: archetype-driven baseline preference, every day
+                // UC12: archetype preference — only on days with an
+                // activity (HasActiveSport), never "every day"
                 if (sportCtx.PrefersProtein && item.NutritionCategory == NutritionCategory.HighProtein)
                 {
                     score += 3;
@@ -970,14 +880,19 @@ namespace Michaelhouse.Services
         // TAGS — human-readable labels shown under each option
         // ============================================================
 
+        private static bool FitsToday(MenuItem item, StudentSportContext sportCtx)
+        {
+            return sportCtx != null
+                   && !sportCtx.IsRecovering
+                   && sportCtx.PreferredCategory.HasValue
+                   && item.NutritionCategory == sportCtx.PreferredCategory.Value;
+        }
+
         private List<string> BuildOptionTags(MenuItem item, StudentSportContext sportCtx)
         {
             var tags = new List<string>();
 
-            bool fitsToday = sportCtx != null
-                             && !sportCtx.IsRecovering
-                             && sportCtx.PreferredCategory.HasValue
-                             && item.NutritionCategory == sportCtx.PreferredCategory.Value;
+            bool fitsToday = FitsToday(item, sportCtx);
 
             if (fitsToday)
             {
