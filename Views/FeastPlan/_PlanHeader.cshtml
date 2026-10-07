@@ -20,7 +20,7 @@
                 <span>· @Model.Event.Venue.Name</span>
             }
         </p>
-        <div class="small mt-1">
+        <div class="small mt-1 d-print-none">
             @if (canOpenEvent)
             {
                 <a href="@Url.Action("Details", "Event", new { id = Model.EventId })">Event details</a>
