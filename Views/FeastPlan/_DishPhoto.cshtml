@@ -1,0 +1,22 @@
+@using Michaelhouse.Services
+@model string
+@*
+    UC19 dish thumbnail. Model: the dish name. The photo is
+    ~/Content/Images/feast/<dish slug>.jpg (FeastPlanService.DishPhoto);
+    without one, a neutral placeholder keeps the rows lined up.
+*@
+@{
+    string photo = FeastPlanService.DishPhoto(Model);
+}
+@if (photo != null)
+{
+    <img src="@Url.Content(photo)" alt="@Model" loading="lazy"
+         style="width:56px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #E5E7EB;flex:none;" />
+}
+else
+{
+    <span aria-hidden="true"
+          style="width:56px;height:42px;border-radius:6px;border:1px solid #E5E7EB;background:#F8F9FA;color:#9CA3AF;display:inline-flex;align-items:center;justify-content:center;flex:none;">
+        <i class="bi bi-egg-fried"></i>
+    </span>
+}

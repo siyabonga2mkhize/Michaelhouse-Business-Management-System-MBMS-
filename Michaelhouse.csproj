@@ -591,6 +591,18 @@
     <Compile Include="StudentQRCodeService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Images\feast\apple-cinnamon-oats.jpg" />
+    <Content Include="Content\Images\feast\baked-hake-potato-wedges.jpg" />
+    <Content Include="Content\Images\feast\banquet-buffet.jpg" />
+    <Content Include="Content\Images\feast\bean-butternut-wrap.jpg" />
+    <Content Include="Content\Images\feast\beef-lasagne-garden-salad.jpg" />
+    <Content Include="Content\Images\feast\beef-pasta.jpg" />
+    <Content Include="Content\Images\feast\beef-vegetable-casserole.jpg" />
+    <Content Include="Content\Images\feast\beef-vegetable-stir-fry.jpg" />
+    <Content Include="Content\Images\feast\breakfast-wrap.jpg" />
+    <Content Include="Content\Images\feast\CREDITS.txt" />
+    <Content Include="Content\Images\feast\halal-beef-burger-salad.jpg" />
+    <Content Include="Content\Images\feast\kitchen-chef.jpg" />
     <Content Include="Content\academic.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -856,6 +868,7 @@
     <Content Include="Views\FeastPlan\_Steps.cshtml" />
     <Content Include="Views\FeastPlan\_Counts.cshtml" />
     <Content Include="Views\FeastPlan\_Items.cshtml" />
+    <Content Include="Views\FeastPlan\_DishPhoto.cshtml" />
     <Content Include="Views\FeastPlan\_Check.cshtml" />
     <Content Include="Views\FeastPlan\_PlanHeader.cshtml" />
     <Content Include="Views\FeastPlan\_History.cshtml" />

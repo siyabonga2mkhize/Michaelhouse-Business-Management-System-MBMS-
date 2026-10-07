@@ -23,7 +23,9 @@
 
     @Html.Partial("_PlanHeader", Model)
 
-    <div class="alert alert-success">
+    <div class="row g-3 mb-3 align-items-stretch">
+    <div class="col-lg-8">
+    <div class="alert alert-success h-100 mb-0">
         <i class="bi bi-lock-fill me-1"></i>
         <strong>Approved and locked.</strong>
         @if (approval != null)
@@ -45,6 +47,17 @@
         {
             <div class="mt-1">Cafeteria Manager: @Model.ManagerComments</div>
         }
+    </div>
+    </div>
+    <div class="col-lg-4 d-print-none">
+        <div class="h-100 text-white d-flex align-items-end"
+             style="min-height:140px;border-radius:8px;padding:16px;background:linear-gradient(0deg, rgba(26,26,26,0.85) 0%, rgba(26,26,26,0.1) 70%), url('@Url.Content(FeastPlanService.PhotoFolder + "kitchen-chef.jpg")') center / cover no-repeat;">
+            <div>
+                <div class="fw-semibold"><i class="bi bi-fire me-1"></i>With the kitchen</div>
+                <div class="small" style="color:#F3F4F6;">The kitchen prepares exactly the dishes and portions below.</div>
+            </div>
+        </div>
+    </div>
     </div>
 
     @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })

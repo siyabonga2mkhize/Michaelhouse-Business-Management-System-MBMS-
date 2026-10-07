@@ -1,0 +1,21 @@
+UC19 Generate Feast Plan - dish and event photos
+
+All photos are free photos from Unsplash (https://unsplash.com), used under the
+Unsplash License (https://unsplash.com/license): free to use, including for
+commercial purposes, no permission needed. Resized to 800 px wide.
+
+A dish's photo is found by its name: "Baked Hake & Potato Wedges" ->
+baked-hake-potato-wedges.jpg (FeastPlanService.DishPhoto). To add a photo for
+another meal, save it here under that name and add it to Michaelhouse.csproj.
+
+apple-cinnamon-oats.jpg        https://unsplash.com/photos/bowl-of-oatmeal-topped-with-chopped-green-apples-4zG050fMarw
+baked-hake-potato-wedges.jpg   https://unsplash.com/photos/whole-roasted-fish-with-potatoes-and-tomatoes-XjhNAOUz4cY
+banquet-buffet.jpg             https://unsplash.com/photos/a-buffet-with-many-different-types-of-food-on-it-Ri2dPW_kP0k
+bean-butternut-wrap.jpg        https://unsplash.com/photos/a-wrap-and-salad-on-a-white-plate--KLZWBqfq6c
+beef-lasagne-garden-salad.jpg  https://unsplash.com/photos/a-white-plate-topped-with-lasagna-covered-in-sauce-flEUTTwGlJQ
+beef-pasta.jpg                 https://unsplash.com/photos/penne-pasta-with-meat-sauce-flFd8L7_B3g
+beef-vegetable-casserole.jpg   https://unsplash.com/photos/cooked-food-on-black-bowl-kwJhh14nUcs
+beef-vegetable-stir-fry.jpg    https://unsplash.com/photos/bowl-of-rice-topped-with-meat-and-vegetables-kA8cYzvJzds
+breakfast-wrap.jpg             https://unsplash.com/photos/a-white-plate-topped-with-a-burrito-and-rice-gBqlz19UlnI
+halal-beef-burger-salad.jpg    https://unsplash.com/photos/burger-with-lettuce-and-lettuce-K7APqkuulcY
+kitchen-chef.jpg               https://unsplash.com/photos/a-chef-cooking-in-a-commercial-kitchen-F9v4iq0RDZ0

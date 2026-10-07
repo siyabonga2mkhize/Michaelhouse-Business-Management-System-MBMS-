@@ -12,15 +12,16 @@
 
 <div class="container-fluid py-4">
 
-    <div class="mb-4">
-        <h1 class="h3 mb-1">Feast Plans</h1>
-        <p class="text-muted mb-0">
+    <div class="mb-4 text-white"
+         style="border-radius:12px;padding:40px 32px;background:linear-gradient(90deg, rgba(26,26,26,0.88) 0%, rgba(26,26,26,0.55) 60%, rgba(26,26,26,0.25) 100%), url('@Url.Content(FeastPlanService.PhotoFolder + "banquet-buffet.jpg")') center / cover no-repeat;">
+        <h1 class="h3 mb-1" style="color:#FFFFFF;">Feast Plans</h1>
+        <p class="mb-0" style="max-width:720px;color:#F3F4F6;">
             Dish quantities for scheduled events, worked out from their RSVPs, checked for stock, menu fatigue, buffet
             balance and waste, reviewed by the Meal Coordinator and approved by the Cafeteria Manager.
         </p>
         @if (canCoordinate)
         {
-            <a class="btn btn-sm btn-outline-secondary mt-2" href="@Url.Action("Tags", "FeastPlan")">
+            <a class="btn btn-sm btn-light mt-3" href="@Url.Action("Tags", "FeastPlan")">
                 <i class="bi bi-palette"></i> Colour and texture tags for the meal library
             </a>
         }

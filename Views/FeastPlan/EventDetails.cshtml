@@ -81,7 +81,12 @@
                                 @foreach (var d in FeastPlanService.InOrder(Model.Dishes))
                                 {
                                     <tr>
-                                        <td>@d.DishName</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                @Html.Partial("_DishPhoto", d.DishName)
+                                                <span>@d.DishName</span>
+                                            </div>
+                                        </td>
                                         <td>@d.Section</td>
                                         <td>@FeastPlanService.CategoryLabel(d.Category)</td>
                                     </tr>
