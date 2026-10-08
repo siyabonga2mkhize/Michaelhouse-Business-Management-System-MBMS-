@@ -66,8 +66,13 @@
                                         }
                                     </td>
                                     <td>
-                                        <div class="fw-semibold">@r.Dish</div>
-                                        <div class="small text-muted">asked for by @string.Join(", ", r.RequestedBy)</div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @Html.Partial("_DishPhoto", r.MatchedMeal ?? r.Dish)
+                                            <div>
+                                                <div class="fw-semibold">@r.Dish</div>
+                                                <div class="small text-muted">asked for by @string.Join(", ", r.RequestedBy)</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-end">@r.Guests</td>
                                     <td>@(r.MatchedMeal ?? "—")</td>

@@ -77,6 +77,11 @@
     bool isRsvpOpen = Model.Status == EventStatus.RsvpOpen;
     bool isRsvpClosed = Model.Status == EventStatus.RsvpClosed;
     bool isFeastPlanReady = Model.Status == EventStatus.FeastPlanGenerated;
+
+    // UC19 feast plan for this event (FeastPlanController)
+    var feastPlan = ViewBag.FeastPlan as EventFeastPlan;
+    string userRole = Session["UserRole"] != null ? Session["UserRole"].ToString() : "";
+    bool canCoordinateFeast = FeastPlanRoles.CanCoordinate(userRole);
 }
 
 <style>
@@ -669,6 +674,38 @@
                         🍽 View Kitchen Plan
                     </a>
                 </div>
+            </div>
+        }
+
+        <!-- UC19 feast plan: status and link, once RSVPs have closed -->
+        @if (isRsvpClosed || isFeastPlanReady)
+        {
+            <div class="ed-card">
+                <div class="ed-card-title">Feast Plan (UC19)</div>
+                @if (feastPlan == null)
+                {
+                    <p style="font-size:.85rem; color:#6b7280; margin-bottom:.75rem;">
+                        No feast plan yet. The kitchen works from the RSVP estimate until the Cafeteria Manager approves one.
+                    </p>
+                    if (canCoordinateFeast)
+                    {
+                        <a href="@Url.Action("Rsvps", "FeastPlan", new { id = Model.Id })" class="btn btn-primary">Start feast plan</a>
+                    }
+                }
+                else
+                {
+                    <p style="font-size:.85rem; margin-bottom:.75rem;">
+                        <span class="badge @FeastPlanService.StatusBadge(feastPlan.Status)">@FeastPlanService.StatusLabel(feastPlan.Status)</span>
+                        &nbsp;@feastPlan.TotalGuests guests · revision @feastPlan.Revision
+                        @if (feastPlan.Status == FeastPlanStatus.Approved)
+                        {
+                            <br /><span style="color:#065f46;">The Kitchen Plan and ingredient issue now use this plan's dishes and portions.</span>
+                        }
+                    </p>
+                    <a href="@Url.Action("Open", "FeastPlan", new { id = feastPlan.Id })" class="btn btn-outline-primary">
+                        @(feastPlan.Status == FeastPlanStatus.Approved ? "View approved feast plan" : "Open feast plan")
+                    </a>
+                }
             </div>
         }
 

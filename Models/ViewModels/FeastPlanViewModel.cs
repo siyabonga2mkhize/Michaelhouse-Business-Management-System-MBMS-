@@ -35,6 +35,11 @@ namespace Michaelhouse.Models.ViewModels
         // Dietary groups attending and whether the buffet covers them
         public Michaelhouse.Services.BuffetCoverageReport Coverage { get; set; }
 
+        // The approved UC19 feast plan whose dishes and portions are used
+        // instead of the RSVP estimate (null: no approved plan yet)
+        public int? ApprovedFeastPlanId { get; set; }
+        public DateTime? ApprovedFeastPlanAt { get; set; }
+
         // Ingredients issued from stock for this event (KitchenIssueService)
         public DateTime? IngredientsIssuedAt { get; set; }
         public string IngredientsIssuedBy { get; set; }

@@ -7,7 +7,10 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Core;
 using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Web.Hosting;
 
 namespace Michaelhouse.Services
 {
@@ -928,6 +931,22 @@ namespace Michaelhouse.Services
                 case FeastPlanStatus.Rejected: return "bg-danger";
                 default: return "bg-secondary";
             }
+        }
+
+        // Dish photos: ~/Content/Images/feast/<dish name as a slug>.jpg,
+        // e.g. "Baked Hake & Potato Wedges" → baked-hake-potato-wedges.jpg.
+        // No photo for a dish: null, and the page shows a placeholder.
+        public const string PhotoFolder = "~/Content/Images/feast/";
+
+        public static string DishPhoto(string dishName)
+        {
+            if (string.IsNullOrWhiteSpace(dishName)) return null;
+
+            string slug = Regex.Replace(dishName.ToLowerInvariant().Replace("&", " "), "[^a-z0-9]+", "-").Trim('-');
+            string path = PhotoFolder + slug + ".jpg";
+            string file = HostingEnvironment.MapPath(path);
+
+            return file != null && File.Exists(file) ? path : null;
         }
 
         public static string CategoryLabel(FeastDishCategory category)

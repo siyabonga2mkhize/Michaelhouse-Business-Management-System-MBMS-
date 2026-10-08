@@ -306,6 +306,7 @@ namespace Michaelhouse.Controllers
             ViewBag.UsesTemplateMenu = !_db.CafeteriaEventMenuItems.Any(b => b.EventId == id) && evt.MenuTemplateId.HasValue;
             ViewBag.CanEdit = CanEdit(evt);
             ViewBag.Houses = _db.Residences.ToList().ToDictionary(r => r.ResidenceId, r => r.Name);
+            ViewBag.FeastPlan = new FeastPlanService(_db).LivePlanFor(id);   // UC19, or null
 
             return View(evt);
         }
@@ -525,6 +526,18 @@ namespace Michaelhouse.Controllers
                 .OrderBy(e => e.EventDate)
                 .ThenBy(e => e.StartTime)
                 .ToList();
+
+            // Per event: its approved UC19 feast plan (if any) and
+            // whether the ingredients have already been issued
+            var ids = events.Select(e => e.Id).ToList();
+            ViewBag.ApprovedPlans = _db.EventFeastPlans
+                .Where(p => ids.Contains(p.EventId) && p.Status == FeastPlanStatus.Approved)
+                .GroupBy(p => p.EventId)
+                .ToDictionary(g => g.Key, g => g.Max(p => p.Id));
+
+            var keys = ids.Select(KitchenIssueService.EventKey).ToList();
+            var issued = _db.KitchenIngredientIssues.Where(i => keys.Contains(i.IssueKey)).Select(i => i.IssueKey).ToList();
+            ViewBag.IssuedEventIds = ids.Where(id => issued.Contains(KitchenIssueService.EventKey(id))).ToList();
 
             return View(events);
         }

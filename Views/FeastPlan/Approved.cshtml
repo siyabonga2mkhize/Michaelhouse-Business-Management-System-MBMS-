@@ -15,7 +15,34 @@
         .FirstOrDefault();
 }
 
+@section Styles {
+    <style>
+        /* Print / Save as PDF: only the plan, no app menus */
+        @@media print {
+            @@page { margin: 14mm; }
+            nav.navbar, #sidebar, #sidebarCollapse { display: none !important; }
+            .app-shell { display: block !important; }
+            .main-content { padding: 0 !important; overflow: visible !important; animation: none !important; }
+            body { background: #fff !important; }
+            .card { box-shadow: none !important; break-inside: avoid; }
+            .alert { break-inside: avoid; }
+            tr { break-inside: avoid; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+}
+
 <div class="container-fluid py-4">
+
+    <div class="d-none d-print-block mb-3" style="border-bottom:2px solid #C21E2E;padding-bottom:10px;">
+        <div class="d-flex align-items-center gap-3">
+            <img src="@Url.Content("~/Content/logo.svg.png")" alt="Michaelhouse" style="height:48px;width:auto;" />
+            <div>
+                <div style="font-family:'Playfair Display', serif;font-size:20px;font-weight:700;">Michaelhouse · Approved Feast Plan</div>
+                <div class="small text-muted">Printed @SchoolClock.Now.ToString("dd MMM yyyy HH:mm") · plan @Model.Id, revision @Model.Revision</div>
+            </div>
+        </div>
+    </div>
 
     <div class="d-print-none">
         @Html.Partial("_Steps", 10)
@@ -23,7 +50,9 @@
 
     @Html.Partial("_PlanHeader", Model)
 
-    <div class="alert alert-success">
+    <div class="row g-3 mb-3 align-items-stretch">
+    <div class="col-lg-8">
+    <div class="alert alert-success h-100 mb-0">
         <i class="bi bi-lock-fill me-1"></i>
         <strong>Approved and locked.</strong>
         @if (approval != null)
@@ -45,6 +74,17 @@
         {
             <div class="mt-1">Cafeteria Manager: @Model.ManagerComments</div>
         }
+    </div>
+    </div>
+    <div class="col-lg-4 d-print-none">
+        <div class="h-100 text-white d-flex align-items-end"
+             style="min-height:140px;border-radius:8px;padding:16px;background:linear-gradient(0deg, rgba(26,26,26,0.85) 0%, rgba(26,26,26,0.1) 70%), url('@Url.Content(FeastPlanService.PhotoFolder + "kitchen-chef.jpg")') center / cover no-repeat;">
+            <div>
+                <div class="fw-semibold"><i class="bi bi-fire me-1"></i>With the kitchen</div>
+                <div class="small" style="color:#F3F4F6;">The kitchen prepares exactly the dishes and portions below.</div>
+            </div>
+        </div>
+    </div>
     </div>
 
     @Html.Partial("_Counts", new[] { Model.TotalGuests, Model.VegetarianGuests, Model.VeganGuests, Model.HalalGuests, Model.StandardGuests, Model.OtherRequirementGuests })
@@ -97,9 +137,27 @@
         <a class="btn btn-outline-secondary" href="@Url.Action("Index", "FeastPlan")">
             <i class="bi bi-arrow-left"></i> Feast plans
         </a>
-        <button type="button" class="btn btn-outline-dark" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print
+        <button type="button" class="btn btn-outline-dark" onclick="window.print()"
+                title="Opens the print window; choose 'Save as PDF' as the printer for a PDF copy">
+            <i class="bi bi-printer"></i> Print / Save as PDF
         </button>
+    </div>
+
+    <div class="d-none d-print-block mt-4" style="break-inside:avoid;">
+        <div class="row g-4">
+            <div class="col-6">
+                <div style="border-bottom:1px solid #1A1A1A;height:40px;"></div>
+                <div class="small mt-1">Received by (Chef / Kitchen Staff): name and signature</div>
+            </div>
+            <div class="col-3">
+                <div style="border-bottom:1px solid #1A1A1A;height:40px;"></div>
+                <div class="small mt-1">Date</div>
+            </div>
+            <div class="col-3">
+                <div style="border-bottom:1px solid #1A1A1A;height:40px;"></div>
+                <div class="small mt-1">Time</div>
+            </div>
+        </div>
     </div>
 
     <div class="d-print-none">

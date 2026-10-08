@@ -23,6 +23,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
+    <AutoParameterizationWebConfigConnectionStrings>false</AutoParameterizationWebConfigConnectionStrings>
     <Use64BitIISExpress>
     </Use64BitIISExpress>
     <IISExpressSSLPort>44321</IISExpressSSLPort>
@@ -373,13 +374,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202610060035367_CoachUpdate.cs" />
-    <Compile Include="Migrations\202610060035367_CoachUpdate.Designer.cs">
-      <DependentUpon>202610060035367_CoachUpdate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610060133551_InventoryUpdate.cs" />
-    <Compile Include="Migrations\202610060133551_InventoryUpdate.Designer.cs">
-      <DependentUpon>202610060133551_InventoryUpdate.cs</DependentUpon>
+    <Compile Include="Migrations\202610062150387_LocalCoachInventoryStandIn.cs" />
+    <Compile Include="Migrations\202610062150387_LocalCoachInventoryStandIn.Designer.cs">
+      <DependentUpon>202610062150387_LocalCoachInventoryStandIn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AIAlert.cs" />
@@ -591,6 +588,53 @@
     <Compile Include="StudentQRCodeService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Images\feast\apple-cinnamon-oats.jpg" />
+    <Content Include="Content\Images\feast\chicken-breakfast-muffin.jpg" />
+    <Content Include="Content\Images\feast\chicken-brown-rice-bowl.jpg" />
+    <Content Include="Content\Images\feast\chicken-pasta-primavera.jpg" />
+    <Content Include="Content\Images\feast\chicken-sweet-potato.jpg" />
+    <Content Include="Content\Images\feast\chicken-vegetable-noodles.jpg" />
+    <Content Include="Content\Images\feast\chickpea-rice-bowl.jpg" />
+    <Content Include="Content\Images\feast\chickpea-vegetable-curry.jpg" />
+    <Content Include="Content\Images\feast\coconut-chickpea-butternut-curry.jpg" />
+    <Content Include="Content\Images\feast\egg-cheese-breakfast-bowl.jpg" />
+    <Content Include="Content\Images\feast\farm-fresh-chicken-vegetables.jpg" />
+    <Content Include="Content\Images\feast\fish-rice-mixed-vegetables.jpg" />
+    <Content Include="Content\Images\feast\french-toast-fresh-fruit.jpg" />
+    <Content Include="Content\Images\feast\greek-yoghurt-granola-berries.jpg" />
+    <Content Include="Content\Images\feast\grilled-fish-rice.jpg" />
+    <Content Include="Content\Images\feast\halal-chicken-biryani.jpg" />
+    <Content Include="Content\Images\feast\halal-chicken-breakfast-wrap.jpg" />
+    <Content Include="Content\Images\feast\halal-cottage-pie.jpg" />
+    <Content Include="Content\Images\feast\herb-chicken-rice-broccoli.jpg" />
+    <Content Include="Content\Images\feast\lamb-curry-rice.jpg" />
+    <Content Include="Content\Images\feast\lentil-vegetable-stew.jpg" />
+    <Content Include="Content\Images\feast\mushroom-spinach-omelette.jpg" />
+    <Content Include="Content\Images\feast\mushroom-spinach-pasta-bake.jpg" />
+    <Content Include="Content\Images\feast\pap-beef-stew-cabbage.jpg" />
+    <Content Include="Content\Images\feast\peanut-butter-toast-fruit.jpg" />
+    <Content Include="Content\Images\feast\roast-chicken-potatoes-vegetables.jpg" />
+    <Content Include="Content\Images\feast\sausage-egg-toast.jpg" />
+    <Content Include="Content\Images\feast\scrambled-eggs-toast.jpg" />
+    <Content Include="Content\Images\feast\tofu-scramble-on-toast.jpg" />
+    <Content Include="Content\Images\feast\tofu-vegetable-stir-fry.jpg" />
+    <Content Include="Content\Images\feast\tuna-pasta-salad.jpg" />
+    <Content Include="Content\Images\feast\turkey-couscous-bowl.jpg" />
+    <Content Include="Content\Images\feast\vegetable-bean-chilli.jpg" />
+    <Content Include="Content\Images\feast\vegetable-curry.jpg" />
+    <Content Include="Content\Images\feast\vegetable-omelette-toast.jpg" />
+    <Content Include="Content\Images\feast\weet-bix-banana-milk.jpg" />
+    <Content Include="Content\Images\feast\baked-hake-potato-wedges.jpg" />
+    <Content Include="Content\Images\feast\banquet-buffet.jpg" />
+    <Content Include="Content\Images\feast\bean-butternut-wrap.jpg" />
+    <Content Include="Content\Images\feast\beef-lasagne-garden-salad.jpg" />
+    <Content Include="Content\Images\feast\beef-pasta.jpg" />
+    <Content Include="Content\Images\feast\beef-vegetable-casserole.jpg" />
+    <Content Include="Content\Images\feast\beef-vegetable-stir-fry.jpg" />
+    <Content Include="Content\Images\feast\breakfast-wrap.jpg" />
+    <Content Include="Content\Images\feast\CREDITS.txt" />
+    <Content Include="Content\Images\feast\halal-beef-burger-salad.jpg" />
+    <Content Include="Content\Images\feast\kitchen-chef.jpg" />
     <Content Include="Content\academic.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -643,6 +687,9 @@
     <None Include="Properties\PublishProfiles\MBMS - Web Deploy1.pubxml" />
     <None Include="Properties\PublishProfiles\michaelhouse - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\michaelhouse - Web Deploy1.pubxml" />
+    <None Include="Properties\PublishProfiles\Michaelhouse20261007202543 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\Michaelhouse20261007214234 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\michealhousewebapp - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\schoolwebapp - Web Deploy.pubxml" />
     <Content Include="Misc\Seed_Missing_Data.sql" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -790,7 +837,6 @@
     <Content Include="Views\Cafeteria\Schedule.cshtml" />
     <Content Include="Views\Cafeteria\ChefReview.cshtml" />
     <Content Include="Views\Cafeteria\ChefIndex.cshtml" />
-    <Content Include="Views\Dashboard.cshtml" />
     <Content Include="Views\Cafeteria\Dashboard.cshtml" />
     <Content Include="Views\Coach\Create.cshtml" />
     <Content Include="Views\Coach\Index.cshtml" />
@@ -856,10 +902,11 @@
     <Content Include="Views\FeastPlan\_Steps.cshtml" />
     <Content Include="Views\FeastPlan\_Counts.cshtml" />
     <Content Include="Views\FeastPlan\_Items.cshtml" />
+    <Content Include="Views\FeastPlan\_DishPhoto.cshtml" />
     <Content Include="Views\FeastPlan\_Check.cshtml" />
     <Content Include="Views\FeastPlan\_PlanHeader.cshtml" />
     <Content Include="Views\FeastPlan\_History.cshtml" />
-    <WebConfigFile Include="Web.config" />
+    <Content Include="Web.config" />
     <Content Include="Views\Trip\AttendanceSuccess.cshtml" />
     <Content Include="Views\Trip\AttendanceError.cshtml" />
     <Content Include="Views\Trip\GenerateQRCodes.cshtml" />
@@ -1049,11 +1096,8 @@
     <Analyzer Include="packages\MSTest.Analyzers.4.3.3\analyzers\dotnet\cs\MSTest.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202610060035367_CoachUpdate.resx">
-      <DependentUpon>202610060035367_CoachUpdate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610060133551_InventoryUpdate.resx">
-      <DependentUpon>202610060133551_InventoryUpdate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610062150387_LocalCoachInventoryStandIn.resx">
+      <DependentUpon>202610062150387_LocalCoachInventoryStandIn.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

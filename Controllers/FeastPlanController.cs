@@ -82,6 +82,28 @@ namespace Michaelhouse.Controllers
         }
 
         // ============================================================
+        // GET: FeastPlan/Open/5 (plan id) — the page a plan opens on for
+        // this user, as on Index. Used by the event pages (UC17).
+        // ============================================================
+
+        [HttpGet]
+        public ActionResult Open(int id)
+        {
+            var role = CurrentRole();
+            if (!FeastPlanRoles.CanViewApproved(role)) return Forbidden();
+
+            var plan = _plans.FindPlan(id);
+            if (plan == null) return HttpNotFound();
+
+            if (plan.Status == FeastPlanStatus.Approved) return RedirectToAction("Approved", new { id });
+            if (plan.Status == FeastPlanStatus.AwaitingApproval && FeastPlanRoles.CanApprove(role)) return RedirectToAction("Decision", new { id });
+            if (plan.Status == FeastPlanStatus.Drafting && FeastPlanRoles.CanCoordinate(role) && plan.Stage < FeastStage.ReadyForReview)
+                return RedirectToAction(ActionForStep(plan.Stage), new { id });
+
+            return RedirectToAction("Review", new { id });
+        }
+
+        // ============================================================
         // STEP 1 — GET: FeastPlan/Rsvps/5 (event id)
         // ============================================================
 

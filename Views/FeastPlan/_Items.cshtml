@@ -31,15 +31,20 @@ else
                 {
                     <tr>
                         <td class="fw-semibold">
-                            @item.DishName
-                            @if (!string.IsNullOrEmpty(item.Source) && item.Source != "Buffet")
-                            {
-                                <span class="badge bg-light text-dark border fw-normal">@item.Source</span>
-                            }
-                            @if (item.OptimisedForWaste)
-                            {
-                                <span class="badge bg-success fw-normal" title="Trimmed using @item.LeftoverRatePercent.ToString("0.#")% leftover history">waste-optimised</span>
-                            }
+                            <div class="d-flex align-items-center gap-2">
+                                @Html.Partial("_DishPhoto", item.DishName)
+                                <div>
+                                    @item.DishName
+                                    @if (!string.IsNullOrEmpty(item.Source) && item.Source != "Buffet")
+                                    {
+                                        <span class="badge bg-light text-dark border fw-normal">@item.Source</span>
+                                    }
+                                    @if (item.OptimisedForWaste)
+                                    {
+                                        <span class="badge bg-success fw-normal" title="Trimmed using @item.LeftoverRatePercent.ToString("0.#")% leftover history">waste-optimised</span>
+                                    }
+                                </div>
+                            </div>
                         </td>
                         <td>@item.Section</td>
                         <td>@FeastPlanService.CategoryLabel(item.Category)</td>
