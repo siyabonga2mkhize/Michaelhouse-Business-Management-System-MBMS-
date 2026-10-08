@@ -111,7 +111,10 @@ namespace Michaelhouse.Controllers
         {
             if (!Request.IsLocal) return new HttpStatusCodeResult(404);
 
-            string eventName = "Feast Plan Demo - Founders' Day Buffet";
+            string eventName = "Founders' Day Buffet";
+            // The two library meals guests name as favourites; kept off the buffet
+            const string favouriteAvailableName = "Breakfast Wrap";
+            const string favouriteShortName = "Fish, Rice & Mixed Vegetables";
             const string loginNote = "Log in as cafeteria@michaelhouse.co.za / Cafeteria@123 and open /FeastPlan";
             bool another = !string.IsNullOrWhiteSpace(again);
             int dayOffset = 0;
@@ -157,19 +160,36 @@ namespace Michaelhouse.Controllers
                     .OrderBy(m => m.Name)
                     .ToList();
 
+                var favouriteLibraryMeals = libraryAll.Where(m => m.Name == favouriteAvailableName || m.Name == favouriteShortName).ToList();
+                libraryAll = libraryAll.Where(m => !favouriteLibraryMeals.Contains(m)).ToList();
+
                 var standardMains = libraryAll.Where(m => FeastPlanService.DefaultCategory("Main", m) == FeastDishCategory.Standard).ToList();
                 var vegetarianMains = libraryAll.Where(m => FeastPlanService.DefaultCategory("Main", m) == FeastDishCategory.Vegetarian).ToList();
                 var halalMains = libraryAll.Where(m => FeastPlanService.DefaultCategory("Main", m) == FeastDishCategory.Halal).ToList();
 
                 // Mains: 3 standard, 1 vegetarian, 1 halal (as many as the library has)
+                // Sensible dishes first (a hearty main is not a breakfast oat), falling back to
+                // whatever the library has when a named dish is missing
+                Func<string[], List<MenuItem>, int, List<MenuItem>> pick = (names, fallback, take) =>
+                {
+                    var chosen = new List<MenuItem>();
+                    foreach (var n in names)
+                    {
+                        var hit = libraryAll.FirstOrDefault(m => m.Name == n);
+                        if (hit != null && chosen.Count < take) chosen.Add(hit);
+                    }
+                    foreach (var m in fallback) if (chosen.Count < take && !chosen.Contains(m)) chosen.Add(m);
+                    return chosen;
+                };
+
                 var mains = new List<MenuItem>();
-                mains.AddRange(standardMains.Take(3));
-                mains.AddRange(vegetarianMains.Take(1));
-                mains.AddRange(halalMains.Take(1));
+                mains.AddRange(pick(new[] { "Baked Hake & Potato Wedges", "Beef & Vegetable Casserole", "Beef Lasagne & Garden Salad" }, standardMains, 3));
+                mains.AddRange(pick(new[] { "Mushroom & Spinach Pasta Bake", "Vegetable & Bean Chilli" }, vegetarianMains, 1));
+                mains.AddRange(pick(new[] { "Halal Chicken Biryani", "Halal Beef Burger & Salad" }, halalMains, 1));
 
                 var rest = libraryAll.Where(m => !mains.Contains(m)).ToList();
-                var sides = rest.Skip(1).Take(2).ToList();
-                var desserts = rest.Take(1).ToList();
+                var sides = pick(new[] { "Vegetable Curry", "Tuna Pasta Salad" }, rest.Skip(1).ToList(), 2);
+                var desserts = pick(new[] { "Greek Yoghurt, Granola & Berries", "French Toast & Fresh Fruit" }, rest, 1);
 
                 if (mains.Count < 2)
                 {
@@ -234,7 +254,7 @@ namespace Michaelhouse.Controllers
                 // Cultural favourites: one meal the kitchen has stock for, one it is short of,
                 // and one dish that isn't in the meal library at all
                 var onBuffet = new HashSet<int>(buffet.Select(r => r.Meal.Id));
-                var library = libraryAll;
+                var library = libraryAll.Concat(favouriteLibraryMeals).ToList();
                 var projected = analysis.ProjectedStock(evt.EventDate, evt.Id);
 
                 MenuItem availableMeal = null;
@@ -259,8 +279,21 @@ namespace Michaelhouse.Controllers
                     notListed = "Ouma's secret milk tart surprise";
                 }
 
-                string favA = availableMeal != null ? availableMeal.Name : "";
-                string favB = shortMeal != null ? shortMeal.Name : "";
+                // Prefer the two named meals; report (below) whether the stock really is
+                // enough / short, because stock levels come from the inventory seed
+                var namedA = favouriteLibraryMeals.FirstOrDefault(m => m.Name == favouriteAvailableName);
+                var namedB = favouriteLibraryMeals.FirstOrDefault(m => m.Name == favouriteShortName);
+                Func<MenuItem, bool> isShortOfStock = meal => FeastAnalysisService.Requirement(meal, 4).Any(need =>
+                {
+                    ProjectedStockLine line;
+                    return !projected.TryGetValue(need.Key.Id, out line) || need.Value > line.Projected;
+                });
+
+                string favA = namedA != null ? namedA.Name : availableMeal != null ? availableMeal.Name : "";
+                string favB = namedB != null ? namedB.Name : shortMeal != null ? shortMeal.Name : "";
+                string stockNote =
+                    (namedA != null ? favouriteAvailableName + ": " + (isShortOfStock(namedA) ? "SHORT of stock (expected enough)" : "enough stock") : favouriteAvailableName + ": not in the library") + "\n" +
+                    (namedB != null ? favouriteShortName + ": " + (isShortOfStock(namedB) ? "ingredients short" : "has enough stock (expected short)") : favouriteShortName + ": not in the library") + "\n";
 
                 // name | group | own diet | guests as "diet:favourite" (A = available, B = short, C = not listed)
                 var people = new[]
@@ -335,7 +368,9 @@ namespace Michaelhouse.Controllers
                     "Buffet meals: " + buffet.Count + " (" + mains.Count + " mains), starter colour/texture tags added to " + tagged + " meals\n" +
                     "Favourite that should be Available: " + (favA.Length > 0 ? favA : "(none found)") + "\n" +
                     "Favourite that should be Not available: " + (favB.Length > 0 ? favB : "(none found: every meal has enough stock)") + "\n" +
-                    "Favourite that should be Not listed: " + notListed + "\n\n" + loginNote,
+                    "Favourite that should be Not listed: " + notListed + "\n" +
+                    stockNote + "\n" + loginNote + "\n\n" +
+                    "BUFFET: " + string.Join("; ", buffet.Select(r => r.Section + " = " + r.Meal.Name)),
                     "text/plain");
             }
         }

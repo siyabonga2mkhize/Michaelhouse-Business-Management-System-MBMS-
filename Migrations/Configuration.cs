@@ -560,7 +560,9 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             context.SaveChanges();
         }
 
-        if (!context.Users.Any(u => u.Role == "Transport Manager"))
+        // (checked by email: the role used to be compared as "Transport Manager" with a space,
+        // which never matched, so a duplicate account was added on every seed run)
+        if (!context.Users.Any(u => u.Email == "transport@michaelhouse.co.za"))
         {
             context.Users.Add(new AppUser
             {
