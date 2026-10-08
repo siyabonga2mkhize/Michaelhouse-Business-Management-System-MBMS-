@@ -25,7 +25,7 @@
     <_SelectedScaffolderID>MvcControllerWithContextScaffolder</_SelectedScaffolderID>
     <_SelectedScaffolderCategoryPath>root/Common</_SelectedScaffolderCategoryPath>
     <ProjectView>ProjectFiles</ProjectView>
-    <NameOfLastUsedPublishProfile>C:\Users\thesm\source\repos\Michaelhouse Business Management System %28MBMS%29\Michaelhouse\Properties\PublishProfiles\MBMS - Web Deploy1.pubxml</NameOfLastUsedPublishProfile>
+    <NameOfLastUsedPublishProfile>C:\MSMS-UC19\Michaelhouse-Business-Management-System-MBMS-\Properties\PublishProfiles\michealhousewebapp - Web Deploy.pubxml</NameOfLastUsedPublishProfile>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
@@ -46,7 +46,7 @@
           </StartCmdLineArguments>
           <StartWorkingDirectory>
           </StartWorkingDirectory>
-          <EnableENC>False</EnableENC>
+          <EnableENC>True</EnableENC>
           <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
         </WebProjectProperties>
       </FlavorProperties>

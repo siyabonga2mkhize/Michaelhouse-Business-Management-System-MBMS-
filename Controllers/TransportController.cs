@@ -263,8 +263,8 @@ namespace Michaelhouse.Controllers
         // Vehicle Management (basic CRUD)
         public ActionResult Vehicles()
         {
-            var vehicles = db.Vehicles.OrderBy(v => v.VehicleNumber).ToList();
-            return View(vehicles);
+            // The vehicle list lives on the Vehicle controller (there is no Transport/Vehicles view)
+            return RedirectToAction("Index", "Vehicle");
         }
 
         [HttpPost]

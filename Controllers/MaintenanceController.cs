@@ -1340,9 +1340,10 @@ namespace Michaelhouse.Controllers
                 j.DateCreated.Month == DateTime.Now.Month
                 && j.DateCreated.Year == DateTime.Now.Year);
 
+            var lastMonth = DateTime.Now.AddMonths(-1);
             ViewBag.JobsLastMonth = db.JobCards.Count(j =>
-                j.DateCreated.Month == DateTime.Now.AddMonths(-1).Month
-                && j.DateCreated.Year == DateTime.Now.AddMonths(-1).Year);
+                j.DateCreated.Month == lastMonth.Month
+                && j.DateCreated.Year == lastMonth.Year);
 
             ViewBag.EmergencyCount = db.JobCards.Count(j =>
                 j.Priority == "Emergency"

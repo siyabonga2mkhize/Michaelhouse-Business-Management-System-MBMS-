@@ -627,6 +627,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
         // ──────────────────────────────────────────────────────────────
         // UC13: Seed Student logins + profiles
         // ──────────────────────────────────────────────────────────────
+        SeedDemoStudents(context);
         var studentSeeds = new[]
                {
             new { Id = 1, Email = "amina.khan@michaelhouse.co.za",      Allergies = "Nuts",   Medical = "",         Sport = "Rugby" },
@@ -689,6 +690,11 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             // =============================================================
 
             new Michaelhouse.Services.StudentSportService(context).SyncAll();
+        }
+
+        // Everything below used to sit inside the student loop above, so on a
+        // database with no students (a fresh one) none of it was seeded: no
+        // meal library, products, suppliers, assets or staff. It now runs once.
 
             {
                             
@@ -1901,7 +1907,7 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
 
             // ── Seed Boarding House test data (from other branch) ──
             SeedBoardingHouseTestData(context);
-        }
+            SeedStudentResidences(context);
 
         // More meals, their ingredients, cafeteria suppliers and opening
         // stock. Outside the student loop above so it runs once. Only
@@ -2179,6 +2185,116 @@ internal sealed class Configuration : DbMigrationsConfiguration<Michaelhouse.Mod
             context.SaveChanges();
         }
     }
+    // =====================================================================
+    // Demo students and parents. Independent of the transport/driver seed
+    // (which only created students when a driver named Sibusiso existed, so a
+    // fresh database had none). The first five keep the ids the student login
+    // seed below expects (1-5). Tops up by student number (S0001...), so it is safe to run every time.
+    // =====================================================================
+    private void SeedDemoStudents(DBContextClass context)
+    {
+        // surname, parent first name, relationship, student first name, grade, boarding
+        var rows = new[]
+        {
+            new { Last = "Khan",     Parent = "Amina",    Rel = "Mother", First = "Amina",    Grade = 8,  Boarder = true  },
+            new { Last = "Ntuli",    Parent = "Thabo",    Rel = "Father", First = "Thabo",    Grade = 9,  Boarder = true  },
+            new { Last = "Mthembu",  Parent = "Lindiwe",  Rel = "Mother", First = "Lindiwe",  Grade = 10, Boarder = true  },
+            new { Last = "Zulu",     Parent = "Sipho",    Rel = "Father", First = "Sipho",    Grade = 8,  Boarder = true  },
+            new { Last = "Dlamini",  Parent = "Nomsa",    Rel = "Mother", First = "Nomsa",    Grade = 11, Boarder = true  },
+            new { Last = "Mokoena",  Parent = "Palesa",   Rel = "Mother", First = "Kagiso",   Grade = 9,  Boarder = true  },
+            new { Last = "Naidoo",   Parent = "Priya",    Rel = "Mother", First = "Kiran",    Grade = 10, Boarder = true  },
+            new { Last = "Botha",    Parent = "Pieter",   Rel = "Father", First = "Johan",    Grade = 12, Boarder = true  },
+            new { Last = "Patel",    Parent = "Ayesha",   Rel = "Mother", First = "Imran",    Grade = 11, Boarder = true  },
+            new { Last = "Khumalo",  Parent = "Lindiwe",  Rel = "Mother", First = "Sbusiso",  Grade = 12, Boarder = true  },
+            new { Last = "Smith",    Parent = "Michael",  Rel = "Father", First = "Liam",     Grade = 8,  Boarder = false },
+            new { Last = "Fourie",   Parent = "Ruth",     Rel = "Mother", First = "Daniel",   Grade = 9,  Boarder = false }
+        };
+
+        int n = 0;
+        foreach (var r in rows)
+        {
+            n++;
+            string number = "S" + n.ToString("0000");
+            var existing = context.Students.FirstOrDefault(s => s.StudentNumber == number);
+            if (existing != null)
+            {
+                if (existing.IsBoarding != r.Boarder) { existing.IsBoarding = r.Boarder; context.SaveChanges(); }
+                continue;
+            }
+
+            var parent = new Parent
+            {
+                Name = r.Parent + " " + r.Last,
+                Contact = r.Parent.ToLower() + "." + r.Last.ToLower() + "@example.local",
+                CellPhone = "07110000" + n.ToString("00"),
+                Relationship = r.Rel,
+                EmergencyContactName = (r.Rel == "Mother" ? "Mrs " : "Mr ") + r.Last,
+                EmergencyContactPhone = "07120000" + n.ToString("00")
+            };
+            context.Parents.Add(parent);
+            context.SaveChanges();
+
+            context.Students.Add(new Student
+            {
+                FirstName = r.First,
+                LastName = r.Last,
+                DOB = DateTime.Today.AddYears(-(r.Grade + 6)),
+                CurrentGrade = "Grade " + r.Grade,
+                GradeLevel = r.Grade,
+                ParentId = parent.ParentId,
+                StudentNumber = number,
+                EnrollmentDate = DateTime.Now,
+                IsBoarding = r.Boarder,
+                IsActive = true
+            });
+            context.SaveChanges();
+        }
+    }
+
+    // Boarders get a bed in one of the houses (spread round-robin), so the
+    // House Master pages have residents. Safe to run every time: it only
+    // places boarders who have no active bed yet.
+    private void SeedStudentResidences(DBContextClass context)
+    {
+        var residences = context.Residences.OrderBy(r => r.ResidenceId).ToList();
+        if (residences.Count == 0) return;
+
+        var placed = new HashSet<int>(context.ResidenceAllocations.Where(a => a.IsActive).Select(a => a.StudentId));
+        var boarders = context.Students.Where(s => s.IsBoarding && s.IsActive).OrderBy(s => s.StudentId).ToList()
+            .Where(s => !placed.Contains(s.StudentId)).ToList();
+
+        int i = 0;
+        foreach (var student in boarders)
+        {
+            for (int attempt = 0; attempt < residences.Count; attempt++)
+            {
+                var residence = residences[(i + attempt) % residences.Count];
+                var room = context.Rooms.Where(r => r.ResidenceId == residence.ResidenceId).OrderBy(r => r.RoomId).ToList()
+                    .FirstOrDefault(r => context.Beds.Any(b => b.RoomId == r.RoomId && !b.IsOccupied && !b.IsArchived));
+                if (room == null) continue;
+
+                var bed = context.Beds.Where(b => b.RoomId == room.RoomId && !b.IsOccupied && !b.IsArchived).OrderBy(b => b.BedId).First();
+                bed.IsOccupied = true;
+                bed.Status = "Occupied";
+                room.OccupiedBeds += 1;
+                room.IsFull = room.OccupiedBeds >= room.Capacity;
+                student.ResidenceId = residence.ResidenceId;
+                context.ResidenceAllocations.Add(new ResidenceAllocation
+                {
+                    StudentId = student.StudentId,
+                    ResidenceId = residence.ResidenceId,
+                    RoomId = room.RoomId,
+                    BedId = bed.BedId,
+                    IsActive = true,
+                    AllocatedAt = DateTime.UtcNow
+                });
+                context.SaveChanges();
+                break;
+            }
+            i++;
+        }
+    }
+
     private void SeedMenuItems(DBContextClass context)
     {
         var menuItems = new[]
